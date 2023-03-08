@@ -26,7 +26,7 @@ namespace JeffPires.VisualChatGPTStudio
             text = RemoveHtmlTags(text, "<returns", "</returns>");
 
             text = text.Replace("//", "").Replace("///", "");
-            //
+
             //replace matches of these regexes with space
             return new Regex(@"<[^>]+>|&nbsp;", RegexOptions.Multiline | RegexOptions.Compiled).Replace(text, " ");
         }

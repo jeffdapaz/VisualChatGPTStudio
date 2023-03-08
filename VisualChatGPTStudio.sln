@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32929.385
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualChatGPTStudio", "VisualChatGPTStudio.csproj", "{E0B7C5AC-2E05-4849-81E4-8BF62BBCD16A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E0B7C5AC-2E05-4849-81E4-8BF62BBCD16A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0B7C5AC-2E05-4849-81E4-8BF62BBCD16A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0B7C5AC-2E05-4849-81E4-8BF62BBCD16A}.Debug|x86.ActiveCfg = Debug|x86
+		{E0B7C5AC-2E05-4849-81E4-8BF62BBCD16A}.Debug|x86.Build.0 = Debug|x86
+		{E0B7C5AC-2E05-4849-81E4-8BF62BBCD16A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0B7C5AC-2E05-4849-81E4-8BF62BBCD16A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E0B7C5AC-2E05-4849-81E4-8BF62BBCD16A}.Release|x86.ActiveCfg = Release|x86
+		{E0B7C5AC-2E05-4849-81E4-8BF62BBCD16A}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D6B55750-5329-496A-8EAD-898A2B73D370}
+	EndGlobalSection
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 2
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://jeffersonpaz.visualstudio.com/
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = VisualChatGPTStudio.csproj
+		SccLocalPath1 = .
+	EndGlobalSection
+EndGlobal

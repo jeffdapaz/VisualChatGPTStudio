@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <Extern href="stdidcmd.h" />
+  <Extern href="vsshlids.h" />
+  <Include href="KnownImageIds.vsct" />
+  <Include href="VSGlobals.vsct" />
+
+  <Commands package="VisuallChatGPTStudio">
+    <Groups>
+      <Group guid="VisuallChatGPTStudio" id="MyMenuGroup" priority="0x0700">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN" />
+      </Group>
+    </Groups>
+
+    <Buttons>
+      <Button guid="VisuallChatGPTStudio" id="Complete" priority="0x0000" type="Button">
+        <Parent guid="VisuallChatGPTStudio" id="MyMenuGroup" />
+        <Strings>
+          <ButtonText>chatGPT: Complete</ButtonText>
+          <LocCanonicalName>.VisuallChatGPTStudio.Complete</LocCanonicalName>
+        </Strings>
+      </Button>
+      <Button guid="VisuallChatGPTStudio" id="AddTests" priority="0x0100" type="Button">
+        <Parent guid="VisuallChatGPTStudio" id="MyMenuGroup" />
+        <Strings>
+          <ButtonText>chatGPT: Add Tests</ButtonText>
+          <LocCanonicalName>.VisuallChatGPTStudio.AddTests</LocCanonicalName>
+        </Strings>
+      </Button>
+      <Button guid="VisuallChatGPTStudio" id="FindBugs" priority="0x0200" type="Button">
+        <Parent guid="VisuallChatGPTStudio" id="MyMenuGroup" />
+        <Strings>
+          <ButtonText>chatGPT: Find Bugs</ButtonText>
+          <LocCanonicalName>.VisuallChatGPTStudio.FindBugs</LocCanonicalName>
+        </Strings>
+      </Button>
+      <Button guid="VisuallChatGPTStudio" id="Optimize" priority="0x0300" type="Button">
+        <Parent guid="VisuallChatGPTStudio" id="MyMenuGroup" />
+        <Strings>
+          <ButtonText>chatGPT: Optimize</ButtonText>
+          <LocCanonicalName>.VisuallChatGPTStudio.Optimize</LocCanonicalName>
+        </Strings>
+      </Button>
+      <Button guid="VisuallChatGPTStudio" id="Explain" priority="0x0400" type="Button">
+        <Parent guid="VisuallChatGPTStudio" id="MyMenuGroup" />
+        <Strings>
+          <ButtonText>chatGPT: Explain</ButtonText>
+          <LocCanonicalName>.VisuallChatGPTStudio.Explain</LocCanonicalName>
+        </Strings>
+      </Button>
+      <Button guid="VisuallChatGPTStudio" id="AddComments" priority="0x0500" type="Button">
+        <Parent guid="VisuallChatGPTStudio" id="MyMenuGroup" />
+        <Strings>
+          <ButtonText>chatGPT: Add Comments</ButtonText>
+          <LocCanonicalName>.VisuallChatGPTStudio.AddComments</LocCanonicalName>
+        </Strings>
+      </Button>
+      <Button guid="VisuallChatGPTStudio" id="AddSummary" priority="0x0600" type="Button">
+        <Parent guid="VisuallChatGPTStudio" id="MyMenuGroup" />
+        <Strings>
+          <ButtonText>chatGPT: Add Summary</ButtonText>
+          <LocCanonicalName>.VisuallChatGPTStudio.AddSummary</LocCanonicalName>
+        </Strings>
+      </Button>
+      <Button guid="VisuallChatGPTStudio" id="AskAnything" priority="0x0700" type="Button">
+        <Parent guid="VisuallChatGPTStudio" id="MyMenuGroup" />
+        <Strings>
+          <ButtonText>chatGPT: Ask Anything</ButtonText>
+          <LocCanonicalName>.VisuallChatGPTStudio.AskAnything</LocCanonicalName>
+        </Strings>
+      </Button>
+      <Button guid="guidVisuallChatGPTStudioPackageCmdSet" id="cmdidTerminalWindowCommand" priority="0x0100" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
+        <Strings>
+          <ButtonText>Visual chatGPT Studio</ButtonText>
+        </Strings>
+      </Button>
+    </Buttons>
+  </Commands>
+
+  <Symbols>
+    <GuidSymbol name="VisuallChatGPTStudio" value="{a8eb0343-b35c-4175-95d8-50549e609ff3}">
+      <IDSymbol name="MyMenuGroup" value="0x0001" />
+      <IDSymbol name="Complete" value="0x0000" />
+      <IDSymbol name="AddTests" value="0x0100" />
+      <IDSymbol name="FindBugs" value="0x0200" />
+      <IDSymbol name="Optimize" value="0x0300" />
+      <IDSymbol name="Explain" value="0x0400" />
+      <IDSymbol name="AddComments" value="0x0500" />
+      <IDSymbol name="AddSummary" value="0x0600" />
+      <IDSymbol name="AskAnything" value="0x0700" />
+    </GuidSymbol>
+
+    <GuidSymbol value="{8b0b1a54-4655-4dae-8984-022f82a739f2}" name="guidVisuallChatGPTStudioPackageCmdSet">
+      <IDSymbol value="256" name="cmdidTerminalWindowCommand" />
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>

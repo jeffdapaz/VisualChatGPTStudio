@@ -1,0 +1,60 @@
+﻿<UserControl x:Class="JeffPires.VisualChatGPTStudio.TerminalWindowControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
+             Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="300"
+             Name="MyToolWindow">
+    <Grid Name="grdRoot" Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="*" MinHeight="10px"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="*" MinHeight="10px"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Row="0" Name="grdRequestCommands">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" HorizontalAlignment="Left">Ask:</TextBlock>
+            <Button Grid.Column="2" Height="20" Width="20" HorizontalAlignment="Left" Name="btnRequestSend" Click="btnRequestSend_Click" ToolTip="Send">
+                <Image Source="Resources/send.png" Width="15" Height="15"/>
+            </Button>
+            <Button Grid.Column="4" Height="20" Width="20" HorizontalAlignment="Left" Name="btnRequestPast" Click="btnRequestPast_Click" ToolTip="Paste">
+                <Image Source="Resources/paste.png" Width="15" Height="15"/>
+            </Button>
+            <Button Grid.Column="6" Height="20" Width="20" HorizontalAlignment="Left" Name="btnRequestClear" Click="btnRequestClear_Click" ToolTip="Clear">
+                <Image Source="Resources/clear.png" Width="15" Height="15"/>
+            </Button>
+        </Grid>
+        <RichTextBox Grid.Row="2" Name="txtRequest" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AcceptsTab="True" />
+        <Grid Grid.Row="4" Name="grdResponseCommands">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" HorizontalAlignment="Left">Response:</TextBlock>
+            <Button Grid.Column="2" Height="20" Width="20" HorizontalAlignment="Left" Name="btnResponseCopy" Click="btnResponseCopy_Click" ToolTip="Copy">
+                <Image Source="Resources/copy.png" Width="15" Height="15"/>
+            </Button>
+        </Grid>
+        <RichTextBox Grid.Row="6" Name="txtResponse" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AcceptsTab="True" IsReadOnly="True" />
+    </Grid>
+</UserControl>

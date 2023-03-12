@@ -87,6 +87,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Resources\garbage.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Resources\clear.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>

@@ -1,5 +1,8 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Input;
+using MessageBox = System.Windows.MessageBox;
 
 namespace JeffPires.VisualChatGPTStudio.ToolWindows
 {
@@ -35,12 +38,41 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         #region Event Handlers
 
         /// <summary>
-        /// Handles click on the button by displaying a message box.
+        /// Handles the Click event of the btnRequestSend control.
         /// </summary>
-        /// <param name="sender">The event sender.</param>
-        /// <param name="e">The event args.</param>
-        private void button1_Click(object sender, RoutedEventArgs e)
+        public async void SendRequest(Object sender, ExecutedRoutedEventArgs e)
         {
+            try
+            {
+                TextRange textRange = new(txtRequest.Document.ContentStart, txtRequest.Document.ContentEnd);
+
+                if (string.IsNullOrWhiteSpace(textRange.Text))
+                {
+                    MessageBox.Show("Please write a request.", EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                await VS.StatusBar.ShowProgressAsync("Requesting chatGPT", 1, 2);
+
+
+            }
+            catch (Exception ex)
+            {
+                await VS.StatusBar.ShowProgressAsync(ex.Message, 2, 2);
+
+                MessageBox.Show(ex.Message, EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private void btnClear_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBoxResult result = MessageBox.Show("Clear the conversation?", EXTENSION_NAME, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
+
+            if (result == MessageBoxResult.No)
+            {
+                return;
+            }
+
 
         }
 
@@ -64,11 +96,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
             string message = "Please, set the OpenAI API key and restart Visual Studio.";
 
-            System.Windows.MessageBox.Show(message, EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(message, EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
 
             package.ShowOptionPage(typeof(OptionPageGrid));
         }
 
-        #endregion Methods
+        #endregion Methods        
     }
 }

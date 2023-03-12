@@ -23,50 +23,64 @@
 
     <Grid Name="grdRoot" Margin="5">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="5"/>
-            <RowDefinition Height="*" MinHeight="10px"/>
-            <RowDefinition Height="5"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="5"/>
-            <RowDefinition Height="*" MinHeight="10px"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="15"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-        <Grid Grid.Row="0" Name="grdRequestCommands">
+        <Grid Name="grdRequest" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="*" MinHeight="10px"/>
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="5" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="5" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="5" />
-                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" HorizontalAlignment="Left">Ask:</TextBlock>
-            <Button Grid.Column="2" Height="20" Width="20" HorizontalAlignment="Left" Name="btnRequestSend" ToolTip="Send (Ctrl+Enter)" Command="{StaticResource sendCommand}">
-                <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/send.png" Width="15" Height="15"/>
-            </Button>
-            <Button Grid.Column="4" Height="20" Width="20" HorizontalAlignment="Left" Name="btnRequestPast" Click="btnRequestPast_Click" ToolTip="Paste">
-                <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/paste.png" Width="15" Height="15"/>
-            </Button>
-            <Button Grid.Column="6" Height="20" Width="20" HorizontalAlignment="Left" Name="btnRequestClear" Click="btnRequestClear_Click" ToolTip="Clear">
-                <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/clear.png" Width="15" Height="15"/>
-            </Button>
+            <Grid Grid.Row="0" Name="grdRequestCommands">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="5" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="5" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="5" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" HorizontalAlignment="Left">Ask:</TextBlock>
+                <Button Grid.Column="2" Height="20" Width="20" HorizontalAlignment="Left" Name="btnRequestSend" ToolTip="Send (Ctrl+Enter)" Command="{StaticResource sendCommand}">
+                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/send.png" Width="15" Height="15"/>
+                </Button>
+                <Button Grid.Column="4" Height="20" Width="20" HorizontalAlignment="Left" Name="btnRequestPast" Click="btnRequestPast_Click" ToolTip="Paste">
+                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/paste.png" Width="15" Height="15"/>
+                </Button>
+                <Button Grid.Column="6" Height="20" Width="20" HorizontalAlignment="Left" Name="btnRequestClear" Click="btnRequestClear_Click" ToolTip="Clear">
+                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/clear.png" Width="15" Height="15"/>
+                </Button>
+            </Grid>
+            <RichTextBox Grid.Row="2" Name="txtRequest" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AcceptsTab="True" />
         </Grid>
-        <RichTextBox Grid.Row="2" Name="txtRequest" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AcceptsTab="True" />
-        <Grid Grid.Row="4" Name="grdResponseCommands">
+        <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Background="Blue" Margin="0,5,0,5" />
+        <Grid Grid.Row="2" Name="grdResponse">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="*" MinHeight="10px"/>
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="5" />
-                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" HorizontalAlignment="Left">Response:</TextBlock>
-            <Button Grid.Column="2" Height="20" Width="20" HorizontalAlignment="Left" Name="btnResponseCopy" Click="btnResponseCopy_Click" ToolTip="Copy">
-                <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/copy.png" Width="15" Height="15"/>
-            </Button>
+            <Grid Grid.Row="0" Name="grdResponseCommands">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="5" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" HorizontalAlignment="Left">Response:</TextBlock>
+                <Button Grid.Column="2" Height="20" Width="20" HorizontalAlignment="Left" Name="btnResponseCopy" Click="btnResponseCopy_Click" ToolTip="Copy">
+                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/copy.png" Width="15" Height="15"/>
+                </Button>
+            </Grid>
+            <RichTextBox Grid.Row="2" Name="txtResponse" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AcceptsTab="True" IsReadOnly="True" />
         </Grid>
-        <RichTextBox Grid.Row="6" Name="txtResponse" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AcceptsTab="True" IsReadOnly="True" />
     </Grid>
 </UserControl>

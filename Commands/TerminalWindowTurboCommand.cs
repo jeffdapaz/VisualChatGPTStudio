@@ -1,16 +1,17 @@
-﻿using System.ComponentModel.Design;
+﻿using JeffPires.VisualChatGPTStudio.ToolWindows;
+using System.ComponentModel.Design;
 
-namespace JeffPires.VisualChatGPTStudio
+namespace JeffPires.VisualChatGPTStudio.Commands
 {
     /// <summary>
     /// Command handler
     /// </summary>
-    internal sealed class TerminalWindowCommand
+    internal sealed class TerminalWindowTurboCommand
     {
         /// <summary>
         /// Command ID.
         /// </summary>
-        public const int CommandId = 256;
+        public const int CommandId = 257;
 
         /// <summary>
         /// Command menu group (command set GUID).
@@ -23,12 +24,12 @@ namespace JeffPires.VisualChatGPTStudio
         private readonly AsyncPackage package;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TerminalWindowCommand"/> class.
+        /// Initializes a new instance of the <see cref="TerminalWindowTurboCommand"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
         /// <param name="commandService">Command service to add command to, not null.</param>
-        private TerminalWindowCommand(AsyncPackage package, OleMenuCommandService commandService)
+        private TerminalWindowTurboCommand(AsyncPackage package, OleMenuCommandService commandService)
         {
             this.package = package ?? throw new ArgumentNullException(nameof(package));
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
@@ -41,7 +42,7 @@ namespace JeffPires.VisualChatGPTStudio
         /// <summary>
         /// Gets the instance of the command.
         /// </summary>
-        public static TerminalWindowCommand Instance
+        public static TerminalWindowTurboCommand Instance
         {
             get;
             private set;
@@ -64,12 +65,12 @@ namespace JeffPires.VisualChatGPTStudio
         /// <param name="package">Owner package, not null.</param>
         public static async Task InitializeAsync(AsyncPackage package)
         {
-            // Switch to the main thread - the call to AddCommand in TerminalWindowCommand's constructor requires
+            // Switch to the main thread - the call to AddCommand in TerminalWindowTurboCommand's constructor requires
             // the UI thread.
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
             OleMenuCommandService commandService = await package.GetServiceAsync((typeof(IMenuCommandService))) as OleMenuCommandService;
-            Instance = new TerminalWindowCommand(package, commandService);
+            Instance = new TerminalWindowTurboCommand(package, commandService);
 
             await InitializeToolWindow(package);
         }
@@ -94,14 +95,14 @@ namespace JeffPires.VisualChatGPTStudio
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         private static async Task InitializeToolWindow(AsyncPackage package)
         {
-            ToolWindowPane window = await package.ShowToolWindowAsync(typeof(TerminalWindow), 0, true, package.DisposalToken);
+            ToolWindowPane window = await package.ShowToolWindowAsync(typeof(TerminalWindowTurbo), 0, true, package.DisposalToken);
 
             if ((null == window) || (null == window.Frame))
             {
                 throw new NotSupportedException("Cannot create tool window");
             }
 
-            ((TerminalWindow)window).SetTerminalWindowProperties(((VisuallChatGPTStudioPackage)package).Options, package);
+            ((TerminalWindowTurbo)window).SetTerminalWindowProperties(((VisuallChatGPTStudioPackage)package).Options, package);
         }
     }
 }

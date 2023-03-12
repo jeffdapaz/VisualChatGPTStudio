@@ -1,12 +1,13 @@
 ﻿using OpenAI_API.Completions;
 using System.Windows;
 using System.Windows.Documents;
+using System.Windows.Input;
 using Clipboard = System.Windows.Clipboard;
 using MessageBox = System.Windows.MessageBox;
 using TextRange = System.Windows.Documents.TextRange;
 using UserControl = System.Windows.Controls.UserControl;
 
-namespace JeffPires.VisualChatGPTStudio
+namespace JeffPires.VisualChatGPTStudio.ToolWindows
 {
     /// <summary>
     /// Interaction logic for TerminalWindowControl.
@@ -43,9 +44,7 @@ namespace JeffPires.VisualChatGPTStudio
         /// <summary>
         /// Handles the Click event of the btnRequestSend control.
         /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="RoutedEventArgs"/> instance containing the event data.</param>
-        private async void btnRequestSend_Click(object sender, RoutedEventArgs e)
+        public async void SendRequest(Object sender, ExecutedRoutedEventArgs e)
         {
             try
             {
@@ -144,8 +143,6 @@ namespace JeffPires.VisualChatGPTStudio
             MessageBox.Show(message, EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
 
             package.ShowOptionPage(typeof(OptionPageGrid));
-
-            return;
         }
 
         /// <summary>

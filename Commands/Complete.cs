@@ -1,6 +1,6 @@
 ﻿using EnvDTE;
 
-namespace JeffPires.VisualChatGPTStudio.Commands.Commands
+namespace JeffPires.VisualChatGPTStudio.Commands
 {
     [Command(PackageIds.Complete)]
     internal sealed class Complete : BaseChatGPTCommand<Complete>

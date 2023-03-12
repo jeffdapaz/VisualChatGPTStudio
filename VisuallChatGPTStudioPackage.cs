@@ -2,6 +2,8 @@
 global using Microsoft.VisualStudio.Shell;
 global using System;
 global using Task = System.Threading.Tasks.Task;
+using JeffPires.VisualChatGPTStudio.Commands;
+using JeffPires.VisualChatGPTStudio.ToolWindows;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -14,6 +16,7 @@ namespace JeffPires.VisualChatGPTStudio
     [ProvideOptionPage(typeof(OptionPageGrid), "Visual chatGPT Studio", "General", 0, 0, true)]
     [ProvideProfile(typeof(OptionPageGrid), "Visual chatGPT Studio", "General", 0, 0, true)]
     [ProvideToolWindow(typeof(TerminalWindow))]
+    [ProvideToolWindow(typeof(TerminalWindowTurbo))]
     public sealed class VisuallChatGPTStudioPackage : ToolkitPackage
     {
         public OptionPageGrid Options
@@ -28,6 +31,7 @@ namespace JeffPires.VisualChatGPTStudio
         {
             await this.RegisterCommandsAsync();
             await TerminalWindowCommand.InitializeAsync(this);
+            await TerminalWindowTurboCommand.InitializeAsync(this);
         }
     }
 }

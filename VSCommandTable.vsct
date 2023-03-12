@@ -76,6 +76,12 @@
           <ButtonText>Visual chatGPT Studio</ButtonText>
         </Strings>
       </Button>
+      <Button guid="guidVisuallChatGPTStudioPackageCmdSet" id="cmdidTerminalWindowTurboCommand" priority="0x0100" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
+        <Strings>
+          <ButtonText>Visual chatGPT Studio Turbo</ButtonText>
+        </Strings>
+      </Button>
     </Buttons>
   </Commands>
 
@@ -94,6 +100,7 @@
 
     <GuidSymbol value="{8b0b1a54-4655-4dae-8984-022f82a739f2}" name="guidVisuallChatGPTStudioPackageCmdSet">
       <IDSymbol value="256" name="cmdidTerminalWindowCommand" />
+      <IDSymbol value="257" name="cmdidTerminalWindowTurboCommand" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

@@ -3,7 +3,7 @@ using OpenAI_API.Completions;
 using System.Linq;
 using Span = Microsoft.VisualStudio.Text.Span;
 
-namespace JeffPires.VisualChatGPTStudio.Commands.Commands
+namespace JeffPires.VisualChatGPTStudio.Commands
 {
     /// <summary>
     /// Base abstract class for commands

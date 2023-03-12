@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace JeffPires.VisualChatGPTStudio
+namespace JeffPires.VisualChatGPTStudio.ToolWindows
 {
     /// <summary>
     /// This class implements the tool window exposed by this package and hosts a user control.

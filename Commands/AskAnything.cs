@@ -1,5 +1,5 @@
 ﻿using EnvDTE;
-using JeffPires.VisualChatGPTStudio.Commands.Commands;
+using JeffPires.VisualChatGPTStudio.Commands;
 
 namespace JeffPires.VisualChatGPTStudio
 {

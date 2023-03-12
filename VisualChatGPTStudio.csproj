@@ -50,25 +50,30 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ChatGPT.cs" />
-    <Compile Include="Commands\Commands\AddSummary.cs" />
-    <Compile Include="Commands\Commands\BaseChatGPTCommand.cs" />
-    <Compile Include="Commands\Commands\AskAnything.cs" />
-    <Compile Include="Commands\Commands\AddComments.cs" />
-    <Compile Include="Commands\Commands\Complete.cs" />
-    <Compile Include="Commands\Commands\FindBugs.cs" />
-    <Compile Include="Commands\Commands\Explain.cs" />
-    <Compile Include="Commands\Commands\Optimize.cs" />
+    <Compile Include="Commands\AddSummary.cs" />
+    <Compile Include="Commands\BaseChatGPTCommand.cs" />
+    <Compile Include="Commands\AskAnything.cs" />
+    <Compile Include="Commands\AddComments.cs" />
+    <Compile Include="Commands\Complete.cs" />
+    <Compile Include="Commands\FindBugs.cs" />
+    <Compile Include="Commands\Explain.cs" />
+    <Compile Include="Commands\Optimize.cs" />
     <Compile Include="OptionPageGrid.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Commands\Commands\AddTests.cs" />
-    <Compile Include="TerminalWindow.cs" />
-    <Compile Include="Commands\Commands\TerminalWindowCommand.cs" />
-    <Compile Include="TerminalWindowControl.xaml.cs">
+    <Compile Include="Commands\AddTests.cs" />
+    <Compile Include="ToolWindows\TerminalWindow.cs" />
+    <Compile Include="Commands\TerminalWindowCommand.cs" />
+    <Compile Include="ToolWindows\TerminalWindowControl.xaml.cs">
       <DependentUpon>TerminalWindowControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="TextFormat.cs" />
+    <Compile Include="ToolWindows\TerminalWindowTurbo.cs" />
+    <Compile Include="Commands\TerminalWindowTurboCommand.cs" />
+    <Compile Include="ToolWindows\TerminalWindowTurboControl.xaml.cs">
+      <DependentUpon>TerminalWindowTurboControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="VisuallChatGPTStudioPackage.cs" />
     <Compile Include="source.extension.cs">
       <AutoGen>True</AutoGen>
@@ -103,10 +108,9 @@
     <Resource Include="Resources\copy.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Content Include="Resources\Icon.png">
+    <Resource Include="Resources\Icon.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
+    </Resource>
   </ItemGroup>
   <ItemGroup>
     <VSCTCompile Include="VSCommandTable.vsct">
@@ -144,7 +148,11 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="TerminalWindowControl.xaml">
+    <Page Include="ToolWindows\TerminalWindowControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ToolWindows\TerminalWindowTurboControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -21,11 +21,17 @@ Select a method and right click on text editor and you see these new chatGPT com
 - **Add Summary:** Add Summary for C# methods.
 - **Ask Anything:** Write a question on the code editor and wait for an answer.
 
+But if you want chatGPT to respond in another language and/or want to customize the commands for some reason, you can edit the default commands through the options:
+
+![image](https://user-images.githubusercontent.com/63928228/225159610-8a1c4dd0-a42d-4c24-b7c2-588f78cef043.png)
+
+For example, by changing the "Explain" prompt of the Explain command to "Explicar en español" (or just "Explicar"), the OpenAI API will write the comments in Spanish instead of using the default English command.
+
 ## Features by tool window
 
 In this new window editor you can interact directly with chatGPT as if you were in the chatGPT portal itself:
 
-![image](https://user-images.githubusercontent.com/63928228/223844626-9c3732cc-f501-46ed-bd4f-fae69a8282eb.png)
+![image](https://user-images.githubusercontent.com/63928228/225161149-2c73167e-e172-4142-ada7-dd068dc042eb.png)
 
 You will find this window in menu View -> Other Windows -> Visual chatGPT Studio.
 
@@ -54,6 +60,12 @@ In the future if I find a way around this limitation, I will post an update.
 - The speed and availability of responses directly depend on the API provided by OpenAI.
 
 ## Release Notes
+
+### 1.4.0
+
+- Added the possibility to customize the commands through the options.
+- Added the possibility to resize the text editor on tool window.
+- Added a shortcut to "Request" button on tool window. Now you can send the request pressing CTRL+Enter.
 
 ### 1.3.2
 

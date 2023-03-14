@@ -14,7 +14,7 @@ namespace JeffPires.VisualChatGPTStudio
 
         protected override string GetCommand(string selectedText)
         {
-            return $"Optimize{Environment.NewLine}{Environment.NewLine}{TextFormat.FormatSelection(selectedText)}";
+            return $"{OptionsCommands.Optimize}{Environment.NewLine}{Environment.NewLine}{TextFormat.FormatSelection(selectedText)}";
         }
     }
 }

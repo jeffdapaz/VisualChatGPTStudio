@@ -58,7 +58,10 @@
     <Compile Include="Commands\FindBugs.cs" />
     <Compile Include="Commands\Explain.cs" />
     <Compile Include="Commands\Optimize.cs" />
-    <Compile Include="OptionPageGrid.cs">
+    <Compile Include="Options\OptionPageGrid.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Options\OptionPageGridCommands.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />

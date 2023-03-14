@@ -13,7 +13,7 @@ namespace JeffPires.VisualChatGPTStudio
 
         protected override string GetCommand(string selectedText)
         {
-            return $"Create unit tests{Environment.NewLine}{Environment.NewLine}{TextFormat.FormatSelection(selectedText)}";
+            return $"{OptionsCommands.AddTests}{Environment.NewLine}{Environment.NewLine}{TextFormat.FormatSelection(selectedText)}";
         }
     }
 }

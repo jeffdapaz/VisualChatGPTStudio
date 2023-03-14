@@ -3,6 +3,7 @@ global using Microsoft.VisualStudio.Shell;
 global using System;
 global using Task = System.Threading.Tasks.Task;
 using JeffPires.VisualChatGPTStudio.Commands;
+using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.ToolWindows;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -13,25 +14,44 @@ namespace JeffPires.VisualChatGPTStudio
     [InstalledProductRegistration(Vsix.Name, Vsix.Description, Vsix.Version)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(PackageGuids.VisuallChatGPTStudioString)]
-    [ProvideOptionPage(typeof(OptionPageGrid), "Visual chatGPT Studio", "General", 0, 0, true)]
-    [ProvideProfile(typeof(OptionPageGrid), "Visual chatGPT Studio", "General", 0, 0, true)]
+    [ProvideOptionPage(typeof(OptionPageGridGeneral), "Visual chatGPT Studio", "General", 0, 0, true)]
+    [ProvideProfile(typeof(OptionPageGridGeneral), "Visual chatGPT Studio", "General", 0, 0, true)]
+    [ProvideOptionPage(typeof(OptionPageGridCommands), "Visual chatGPT Studio", "Commands", 1, 1, true)]
+    [ProvideProfile(typeof(OptionPageGridCommands), "Visual chatGPT Studio", "Commands", 1, 1, true)]
     [ProvideToolWindow(typeof(TerminalWindow))]
-    [ProvideToolWindow(typeof(TerminalWindowTurbo))]
+    //[ProvideToolWindow(typeof(TerminalWindowTurbo))]
     public sealed class VisuallChatGPTStudioPackage : ToolkitPackage
     {
-        public OptionPageGrid Options
+        /// <summary>
+        /// Gets the OptionPageGridGeneral object.
+        /// </summary>
+        public OptionPageGridGeneral OptionsGeneral
         {
             get
             {
-                return (OptionPageGrid)GetDialogPage(typeof(OptionPageGrid));
+                return (OptionPageGridGeneral)GetDialogPage(typeof(OptionPageGridGeneral));
             }
         }
 
+        /// <summary>
+        /// Gets the OptionPageGridCommands object.
+        /// </summary>
+        public OptionPageGridCommands OptionsCommands
+        {
+            get
+            {
+                return (OptionPageGridCommands)GetDialogPage(typeof(OptionPageGridCommands));
+            }
+        }
+
+        /// <summary>
+        /// Initializes the terminal window commands.
+        /// </summary>
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await this.RegisterCommandsAsync();
             await TerminalWindowCommand.InitializeAsync(this);
-            await TerminalWindowTurboCommand.InitializeAsync(this);
+            //await TerminalWindowTurboCommand.InitializeAsync(this);
         }
     }
 }

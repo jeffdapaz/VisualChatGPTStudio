@@ -1,4 +1,5 @@
 ﻿using EnvDTE;
+using JeffPires.VisualChatGPTStudio.Options;
 using OpenAI_API.Completions;
 using System.Linq;
 using Span = Microsoft.VisualStudio.Text.Span;
@@ -23,13 +24,24 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         private bool firstInteration;
 
         /// <summary>
-        /// Gets the options.
+        /// Gets the OptionsGeneral property of the VisuallChatGPTStudioPackage.
         /// </summary>
-        public OptionPageGrid Options
+        protected OptionPageGridGeneral OptionsGeneral
         {
             get
             {
-                return ((VisuallChatGPTStudioPackage)this.Package).Options;
+                return ((VisuallChatGPTStudioPackage)this.Package).OptionsGeneral;
+            }
+        }
+
+        /// <summary>
+        /// Gets the OptionsCommands property of the VisuallChatGPTStudioPackage.
+        /// </summary>
+        protected OptionPageGridCommands OptionsCommands
+        {
+            get
+            {
+                return ((VisuallChatGPTStudioPackage)this.Package).OptionsCommands;
             }
         }
 
@@ -58,11 +70,11 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(Options.ApiKey))
+                if (string.IsNullOrWhiteSpace(OptionsGeneral.ApiKey))
                 {
                     await VS.MessageBox.ShowAsync(EXTENSION_NAME, "Please, set the OpenAI API key.", buttons: Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
 
-                    Package.ShowOptionPage(typeof(OptionPageGrid));
+                    Package.ShowOptionPage(typeof(OptionPageGridGeneral));
 
                     return;
                 }
@@ -114,7 +126,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// <param name="selectedText">The selected text.</param>
         private async Task Request(string selectedText)
         {
-            await ChatGPT.Request(Options, GetCommand(selectedText), ResultHandler);
+            await ChatGPT.Request(OptionsGeneral, GetCommand(selectedText), ResultHandler);
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 

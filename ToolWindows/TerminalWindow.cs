@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using JeffPires.VisualChatGPTStudio.Options;
+using System.Runtime.InteropServices;
 
 namespace JeffPires.VisualChatGPTStudio.ToolWindows
 {
@@ -34,7 +35,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         /// </summary>
         /// <param name="options">The options.</param>
         /// <param name="package">The package.</param>
-        public void SetTerminalWindowProperties(OptionPageGrid options, Package package)
+        public void SetTerminalWindowProperties(OptionPageGridGeneral options, Package package)
         {
             ((TerminalWindowControl)this.Content).StartControl(options, package);
         }

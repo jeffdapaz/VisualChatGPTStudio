@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using JeffPires.VisualChatGPTStudio.Options;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -19,7 +20,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
         #region Properties
 
-        private OptionPageGrid options;
+        private OptionPageGridGeneral options;
 
         #endregion Properties
 
@@ -85,7 +86,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         /// </summary>
         /// <param name="options">The options page.</param>
         /// <param name="package">The package.</param>
-        public void StartControl(OptionPageGrid options, Package package)
+        public void StartControl(OptionPageGridGeneral options, Package package)
         {
             if (!string.IsNullOrWhiteSpace(options.ApiKey))
             {
@@ -98,7 +99,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
             MessageBox.Show(message, EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
 
-            package.ShowOptionPage(typeof(OptionPageGrid));
+            package.ShowOptionPage(typeof(OptionPageGridGeneral));
         }
 
         #endregion Methods        

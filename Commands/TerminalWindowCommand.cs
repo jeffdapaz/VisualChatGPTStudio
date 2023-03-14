@@ -102,7 +102,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                 throw new NotSupportedException("Cannot create tool window");
             }
 
-            ((TerminalWindow)window).SetTerminalWindowProperties(((VisuallChatGPTStudioPackage)package).Options, package);
+            ((TerminalWindow)window).SetTerminalWindowProperties(((VisuallChatGPTStudioPackage)package).OptionsGeneral, package);
         }
     }
 }

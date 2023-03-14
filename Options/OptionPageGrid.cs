@@ -1,13 +1,13 @@
 ﻿using System.ComponentModel;
 using System.Runtime.InteropServices;
 
-namespace JeffPires.VisualChatGPTStudio
+namespace JeffPires.VisualChatGPTStudio.Options
 {
     /// <summary>
-    /// Represents a class that provides a dialog page for displaying options in a grid.
+    /// Represents a class that provides a dialog page for displaying general options.
     /// </summary>
     [ComVisible(true)]
-    public class OptionPageGrid : DialogPage
+    public class OptionPageGridGeneral : DialogPage
     {
         [Category("Visual chatGPT Studio")]
         [DisplayName("OpenAI API Key")]

@@ -20,10 +20,10 @@ namespace JeffPires.VisualChatGPTStudio
         {
             if (selectedText.Contains(Environment.NewLine))
             {
-                return $"Rewrite the code with comments{Environment.NewLine}{Environment.NewLine}{TextFormat.FormatSelection(selectedText)}";
+                return $"{OptionsCommands.AddCommentsForLines}{Environment.NewLine}{Environment.NewLine}{TextFormat.FormatSelection(selectedText)}";
             }
 
-            return $"Comment{Environment.NewLine}{Environment.NewLine}{TextFormat.FormatSelection(selectedText)}";
+            return $"{OptionsCommands.AddCommentsForLine}{Environment.NewLine}{Environment.NewLine}{TextFormat.FormatSelection(selectedText)}";
         }
     }
 }

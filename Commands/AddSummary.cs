@@ -13,7 +13,7 @@ namespace JeffPires.VisualChatGPTStudio
 
         protected override string GetCommand(string selectedText)
         {
-            return TextFormat.FormatCommandForSummary("Only write a comment as C# summary format like\r\n\r\n{0}\r\n\r\nfor this", selectedText);
+            return TextFormat.FormatCommandForSummary($"{OptionsCommands.AddSummary}\r\n\r\n{{0}}\r\n\r\n", selectedText);
         }
     }
 }

@@ -13,7 +13,7 @@ namespace JeffPires.VisualChatGPTStudio
 
         protected override string GetCommand(string selectedText)
         {
-            return $"Explain{Environment.NewLine}{Environment.NewLine}{TextFormat.FormatSelection(selectedText)}";
+            return $"{OptionsCommands.Explain}{Environment.NewLine}{Environment.NewLine}{TextFormat.FormatSelection(selectedText)}";
         }
     }
 }

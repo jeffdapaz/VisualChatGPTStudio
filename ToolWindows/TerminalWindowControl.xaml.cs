@@ -1,4 +1,5 @@
-﻿using OpenAI_API.Completions;
+﻿using JeffPires.VisualChatGPTStudio.Options;
+using OpenAI_API.Completions;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -22,7 +23,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
         #region Properties
 
-        private OptionPageGrid options;
+        private OptionPageGridGeneral options;
         private bool firstInteration;
 
         #endregion Properties
@@ -119,7 +120,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         /// </summary>
         /// <param name="options">The options page.</param>
         /// <param name="package">The package.</param>
-        public void StartControl(OptionPageGrid options, Package package)
+        public void StartControl(OptionPageGridGeneral options, Package package)
         {
             if (!string.IsNullOrWhiteSpace(options.ApiKey))
             {
@@ -142,7 +143,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
             MessageBox.Show(message, EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
 
-            package.ShowOptionPage(typeof(OptionPageGrid));
+            package.ShowOptionPage(typeof(OptionPageGridGeneral));
         }
 
         /// <summary>

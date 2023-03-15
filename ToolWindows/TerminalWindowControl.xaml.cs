@@ -1,11 +1,11 @@
 ﻿using JeffPires.VisualChatGPTStudio.Options;
+using Microsoft.VisualStudio.PlatformUI;
 using OpenAI_API.Completions;
 using System.Windows;
-using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Media;
 using Clipboard = System.Windows.Clipboard;
 using MessageBox = System.Windows.MessageBox;
-using TextRange = System.Windows.Documents.TextRange;
 using UserControl = System.Windows.Controls.UserControl;
 
 namespace JeffPires.VisualChatGPTStudio.ToolWindows
@@ -36,6 +36,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         public TerminalWindowControl()
         {
             this.InitializeComponent();
+
+            VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
+
+            SetBoxesColor();
         }
 
         #endregion Constructors
@@ -51,9 +55,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             {
                 firstInteration = true;
 
-                TextRange textRange = new(txtRequest.Document.ContentStart, txtRequest.Document.ContentEnd);
-
-                if (string.IsNullOrWhiteSpace(textRange.Text))
+                if (string.IsNullOrWhiteSpace(txtRequest.Text))
                 {
                     MessageBox.Show("Please write a request.", EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
@@ -61,7 +63,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 await VS.StatusBar.ShowProgressAsync("Requesting chatGPT", 1, 2);
 
-                string selectionFormated = TextFormat.FormatSelection(textRange.Text);
+                string selectionFormated = TextFormat.FormatSelection(txtRequest.Text);
 
                 txtResponse.Document = new();
 
@@ -106,9 +108,23 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         /// <param name="e">Event arguments.</param>
         private void btnResponseCopy_Click(object sender, RoutedEventArgs e)
         {
-            TextRange textRange = new(txtResponse.Document.ContentStart, txtResponse.Document.ContentEnd);
+            Clipboard.SetText(txtResponse.Text);
+        }
 
-            Clipboard.SetText(textRange.Text);
+        /// <summary>
+        /// This method changes the syntax highlighting of the textbox based on the language detected in the text.
+        /// </summary>
+        private void txtRequest_TextChanged(object sender, EventArgs e)
+        {
+            txtRequest.SyntaxHighlighting = ICSharpCode.AvalonEdit.Highlighting.HighlightingManager.Instance.GetDefinition(TextFormat.DetectCodeLanguage(txtRequest.Text));
+        }
+
+        /// <summary>
+        /// Sets the color of the boxes when the theme is changed.
+        /// </summary>
+        private void VSColorTheme_ThemeChanged(ThemeChangedEventArgs e)
+        {
+            SetBoxesColor();
         }
 
         #endregion Event Handlers
@@ -137,9 +153,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
             string message = "Please, set the OpenAI API key and restart Visual Studio.";
 
-            TextRange textRange = new(txtRequest.Document.ContentEnd, txtRequest.Document.ContentEnd);
-
-            textRange.Text = message;
+            txtRequest.Text = message;
 
             MessageBox.Show(message, EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
 
@@ -160,23 +174,35 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
                 firstInteration = false;
             }
 
-            TextPointer lastPosition = txtResponse.Document.ContentEnd.GetPositionAtOffset(-1);
-
-            if (lastPosition != null)
-            {
-                TextRange textRange = new(lastPosition, txtResponse.Document.ContentEnd);
-
-                if (textRange.Text == "\r\n")
-                {
-                    textRange.Text = String.Empty;
-                }
-            }
-
             txtResponse.AppendText(result.ToString());
+
+            txtResponse.SyntaxHighlighting = ICSharpCode.AvalonEdit.Highlighting.HighlightingManager.Instance.GetDefinition(TextFormat.DetectCodeLanguage(txtResponse.Text));
 
             txtResponse.ScrollToEnd();
         }
 
-        #endregion Methods
+        /// <summary>
+        /// Sets the background color of the text boxes based on the current Visual Studio color theme.
+        /// </summary>
+        private void SetBoxesColor()
+        {
+            System.Drawing.Color currentColor = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBackgroundColorKey);
+
+            SolidColorBrush newcolor;
+
+            if (currentColor == System.Drawing.Color.FromArgb(255, 31, 31, 31))
+            {
+                newcolor = new SolidColorBrush(Color.FromRgb(51, 51, 51));
+            }
+            else
+            {
+                newcolor = new SolidColorBrush(Color.FromRgb(255, 255, 255));
+            }
+
+            txtRequest.Background = newcolor;
+            txtResponse.Background = newcolor;
+        }
+
+        #endregion Methods        
     }
 }

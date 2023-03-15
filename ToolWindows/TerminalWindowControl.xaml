@@ -57,7 +57,12 @@
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/clear.png" Width="15" Height="15"/>
                 </Button>
             </Grid>
-            <RichTextBox Grid.Row="2" Name="txtRequest" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AcceptsTab="True" />
+            <avalonEdit:TextEditor        
+                xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit" 
+                Name="txtRequest" SyntaxHighlighting="Automatic" TextChanged="txtRequest_TextChanged" BorderBrush="DarkGray" BorderThickness="1"
+                Grid.Row="2" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" ShowLineNumbers="True"
+                Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
+             />
         </Grid>
         <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Background="Blue" Margin="0,5,0,5" />
         <Grid Grid.Row="2" Name="grdResponse">
@@ -80,7 +85,12 @@
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/copy.png" Width="15" Height="15"/>
                 </Button>
             </Grid>
-            <RichTextBox Grid.Row="2" Name="txtResponse" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AcceptsTab="True" IsReadOnly="True" />
+            <avalonEdit:TextEditor        
+                xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
+                Name="txtResponse" SyntaxHighlighting="Automatic" IsReadOnly="True" BorderBrush="DarkGray" BorderThickness="1"
+                Grid.Row="2" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" ShowLineNumbers="True"
+                Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
+             />
         </Grid>
     </Grid>
 </UserControl>

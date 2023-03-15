@@ -31,7 +31,7 @@ For example, by changing the "Explain" prompt of the Explain command to "Explica
 
 In this new window editor you can interact directly with chatGPT as if you were in the chatGPT portal itself:
 
-![image](https://user-images.githubusercontent.com/63928228/225161149-2c73167e-e172-4142-ada7-dd068dc042eb.png)
+![image](https://user-images.githubusercontent.com/63928228/225164333-9b709f97-768a-46f1-8829-934a6f211f44.png)
 
 You will find this window in menu View -> Other Windows -> Visual chatGPT Studio.
 
@@ -65,7 +65,7 @@ In the future if I find a way around this limitation, I will post an update.
 
 - Added the possibility to customize the commands through the options.
 - Added the possibility to resize the text editor on tool window.
-- Added a shortcut to "Request" button on tool window. Now you can send the request pressing CTRL+Enter.
+- Added a shortcut to "Request" button on tool window. Now you can send the request just pressing CTRL+Enter.
 
 ### 1.3.2
 

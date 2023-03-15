@@ -72,7 +72,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
             OleMenuCommandService commandService = await package.GetServiceAsync((typeof(IMenuCommandService))) as OleMenuCommandService;
             Instance = new TerminalWindowCommand(package, commandService);
 
-            await InitializeToolWindow(package);
+            await InitializeToolWindowAsync(package);
         }
 
         /// <summary>
@@ -82,9 +82,9 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// <param name="e">The event args.</param>
         private void Execute(object sender, EventArgs e)
         {
-            this.package.JoinableTaskFactory.RunAsync(async delegate
+            _ = this.package.JoinableTaskFactory.RunAsync(async delegate
             {
-                await InitializeToolWindow(this.package);
+                await InitializeToolWindowAsync(this.package);
             });
         }
 
@@ -93,7 +93,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// </summary>
         /// <param name="package">The AsyncPackage to be initialized.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        private static async Task InitializeToolWindow(AsyncPackage package)
+        private static async Task InitializeToolWindowAsync(AsyncPackage package)
         {
             ToolWindowPane window = await package.ShowToolWindowAsync(typeof(TerminalWindow), 0, true, package.DisposalToken);
 

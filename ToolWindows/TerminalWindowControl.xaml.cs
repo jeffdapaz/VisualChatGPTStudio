@@ -67,7 +67,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 txtResponse.Document = new();
 
-                await ChatGPT.Request(options, selectionFormated, ResultHandler);
+                await ChatGPT.RequestAsync(options, selectionFormated, ResultHandler);
             }
             catch (Exception ex)
             {

@@ -110,7 +110,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                 await VS.StatusBar.ShowProgressAsync("Waiting chatGPT response", 1, 2);
 
-                await Request(selectedText);
+                await RequestAsync(selectedText);
             }
             catch (Exception ex)
             {
@@ -124,9 +124,9 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// Requests the specified selected text from ChatGPT
         /// </summary>
         /// <param name="selectedText">The selected text.</param>
-        private async Task Request(string selectedText)
+        private async Task RequestAsync(string selectedText)
         {
-            await ChatGPT.Request(OptionsGeneral, GetCommand(selectedText), ResultHandler);
+            await ChatGPT.RequestAsync(OptionsGeneral, GetCommand(selectedText), ResultHandler);
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -148,47 +148,54 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// <param name="result">The result.</param>
         private async void ResultHandler(int index, CompletionResult result)
         {
-            if (firstInteration)
+            try
             {
-                await VS.StatusBar.ShowProgressAsync("Receiving chatGPT response", 2, 2);
-
-                CommandType commandType = GetCommandType(selectedText);
-
-                if (commandType == CommandType.Erase)
+                if (firstInteration)
                 {
-                    position = positionStart;
+                    await VS.StatusBar.ShowProgressAsync("Receiving chatGPT response", 2, 2);
 
-                    //Erase current code
-                    _ = (docView.TextBuffer?.Replace(new Span(position, docView.TextView.Selection.StreamSelectionSpan.GetText().Length), String.Empty));
+                    CommandType commandType = GetCommandType(selectedText);
+
+                    if (commandType == CommandType.Erase)
+                    {
+                        position = positionStart;
+
+                        //Erase current code
+                        _ = (docView.TextBuffer?.Replace(new Span(position, docView.TextView.Selection.StreamSelectionSpan.GetText().Length), String.Empty));
+                    }
+                    else if (commandType == CommandType.InsertBefore)
+                    {
+                        position = positionStart;
+
+                        _ = (docView.TextBuffer?.Insert(position, Environment.NewLine));
+                    }
+                    else
+                    {
+                        position = positionEnd;
+
+                        _ = (docView.TextBuffer?.Insert(position, Environment.NewLine));
+                    }
+
+                    firstInteration = false;
                 }
-                else if (commandType == CommandType.InsertBefore)
+
+                string resultText = result.ToString();
+
+                docView.TextBuffer?.Insert(position, resultText);
+
+                position += resultText.Length;
+
+                lineLength += resultText.Length;
+
+                if (lineLength > 160 && typeof(TCommand) == typeof(AskAnything))
                 {
-                    position = positionStart;
-
-                    _ = (docView.TextBuffer?.Insert(position, Environment.NewLine));
+                    lineLength = 0;
+                    MovetoNextLine();
                 }
-                else
-                {
-                    position = positionEnd;
-
-                    _ = (docView.TextBuffer?.Insert(position, Environment.NewLine));
-                }
-
-                firstInteration = false;
             }
-
-            string resultText = result.ToString();
-
-            docView.TextBuffer?.Insert(position, resultText);
-
-            position += resultText.Length;
-
-            lineLength += resultText.Length;
-
-            if (lineLength > 160 && typeof(TCommand) == typeof(AskAnything))
+            catch (Exception)
             {
-                lineLength = 0;
-                MovetoNextLine();
+                throw;
             }
         }
 

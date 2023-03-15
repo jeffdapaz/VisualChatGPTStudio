@@ -44,7 +44,7 @@
                 <RowDefinition Height="5"/>
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <RichTextBox Grid.Column="1" Grid.RowSpan="3" Name="txtRequest" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AcceptsTab="True" />
+            <RichTextBox Grid.Column="1" Grid.RowSpan="3" Name="txtRequest" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AcceptsTab="True" Background="DimGray" />
             <Button Grid.Column="3" Grid.Row="0" Height="30" Width="30" Name="btnClear" ToolTip="Clear the conversation" Click="btnClear_Click" VerticalAlignment="Bottom">
                 <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/garbage.png" Width="20" Height="20"/>
             </Button>

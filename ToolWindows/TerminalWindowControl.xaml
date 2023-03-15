@@ -57,7 +57,7 @@
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/clear.png" Width="15" Height="15"/>
                 </Button>
             </Grid>
-            <RichTextBox Grid.Row="2" Name="txtRequest" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AcceptsTab="True" />
+            <RichTextBox Grid.Row="2" Name="txtRequest" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AcceptsTab="True" Background="DimGray" />
         </Grid>
         <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Background="Blue" Margin="0,5,0,5" />
         <Grid Grid.Row="2" Name="grdResponse">
@@ -80,7 +80,7 @@
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/copy.png" Width="15" Height="15"/>
                 </Button>
             </Grid>
-            <RichTextBox Grid.Row="2" Name="txtResponse" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AcceptsTab="True" IsReadOnly="True" />
+            <RichTextBox Grid.Row="2" Name="txtResponse" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AcceptsTab="True" IsReadOnly="True" Background="DimGray" />
         </Grid>
     </Grid>
 </UserControl>

@@ -17,7 +17,7 @@ namespace JeffPires.VisualChatGPTStudio
         /// <param name="request">The request to send to the API.</param>
         /// <param name="resultHandler">The action to take when the result is received.</param>
         /// <returns>A task representing the completion request.</returns>
-        public static async Task Request(OptionPageGridGeneral options, string request, Action<int, CompletionResult> resultHandler)
+        public static async Task RequestAsync(OptionPageGridGeneral options, string request, Action<int, CompletionResult> resultHandler)
         {
             OpenAIAPI api = new(options.ApiKey);
 

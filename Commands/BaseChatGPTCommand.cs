@@ -1,7 +1,11 @@
-﻿using EnvDTE;
+﻿using Community.VisualStudio.Toolkit;
+using EnvDTE;
 using JeffPires.VisualChatGPTStudio.Options;
+using Microsoft.VisualStudio.Shell;
 using OpenAI_API.Completions;
+using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Span = Microsoft.VisualStudio.Text.Span;
 
 namespace JeffPires.VisualChatGPTStudio.Commands

@@ -2,6 +2,8 @@
 using OpenAI_API;
 using OpenAI_API.Completions;
 using OpenAI_API.Models;
+using System;
+using System.Threading.Tasks;
 
 namespace JeffPires.VisualChatGPTStudio
 {
@@ -19,7 +21,7 @@ namespace JeffPires.VisualChatGPTStudio
         /// <returns>A task representing the completion request.</returns>
         public static async Task RequestAsync(OptionPageGridGeneral options, string request, Action<int, CompletionResult> resultHandler)
         {
-            OpenAIAPI api = new(options.ApiKey);
+            OpenAIAPI api = new OpenAIAPI(options.ApiKey);
 
             Model model = Model.DavinciText;
 
@@ -42,7 +44,7 @@ namespace JeffPires.VisualChatGPTStudio
                     break;
             }
 
-            CompletionRequest completionRequest = new(request, model, options.MaxTokens, options.Temperature, presencePenalty: options.PresencePenalty, frequencyPenalty: options.FrequencyPenalty, top_p: options.TopP);
+            CompletionRequest completionRequest = new CompletionRequest(request, model, options.MaxTokens, options.Temperature, presencePenalty: options.PresencePenalty, frequencyPenalty: options.FrequencyPenalty, top_p: options.TopP);
 
             await api.Completions.StreamCompletionAsync(completionRequest, resultHandler);
         }

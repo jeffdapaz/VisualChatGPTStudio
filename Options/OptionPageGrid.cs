@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using Microsoft.VisualStudio.Shell;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 
 namespace JeffPires.VisualChatGPTStudio.Options

@@ -1,6 +1,9 @@
-﻿using JeffPires.VisualChatGPTStudio.Options;
+﻿using Community.VisualStudio.Toolkit;
+using JeffPires.VisualChatGPTStudio.Options;
 using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell;
 using OpenAI_API.Completions;
+using System;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -65,7 +68,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 string selectionFormated = TextFormat.FormatSelection(txtRequest.Text);
 
-                txtResponse.Document = new();
+                txtResponse.Text = string.Empty;
 
                 await ChatGPT.RequestAsync(options, selectionFormated, ResultHandler);
             }
@@ -98,7 +101,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         /// <param name="e">Routed event args.</param>
         private void btnRequestClear_Click(object sender, RoutedEventArgs e)
         {
-            txtRequest.Document = new();
+            txtRequest.Text = string.Empty;
         }
 
         /// <summary>

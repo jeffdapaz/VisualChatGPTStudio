@@ -1,5 +1,8 @@
 ﻿using JeffPires.VisualChatGPTStudio.ToolWindows;
+using Microsoft.VisualStudio.Shell;
+using System;
 using System.ComponentModel.Design;
+using System.Threading.Tasks;
 
 namespace JeffPires.VisualChatGPTStudio.Commands
 {

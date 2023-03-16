@@ -1,5 +1,8 @@
 ﻿using JeffPires.VisualChatGPTStudio.ToolWindows;
+using Microsoft.VisualStudio.Shell;
+using System;
 using System.ComponentModel.Design;
+using System.Threading.Tasks;
 
 namespace JeffPires.VisualChatGPTStudio.Commands
 {
@@ -51,7 +54,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// <summary>
         /// Gets the service provider from the owner package.
         /// </summary>
-        private Microsoft.VisualStudio.Shell.IAsyncServiceProvider ServiceProvider
+        private IAsyncServiceProvider ServiceProvider
         {
             get
             {

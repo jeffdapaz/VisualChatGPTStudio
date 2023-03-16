@@ -1,4 +1,4 @@
-﻿using EnvDTE;
+﻿using Community.VisualStudio.Toolkit;
 
 namespace JeffPires.VisualChatGPTStudio.Commands
 {

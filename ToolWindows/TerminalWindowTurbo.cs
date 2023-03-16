@@ -1,4 +1,5 @@
 ﻿using JeffPires.VisualChatGPTStudio.Options;
+using Microsoft.VisualStudio.Shell;
 using System.Runtime.InteropServices;
 
 namespace JeffPires.VisualChatGPTStudio.ToolWindows

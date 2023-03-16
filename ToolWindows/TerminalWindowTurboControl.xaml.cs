@@ -1,4 +1,7 @@
-﻿using JeffPires.VisualChatGPTStudio.Options;
+﻿using Community.VisualStudio.Toolkit;
+using JeffPires.VisualChatGPTStudio.Options;
+using Microsoft.VisualStudio.Shell;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -45,7 +48,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         {
             try
             {
-                TextRange textRange = new(txtRequest.Document.ContentStart, txtRequest.Document.ContentEnd);
+                TextRange textRange = new TextRange(txtRequest.Document.ContentStart, txtRequest.Document.ContentEnd);
 
                 if (string.IsNullOrWhiteSpace(textRange.Text))
                 {

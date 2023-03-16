@@ -6,6 +6,7 @@ using OpenAI_API.Completions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using Span = Microsoft.VisualStudio.Text.Span;
 
 namespace JeffPires.VisualChatGPTStudio.Commands
@@ -112,8 +113,6 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                     return;
                 }
 
-                await VS.StatusBar.ShowProgressAsync("Waiting chatGPT response", 1, 2);
-
                 await RequestAsync(selectedText);
             }
             catch (Exception ex)
@@ -130,13 +129,24 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// <param name="selectedText">The selected text.</param>
         private async Task RequestAsync(string selectedText)
         {
-            await ChatGPT.RequestAsync(OptionsGeneral, GetCommand(selectedText), ResultHandler);
+            string command = GetCommand(selectedText);
+
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+            {
+                _ = TerminalWindowCommand.Instance.RequestToWindowAsync(command);
+
+                return;
+            }
+
+            await VS.StatusBar.ShowProgressAsync("Waiting chatGPT response", 1, 2);
+
+            await ChatGPT.RequestAsync(OptionsGeneral, command, ResultHandler);
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
             try
             {
-                //Some documents don't has format
+                //Some documents does not has format
                 (await VS.GetServiceAsync<DTE, DTE>()).ExecuteCommand("Edit.FormatDocument", string.Empty);
             }
             catch (Exception)

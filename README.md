@@ -21,7 +21,9 @@ Select a method and right click on text editor and you see these new chatGPT com
 - **Add Summary:** Add Summary for C# methods.
 - **Ask Anything:** Write a question on the code editor and wait for an answer.
 
-But if you want chatGPT to respond in another language and/or want to customize the commands for some reason, you can edit the default commands through the options:
+And if you desire that the responses be written on tool window instead on the code editor, press and hold the SHIFT key and select the command.
+
+If you want chatGPT to respond in another language and/or want to customize the commands for some reason, you can edit the default commands through the options:
 
 ![image](https://user-images.githubusercontent.com/63928228/225159610-8a1c4dd0-a42d-4c24-b7c2-588f78cef043.png)
 
@@ -60,6 +62,10 @@ In the future if I find a way around this limitation, I will post an update.
 - The speed and availability of responses directly depend on the API provided by OpenAI.
 
 ## Release Notes
+
+### 1.5.1
+
+- Redirect the commands responses to the tool window. To do, press and hold the SHIFT key and select the command. The response will be written on tool window instead on the code editor.
 
 ### 1.5.0
 

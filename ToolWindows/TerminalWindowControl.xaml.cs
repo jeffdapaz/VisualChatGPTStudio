@@ -3,6 +3,7 @@ using JeffPires.VisualChatGPTStudio.Options;
 using Microsoft.VisualStudio.Shell;
 using OpenAI_API.Completions;
 using System;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using Clipboard = System.Windows.Clipboard;
@@ -168,6 +169,30 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             txtResponse.SyntaxHighlighting = ICSharpCode.AvalonEdit.Highlighting.HighlightingManager.Instance.GetDefinition(TextFormat.DetectCodeLanguage(txtResponse.Text));
 
             txtResponse.ScrollToEnd();
+        }
+
+        /// <summary>
+        /// Sends a request to the ChatGPT window and handles the response.
+        /// </summary>
+        /// <param name="command">The command to send to the ChatGPT window.</param>
+        public async Task RequestToWindowAsync(string command)
+        {
+            try
+            {
+                firstInteration = true;
+
+                await VS.StatusBar.ShowProgressAsync("Requesting chatGPT", 1, 2);
+
+                txtResponse.Text = string.Empty;
+
+                await ChatGPT.RequestAsync(options, command, ResultHandler);
+            }
+            catch (Exception ex)
+            {
+                await VS.StatusBar.ShowProgressAsync(ex.Message, 2, 2);
+
+                MessageBox.Show(ex.Message, EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
 
         #endregion Methods        

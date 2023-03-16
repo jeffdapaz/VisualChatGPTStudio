@@ -1,12 +1,10 @@
 ﻿using Community.VisualStudio.Toolkit;
 using JeffPires.VisualChatGPTStudio.Options;
-using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using OpenAI_API.Completions;
 using System;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
 using Clipboard = System.Windows.Clipboard;
 using MessageBox = System.Windows.MessageBox;
 using UserControl = System.Windows.Controls.UserControl;
@@ -39,10 +37,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         public TerminalWindowControl()
         {
             this.InitializeComponent();
-
-            VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
-
-            SetBoxesColor();
         }
 
         #endregion Constructors
@@ -122,14 +116,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             txtRequest.SyntaxHighlighting = ICSharpCode.AvalonEdit.Highlighting.HighlightingManager.Instance.GetDefinition(TextFormat.DetectCodeLanguage(txtRequest.Text));
         }
 
-        /// <summary>
-        /// Sets the color of the boxes when the theme is changed.
-        /// </summary>
-        private void VSColorTheme_ThemeChanged(ThemeChangedEventArgs e)
-        {
-            SetBoxesColor();
-        }
-
         #endregion Event Handlers
 
         #region Methods
@@ -182,28 +168,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             txtResponse.SyntaxHighlighting = ICSharpCode.AvalonEdit.Highlighting.HighlightingManager.Instance.GetDefinition(TextFormat.DetectCodeLanguage(txtResponse.Text));
 
             txtResponse.ScrollToEnd();
-        }
-
-        /// <summary>
-        /// Sets the background color of the text boxes based on the current Visual Studio color theme.
-        /// </summary>
-        private void SetBoxesColor()
-        {
-            System.Drawing.Color currentColor = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBackgroundColorKey);
-
-            SolidColorBrush newcolor;
-
-            if (currentColor == System.Drawing.Color.FromArgb(255, 31, 31, 31))
-            {
-                newcolor = new SolidColorBrush(Color.FromRgb(51, 51, 51));
-            }
-            else
-            {
-                newcolor = new SolidColorBrush(Color.FromRgb(255, 255, 255));
-            }
-
-            txtRequest.Background = newcolor;
-            txtResponse.Background = newcolor;
         }
 
         #endregion Methods        

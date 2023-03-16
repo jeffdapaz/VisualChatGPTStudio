@@ -61,7 +61,6 @@
                 xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit" 
                 Name="txtRequest" SyntaxHighlighting="Automatic" TextChanged="txtRequest_TextChanged" BorderBrush="DarkGray" BorderThickness="1"
                 Grid.Row="2" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" ShowLineNumbers="True"
-                Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
              />
         </Grid>
         <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Background="Blue" Margin="0,5,0,5" />
@@ -89,7 +88,6 @@
                 xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
                 Name="txtResponse" SyntaxHighlighting="Automatic" IsReadOnly="True" BorderBrush="DarkGray" BorderThickness="1"
                 Grid.Row="2" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" ShowLineNumbers="True"
-                Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
              />
         </Grid>
     </Grid>

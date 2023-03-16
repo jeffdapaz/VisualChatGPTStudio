@@ -31,7 +31,7 @@ For example, by changing the "Explain" prompt of the Explain command to "Explica
 
 In this new window editor you can interact directly with chatGPT as if you were in the chatGPT portal itself:
 
-![image](https://user-images.githubusercontent.com/63928228/225164333-9b709f97-768a-46f1-8829-934a6f211f44.png)
+![image](https://user-images.githubusercontent.com/63928228/225486306-d29b1ec3-2ccd-4d74-8153-806a84abe5ea.png)
 
 You will find this window in menu View -> Other Windows -> Visual chatGPT Studio.
 
@@ -60,6 +60,11 @@ In the future if I find a way around this limitation, I will post an update.
 - The speed and availability of responses directly depend on the API provided by OpenAI.
 
 ## Release Notes
+
+### 1.5.0
+
+- Added syntax highlight to text editor on tool window
+- Now text editor show the lines number.
 
 ### 1.4.0
 

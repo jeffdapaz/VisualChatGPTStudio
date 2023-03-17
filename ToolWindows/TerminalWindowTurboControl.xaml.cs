@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.Shell;
 using System;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using System.Windows.Input;
 using MessageBox = System.Windows.MessageBox;
 
@@ -48,9 +47,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         {
             try
             {
-                TextRange textRange = new TextRange(txtRequest.Document.ContentStart, txtRequest.Document.ContentEnd);
-
-                if (string.IsNullOrWhiteSpace(textRange.Text))
+                if (string.IsNullOrWhiteSpace(txtRequest.Text))
                 {
                     MessageBox.Show("Please write a request.", EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
@@ -80,6 +77,14 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
         }
 
+        /// <summary>
+        /// This method changes the syntax highlighting of the textbox based on the language detected in the text.
+        /// </summary>
+        private void txtRequest_TextChanged(object sender, EventArgs e)
+        {
+            txtRequest.SyntaxHighlighting = ICSharpCode.AvalonEdit.Highlighting.HighlightingManager.Instance.GetDefinition(TextFormat.DetectCodeLanguage(txtRequest.Text));
+        }
+
         #endregion Event Handlers
 
         #region Methods
@@ -105,6 +110,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             package.ShowOptionPage(typeof(OptionPageGridGeneral));
         }
 
-        #endregion Methods        
+        #endregion Methods    
     }
 }

@@ -115,51 +115,52 @@ namespace JeffPires.VisualChatGPTStudio
         /// <returns>The language of the given code, or an empty string if the language could not be determined.</returns>
         public static string DetectCodeLanguage(string code)
         {
-            Regex regex = new Regex(@"(<\?xml.+?\?>)|(<.+?>.*?<\/.+?>)");
+            Regex regex = new(@"(<\?xml.+?\?>)|(<.+?>.*?<\/.+?>)");
 
             if (regex.IsMatch(code))
             {
                 return "XML";
             }
 
-            regex = new Regex(@"(<.+?>.*?<\/.+?>)");
+            regex = new(@"(<.+?>.*?<\/.+?>)");
 
             if (regex.IsMatch(code))
             {
                 return "HTML";
             }
 
-            regex = new Regex(@"(public|private|protected|internal|static|class|void|string|double|float|in)");
+            regex = new(@"(public|private|protected|internal|static|class|void|string|double|float|in)");
 
             if (regex.IsMatch(code))
             {
                 return "C#";
             }
 
-            regex = new Regex(@"(Public|Private|Protected|Friend|Static|Class|Sub|Function|End Sub|End Function|Dim|As|Integer|Boolean|String|Double|Single|If|Else|End If|While|End While|For|To|Step|Next|Each|In|Return)");
+            regex = new(@"(Public|Private|Protected|Friend|Static|Class|Sub|Function|End Sub|End Function|Dim|As|Integer|Boolean|String|Double|Single|If|Else|End If|While|End While|For|To|Step|Next|Each|In|Return)");
 
             if (regex.IsMatch(code))
             {
                 return "VB";
             }
 
-            regex = new Regex(@"(function|do|switch|case|break|continue|let|instanceof|undefined|super|\bconsole\.)");
+            regex = new(@"(function|do|switch|case|break|continue|let|instanceof|undefined|super|\bconsole\.)");
 
             if (regex.IsMatch(code))
             {
                 return "JavaScript";
             }
 
-            regex = new Regex(@"([^{]*\{[^}]*\})");
+            regex = new(@"([^{]*\{[^}]*\})");
 
             if (regex.IsMatch(code))
             {
                 return "CSS";
             }
 
-            regex = new Regex(@"(SELECT|FROM|WHERE|JOIN|LEFT\s+JOIN|RIGHT\s+JOIN|INNER\s+JOIN|OUTER\s+JOIN|ON|GROUP\s+BY|HAVING|ORDER\s+BY|LIMIT|\bAND\b|\bOR\b|\bNOT\b|\bIN\b|\bBETWEEN\b|\bLIKE\b|\bIS\s+NULL\b|\bIS\s+NOT\s+NULL\b|\bEXISTS\b|\bCOUNT\b|\bSUM\b|\bAVG\b|\bMIN\b|\bMAX\b|\bCAST\b|\bCONVERT\b|\bDATEADD\b|\bDATEDIFF\b|\bDATENAME\b|\bDATEPART\b|\bGETDATE\b|\bYEAR\b|\bMONTH\b|\bDAY\b|\bHOUR\b|\bMINUTE\b|\bSECOND\b|\bTOP\b|\bDISTINCT\b|\bAS\b)");
+            regex = new(@"(SELECT|FROM|WHERE|JOIN|LEFT\s+JOIN|RIGHT\s+JOIN|INNER\s+JOIN|OUTER\s+JOIN|ON|GROUP\s+BY|HAVING|ORDER\s+BY|LIMIT|\bAND\b|\bOR\b|\bNOT\b|\bIN\b|\bBETWEEN\b|\bLIKE\b|\bIS\s+NULL\b|\bIS\s+NOT\s+NULL\b|\bEXISTS\b|\bCOUNT\b|\bSUM\b|\bAVG\b|\bMIN\b|\bMAX\b|\bCAST\b|\bCONVERT\b|\bDATEADD\b|\bDATEDIFF\b|\bDATENAME\b|\bDATEPART\b|\bGETDATE\b|\bYEAR\b|\bMONTH\b|\bDAY\b|\bHOUR\b|\bMINUTE\b|\bSECOND\b|\bTOP\b|\bDISTINCT\b|\bAS\b)");
+            Regex regex2 = new(@"(select|from|where|join|left\s+join|right\s+join|inner\s+join|outer\s+join|on|group\s+by|having|order\s+by|limit|\band\b|\bor\b|\bnot\b|\bin\b|\bbetween\b|\blike\b|\bis\s+null\b|\bis\s+not\s+null\b|\bexists\b|\bcount\b|\bsum\b|\bavg\b|\bmin\b|\bmax\b|\bcast\b|\bconvert\b|\bdateadd\b|\bdatediff\b|\bdatename\b|\bdatepart\b|\bgetdate\b|\byear\b|\bmonth\b|\bday\b|\bhour\b|\bminute\b|\bsecond\b|\btop\b|\bdistinct\b|\bas\b)");
 
-            if (regex.IsMatch(code))
+            if (regex.IsMatch(code) || regex2.IsMatch(code))
             {
                 return "TSQL";
             }

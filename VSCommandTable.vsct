@@ -76,12 +76,12 @@
           <ButtonText>Visual chatGPT Studio</ButtonText>
         </Strings>
       </Button>
-      <!--<Button guid="guidVisuallChatGPTStudioPackageCmdSet" id="cmdidTerminalWindowTurboCommand" priority="0x0100" type="Button">
+      <Button guid="guidVisuallChatGPTStudioPackageCmdSet" id="cmdidTerminalWindowTurboCommand" priority="0x0100" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
         <Strings>
           <ButtonText>Visual chatGPT Studio Turbo</ButtonText>
         </Strings>
-      </Button>-->
+      </Button>
     </Buttons>
   </Commands>
 

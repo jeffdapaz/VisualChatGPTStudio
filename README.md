@@ -10,7 +10,7 @@ You will be able to consult the chatGPT directly through the text editor or thro
 
 Select a method and right click on text editor and you see these new chatGPT commands:
 
-![image](https://user-images.githubusercontent.com/63928228/223844534-42369d55-db63-43f7-9cc3-7ec3ac08c67e.png)
+![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio/1.6.0/1679158546085/image__9.png)
 
 - **Complete:** Start write a method, select it and ask for complete.
 - **Add Tests:** Create unit tests for the selected method.
@@ -21,7 +21,7 @@ Select a method and right click on text editor and you see these new chatGPT com
 - **Add Summary:** Add Summary for C# methods.
 - **Ask Anything:** Write a question on the code editor and wait for an answer.
 
-And if you desire that the responses be written on tool window instead on the code editor, press and hold the SHIFT key and select the command.
+And if you desire that the responses be written on tool window instead on the code editor, press and hold the SHIFT key and select the command (not work with the shortcuts).
 
 If you want chatGPT to respond in another language and/or want to customize the commands for some reason, you can edit the default commands through the options:
 
@@ -62,6 +62,16 @@ In the future if I find a way around this limitation, I will post an update.
 - The speed and availability of responses directly depend on the API provided by OpenAI.
 
 ## Release Notes
+
+### 1.6.0
+
+- Removed mention to Visual Studio 2019 due incompatibility.
+- Added comment prefix for "Explain" and "Find Bugs" commands.
+- Added line break after 160 characters on the same line for "Explain" and "Find Bugs" commands.
+- Do nothing when API send only break lines on response begin (avoid new brank lines).
+- Commands moved to a submenu.
+- Added shortcuts to the commands.
+- Fixed error when executing commands with SHIFT key in some scenarios.
 
 ### 1.5.1
 

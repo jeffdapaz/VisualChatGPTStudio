@@ -89,6 +89,11 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// <param name="command">The command to send to the ChatGPT window.</param>
         public async Task RequestToWindowAsync(string command)
         {
+            if (window == null)
+            {
+                throw new Exception("Please, open the tool window first.");
+            }
+
             await window.RequestToWindowAsync(command);
         }
 

@@ -2,6 +2,7 @@
 using EnvDTE;
 using JeffPires.VisualChatGPTStudio.Options;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text;
 using OpenAI_API.Completions;
 using System;
 using System.Linq;
@@ -27,6 +28,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         private int positionEnd;
         private int lineLength;
         private bool firstInteration;
+        private bool responseStarted;
 
         /// <summary>
         /// Gets the OptionsGeneral property of the VisuallChatGPTStudioPackage.
@@ -85,6 +87,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                 }
 
                 firstInteration = true;
+                responseStarted = false;
                 lineLength = 0;
 
                 await Package.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -133,7 +136,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
             {
-                _ = TerminalWindowCommand.Instance.RequestToWindowAsync(command);
+                await TerminalWindowCommand.Instance.RequestToWindowAsync(command);
 
                 return;
             }
@@ -160,13 +163,15 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// </summary>
         /// <param name="index">The index.</param>
         /// <param name="result">The result.</param>
-        private async void ResultHandler(int index, CompletionResult result)
+        private void ResultHandler(int index, CompletionResult result)
         {
+            const int LINE_LIMIT = 160;
+
             try
             {
                 if (firstInteration)
                 {
-                    await VS.StatusBar.ShowProgressAsync("Receiving chatGPT response", 2, 2);
+                    _ = VS.StatusBar.ShowProgressAsync("Receiving chatGPT response", 2, 2);
 
                     CommandType commandType = GetCommandType(selectedText);
 
@@ -175,19 +180,25 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                         position = positionStart;
 
                         //Erase current code
-                        _ = (docView.TextBuffer?.Replace(new Span(position, docView.TextView.Selection.StreamSelectionSpan.GetText().Length), String.Empty));
+                        _ = docView.TextBuffer?.Replace(new Span(position, docView.TextView.Selection.StreamSelectionSpan.GetText().Length), String.Empty);
                     }
                     else if (commandType == CommandType.InsertBefore)
                     {
                         position = positionStart;
 
-                        _ = (docView.TextBuffer?.Insert(position, Environment.NewLine));
+                        InsertANewLine();
                     }
                     else
                     {
                         position = positionEnd;
 
-                        _ = (docView.TextBuffer?.Insert(position, Environment.NewLine));
+                        InsertANewLine();
+                    }
+
+                    if (typeof(TCommand) == typeof(Explain) || typeof(TCommand) == typeof(FindBugs))
+                    {
+                        docView.TextBuffer?.Insert(position, "//");
+                        position += 2;
                     }
 
                     firstInteration = false;
@@ -195,34 +206,56 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                 string resultText = result.ToString();
 
+                if (!responseStarted && (resultText.Equals("\n") || resultText.Equals("\r") || resultText.Equals(Environment.NewLine)))
+                {
+                    //Do nothing when API send only break lines on response begin
+                    return;
+                }
+
+                responseStarted = true;
+
                 docView.TextBuffer?.Insert(position, resultText);
 
                 position += resultText.Length;
 
                 lineLength += resultText.Length;
 
-                if (lineLength > 160 && typeof(TCommand) == typeof(AskAnything))
+                if (lineLength > LINE_LIMIT && (typeof(TCommand) == typeof(Explain) || typeof(TCommand) == typeof(FindBugs)))
                 {
-                    lineLength = 0;
-                    MovetoNextLine();
+                    MoveToNextLineAndAddCommentPrefix();
                 }
             }
             catch (Exception)
             {
-                throw;
+
             }
         }
 
         /// <summary>
-        /// Move to the next line.
+        /// Inserts a new line.
         /// </summary>
-        private void MovetoNextLine()
+        private void InsertANewLine()
         {
-            position = docView.TextView.Caret.Position.BufferPosition.GetContainingLine().End.Position;
+            ITextSnapshot textSnapshot = docView.TextBuffer?.Insert(position, Environment.NewLine);
 
-            docView.TextView.Caret.MoveTo(docView.TextView.Caret.Position.BufferPosition.GetContainingLine().End);
+            // Get the next line
+            ITextSnapshotLine nextLine = textSnapshot.GetLineFromLineNumber(textSnapshot.GetLineNumberFromPosition(position) + 1);
 
-            _ = (docView.TextBuffer?.Insert(position, Environment.NewLine));
+            // Get the position of the first character on the next line
+            position = nextLine.Start.Position;
+        }
+
+        /// <summary>
+        /// Inserts a new line and adds a comment prefix to the next line.
+        /// </summary>
+        private void MoveToNextLineAndAddCommentPrefix()
+        {
+            lineLength = 0;
+
+            InsertANewLine();
+
+            docView.TextBuffer?.Insert(position, "//");
+            position += 2;
         }
 
         /// <summary>

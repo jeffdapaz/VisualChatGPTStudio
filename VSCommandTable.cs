@@ -20,7 +20,6 @@ namespace JeffPires.VisualChatGPTStudio
     /// </summary>
     internal sealed partial class PackageIds
     {
-        public const int MyMenuGroup = 0x0001;
         public const int Complete = 0x0000;
         public const int AddTests = 0x0100;
         public const int FindBugs = 0x0200;

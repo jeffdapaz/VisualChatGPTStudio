@@ -27,6 +27,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
         private OptionPageGridGeneral options;
         private bool firstInteration;
+        private bool responseStarted;
 
         #endregion Properties
 
@@ -52,6 +53,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             try
             {
                 firstInteration = true;
+                responseStarted = false;
 
                 if (string.IsNullOrWhiteSpace(txtRequest.Text))
                 {
@@ -162,9 +164,20 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
                 await VS.StatusBar.ShowProgressAsync("Receiving chatGPT response", 2, 2);
 
                 firstInteration = false;
+                responseStarted = false;
             }
 
-            txtResponse.AppendText(result.ToString());
+            string resultText = result.ToString();
+
+            if (!responseStarted && (resultText.Equals("\n") || resultText.Equals("\r") || resultText.Equals(Environment.NewLine)))
+            {
+                //Do nothing when API send only break lines on response begin
+                return;
+            }
+
+            responseStarted = true;
+
+            txtResponse.AppendText(resultText);
 
             txtResponse.SyntaxHighlighting = ICSharpCode.AvalonEdit.Highlighting.HighlightingManager.Instance.GetDefinition(TextFormat.DetectCodeLanguage(txtResponse.Text));
 

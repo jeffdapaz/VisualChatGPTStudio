@@ -63,6 +63,10 @@ In the future if I find a way around this limitation, I will post an update.
 
 ## Release Notes
 
+### 1.6.1
+
+- Fixed a bug introduced on previous release for the "Explain, "Add Comments" and "Add Summary" commands.
+
 ### 1.6.0
 
 - Removed mention to Visual Studio 2019 due incompatibility.

@@ -186,13 +186,13 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                     {
                         position = positionStart;
 
-                        InsertANewLine();
+                        InsertANewLine(false);
                     }
                     else
                     {
                         position = positionEnd;
 
-                        InsertANewLine();
+                        InsertANewLine(true);
                     }
 
                     if (typeof(TCommand) == typeof(Explain) || typeof(TCommand) == typeof(FindBugs))
@@ -232,17 +232,21 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         }
 
         /// <summary>
-        /// Inserts a new line.
+        /// Inserts a new line into the document and optionally moves the position to the start of the next line.
         /// </summary>
-        private void InsertANewLine()
+        /// <param name="moveToNextLine">Indicates whether the position should be moved to the start of the next line.</param> 
+        private void InsertANewLine(bool moveToNextLine)
         {
             ITextSnapshot textSnapshot = docView.TextBuffer?.Insert(position, Environment.NewLine);
 
             // Get the next line
             ITextSnapshotLine nextLine = textSnapshot.GetLineFromLineNumber(textSnapshot.GetLineNumberFromPosition(position) + 1);
 
-            // Get the position of the first character on the next line
-            position = nextLine.Start.Position;
+            if (moveToNextLine)
+            {
+                // Get the position of the first character on the next line
+                position = nextLine.Start.Position;
+            }
         }
 
         /// <summary>
@@ -252,7 +256,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         {
             lineLength = 0;
 
-            InsertANewLine();
+            InsertANewLine(true);
 
             docView.TextBuffer?.Insert(position, "//");
             position += 2;

@@ -1,11 +1,12 @@
 ﻿using JeffPires.VisualChatGPTStudio.Options;
 using OpenAI_API;
+using OpenAI_API.Chat;
 using OpenAI_API.Completions;
 using OpenAI_API.Models;
 using System;
 using System.Threading.Tasks;
 
-namespace JeffPires.VisualChatGPTStudio
+namespace JeffPires.VisualChatGPTStudio.Utils
 {
     /// <summary>
     /// Static class containing methods for interacting with the ChatGPT API.
@@ -23,14 +24,7 @@ namespace JeffPires.VisualChatGPTStudio
         /// <returns>A task representing the completion request.</returns>
         public static async Task RequestAsync(OptionPageGridGeneral options, string request, Action<int, CompletionResult> resultHandler)
         {
-            if (api == null)
-            {
-                api = new(options.ApiKey);
-            }
-            else if (api.Auth.ApiKey != options.ApiKey)
-            {
-                api.Auth.ApiKey = options.ApiKey;
-            }
+            CreateApiHandler(options.ApiKey);
 
             Model model = Model.DavinciText;
 
@@ -53,9 +47,41 @@ namespace JeffPires.VisualChatGPTStudio
                     break;
             }
 
-            CompletionRequest completionRequest = new CompletionRequest(request, model, options.MaxTokens, options.Temperature, presencePenalty: options.PresencePenalty, frequencyPenalty: options.FrequencyPenalty, top_p: options.TopP);
+            CompletionRequest completionRequest = new(request, model, options.MaxTokens, options.Temperature, presencePenalty: options.PresencePenalty, frequencyPenalty: options.FrequencyPenalty, top_p: options.TopP);
 
             await api.Completions.StreamCompletionAsync(completionRequest, resultHandler);
+        }
+
+        /// <summary>
+        /// Creates a new conversation and appends a system message with the specified TurboChatBehavior.
+        /// </summary>
+        /// <param name="options">The options to use for the conversation.</param>
+        /// <returns>The newly created conversation.</returns>
+        public static Conversation CreateConversation(OptionPageGridGeneral options)
+        {
+            CreateApiHandler(options.ApiKey);
+
+            Conversation chat = api.Chat.CreateConversation();
+
+            chat.AppendSystemMessage(options.TurboChatBehavior);
+
+            return chat;
+        }
+
+        /// <summary>
+        /// Creates an API handler with the given API key.
+        /// </summary>
+        /// <param name="apiKey">The API key to use.</param>
+        private static void CreateApiHandler(string apiKey)
+        {
+            if (api == null)
+            {
+                api = new(apiKey);
+            }
+            else if (api.Auth.ApiKey != apiKey)
+            {
+                api.Auth.ApiKey = apiKey;
+            }
         }
     }
 }

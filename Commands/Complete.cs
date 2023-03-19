@@ -1,4 +1,5 @@
 ﻿using Community.VisualStudio.Toolkit;
+using JeffPires.VisualChatGPTStudio.Utils;
 
 namespace JeffPires.VisualChatGPTStudio.Commands
 {

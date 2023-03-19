@@ -55,6 +55,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DefaultValue(0)]
         [TypeConverter(typeof(DoubleConverter))]
         public double TopP { get; set; } = 0;
+
+        [Category("Visual chatGPT Studio")]
+        [DisplayName("Turbo Chat Behavior")]
+        [Description("Set the behavior of the assistant.")]
+        [DefaultValue("You are a programmer assistant called Visual chatGPT Studio, and your role is help developers and resolve programmer problems.")]
+        public string TurboChatBehavior { get; set; } = "You are a programmer assistant called Visual chatGPT Studio, and your role is help developers and resolve programmer problems.";
     }
 
     /// <summary>

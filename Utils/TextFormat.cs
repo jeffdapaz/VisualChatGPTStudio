@@ -2,7 +2,7 @@
 using System.Text.RegularExpressions;
 using System.Web;
 
-namespace JeffPires.VisualChatGPTStudio
+namespace JeffPires.VisualChatGPTStudio.Utils
 {
     /// <summary>
     /// Internal static utility class containing methods for text formatting. 

@@ -3,7 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity" 
              xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"   
+             xmlns:utils="clr-namespace:JeffPires.VisualChatGPTStudio.Utils"
              Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
              Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
              mc:Ignorable="d"
@@ -11,10 +13,11 @@
              Name="MyToolWindow">
     <UserControl.Resources>
         <RoutedUICommand x:Key="sendCommand" Text="Text" />
+        <utils:HighlightingDefinitionConverter x:Key="HighlightingDefinitionConverter" />
     </UserControl.Resources>
 
     <UserControl.CommandBindings>
-        <CommandBinding Command="{StaticResource sendCommand}" Executed="SendRequest" />
+        <CommandBinding Command="{StaticResource sendCommand}" Executed="SendRequestAsync" />
     </UserControl.CommandBindings>
 
     <UserControl.InputBindings>
@@ -28,7 +31,43 @@
             <RowDefinition Height="Auto" MinHeight="65"/>
         </Grid.RowDefinitions>
         <Grid Name="grdChat" Grid.Row="0">
-
+            <ScrollViewer x:Name="scrollViewer" VerticalScrollBarVisibility="Auto">
+                <ItemsControl Grid.Row="0" Name="chatList">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="5"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="5"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="5" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="5" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="5" />
+                                </Grid.ColumnDefinitions>
+                                <Image Grid.Row="1" Grid.Column="1" Source="{Binding ImageSource}" Width="36" Height="36" VerticalAlignment="Top" />
+                                <avalonEdit:TextEditor        
+                                    xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit" VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Disabled"                                    
+                                    Grid.Row="1" Grid.Column="3" ShowLineNumbers="False" Document="{Binding Document}" Background="{Binding BackgroundColor}"
+                                    SyntaxHighlighting="{Binding Syntax, Converter={StaticResource HighlightingDefinitionConverter}}" IsReadOnly="True" 
+                                    PreviewMouseWheel="TextEditor_PreviewMouseWheel">
+                                    <avalonEdit:TextEditor.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Command="Copy" />
+                                        </ContextMenu>
+                                    </avalonEdit:TextEditor.ContextMenu>
+                                    <avalonEdit:TextEditor.FontFamily>
+                                        <FontFamily>Consolas</FontFamily>
+                                    </avalonEdit:TextEditor.FontFamily>
+                                </avalonEdit:TextEditor>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
         </Grid>
         <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Background="Blue" Margin="0,5,0,5" />
         <Grid Name="grdRequest" Grid.Row="2">
@@ -45,10 +84,15 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <avalonEdit:TextEditor        
-                xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
+                xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit" BorderBrush="DarkGray" BorderThickness="1"
                 Name="txtRequest" SyntaxHighlighting="Automatic" Grid.Column="1" Grid.RowSpan="3" TextChanged="txtRequest_TextChanged"
-                ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" ShowLineNumbers="false"
-             />
+                ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" ShowLineNumbers="false">
+                <avalonEdit:TextEditor.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Command="Paste" />
+                    </ContextMenu>
+                </avalonEdit:TextEditor.ContextMenu>
+            </avalonEdit:TextEditor>
             <Button Grid.Column="3" Grid.Row="0" Height="30" Width="30" Name="btnClear" ToolTip="Clear the conversation" Click="btnClear_Click" VerticalAlignment="Bottom">
                 <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/garbage.png" Width="20" Height="20"/>
             </Button>

@@ -1,5 +1,6 @@
 ﻿using Community.VisualStudio.Toolkit;
 using JeffPires.VisualChatGPTStudio.Options;
+using JeffPires.VisualChatGPTStudio.Utils;
 using Microsoft.VisualStudio.Shell;
 using OpenAI_API.Completions;
 using System;
@@ -17,12 +18,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
     /// </summary>
     public partial class TerminalWindowControl : UserControl
     {
-        #region Constants
-
-        const string EXTENSION_NAME = "Visual chatGPT Studio";
-
-        #endregion Constants
-
         #region Properties
 
         private OptionPageGridGeneral options;
@@ -57,11 +52,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 if (string.IsNullOrWhiteSpace(txtRequest.Text))
                 {
-                    MessageBox.Show("Please write a request.", EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show(Constants.MESSAGE_WRITE_REQUEST, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
                 }
 
-                await VS.StatusBar.ShowProgressAsync("Requesting chatGPT", 1, 2);
+                await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_WAITING_CHATGPT, 1, 2);
 
                 string selectionFormated = TextFormat.FormatSelection(txtRequest.Text);
 
@@ -73,7 +68,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             {
                 await VS.StatusBar.ShowProgressAsync(ex.Message, 2, 2);
 
-                MessageBox.Show(ex.Message, EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
@@ -143,11 +138,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             txtRequest.IsEnabled = false;
             txtResponse.IsEnabled = false;
 
-            string message = "Please, set the OpenAI API key and restart Visual Studio.";
+            txtRequest.Text = Constants.MESSAGE_SET_API_KEY_AND_RESTART;
 
-            txtRequest.Text = message;
-
-            MessageBox.Show(message, EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(Constants.MESSAGE_SET_API_KEY_AND_RESTART, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
 
             package.ShowOptionPage(typeof(OptionPageGridGeneral));
         }
@@ -161,7 +154,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         {
             if (firstInteration)
             {
-                await VS.StatusBar.ShowProgressAsync("Receiving chatGPT response", 2, 2);
+                await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_RECEIVING_CHATGPT, 2, 2);
 
                 firstInteration = false;
                 responseStarted = false;
@@ -204,7 +197,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             {
                 await VS.StatusBar.ShowProgressAsync(ex.Message, 2, 2);
 
-                MessageBox.Show(ex.Message, EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 

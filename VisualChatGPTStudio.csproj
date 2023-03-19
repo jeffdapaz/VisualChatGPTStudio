@@ -49,7 +49,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="ChatGPT.cs" />
+    <Compile Include="Utils\ChatGPT.cs" />
     <Compile Include="Commands\AddSummary.cs" />
     <Compile Include="Commands\BaseChatGPTCommand.cs" />
     <Compile Include="Commands\AskAnything.cs" />
@@ -71,7 +71,10 @@
     <Compile Include="ToolWindows\TerminalWindowControl.xaml.cs">
       <DependentUpon>TerminalWindowControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="TextFormat.cs" />
+    <Compile Include="Utils\ChatTurboItem.cs" />
+    <Compile Include="Utils\Constants.cs" />
+    <Compile Include="Utils\HighlightingDefinitionConverter.cs" />
+    <Compile Include="Utils\TextFormat.cs" />
     <Compile Include="ToolWindows\TerminalWindowTurbo.cs" />
     <Compile Include="Commands\TerminalWindowTurboCommand.cs" />
     <Compile Include="ToolWindows\TerminalWindowTurboControl.xaml.cs">
@@ -90,7 +93,13 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Resources\chatGPT.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Content Include="Resources\turbo.png" />
+    <Resource Include="Resources\vs.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Resources\garbage.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>

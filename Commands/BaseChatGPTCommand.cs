@@ -1,6 +1,7 @@
 ﻿using Community.VisualStudio.Toolkit;
 using EnvDTE;
 using JeffPires.VisualChatGPTStudio.Options;
+using JeffPires.VisualChatGPTStudio.Utils;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using OpenAI_API.Completions;
@@ -8,6 +9,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 using Span = Microsoft.VisualStudio.Text.Span;
 
 namespace JeffPires.VisualChatGPTStudio.Commands
@@ -19,8 +21,6 @@ namespace JeffPires.VisualChatGPTStudio.Commands
     /// <seealso cref="BaseCommand&lt;&gt;" />
     internal abstract class BaseChatGPTCommand<TCommand> : BaseCommand<TCommand> where TCommand : class, new()
     {
-        const string EXTENSION_NAME = "Visual chatGPT Studio";
-
         protected DocumentView docView;
         private string selectedText;
         private int position;
@@ -79,7 +79,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
             {
                 if (string.IsNullOrWhiteSpace(OptionsGeneral.ApiKey))
                 {
-                    await VS.MessageBox.ShowAsync(EXTENSION_NAME, "Please, set the OpenAI API key.", buttons: Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
+                    await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, Constants.MESSAGE_SET_API_KEY, buttons: Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
 
                     Package.ShowOptionPage(typeof(OptionPageGridGeneral));
 
@@ -104,14 +104,14 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                 if (string.IsNullOrWhiteSpace(selectedText))
                 {
-                    await VS.MessageBox.ShowAsync(EXTENSION_NAME, "Please select the code.", buttons: Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
+                    await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, "Please select the code.", buttons: Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
 
                     return;
                 }
 
                 if (CheckIfSelectedTwoOrMoreMethods(selectedText))
                 {
-                    await VS.MessageBox.ShowAsync(EXTENSION_NAME, "Please select one method at a time.", buttons: Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
+                    await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, "Please select one method at a time.", buttons: Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
 
                     return;
                 }
@@ -122,7 +122,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
             {
                 await VS.StatusBar.ShowProgressAsync(ex.Message, 2, 2);
 
-                await VS.MessageBox.ShowAsync(EXTENSION_NAME, ex.Message, Microsoft.VisualStudio.Shell.Interop.OLEMSGICON.OLEMSGICON_WARNING, Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
+                await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, ex.Message, Microsoft.VisualStudio.Shell.Interop.OLEMSGICON.OLEMSGICON_WARNING, Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
             }
         }
 
@@ -141,7 +141,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                 return;
             }
 
-            await VS.StatusBar.ShowProgressAsync("Waiting chatGPT response", 1, 2);
+            await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_WAITING_CHATGPT, 1, 2);
 
             await ChatGPT.RequestAsync(OptionsGeneral, command, ResultHandler);
 
@@ -171,7 +171,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
             {
                 if (firstInteration)
                 {
-                    _ = VS.StatusBar.ShowProgressAsync("Receiving chatGPT response", 2, 2);
+                    _ = VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_RECEIVING_CHATGPT, 2, 2);
 
                     CommandType commandType = GetCommandType(selectedText);
 

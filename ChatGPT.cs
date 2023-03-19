@@ -12,6 +12,8 @@ namespace JeffPires.VisualChatGPTStudio
     /// </summary>
     static class ChatGPT
     {
+        private static OpenAIAPI api;
+
         /// <summary>
         /// Requests a completion from the OpenAI API using the given options.
         /// </summary>
@@ -21,7 +23,14 @@ namespace JeffPires.VisualChatGPTStudio
         /// <returns>A task representing the completion request.</returns>
         public static async Task RequestAsync(OptionPageGridGeneral options, string request, Action<int, CompletionResult> resultHandler)
         {
-            OpenAIAPI api = new OpenAIAPI(options.ApiKey);
+            if (api == null)
+            {
+                api = new(options.ApiKey);
+            }
+            else if (api.Auth.ApiKey != options.ApiKey)
+            {
+                api.Auth.ApiKey = options.ApiKey;
+            }
 
             Model model = Model.DavinciText;
 

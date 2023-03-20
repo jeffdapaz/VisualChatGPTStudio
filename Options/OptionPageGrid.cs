@@ -57,7 +57,7 @@ namespace JeffPires.VisualChatGPTStudio.Options
         public double TopP { get; set; } = 0;
 
         [Category("Visual chatGPT Studio")]
-        [DisplayName("stop sequence")]
+        [DisplayName("Stop sequence")]
         [Description("Up to 4 sequences where the API will stop generating further tokens. The returned text will not contain the stop sequence. Separate different stop strings by a comma e.g. '},;,stop'")]
         [DefaultValue("")]
         public string StopSeqeuences{ get; set; } = string.Empty;

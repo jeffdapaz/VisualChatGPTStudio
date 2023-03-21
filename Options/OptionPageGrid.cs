@@ -57,6 +57,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         public double TopP { get; set; } = 0;
 
         [Category("Visual chatGPT Studio")]
+        [DisplayName("Stop Sequences")]
+        [Description("Up to 4 sequences where the API will stop generating further tokens. The returned text will not contain the stop sequence. Separate different stop strings by a comma e.g. '},;,stop'")]
+        [DefaultValue("")]
+        public string StopSequences { get; set; } = string.Empty;
+
+        [Category("Visual chatGPT Studio")]
         [DisplayName("Turbo Chat Behavior")]
         [Description("Set the behavior of the assistant.")]
         [DefaultValue("You are a programmer assistant called Visual chatGPT Studio, and your role is help developers and resolve programmer problems.")]

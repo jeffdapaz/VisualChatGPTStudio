@@ -47,7 +47,14 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                     break;
             }
 
-            CompletionRequest completionRequest = new(request, model, options.MaxTokens, options.Temperature, presencePenalty: options.PresencePenalty, frequencyPenalty: options.FrequencyPenalty, top_p: options.TopP);
+            CompletionRequest completionRequest = new(request,
+                                                       model,
+                                                       options.MaxTokens,
+                                                       options.Temperature,
+                                                       presencePenalty: options.PresencePenalty,
+                                                       frequencyPenalty: options.FrequencyPenalty,
+                                                       top_p: options.TopP,
+                                                       stopSequences: GetStopSequenceArray(options.StopSequences));
 
             await api.Completions.StreamCompletionAsync(completionRequest, resultHandler);
         }
@@ -82,6 +89,17 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             {
                 api.Auth.ApiKey = apiKey;
             }
+        }
+
+        /// <summary>
+        /// Splits a string into an array of strings based on a comma delimiter.
+        /// </summary>
+        /// <param name="option">The string to be split.</param>
+        /// <returns>An array of strings.</returns>
+        private static string[] GetStopSequenceArray(string option)
+        {
+            string[] stopSequenceArray = option.Split(',');
+            return stopSequenceArray;
         }
     }
 }

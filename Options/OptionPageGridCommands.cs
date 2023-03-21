@@ -59,7 +59,7 @@ namespace JeffPires.VisualChatGPTStudio.Options
         public string AddCommentsForLines { get; set; } = "Rewrite the code with comments";
 
         [Category("Visual chatGPT Studio")]
-        [DisplayName("Custom Command Before")]
+        [DisplayName("Custom command Before")]
         [Description("Define a custom command that will insert the response before the selected text")]
         [DefaultValue("")]
         public string CustomBefore { get; set; }

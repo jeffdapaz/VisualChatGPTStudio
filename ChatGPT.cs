@@ -1,4 +1,6 @@
-﻿using JeffPires.VisualChatGPTStudio.Options;
+﻿using EnvDTE;
+using JeffPires.VisualChatGPTStudio.Options;
+using Microsoft.Build.Framework.XamlTypes;
 using OpenAI_API;
 using OpenAI_API.Completions;
 using OpenAI_API.Models;
@@ -53,9 +55,21 @@ namespace JeffPires.VisualChatGPTStudio
                     break;
             }
 
-            CompletionRequest completionRequest = new CompletionRequest(request, model, options.MaxTokens, options.Temperature, presencePenalty: options.PresencePenalty, frequencyPenalty: options.FrequencyPenalty, top_p: options.TopP);
+
+            CompletionRequest completionRequest = new CompletionRequest(request, model, options.MaxTokens, options.Temperature, presencePenalty: options.PresencePenalty, 
+                frequencyPenalty: options.FrequencyPenalty, top_p: options.TopP, stopSequences: GetStopSequenceArray(options.StopSeqeuences));
 
             await api.Completions.StreamCompletionAsync(completionRequest, resultHandler);
         }
+
+        /// <summary>
+        ///  Returns an string array of stop sequences
+        /// </summary>
+        private static string[] GetStopSequenceArray(string option)
+        {
+            string[] stopSequenceArray = option.Split(',');
+            return stopSequenceArray;
+        }
+
     }
 }

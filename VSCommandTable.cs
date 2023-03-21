@@ -28,5 +28,8 @@ namespace JeffPires.VisualChatGPTStudio
         public const int AddComments = 0x0500;
         public const int AddSummary = 0x0600;
         public const int AskAnything = 0x0700;
+        public const int CustomBefore = 0x0800;
+        public const int CustomAfter = 0x0900;
+        public const int CustomReplace = 0x0901;
     }
 }

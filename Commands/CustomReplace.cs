@@ -5,8 +5,8 @@ using System;
 
 namespace JeffPires.VisualChatGPTStudio
 {
-    [Command(PackageIds.Optimize)]
-    internal sealed class Optimize : BaseChatGPTCommand<Optimize>
+    [Command(PackageIds.CustomReplace)]
+    internal sealed class CustomReplace : BaseChatGPTCommand<CustomReplace>
     {
         protected override CommandType GetCommandType(string selectedText)
         {
@@ -15,7 +15,7 @@ namespace JeffPires.VisualChatGPTStudio
 
         protected override string GetCommand(string selectedText)
         {
-            return $"{OptionsCommands.Optimize}{Environment.NewLine}{Environment.NewLine}{TextFormat.FormatSelection(selectedText)}";
+            return $"{OptionsCommands.CustomReplace}{Environment.NewLine}{Environment.NewLine}{TextFormat.FormatSelection(selectedText)}";
         }
     }
 }

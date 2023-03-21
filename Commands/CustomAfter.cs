@@ -5,17 +5,17 @@ using System;
 
 namespace JeffPires.VisualChatGPTStudio
 {
-    [Command(PackageIds.Optimize)]
-    internal sealed class Optimize : BaseChatGPTCommand<Optimize>
+    [Command(PackageIds.CustomAfter)]
+    internal sealed class CustomAfter : BaseChatGPTCommand<CustomAfter>
     {
         protected override CommandType GetCommandType(string selectedText)
         {
-            return CommandType.Replace;
+            return CommandType.InsertAfter;
         }
 
         protected override string GetCommand(string selectedText)
         {
-            return $"{OptionsCommands.Optimize}{Environment.NewLine}{Environment.NewLine}{TextFormat.FormatSelection(selectedText)}";
+            return $"{OptionsCommands.CustomAfter}{Environment.NewLine}{Environment.NewLine}{TextFormat.FormatSelection(selectedText)}";
         }
     }
 }

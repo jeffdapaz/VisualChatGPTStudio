@@ -175,7 +175,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                     CommandType commandType = GetCommandType(selectedText);
 
-                    if (commandType == CommandType.Erase)
+                    if (commandType == CommandType.Replace)
                     {
                         position = positionStart;
 
@@ -213,6 +213,11 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                 }
 
                 responseStarted = true;
+
+                if (typeof(TCommand) == typeof(AddSummary) && (resultText.Contains("{") || resultText.Contains("}")))
+                {
+                    return;
+                }
 
                 docView.TextBuffer?.Insert(position, resultText);
 
@@ -280,7 +285,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
     /// </summary>
     enum CommandType
     {
-        Erase,
+        Replace,
         InsertBefore,
         InsertAfter
     }

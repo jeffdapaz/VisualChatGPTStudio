@@ -20,6 +20,9 @@ Select a method and right click on text editor and you see these new chatGPT com
 - **Add Comments:** Add comments for the selected method.
 - **Add Summary:** Add Summary for C# methods.
 - **Ask Anything:** Write a question on the code editor and wait for an answer.
+- **Custom Before:** Create a custom command through the options that inserts the response before the selected code.
+- **Custom After:** Create a custom command through the options that inserts the response after the selected code.
+- **Custom Replace:** Create a custom command through the options that replace the selected text with the response.
 
 And if you desire that the responses be written on tool window instead on the code editor, press and hold the SHIFT key and select the command (not work with the shortcuts).
 
@@ -29,13 +32,27 @@ If you want chatGPT to respond in another language and/or want to customize the 
 
 For example, by changing the "Explain" prompt of the Explain command to "Explicar en español" (or just "Explicar"), the OpenAI API will write the comments in Spanish instead of using the default English command.
 
-## Features by tool window
+## Features by "Visual chatGPT Studio" tool window
 
-In this new window editor you can interact directly with chatGPT as if you were in the chatGPT portal itself:
+In this tool window you can ask questions to chatGPT and receive answers directly in it.
+
+The interactions made in this window use the parameters defined in the options of this extension (as well as the commands in the code editor):
 
 ![image](https://user-images.githubusercontent.com/63928228/225486306-d29b1ec3-2ccd-4d74-8153-806a84abe5ea.png)
 
 You will find this window in menu View -> Other Windows -> Visual chatGPT Studio.
+
+## Features by "Visual chatGPT Studio Turbo" tool window
+
+In this new window editor you can interact directly with chatGPT as if you were in the chatGPT portal itself:
+
+Unlike the previous window, in this one the AI "remembers" the entire conversation, and it can even assume a personality that can be parameterized through the options:
+
+![image](https://user-images.githubusercontent.com/63928228/225486306-d29b1ec3-2ccd-4d74-8153-806a84abe5ea.png)
+
+And also different from the previous window where the OpenAI model used is the one defined through the options, this one exclusively uses the model gpt-3.5-turbo.
+
+You will find this window in menu View -> Other Windows -> Visual chatGPT Studio Turbo.
 
 ## Authentication
 
@@ -62,6 +79,13 @@ In the future if I find a way around this limitation, I will post an update.
 - The speed and availability of responses directly depend on the API provided by OpenAI.
 
 ## Release Notes
+
+### 1.7.0
+
+- Added the new "Visual chatGPT Studio Turbo" tool window.
+- Sometimes when performing the "Add Summary" command, the API ends up adding the characters "{" and/or "}" to its response. Therefore I am removing these characters from the response when they are returned as a result of this command.
+- Added the new custom commands Before, After and Replace.
+- Added the "Stop Sequences" on options (Credit to graham83).
 
 ### 1.6.1
 

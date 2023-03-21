@@ -66,6 +66,24 @@
           <LocCanonicalName>.VisuallChatGPTStudio.AskAnything</LocCanonicalName>
         </Strings>
       </Button>
+      <Button guid="VisuallChatGPTStudio" id="CustomBefore" priority="0x0800" type="Button">
+        <Strings>
+          <ButtonText>Custom Before</ButtonText>
+          <LocCanonicalName>.VisuallChatGPTStudio.CustomBefore</LocCanonicalName>
+        </Strings>
+      </Button>
+      <Button guid="VisuallChatGPTStudio" id="CustomAfter" priority="0x0900" type="Button">
+        <Strings>
+          <ButtonText>Custom After</ButtonText>
+          <LocCanonicalName>.VisuallChatGPTStudio.CustomAfter</LocCanonicalName>
+        </Strings>
+      </Button>
+      <Button guid="VisuallChatGPTStudio" id="CustomReplace" priority="0x0901" type="Button">
+        <Strings>
+          <ButtonText>Custom Replace</ButtonText>
+          <LocCanonicalName>.VisuallChatGPTStudio.CustomReplace</LocCanonicalName>
+        </Strings>
+      </Button>
       <Button guid="guidVisuallChatGPTStudioPackageCmdSet" id="cmdidTerminalWindowCommand" priority="0x0100" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
         <Icon guid="VisuallChatGPTStudioChatGPTIcon" id="chatGPTIcon" />
@@ -97,6 +115,9 @@
     <KeyBinding guid="VisuallChatGPTStudio" id="AddComments" mod1="ALT" key1="6" editor="guidVSStd97" />
     <KeyBinding guid="VisuallChatGPTStudio" id="AddSummary" mod1="ALT" key1="7" editor="guidVSStd97" />
     <KeyBinding guid="VisuallChatGPTStudio" id="AskAnything" mod1="ALT" key1="8" editor="guidVSStd97" />
+    <KeyBinding guid="VisuallChatGPTStudio" id="CustomBefore" mod1="ALT" key1="9" editor="guidVSStd97" />
+    <KeyBinding guid="VisuallChatGPTStudio" id="CustomAfter" mod1="ALT" key1="0" editor="guidVSStd97" />
+    <KeyBinding guid="VisuallChatGPTStudio" id="CustomReplace" mod1="ALT" key1="R" editor="guidVSStd97" />
   </KeyBindings>
 
   <CommandPlacements>
@@ -144,6 +165,18 @@
       <Parent guid="VisuallChatGPTStudio" id="MyGroupForCommands"/>
     </CommandPlacement>
 
+    <CommandPlacement guid="VisuallChatGPTStudio" id="CustomBefore" priority="0x0800" >
+      <Parent guid="VisuallChatGPTStudio" id="MyGroupForCommands"/>
+    </CommandPlacement>
+
+    <CommandPlacement guid="VisuallChatGPTStudio" id="CustomAfter" priority="0x0900" >
+      <Parent guid="VisuallChatGPTStudio" id="MyGroupForCommands"/>
+    </CommandPlacement>
+
+    <CommandPlacement guid="VisuallChatGPTStudio" id="CustomReplace" priority="0x0901" >
+      <Parent guid="VisuallChatGPTStudio" id="MyGroupForCommands"/>
+    </CommandPlacement>
+
   </CommandPlacements>
 
   <Symbols>
@@ -160,6 +193,9 @@
       <IDSymbol name="AddComments" value="0x0500" />
       <IDSymbol name="AddSummary" value="0x0600" />
       <IDSymbol name="AskAnything" value="0x0700" />
+      <IDSymbol name="CustomBefore" value="0x0800" />
+      <IDSymbol name="CustomAfter" value="0x0900" />
+      <IDSymbol name="CustomReplace" value="0x0901" />
     </GuidSymbol>
 
     <GuidSymbol value="{8b0b1a54-4655-4dae-8984-022f82a739f2}" name="guidVisuallChatGPTStudioPackageCmdSet">

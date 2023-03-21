@@ -49,6 +49,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Commands\CustomAfter.cs" />
+    <Compile Include="Commands\CustomReplace.cs" />
+    <Compile Include="Commands\CustomBefore.cs" />
     <Compile Include="Utils\ChatGPT.cs" />
     <Compile Include="Commands\AddSummary.cs" />
     <Compile Include="Commands\BaseChatGPTCommand.cs" />

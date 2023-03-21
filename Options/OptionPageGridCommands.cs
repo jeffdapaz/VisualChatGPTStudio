@@ -57,5 +57,23 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Description("Set the \"Add Comments\" command when multiple lines was selected")]
         [DefaultValue("Rewrite the code with comments")]
         public string AddCommentsForLines { get; set; } = "Rewrite the code with comments";
+
+        [Category("Visual chatGPT Studio")]
+        [DisplayName("Custom Command Before")]
+        [Description("Define a custom command that will insert the response before the selected text")]
+        [DefaultValue("")]
+        public string CustomBefore { get; set; }
+
+        [Category("Visual chatGPT Studio")]
+        [DisplayName("Custom command After")]
+        [Description("Define a custom command that will insert the response after the selected text")]
+        [DefaultValue("")]
+        public string CustomAfter { get; set; }
+
+        [Category("Visual chatGPT Studio")]
+        [DisplayName("Custom command Replace")]
+        [Description("Define a custom command that will replace the selected text with the response")]
+        [DefaultValue("")]
+        public string CustomReplace { get; set; }
     }
 }

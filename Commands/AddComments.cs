@@ -12,7 +12,7 @@ namespace JeffPires.VisualChatGPTStudio
         {
             if (selectedText.Contains(Environment.NewLine))
             {
-                return CommandType.Erase;
+                return CommandType.Replace;
             }
 
             return CommandType.InsertBefore;

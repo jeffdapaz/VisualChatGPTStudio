@@ -4,13 +4,13 @@ This is an extension that adds chatGPT functionality directly within Visual Stud
 
 You will be able to consult the chatGPT directly through the text editor or through a new specific tool window.
 
-[Watch here how this works.](https://www.youtube.com/watch?v=h_wUl_IjWRU)
+[Watch here some examples.](https://www.youtube.com/watch?v=h_wUl_IjWRU)
 
 ## Features in text editor
 
 Select a method and right click on text editor and you see these new chatGPT commands:
 
-![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio/1.6.0/1679158546085/image__9.png)
+![image](https://user-images.githubusercontent.com/63928228/226494489-ab19dd24-99a3-4ee2-bd8a-429c17145daf.png)
 
 - **Complete:** Start write a method, select it and ask for complete.
 - **Add Tests:** Create unit tests for the selected method.
@@ -28,7 +28,7 @@ And if you desire that the responses be written on tool window instead on the co
 
 If you want chatGPT to respond in another language and/or want to customize the commands for some reason, you can edit the default commands through the options:
 
-![image](https://user-images.githubusercontent.com/63928228/225159610-8a1c4dd0-a42d-4c24-b7c2-588f78cef043.png)
+![image](https://user-images.githubusercontent.com/63928228/226494626-d422a843-2512-4dee-a177-045f39c0b6d3.png)
 
 For example, by changing the "Explain" prompt of the Explain command to "Explicar en español" (or just "Explicar"), the OpenAI API will write the comments in Spanish instead of using the default English command.
 
@@ -48,7 +48,9 @@ In this new window editor you can interact directly with chatGPT as if you were 
 
 Unlike the previous window, in this one the AI "remembers" the entire conversation, and it can even assume a personality that can be parameterized through the options:
 
-![image](https://user-images.githubusercontent.com/63928228/225486306-d29b1ec3-2ccd-4d74-8153-806a84abe5ea.png)
+![image](https://user-images.githubusercontent.com/63928228/226494982-2019c033-ce61-4892-a451-f3279339f822.png)
+
+![image](https://user-images.githubusercontent.com/63928228/226495697-3580e839-af44-4faa-8ce8-16831f81dfa0.png)
 
 And also different from the previous window where the OpenAI model used is the one defined through the options, this one exclusively uses the model gpt-3.5-turbo.
 
@@ -66,9 +68,7 @@ Unfortunately, the API that OpenAI makes available for interacting with chatGPT 
 
 If the question sent is too long (for example, a method with many lines) and/or the generated response is too long, the API may cut the response or even not respond at all.
 
-For these cases, I advise you to make requests via the tool window to customize the question in a way that chatGPT does not refuse to answer.
-
-In the future if I find a way around this limitation, I will post an update.
+For these cases I advise you to make requests via the tool windows to customize the question in a way that chatGPT does not refuse to answer, or try modify the model options to improve the responses.
 
 ## Disclaimer
 
@@ -78,6 +78,8 @@ In the future if I find a way around this limitation, I will post an update.
 
 - The speed and availability of responses directly depend on the API provided by OpenAI.
 
+- If you find any bugs or unexpected behavior, please leave a comment so I can provide a fix.
+
 ## Release Notes
 
 ### 1.7.0
@@ -85,7 +87,7 @@ In the future if I find a way around this limitation, I will post an update.
 - Added the new "Visual chatGPT Studio Turbo" tool window.
 - Sometimes when performing the "Add Summary" command, the API ends up adding the characters "{" and/or "}" to its response. Therefore I am removing these characters from the response when they are returned as a result of this command.
 - Added the new custom commands Before, After and Replace.
-- Added the "Stop Sequences" on options (Credit to graham83).
+- Added the "Stop Sequences" on options (Credits to [graham83](https://github.com/graham83)).
 
 ### 1.6.1
 

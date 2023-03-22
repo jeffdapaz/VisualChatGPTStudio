@@ -21,6 +21,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         #region Properties
 
         private OptionPageGridGeneral options;
+        private Package package;
         private bool firstInteration;
         private bool responseStarted;
 
@@ -47,6 +48,15 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(options.ApiKey))
+                {
+                    MessageBox.Show(Constants.MESSAGE_SET_API_KEY, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                    package.ShowOptionPage(typeof(OptionPageGridGeneral));
+
+                    return;
+                }
+
                 firstInteration = true;
                 responseStarted = false;
 
@@ -119,30 +129,14 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         #region Methods
 
         /// <summary>
-        /// Starts the control by checking if the OpenAI API key is set. If not, it shows a warning message and the option page.
+        /// Starts the control with the given options and package.
         /// </summary>
-        /// <param name="options">The options page.</param>
+        /// <param name="options">The options.</param>
         /// <param name="package">The package.</param>
         public void StartControl(OptionPageGridGeneral options, Package package)
         {
-            if (!string.IsNullOrWhiteSpace(options.ApiKey))
-            {
-                this.options = options;
-
-                return;
-            }
-
-            btnRequestSend.IsEnabled = false;
-            btnRequestPast.IsEnabled = false;
-            btnRequestClear.IsEnabled = false;
-            txtRequest.IsEnabled = false;
-            txtResponse.IsEnabled = false;
-
-            txtRequest.Text = Constants.MESSAGE_SET_API_KEY_AND_RESTART;
-
-            MessageBox.Show(Constants.MESSAGE_SET_API_KEY_AND_RESTART, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
-
-            package.ShowOptionPage(typeof(OptionPageGridGeneral));
+            this.options = options;
+            this.package = package;
         }
 
         /// <summary>

@@ -10,7 +10,7 @@ You will be able to consult the chatGPT directly through the text editor or thro
 
 Select a method and right click on text editor and you see these new chatGPT commands:
 
-![image](https://user-images.githubusercontent.com/63928228/226494489-ab19dd24-99a3-4ee2-bd8a-429c17145daf.png)
+![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio/1.7.1/1679515374543/image__10.png)
 
 - **Complete:** Start write a method, select it and ask for complete.
 - **Add Tests:** Create unit tests for the selected method.
@@ -48,7 +48,7 @@ In this new window editor you can interact directly with chatGPT as if you were 
 
 Unlike the previous window, in this one the AI "remembers" the entire conversation, and it can even assume a personality that can be parameterized through the options:
 
-![image](https://user-images.githubusercontent.com/63928228/226494982-2019c033-ce61-4892-a451-f3279339f822.png)
+![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio/1.7.1/1679515374543/image__11.png)
 
 ![image](https://user-images.githubusercontent.com/63928228/226495697-3580e839-af44-4faa-8ce8-16831f81dfa0.png)
 
@@ -81,6 +81,11 @@ For these cases I advise you to make requests via the tool windows to customize 
 - If you find any bugs or unexpected behavior, please leave a comment so I can provide a fix.
 
 ## Release Notes
+
+### 1.7.1
+
+- Added icons to the context menu items.
+- Improved Api Token validation. Now it's not necessary restart the Visual Studio after set the token at first time, and avoided a bug related.
 
 ### 1.7.0
 

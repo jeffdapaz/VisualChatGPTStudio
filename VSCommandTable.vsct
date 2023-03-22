@@ -19,66 +19,77 @@
 
     <Buttons>
       <Button guid="VisuallChatGPTStudio" id="Complete" priority="0x0000" type="Button">
+        <Icon guid="VisuallChatGPTStudioCompleteIcon" id="completeIcon" />
         <Strings>
           <ButtonText>Complete</ButtonText>
           <LocCanonicalName>.VisuallChatGPTStudio.Complete</LocCanonicalName>
         </Strings>
       </Button>
       <Button guid="VisuallChatGPTStudio" id="AddTests" priority="0x0100" type="Button">
+        <Icon guid="VisuallChatGPTStudioAddTestsIcon" id="addTestsIcon" />
         <Strings>
           <ButtonText>Add Tests</ButtonText>
           <LocCanonicalName>.VisuallChatGPTStudio.AddTests</LocCanonicalName>
         </Strings>
       </Button>
       <Button guid="VisuallChatGPTStudio" id="FindBugs" priority="0x0200" type="Button">
+        <Icon guid="VisuallChatGPTStudioFindBugsIcon" id="findBugsIcon" />
         <Strings>
           <ButtonText>Find Bugs</ButtonText>
           <LocCanonicalName>.VisuallChatGPTStudio.FindBugs</LocCanonicalName>
         </Strings>
       </Button>
       <Button guid="VisuallChatGPTStudio" id="Optimize" priority="0x0300" type="Button">
+        <Icon guid="VisuallChatGPTStudioOptimizeIcon" id="optimizeIcon" />
         <Strings>
           <ButtonText>Optimize</ButtonText>
           <LocCanonicalName>.VisuallChatGPTStudio.Optimize</LocCanonicalName>
         </Strings>
       </Button>
       <Button guid="VisuallChatGPTStudio" id="Explain" priority="0x0400" type="Button">
+        <Icon guid="VisuallChatGPTStudioExplainIcon" id="explainIcon" />
         <Strings>
           <ButtonText>Explain</ButtonText>
           <LocCanonicalName>.VisuallChatGPTStudio.Explain</LocCanonicalName>
         </Strings>
       </Button>
       <Button guid="VisuallChatGPTStudio" id="AddComments" priority="0x0500" type="Button">
+        <Icon guid="VisuallChatGPTStudioAddCommentsIcon" id="addCommentsIcon" />
         <Strings>
           <ButtonText>Add Comments</ButtonText>
           <LocCanonicalName>.VisuallChatGPTStudio.AddComments</LocCanonicalName>
         </Strings>
       </Button>
       <Button guid="VisuallChatGPTStudio" id="AddSummary" priority="0x0600" type="Button">
+        <Icon guid="VisuallChatGPTStudioAddSummaryIcon" id="addSummaryIcon" />
         <Strings>
           <ButtonText>Add Summary</ButtonText>
           <LocCanonicalName>.VisuallChatGPTStudio.AddSummary</LocCanonicalName>
         </Strings>
       </Button>
       <Button guid="VisuallChatGPTStudio" id="AskAnything" priority="0x0700" type="Button">
+        <Icon guid="VisuallChatGPTStudioAskAnythingIcon" id="askAnythingIcon" />
         <Strings>
           <ButtonText>Ask Anything</ButtonText>
           <LocCanonicalName>.VisuallChatGPTStudio.AskAnything</LocCanonicalName>
         </Strings>
       </Button>
       <Button guid="VisuallChatGPTStudio" id="CustomBefore" priority="0x0800" type="Button">
+        <Icon guid="VisuallChatGPTStudioCustomBeforeIcon" id="customBeforeIcon" />
         <Strings>
           <ButtonText>Custom Before</ButtonText>
           <LocCanonicalName>.VisuallChatGPTStudio.CustomBefore</LocCanonicalName>
         </Strings>
       </Button>
       <Button guid="VisuallChatGPTStudio" id="CustomAfter" priority="0x0900" type="Button">
+        <Icon guid="VisuallChatGPTStudioCustomAfterIcon" id="customAfterIcon" />
         <Strings>
           <ButtonText>Custom After</ButtonText>
           <LocCanonicalName>.VisuallChatGPTStudio.CustomAfter</LocCanonicalName>
         </Strings>
       </Button>
       <Button guid="VisuallChatGPTStudio" id="CustomReplace" priority="0x0901" type="Button">
+        <Icon guid="VisuallChatGPTStudioCustomReplaceIcon" id="customReplaceIcon" />
         <Strings>
           <ButtonText>Custom Replace</ButtonText>
           <LocCanonicalName>.VisuallChatGPTStudio.CustomReplace</LocCanonicalName>
@@ -101,6 +112,17 @@
     </Buttons>
 
     <Bitmaps>
+      <Bitmap guid="VisuallChatGPTStudioCompleteIcon" href="Resources\complete.png" usedList="completeIcon"/>
+      <Bitmap guid="VisuallChatGPTStudioAddTestsIcon" href="Resources\addTests.png" usedList="addTestsIcon"/>
+      <Bitmap guid="VisuallChatGPTStudioFindBugsIcon" href="Resources\findBugs.png" usedList="findBugsIcon"/>
+      <Bitmap guid="VisuallChatGPTStudioOptimizeIcon" href="Resources\optimize.png" usedList="optimizeIcon"/>
+      <Bitmap guid="VisuallChatGPTStudioExplainIcon" href="Resources\explain.png" usedList="explainIcon"/>
+      <Bitmap guid="VisuallChatGPTStudioAddCommentsIcon" href="Resources\addComments.png" usedList="addCommentsIcon"/>
+      <Bitmap guid="VisuallChatGPTStudioAddSummaryIcon" href="Resources\addSummary.png" usedList="addSummaryIcon"/>
+      <Bitmap guid="VisuallChatGPTStudioAskAnythingIcon" href="Resources\askAnything.png" usedList="askAnythingIcon"/>
+      <Bitmap guid="VisuallChatGPTStudioCustomBeforeIcon" href="Resources\customBefore.png" usedList="customBeforeIcon"/>
+      <Bitmap guid="VisuallChatGPTStudioCustomAfterIcon" href="Resources\customAfter.png" usedList="customAfterIcon"/>
+      <Bitmap guid="VisuallChatGPTStudioCustomReplaceIcon" href="Resources\customReplace.png" usedList="customReplaceIcon"/>
       <Bitmap guid="VisuallChatGPTStudioChatGPTIcon" href="Resources\bot.png" usedList="chatGPTIcon"/>
       <Bitmap guid="VisuallChatGPTStudioTurboIcon" href="Resources\turbo.png" usedList="turboIcon"/>
     </Bitmaps>
@@ -203,6 +225,39 @@
       <IDSymbol value="257" name="cmdidTerminalWindowTurboCommand" />
     </GuidSymbol>
 
+    <GuidSymbol name="VisuallChatGPTStudioCompleteIcon" value="{C12A8ED0-FBE5-4815-A3FB-2CB73AB06EEA}">
+      <IDSymbol name="completeIcon" value="1" />
+    </GuidSymbol>
+    <GuidSymbol name="VisuallChatGPTStudioAddTestsIcon" value="{C12A8ED0-FBE5-4815-A3FB-2CB73AB06EEB}">
+      <IDSymbol name="addTestsIcon" value="1" />
+    </GuidSymbol>
+    <GuidSymbol name="VisuallChatGPTStudioFindBugsIcon" value="{C12A8ED0-FBE5-4815-A3FB-2CB73AB06EEC}">
+      <IDSymbol name="findBugsIcon" value="1" />
+    </GuidSymbol>
+    <GuidSymbol name="VisuallChatGPTStudioOptimizeIcon" value="{C12A8ED0-FBE5-4815-A3FB-2CB73AB06EED}">
+      <IDSymbol name="optimizeIcon" value="1" />
+    </GuidSymbol>
+    <GuidSymbol name="VisuallChatGPTStudioExplainIcon" value="{C12A8ED0-FBE5-4815-A3FB-2CB73AB06EEE}">
+      <IDSymbol name="explainIcon" value="1" />
+    </GuidSymbol>
+    <GuidSymbol name="VisuallChatGPTStudioAddCommentsIcon" value="{C12A8ED0-FBE5-4815-A3FB-2CB73AB06EEF}">
+      <IDSymbol name="addCommentsIcon" value="1" />
+    </GuidSymbol>
+    <GuidSymbol name="VisuallChatGPTStudioAddSummaryIcon" value="{C12A8ED0-FBE5-4815-A3FB-2CB73AB06EAA}">
+      <IDSymbol name="addSummaryIcon" value="1" />
+    </GuidSymbol>
+    <GuidSymbol name="VisuallChatGPTStudioAskAnythingIcon" value="{C12A8ED0-FBE5-4815-A3FB-2CB73AB06EBA}">
+      <IDSymbol name="askAnythingIcon" value="1" />
+    </GuidSymbol>
+    <GuidSymbol name="VisuallChatGPTStudioCustomBeforeIcon" value="{C12A8ED0-FBE5-4815-A3FB-2CB73AB06ECA}">
+      <IDSymbol name="customBeforeIcon" value="1" />
+    </GuidSymbol>
+    <GuidSymbol name="VisuallChatGPTStudioCustomAfterIcon" value="{C12A8ED0-FBE5-4815-A3FB-2CB73AB06EDA}">
+      <IDSymbol name="customAfterIcon" value="1" />
+    </GuidSymbol>
+    <GuidSymbol name="VisuallChatGPTStudioCustomReplaceIcon" value="{38A870F1-BED8-4322-B98B-11A53E51821C}">
+      <IDSymbol name="customReplaceIcon" value="1" />
+    </GuidSymbol>
     <GuidSymbol name="VisuallChatGPTStudioChatGPTIcon" value="{4C9AF432-30B5-44CB-9A6E-3121C6DC7A49}">
       <IDSymbol name="chatGPTIcon" value="1" />
     </GuidSymbol>

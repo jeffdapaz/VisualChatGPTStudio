@@ -99,6 +99,17 @@
     <Resource Include="Resources\chatGPT.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+    <Content Include="Resources\addComments.png" />
+    <Content Include="Resources\addSummary.png" />
+    <Content Include="Resources\addTests.png" />
+    <Content Include="Resources\askAnything.png" />
+    <Content Include="Resources\complete.png" />
+    <Content Include="Resources\customAfter.png" />
+    <Content Include="Resources\customBefore.png" />
+    <Content Include="Resources\customReplace.png" />
+    <Content Include="Resources\explain.png" />
+    <Content Include="Resources\findBugs.png" />
+    <Content Include="Resources\optimize.png" />
     <Content Include="Resources\turbo.png" />
     <Resource Include="Resources\vs.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -158,7 +169,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AvalonEdit">
-      <Version>6.2.0.78</Version>
+      <Version>6.3.0.90</Version>
     </PackageReference>
     <PackageReference Include="Community.VisualStudio.VSCT" Version="16.0.29.6" PrivateAssets="all" />
     <PackageReference Include="Community.VisualStudio.Toolkit.17" Version="17.0.492" ExcludeAssets="Runtime">

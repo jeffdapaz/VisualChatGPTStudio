@@ -1,6 +1,5 @@
 ﻿using Community.VisualStudio.Toolkit;
 using JeffPires.VisualChatGPTStudio.Commands;
-using JeffPires.VisualChatGPTStudio.Utils;
 using System;
 
 namespace JeffPires.VisualChatGPTStudio
@@ -22,10 +21,10 @@ namespace JeffPires.VisualChatGPTStudio
         {
             if (selectedText.Contains(Environment.NewLine))
             {
-                return $"{OptionsCommands.AddCommentsForLines}{Environment.NewLine}{Environment.NewLine}{TextFormat.FormatSelection(selectedText)}";
+                return $"{OptionsCommands.AddCommentsForLines}{Environment.NewLine}{Environment.NewLine}{selectedText}";
             }
 
-            return $"{OptionsCommands.AddCommentsForLine}{Environment.NewLine}{Environment.NewLine}{TextFormat.FormatSelection(selectedText)}";
+            return $"{OptionsCommands.AddCommentsForLine}{Environment.NewLine}{Environment.NewLine}{selectedText}";
         }
     }
 }

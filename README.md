@@ -82,6 +82,10 @@ For these cases I advise you to make requests via the tool windows to customize 
 
 ## Release Notes
 
+### 1.7.2
+
+- Fixed a bug when the selected code has some special caracteres like '<' and '>'.
+
 ### 1.7.1
 
 - Added icons to the context menu items.

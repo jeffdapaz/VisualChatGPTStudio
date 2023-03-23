@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text.RegularExpressions;
-using System.Web;
 
 namespace JeffPires.VisualChatGPTStudio.Utils
 {
@@ -9,29 +8,6 @@ namespace JeffPires.VisualChatGPTStudio.Utils
     /// </summary>
     internal static class TextFormat
     {
-        /// <summary>
-        /// Formats the selection.
-        /// </summary>
-        /// <param name="text">The text.</param>
-        /// <returns>Text selected formated</returns>
-        public static string FormatSelection(string text)
-        {
-            text = HttpUtility.HtmlDecode(text);
-
-            text = RemoveHtmlTags(text, "<span", "</span>");
-            text = RemoveHtmlTags(text, "<!--", "-->");
-            text = RemoveHtmlTags(text, "<script", "</script>");
-            text = RemoveHtmlTags(text, "<style", "</style>");
-            text = RemoveHtmlTags(text, "<summary", "</summary>");
-            text = RemoveHtmlTags(text, "<param", "</param>");
-            text = RemoveHtmlTags(text, "<returns", "</returns>");
-
-            text = text.Replace("//", "").Replace("///", "");
-
-            //replace matches of these regexes with space
-            return new Regex(@"<[^>]+>|&nbsp;", RegexOptions.Multiline | RegexOptions.Compiled).Replace(text, " ");
-        }
-
         /// <summary>
         /// Formats a given command for a given language 
         /// for example for c#, for visual basic, for sql server, for java script
@@ -105,7 +81,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                 }
             }
 
-            return string.Format(command, summaryFormat) + Environment.NewLine + Environment.NewLine + FormatSelection(selectedText);
+            return string.Format(command, summaryFormat) + Environment.NewLine + Environment.NewLine + selectedText;
         }
 
         /// <summary>
@@ -166,44 +142,6 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             }
 
             return string.Empty;
-        }
-
-        /// <summary>
-        /// Removes the HTML tags.
-        /// </summary>
-        /// <param name="html">The HTML.</param>
-        /// <param name="startTag">The start tag.</param>
-        /// <param name="endTag">The end tag.</param>
-        /// <returns>Text without tags</returns>
-        private static string RemoveHtmlTags(string html, string startTag, string endTag)
-        {
-            bool again;
-
-            do
-            {
-                again = false;
-
-                int startTagPos = html.IndexOf(startTag, 0, StringComparison.CurrentCultureIgnoreCase);
-
-                if (startTagPos < 0)
-                {
-                    continue;
-                }
-
-                int endTagPos = html.IndexOf(endTag, startTagPos + 1, StringComparison.CurrentCultureIgnoreCase);
-
-                if (endTagPos <= startTagPos)
-                {
-                    continue;
-                }
-
-                html = html.Remove(startTagPos, endTagPos - startTagPos + endTag.Length);
-
-                again = true;
-
-            } while (again);
-
-            return html;
         }
     }
 }

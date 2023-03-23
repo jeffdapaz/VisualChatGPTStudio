@@ -68,11 +68,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_WAITING_CHATGPT, 1, 2);
 
-                string selectionFormated = TextFormat.FormatSelection(txtRequest.Text);
+                string selection = txtRequest.Text;
 
                 txtResponse.Text = string.Empty;
 
-                await ChatGPT.RequestAsync(options, selectionFormated, ResultHandler);
+                await ChatGPT.RequestAsync(options, selection, ResultHandler);
             }
             catch (Exception ex)
             {

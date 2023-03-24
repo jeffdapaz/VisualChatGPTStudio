@@ -82,6 +82,12 @@ For these cases I advise you to make requests via the tool windows to customize 
 
 ## Release Notes
 
+### 1.7.3
+
+- Improvements on turbo chat window. Added syntax highlight, vertical scroll and copy button.
+- Improved TSQL syntax detection.
+- Now when a context menu command is executed holding the SHIFT key, the request made is also written in the request box.
+
 ### 1.7.2
 
 - Fixed a bug when the selected code has some special caracteres like '<' and '>'.

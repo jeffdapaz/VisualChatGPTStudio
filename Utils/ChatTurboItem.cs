@@ -1,4 +1,8 @@
 ﻿using ICSharpCode.AvalonEdit.Document;
+using Microsoft.VisualStudio.Text.Editor;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Forms;
 using System.Windows.Media;
 
 namespace JeffPires.VisualChatGPTStudio.Utils
@@ -16,35 +20,61 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
         public Brush BackgroundColor { get; private set; }
 
+        public Thickness Margins { get; private set; }
+
+        public Visibility ButtonCopyVisibility { get; private set; }
+
+        public int Index { get; set; }
+
+        public ScrollBarVisibility ShowHorizontalScrollBar { get; set; }
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="ChatTurboItem"/> class.
+        /// Constructor for ChatTurboItem class.
         /// </summary>
-        /// <param name="author">The author.</param>
-        /// <param name="message">The message.</param>
-        public ChatTurboItem(AuthorEnum author, string message)
+        /// <param name="author">Author of the message.</param>
+        /// <param name="message">Message content.</param>
+        /// <param name="firstSegment">Indicates if the message is the first segment of the conversation.</param>
+        /// <param name="index">Index of the message.</param>
+        public ChatTurboItem(AuthorEnum author, string message, bool firstSegment, int index)
         {
             Document = new TextDocument(message);
-
-            //Uncomment the line below to set syntax highlighting
-            //Syntax = TextFormat.DetectCodeLanguage(message);
-            Syntax = string.Empty;
 
             if (author == AuthorEnum.Me)
             {
                 ImageSource = "pack://application:,,,/VisualChatGPTStudio;component/Resources/vs.png";
-                BackgroundColor = new SolidColorBrush(Color.FromRgb(194, 194, 214));
+                BackgroundColor = new SolidColorBrush(Color.FromRgb(153, 187, 255));
+                Syntax = string.Empty;
+                Margins = new Thickness(0, 5, 0, 5);
+                ButtonCopyVisibility = Visibility.Collapsed;
+                ShowHorizontalScrollBar = ScrollBarVisibility.Disabled;
             }
             else if (author == AuthorEnum.ChatGPT)
             {
-                ImageSource = "pack://application:,,,/VisualChatGPTStudio;component/Resources/chatGPT.png";
-                BackgroundColor = new SolidColorBrush(Color.FromRgb(153, 187, 255));
+                ImageSource = firstSegment ? "pack://application:,,,/VisualChatGPTStudio;component/Resources/chatGPT.png" : string.Empty;
+                BackgroundColor = new SolidColorBrush(Color.FromRgb(194, 194, 214));
+                Syntax = string.Empty;
+                Margins = new Thickness(0, -2.5, 0, -2.5);
+                ButtonCopyVisibility = Visibility.Collapsed;
+                ShowHorizontalScrollBar = ScrollBarVisibility.Disabled;
             }
+            else if (author == AuthorEnum.ChatGPTCode)
+            {
+                ImageSource = firstSegment ? "pack://application:,,,/VisualChatGPTStudio;component/Resources/chatGPT.png" : string.Empty;
+                BackgroundColor = new SolidColorBrush(Color.FromRgb(255, 255, 255));
+                Syntax = TextFormat.DetectCodeLanguage(message);
+                Margins = new Thickness(0, -2.5, 0, -2.5);
+                ButtonCopyVisibility = Visibility.Visible;
+                ShowHorizontalScrollBar = ScrollBarVisibility.Auto;
+            }
+
+            Index = index;
         }
     }
 
     public enum AuthorEnum
     {
         Me,
-        ChatGPT
+        ChatGPT,
+        ChatGPTCode
     }
 }

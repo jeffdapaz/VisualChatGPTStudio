@@ -183,6 +183,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 await VS.StatusBar.ShowProgressAsync("Requesting chatGPT", 1, 2);
 
+                txtRequest.Text = command;
+
                 txtResponse.Text = string.Empty;
 
                 await ChatGPT.RequestAsync(options, command, ResultHandler);

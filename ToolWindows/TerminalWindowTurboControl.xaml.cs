@@ -64,7 +64,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_WAITING_CHATGPT, 1, 2);
 
-                chatItems.Add(new ChatTurboItem(AuthorEnum.Me, txtRequest.Text));
+                chatItems.Add(new ChatTurboItem(AuthorEnum.Me, txtRequest.Text, true, 0));
 
                 chat.AppendUserInput(txtRequest.Text);
 
@@ -79,7 +79,16 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 string response = await chat.GetResponseFromChatbot();
 
-                chatItems.Add(new ChatTurboItem(AuthorEnum.ChatGPT, response));
+                List<ChatTurboResponseSegment> segments = TurboChatHelper.GetChatTurboResponseSegments(response);
+
+                AuthorEnum author;
+
+                for (int i = 0; i < segments.Count; i++)
+                {
+                    author = segments[i].IsCode ? AuthorEnum.ChatGPTCode : AuthorEnum.ChatGPT;
+
+                    chatItems.Add(new ChatTurboItem(author, segments[i].Content, i == 0, chatItems.Count));
+                }
 
                 chatList.Items.Refresh();
 
@@ -118,6 +127,20 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             chat = ChatGPT.CreateConversation(options);
             chatItems.Clear();
             chatList.Items.Refresh();
+        }
+
+        /// <summary>
+        /// Copies the text of the chat item at the given index to the clipboard.
+        /// </summary>
+        /// <param name="sender">The button that was clicked.</param>
+        /// <param name="e">The event arguments.</param>
+        private void btnCopy_Click(object sender, RoutedEventArgs e)
+        {
+            var button = (Button)sender;
+
+            int index = (int)button.Tag;
+
+            Clipboard.SetText(chatItems[index].Document.Text);
         }
 
         /// <summary>
@@ -160,6 +183,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             chatList.ItemsSource = chatItems;
         }
 
-        #endregion Methods                    
+        #endregion Methods                            
     }
 }

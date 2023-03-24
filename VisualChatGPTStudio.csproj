@@ -83,6 +83,7 @@
     <Compile Include="ToolWindows\TerminalWindowTurboControl.xaml.cs">
       <DependentUpon>TerminalWindowTurboControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Utils\TurboChatHelper.cs" />
     <Compile Include="VisuallChatGPTStudioPackage.cs" />
     <Compile Include="source.extension.cs">
       <AutoGen>True</AutoGen>

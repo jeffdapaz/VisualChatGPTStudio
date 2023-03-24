@@ -50,7 +50,7 @@ Unlike the previous window, in this one the AI "remembers" the entire conversati
 
 ![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio/1.7.1/1679515374543/image__11.png)
 
-![image](https://user-images.githubusercontent.com/63928228/226495697-3580e839-af44-4faa-8ce8-16831f81dfa0.png)
+![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio/1.7.3/1679698833202/image__14.png)
 
 And also different from the previous window where the OpenAI model used is the one defined through the options, this one exclusively uses the model gpt-3.5-turbo.
 

@@ -77,7 +77,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
                     scrollViewer.ScrollToEnd();
                 }));
 
-                string response = await chat.GetResponseFromChatbot();
+                string response = await chat.GetResponseFromChatbotAsync();
 
                 List<ChatTurboResponseSegment> segments = TurboChatHelper.GetChatTurboResponseSegments(response);
 
@@ -136,7 +136,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         /// <param name="e">The event arguments.</param>
         private void btnCopy_Click(object sender, RoutedEventArgs e)
         {
-            var button = (Button)sender;
+            Button button = (Button)sender;
 
             int index = (int)button.Tag;
 

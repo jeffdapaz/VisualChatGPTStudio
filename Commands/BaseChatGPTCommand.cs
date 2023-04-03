@@ -143,7 +143,16 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_WAITING_CHATGPT, 1, 2);
 
-            await ChatGPT.RequestAsync(OptionsGeneral, command, ResultHandler);
+            if (OptionsGeneral.SingleResponse)
+            {
+                CompletionResult result = await ChatGPT.RequestAsync(OptionsGeneral, command);
+
+                ResultHandler(0, result);
+            }
+            else
+            {
+                await ChatGPT.RequestAsync(OptionsGeneral, command, ResultHandler);
+            }
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -206,7 +215,16 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                 string resultText = result.ToString();
 
-                if (!responseStarted && (resultText.Equals("\n") || resultText.Equals("\r") || resultText.Equals(Environment.NewLine)))
+                if (OptionsGeneral.SingleResponse)
+                {
+                    //This code checks if the string "resultText" starts with "\r\n" and if it does, it removes from the string. 
+                    //It will continue to do this until the string no longer starts with "\r\n". 
+                    while (resultText.StartsWith("\r\n"))
+                    {
+                        resultText = resultText.Substring(4);
+                    }
+                }
+                else if (!responseStarted && (resultText.Equals("\n") || resultText.Equals("\r") || resultText.Equals(Environment.NewLine)))
                 {
                     //Do nothing when API send only break lines on response begin
                     return;

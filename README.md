@@ -82,6 +82,11 @@ For these cases I advise you to make requests via the tool windows to customize 
 
 ## Release Notes
 
+### 1.7.4
+
+- Some improvements on turbo chat window.
+- Added the new option parameter "Single Response". If true, the entire response will be displayed at once on code editor. Less undo history but longer waiting time.
+
 ### 1.7.3
 
 - Improvements on turbo chat window. Added syntax highlight, vertical scroll and copy button.
@@ -90,7 +95,7 @@ For these cases I advise you to make requests via the tool windows to customize 
 
 ### 1.7.2
 
-- Fixed a bug when the selected code has some special caracteres like '<' and '>'.
+- Fixed a bug when the selected code has some special characters like '<' and '>'.
 
 ### 1.7.1
 

@@ -1,8 +1,6 @@
 ﻿using ICSharpCode.AvalonEdit.Document;
-using Microsoft.VisualStudio.Text.Editor;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Forms;
 using System.Windows.Media;
 
 namespace JeffPires.VisualChatGPTStudio.Utils

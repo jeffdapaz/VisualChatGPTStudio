@@ -20,43 +20,26 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// </summary>
         /// <param name="options">The options to use for the request.</param>
         /// <param name="request">The request to send to the API.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        public static async Task<CompletionResult> RequestAsync(OptionPageGridGeneral options, string request)
+        {
+            CreateApiHandler(options.ApiKey);
+
+            return await api.Completions.CreateCompletionAsync(GetRequest(options, request));
+        }
+
+        /// <summary>
+        /// Requests a completion from the OpenAI API using the given options.
+        /// </summary>
+        /// <param name="options">The options to use for the request.</param>
+        /// <param name="request">The request to send to the API.</param>
         /// <param name="resultHandler">The action to take when the result is received.</param>
         /// <returns>A task representing the completion request.</returns>
         public static async Task RequestAsync(OptionPageGridGeneral options, string request, Action<int, CompletionResult> resultHandler)
         {
             CreateApiHandler(options.ApiKey);
 
-            Model model = Model.DavinciText;
-
-            switch (options.Model)
-            {
-                case ModelLanguageEnum.TextCurie001:
-                    model = Model.CurieText;
-                    break;
-                case ModelLanguageEnum.TextBabbage001:
-                    model = Model.BabbageText;
-                    break;
-                case ModelLanguageEnum.TextAda001:
-                    model = Model.AdaText;
-                    break;
-                case ModelLanguageEnum.CodeDavinci:
-                    model = Model.DavinciCode;
-                    break;
-                case ModelLanguageEnum.CodeCushman:
-                    model = Model.CushmanCode;
-                    break;
-            }
-
-            CompletionRequest completionRequest = new(request,
-                                                       model,
-                                                       options.MaxTokens,
-                                                       options.Temperature,
-                                                       presencePenalty: options.PresencePenalty,
-                                                       frequencyPenalty: options.FrequencyPenalty,
-                                                       top_p: options.TopP,
-                                                       stopSequences: GetStopSequenceArray(options.StopSequences));
-
-            await api.Completions.StreamCompletionAsync(completionRequest, resultHandler);
+            await api.Completions.StreamCompletionAsync(GetRequest(options, request), resultHandler);
         }
 
         /// <summary>
@@ -100,6 +83,38 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         {
             string[] stopSequenceArray = option.Split(',');
             return stopSequenceArray;
+        }
+
+        /// <summary>
+        /// Gets a CompletionRequest object based on the given options and request.
+        /// </summary>
+        /// <param name="options">The options to use for the request.</param>
+        /// <param name="request">The request string.</param>
+        /// <returns>A CompletionRequest object.</returns>
+        private static CompletionRequest GetRequest(OptionPageGridGeneral options, string request)
+        {
+            Model model = Model.DavinciText;
+
+            switch (options.Model)
+            {
+                case ModelLanguageEnum.TextCurie001:
+                    model = Model.CurieText;
+                    break;
+                case ModelLanguageEnum.TextBabbage001:
+                    model = Model.BabbageText;
+                    break;
+                case ModelLanguageEnum.TextAda001:
+                    model = Model.AdaText;
+                    break;
+                case ModelLanguageEnum.CodeDavinci:
+                    model = Model.DavinciCode;
+                    break;
+                case ModelLanguageEnum.CodeCushman:
+                    model = Model.CushmanCode;
+                    break;
+            }
+
+            return new(request, model, options.MaxTokens, options.Temperature, presencePenalty: options.PresencePenalty, frequencyPenalty: options.FrequencyPenalty, top_p: options.TopP, stopSequences: GetStopSequenceArray(options.StopSequences));
         }
     }
 }

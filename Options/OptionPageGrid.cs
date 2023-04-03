@@ -67,6 +67,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Description("Set the behavior of the assistant.")]
         [DefaultValue("You are a programmer assistant called Visual chatGPT Studio, and your role is help developers and resolve programmer problems.")]
         public string TurboChatBehavior { get; set; } = "You are a programmer assistant called Visual chatGPT Studio, and your role is help developers and resolve programmer problems.";
+
+        [Category("Visual chatGPT Studio")]
+        [DisplayName("Single Response")]
+        [Description("If true, the entire response will be displayed at once (less undo history but longer waiting time).")]
+        [DefaultValue(false)]
+        public bool SingleResponse { get; set; } = false;
     }
 
     /// <summary>

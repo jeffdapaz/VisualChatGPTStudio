@@ -20,7 +20,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// </summary>
         /// <param name="options">The options to use for the request.</param>
         /// <param name="request">The request to send to the API.</param>
-        /// <returns>A task that represents the asynchronous operation.</returns>
+        /// <returns>The completion result.</returns>
         public static async Task<CompletionResult> RequestAsync(OptionPageGridGeneral options, string request)
         {
             CreateApiHandler(options.ApiKey);
@@ -33,13 +33,40 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// </summary>
         /// <param name="options">The options to use for the request.</param>
         /// <param name="request">The request to send to the API.</param>
+        /// <param name="stopSequences">Up to 4 sequences where the API will stop generating further tokens.</param>
+        /// <returns>The completion result.</returns>
+        public static async Task<CompletionResult> RequestAsync(OptionPageGridGeneral options, string request, string[] stopSequences)
+        {
+            CreateApiHandler(options.ApiKey);
+
+            return await api.Completions.CreateCompletionAsync(GetRequest(options, request, stopSequences));
+        }
+
+        /// <summary>
+        /// Requests a completion from the OpenAI API using the given options.
+        /// </summary>
+        /// <param name="options">The options to use for the request.</param>
+        /// <param name="request">The request to send to the API.</param>
         /// <param name="resultHandler">The action to take when the result is received.</param>
-        /// <returns>A task representing the completion request.</returns>
         public static async Task RequestAsync(OptionPageGridGeneral options, string request, Action<int, CompletionResult> resultHandler)
         {
             CreateApiHandler(options.ApiKey);
 
             await api.Completions.StreamCompletionAsync(GetRequest(options, request), resultHandler);
+        }
+
+        /// <summary>
+        /// Requests a completion from the OpenAI API using the given options.
+        /// </summary>
+        /// <param name="options">The options to use for the request.</param>
+        /// <param name="request">The request to send to the API.</param>
+        /// <param name="resultHandler">The action to take when the result is received.</param>
+        /// <param name="stopSequences">Up to 4 sequences where the API will stop generating further tokens.</param>
+        public static async Task RequestAsync(OptionPageGridGeneral options, string request, Action<int, CompletionResult> resultHandler, string[] stopSequences)
+        {
+            CreateApiHandler(options.ApiKey);
+
+            await api.Completions.StreamCompletionAsync(GetRequest(options, request, stopSequences), resultHandler);
         }
 
         /// <summary>
@@ -75,14 +102,14 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         }
 
         /// <summary>
-        /// Splits a string into an array of strings based on a comma delimiter.
+        /// Gets a CompletionRequest object based on the given options and request.
         /// </summary>
-        /// <param name="option">The string to be split.</param>
-        /// <returns>An array of strings.</returns>
-        private static string[] GetStopSequenceArray(string option)
+        /// <param name="options">The options to use for the request.</param>
+        /// <param name="request">The request string.</param>
+        /// <returns>A CompletionRequest object.</returns>
+        private static CompletionRequest GetRequest(OptionPageGridGeneral options, string request)
         {
-            string[] stopSequenceArray = option.Split(',');
-            return stopSequenceArray;
+            return GetRequest(options, request, null);
         }
 
         /// <summary>
@@ -90,8 +117,9 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// </summary>
         /// <param name="options">The options to use for the request.</param>
         /// <param name="request">The request string.</param>
+        /// <param name="stopSequences">Up to 4 sequences where the API will stop generating further tokens.</param>
         /// <returns>A CompletionRequest object.</returns>
-        private static CompletionRequest GetRequest(OptionPageGridGeneral options, string request)
+        private static CompletionRequest GetRequest(OptionPageGridGeneral options, string request, string[] stopSequences)
         {
             Model model = Model.DavinciText;
 
@@ -114,7 +142,12 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                     break;
             }
 
-            return new(request, model, options.MaxTokens, options.Temperature, presencePenalty: options.PresencePenalty, frequencyPenalty: options.FrequencyPenalty, top_p: options.TopP, stopSequences: GetStopSequenceArray(options.StopSequences));
+            if (stopSequences == null || stopSequences.Length == 0)
+            {
+                stopSequences = options.StopSequences.Split(',');
+            }
+
+            return new(request, model, options.MaxTokens, options.Temperature, presencePenalty: options.PresencePenalty, frequencyPenalty: options.FrequencyPenalty, top_p: options.TopP, stopSequences: stopSequences);
         }
     }
 }

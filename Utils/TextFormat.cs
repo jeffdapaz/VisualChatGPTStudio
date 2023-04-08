@@ -81,7 +81,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                 }
             }
 
-            return string.Format(command, summaryFormat) + Environment.NewLine + Environment.NewLine + selectedText;
+            return string.Format(command, summaryFormat) + Environment.NewLine + "for" + Environment.NewLine + selectedText;
         }
 
         /// <summary>

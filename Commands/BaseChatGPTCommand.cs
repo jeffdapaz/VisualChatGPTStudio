@@ -27,11 +27,11 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         private int positionStart;
         private int positionEnd;
         private int lineLength;
-        private bool firstInteration;
+        private bool firstIteration;
         private bool responseStarted;
 
         /// <summary>
-        /// Gets the OptionsGeneral property of the VisuallChatGPTStudioPackage.
+        /// Gets the OptionsGeneral property of the VisualChatGPTStudioPackage.
         /// </summary>
         protected OptionPageGridGeneral OptionsGeneral
         {
@@ -42,7 +42,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         }
 
         /// <summary>
-        /// Gets the OptionsCommands property of the VisuallChatGPTStudioPackage.
+        /// Gets the OptionsCommands property of the VisualChatGPTStudioPackage.
         /// </summary>
         protected OptionPageGridCommands OptionsCommands
         {
@@ -86,7 +86,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                     return;
                 }
 
-                firstInteration = true;
+                firstIteration = true;
                 responseStarted = false;
                 lineLength = 0;
 
@@ -143,15 +143,22 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_WAITING_CHATGPT, 1, 2);
 
+            string[] stopSequences = null;
+
+            if (typeof(TCommand) == typeof(AddSummary))
+            {
+                stopSequences = new[] { "public", "private", "internal" };
+            }
+
             if (OptionsGeneral.SingleResponse)
             {
-                CompletionResult result = await ChatGPT.RequestAsync(OptionsGeneral, command);
+                CompletionResult result = await ChatGPT.RequestAsync(OptionsGeneral, command, stopSequences);
 
                 ResultHandler(0, result);
             }
             else
             {
-                await ChatGPT.RequestAsync(OptionsGeneral, command, ResultHandler);
+                await ChatGPT.RequestAsync(OptionsGeneral, command, ResultHandler, stopSequences);
             }
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -178,7 +185,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             try
             {
-                if (firstInteration)
+                if (firstIteration)
                 {
                     _ = VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_RECEIVING_CHATGPT, 2, 2);
 
@@ -210,7 +217,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                         position += 2;
                     }
 
-                    firstInteration = false;
+                    firstIteration = false;
                 }
 
                 string resultText = result.ToString();

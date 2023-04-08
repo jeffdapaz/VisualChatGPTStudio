@@ -82,6 +82,10 @@ For these cases I advise you to make requests via the tool windows to customize 
 
 ## Release Notes
 
+### 1.7.5
+
+- Improvements on "Add Summary" command.
+
 ### 1.7.4
 
 - Some improvements on turbo chat window.

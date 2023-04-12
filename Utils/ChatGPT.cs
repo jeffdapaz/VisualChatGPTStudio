@@ -23,7 +23,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <returns>The completion result.</returns>
         public static async Task<CompletionResult> RequestAsync(OptionPageGridGeneral options, string request)
         {
-            CreateApiHandler(options.ApiKey);
+            CreateApiHandler(options.ApiKey, options.Proxy);
 
             return await api.Completions.CreateCompletionAsync(GetRequest(options, request));
         }
@@ -37,7 +37,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <returns>The completion result.</returns>
         public static async Task<CompletionResult> RequestAsync(OptionPageGridGeneral options, string request, string[] stopSequences)
         {
-            CreateApiHandler(options.ApiKey);
+            CreateApiHandler(options.ApiKey, options.Proxy);
 
             return await api.Completions.CreateCompletionAsync(GetRequest(options, request, stopSequences));
         }
@@ -50,7 +50,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <param name="resultHandler">The action to take when the result is received.</param>
         public static async Task RequestAsync(OptionPageGridGeneral options, string request, Action<int, CompletionResult> resultHandler)
         {
-            CreateApiHandler(options.ApiKey);
+            CreateApiHandler(options.ApiKey, options.Proxy);
 
             await api.Completions.StreamCompletionAsync(GetRequest(options, request), resultHandler);
         }
@@ -64,7 +64,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <param name="stopSequences">Up to 4 sequences where the API will stop generating further tokens.</param>
         public static async Task RequestAsync(OptionPageGridGeneral options, string request, Action<int, CompletionResult> resultHandler, string[] stopSequences)
         {
-            CreateApiHandler(options.ApiKey);
+            CreateApiHandler(options.ApiKey, options.Proxy);
 
             await api.Completions.StreamCompletionAsync(GetRequest(options, request, stopSequences), resultHandler);
         }
@@ -76,7 +76,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <returns>The newly created conversation.</returns>
         public static Conversation CreateConversation(OptionPageGridGeneral options)
         {
-            CreateApiHandler(options.ApiKey);
+            CreateApiHandler(options.ApiKey, options.Proxy);
 
             Conversation chat = api.Chat.CreateConversation();
 
@@ -86,10 +86,11 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         }
 
         /// <summary>
-        /// Creates an API handler with the given API key.
+        /// Creates an API handler with the given API key and proxy.
         /// </summary>
         /// <param name="apiKey">The API key to use.</param>
-        private static void CreateApiHandler(string apiKey)
+        /// <param name="proxy">The proxy to use.</param>
+        private static void CreateApiHandler(string apiKey, string proxy)
         {
             if (api == null)
             {
@@ -98,6 +99,11 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             else if (api.Auth.ApiKey != apiKey)
             {
                 api.Auth.ApiKey = apiKey;
+            }
+
+            if (!string.IsNullOrWhiteSpace(proxy))
+            {
+                api.ApiUrlFormat = proxy + "/{0}/{1}";
             }
         }
 

@@ -73,6 +73,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Description("If true, the entire response will be displayed at once (less undo history but longer waiting time).")]
         [DefaultValue(false)]
         public bool SingleResponse { get; set; } = false;
+
+        [Category("Visual chatGPT Studio")]
+        [DisplayName("Proxy")]
+        [Description("Connect to OpenAI through a proxy.")]
+        [DefaultValue("")]
+        public string Proxy { get; set; } = string.Empty;
     }
 
     /// <summary>

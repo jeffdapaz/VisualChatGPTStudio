@@ -82,6 +82,10 @@ For these cases I advise you to make requests via the tool windows to customize 
 
 ## Release Notes
 
+### 1.8.0
+
+- Added proxy connection (experimental). Thanks to [SundayCoding](https://github.com/SundayCoding).
+
 ### 1.7.5
 
 - Improvements on "Add Summary" command.

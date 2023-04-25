@@ -11,6 +11,13 @@ namespace JeffPires.VisualChatGPTStudio.Options
     public class OptionPageGridGeneral : DialogPage
     {
         [Category("Visual chatGPT Studio")]
+        [DisplayName("OpenAI Service")]
+        [Description("Supported services OpenAI or Azure OpenAI.")]
+        [DefaultValue(OpenAIService.OpenAI)]
+        [TypeConverter(typeof(EnumConverter))]
+        public OpenAIService Service { get; set; }
+
+        [Category("Visual chatGPT Studio")]
         [DisplayName("OpenAI API Key")]
         [Description("Set OpenAI API Key. See \"https://beta.openai.com/account/api-keys\" for more details.")]
         public string ApiKey { get; set; }
@@ -79,6 +86,18 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Description("Connect to OpenAI through a proxy.")]
         [DefaultValue("")]
         public string Proxy { get; set; } = string.Empty;
+
+        [Category("Visual chatGPT Studio")]
+        [DisplayName("Azure OpenAI resource name")]
+        [Description("Connect to OpenAI through azure openAI service.")]
+        [DefaultValue("")]
+        public string AzureAIServiceName { get; set; }= string.Empty;
+
+        [Category("Visual chatGPT Studio")]
+        [DisplayName("Azure Deployment Name")]
+        [Description("Azure OpenAI deployment name")]
+        [DefaultValue("")]
+        public string DeploymentId { get;set;} = string.Empty;
     }
 
     /// <summary>
@@ -92,5 +111,11 @@ namespace JeffPires.VisualChatGPTStudio.Options
         TextAda001,
         CodeDavinci,
         CodeCushman
+    }
+
+    public enum OpenAIService
+    { 
+        OpenAI,
+        AzureOpenAI
     }
 }

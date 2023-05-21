@@ -1,7 +1,13 @@
 ﻿using ICSharpCode.AvalonEdit.Document;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using Microsoft.VisualStudio.Shell;
+using System.Windows.Interop;
+using System;
 
 namespace JeffPires.VisualChatGPTStudio.Utils
 {
@@ -58,7 +64,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             else if (author == AuthorEnum.ChatGPTCode)
             {
                 ImageSource = firstSegment ? "pack://application:,,,/VisualChatGPTStudio;component/Resources/chatGPT.png" : string.Empty;
-                BackgroundColor = new SolidColorBrush(Color.FromRgb(255, 255, 255));
+                BackgroundColor = new SolidColorBrush(Color.FromRgb(240, 240, 240));
                 Syntax = TextFormat.DetectCodeLanguage(message);
                 Margins = new Thickness(0, -2.5, 0, -2.5);
                 ButtonCopyVisibility = Visibility.Visible;

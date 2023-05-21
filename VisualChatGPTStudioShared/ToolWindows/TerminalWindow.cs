@@ -47,7 +47,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         /// Sends a request to the ChatGPT window.
         /// </summary>
         /// <param name="command">The command to send to the ChatGPT window.</param>
-        public async Task RequestToWindowAsync(string command)
+        public async System.Threading.Tasks.Task RequestToWindowAsync(string command)
         {
             await ((TerminalWindowControl)this.Content).RequestToWindowAsync(command);
         }

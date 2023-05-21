@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>8d02bb3e-2996-4b5c-a4be-c1514b7b93df</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>VisualChatGPTStudioShared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\AddComments.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\AddSummary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\AddTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\AskAnything.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\BaseChatGPTCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\Complete.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\CustomAfter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\CustomBefore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\CustomReplace.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\Explain.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\FindBugs.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\Optimize.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\TerminalWindowCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\TerminalWindowTurboCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\OptionPageGrid.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Options\OptionPageGridCommands.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindow.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindowControl.xaml.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindowTurbo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindowTurboControl.xaml.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\ChatGPT.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\ChatTurboItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\ChatGPTHttpClientFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\Constants.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\HighlightingDefinitionConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\HttpClientCustom.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\TextFormat.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\TurboChatHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)VisuallChatGPTStudioPackage.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindowControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindowTurboControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+</Project>

@@ -15,6 +15,7 @@ namespace JeffPires.VisualChatGPTStudio
         public const string VisuallChatGPTStudioString = "a8eb0343-b35c-4175-95d8-50549e609ff3";
         public static Guid VisuallChatGPTStudio = new Guid(VisuallChatGPTStudioString);
     }
+
     /// <summary>
     /// Helper class that encapsulates all CommandIDs uses across VS Package.
     /// </summary>

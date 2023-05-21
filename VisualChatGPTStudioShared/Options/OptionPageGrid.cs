@@ -11,8 +11,20 @@ namespace JeffPires.VisualChatGPTStudio.Options
     public class OptionPageGridGeneral : DialogPage
     {
         [Category("Visual chatGPT Studio")]
-        [DisplayName("OpenAI API Key")]
-        [Description("Set OpenAI API Key. See \"https://beta.openai.com/account/api-keys\" for more details.")]
+        [DisplayName("OpenAI Service")]
+        [Description("Select how to connect: OpenAI API or Azure OpenAI.")]
+        [DefaultValue(OpenAIService.OpenAI)]
+        [TypeConverter(typeof(EnumConverter))]
+        public OpenAIService Service { get; set; }
+
+        [Category("Visual chatGPT Studio")]
+        [DisplayName("OpenAI Organization")]
+        [Description("Set the OpenAI Organization.")]
+        public string OpenAIOrganization { get; set; }
+
+        [Category("Visual chatGPT Studio")]
+        [DisplayName("API Key")]
+        [Description("Set API Key. For OpenAI API, see \"https://beta.openai.com/account/api-keys\" for more details.")]
         public string ApiKey { get; set; }
 
         [Category("Visual chatGPT Studio")]
@@ -69,6 +81,13 @@ namespace JeffPires.VisualChatGPTStudio.Options
         public string TurboChatBehavior { get; set; } = "You are a programmer assistant called Visual chatGPT Studio, and your role is help developers and resolve programmer problems.";
 
         [Category("Visual chatGPT Studio")]
+        [DisplayName("Turbo Chat Model Language")]
+        [Description("Set the Turbo Chat Model Language. See \"https://platform.openai.com/docs/guides/chat\" for more details.")]
+        [DefaultValue(TurboChatModelLanguageEnum.GPT_3_5_Turbo)]
+        [TypeConverter(typeof(EnumConverter))]
+        public TurboChatModelLanguageEnum TurboChatModelLanguage { get; set; } = TurboChatModelLanguageEnum.GPT_3_5_Turbo;
+
+        [Category("Visual chatGPT Studio")]
         [DisplayName("Single Response")]
         [Description("If true, the entire response will be displayed at once (less undo history but longer waiting time).")]
         [DefaultValue(false)]
@@ -79,6 +98,18 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Description("Connect to OpenAI through a proxy.")]
         [DefaultValue("")]
         public string Proxy { get; set; } = string.Empty;
+
+        [Category("Visual chatGPT Studio")]
+        [DisplayName("Azure OpenAI Resource Name")]
+        [Description("Set Azure OpenAI resource name.")]
+        [DefaultValue("")]
+        public string AzureResourceName { get; set; } = string.Empty;
+
+        [Category("Visual chatGPT Studio")]
+        [DisplayName("Azure Deployment ID")]
+        [Description("Set Azure OpenAI deployment id.")]
+        [DefaultValue("")]
+        public string AzureDeploymentId { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -89,8 +120,24 @@ namespace JeffPires.VisualChatGPTStudio.Options
         TextDavinci003,
         TextCurie001,
         TextBabbage001,
-        TextAda001,
-        CodeDavinci,
-        CodeCushman
+        TextAda001
+    }
+
+    /// <summary>
+    /// Enum to represent the language model used by TurboChat. 
+    /// </summary>
+    public enum TurboChatModelLanguageEnum
+    {
+        GPT_3_5_Turbo,
+        GPT_4
+    }
+
+    /// <summary>
+    /// Enum to represent the different OpenAI services available.
+    /// </summary>
+    public enum OpenAIService
+    {
+        OpenAI,
+        AzureOpenAI
     }
 }

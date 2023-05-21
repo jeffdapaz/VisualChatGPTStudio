@@ -4,7 +4,6 @@ using JeffPires.VisualChatGPTStudio.Utils;
 using Microsoft.VisualStudio.Shell;
 using OpenAI_API.Completions;
 using System;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using Clipboard = System.Windows.Clipboard;
@@ -175,7 +174,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         /// Sends a request to the ChatGPT window and handles the response.
         /// </summary>
         /// <param name="command">The command to send to the ChatGPT window.</param>
-        public async Task RequestToWindowAsync(string command)
+        public async System.Threading.Tasks.Task RequestToWindowAsync(string command)
         {
             try
             {

@@ -6,6 +6,9 @@ You will be able to consult the chatGPT directly through the text editor or thro
 
 [Watch here some examples.](https://www.youtube.com/watch?v=h_wUl_IjWRU)
 
+- For Visual Studio 2022: [here](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio)
+- For Visual Studio 2019: [here](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio2019)
+
 ## Features in text editor
 
 Select a method and right click on text editor and you see these new chatGPT commands:
@@ -52,15 +55,31 @@ Unlike the previous window, in this one the AI "remembers" the entire conversati
 
 ![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio/1.7.3/1679698833202/image__14.png)
 
-And also different from the previous window where the OpenAI model used is the one defined through the options, this one exclusively uses the model gpt-3.5-turbo.
+While the first tool window uses specific language models for Completions, this window uses specific models for Chats, which are GPT-3.5-Turbo and GPT-4, which can be chosen through the options.
+
+Note that GPT-4 is currently in a limited beta and only accessible to those who have been granted access through OpenAI requisition. 
+
+Because of that for now the GPT-4 option is experimental, as I still don't have access to this model, which makes it impossible for me to test it, however, in case of any problems, leave your feedback and I'll try to solve it.
 
 You will find this window in menu View -> Other Windows -> Visual chatGPT Studio Turbo.
 
 ## Authentication
 
-To use this tool you need create and set an OpenAI API Key.
+To use this tool it is necessary to connect through the OpenAI API or through Azure OpenAI (experimental).
+
+### By OpenAI
+
+You need create and set an OpenAI API Key.
 
 You can do this here: [https://beta.openai.com/account/api-keys](https://beta.openai.com/account/api-keys)
+
+### By Azure
+
+See for more details: [https://learn.microsoft.com/azure/cognitive-services/openai/overview](https://learn.microsoft.com/azure/cognitive-services/openai/overview)
+
+I don't have access to Azure OpenAI yet, so I can't test it myself.
+
+However, if you encounter any issue, leave your feedback and I'll see what I can do.
 
 ## Known Issues
 
@@ -81,6 +100,21 @@ For these cases I advise you to make requests via the tool windows to customize 
 - If you find any bugs or unexpected behavior, please leave a comment so I can provide a fix.
 
 ## Release Notes
+
+### 1.9.1
+
+- Changed extension icon for VS 2019 edition.
+
+### 1.9.0
+
+- Added Visual Studio 2019 compatibility. Thanks to [przemsiedl](https://github.com/przemsiedl).
+- Fixed proxy connection (experimental). Thanks to [52017126](https://github.com/52017126).
+- Added possibility to connect through Azure (experimental). Thanks to [Rabosa616](https://github.com/Rabosa616).
+- The CodeDavinci and CodeCushman models have been removed as they have been deprecated by OpenAI. Thanks to [ekomsctr](https://github.com/ekomsctr) for the feedback about this.
+- Fixed comment chars for the commands "Explain" and "Find Bugs" when the language is not C#.
+- Added option to define the OpenAI Organization.
+- Added the GTP-4 model language for the TurboChat Window (experimental).
+- Added feedback when code was copied on TurboChat Window.
 
 ### 1.8.0
 

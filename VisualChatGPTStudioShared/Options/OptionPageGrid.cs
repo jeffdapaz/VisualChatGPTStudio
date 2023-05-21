@@ -140,10 +140,4 @@ namespace JeffPires.VisualChatGPTStudio.Options
         OpenAI,
         AzureOpenAI
     }
-
-    public enum OpenAIService
-    { 
-        OpenAI,
-        AzureOpenAI
-    }
 }

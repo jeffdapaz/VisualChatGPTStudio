@@ -5,22 +5,44 @@ VisualStudioVersion = 17.3.32929.385
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualChatGPTStudio", "VisualChatGPTStudio.csproj", "{E0B7C5AC-2E05-4849-81E4-8BF62BBCD16A}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "VisualChatGPTStudioShared", "VisualChatGPTStudioShared\VisualChatGPTStudioShared.shproj", "{8D02BB3E-2996-4B5C-A4BE-C1514B7B93DF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualChatGPTStudio2019", "VisualChatGPTStudio2019\VisualChatGPTStudio2019.csproj", "{17478673-FB35-4FF3-8EA2-9B2849B490BD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|arm64 = Debug|arm64
 		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
+		Release|arm64 = Release|arm64
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{E0B7C5AC-2E05-4849-81E4-8BF62BBCD16A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E0B7C5AC-2E05-4849-81E4-8BF62BBCD16A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0B7C5AC-2E05-4849-81E4-8BF62BBCD16A}.Debug|arm64.ActiveCfg = Debug|arm64
+		{E0B7C5AC-2E05-4849-81E4-8BF62BBCD16A}.Debug|arm64.Build.0 = Debug|arm64
 		{E0B7C5AC-2E05-4849-81E4-8BF62BBCD16A}.Debug|x86.ActiveCfg = Debug|x86
 		{E0B7C5AC-2E05-4849-81E4-8BF62BBCD16A}.Debug|x86.Build.0 = Debug|x86
 		{E0B7C5AC-2E05-4849-81E4-8BF62BBCD16A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E0B7C5AC-2E05-4849-81E4-8BF62BBCD16A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E0B7C5AC-2E05-4849-81E4-8BF62BBCD16A}.Release|arm64.ActiveCfg = Release|arm64
+		{E0B7C5AC-2E05-4849-81E4-8BF62BBCD16A}.Release|arm64.Build.0 = Release|arm64
 		{E0B7C5AC-2E05-4849-81E4-8BF62BBCD16A}.Release|x86.ActiveCfg = Release|x86
 		{E0B7C5AC-2E05-4849-81E4-8BF62BBCD16A}.Release|x86.Build.0 = Release|x86
+		{17478673-FB35-4FF3-8EA2-9B2849B490BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17478673-FB35-4FF3-8EA2-9B2849B490BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17478673-FB35-4FF3-8EA2-9B2849B490BD}.Debug|arm64.ActiveCfg = Debug|arm64
+		{17478673-FB35-4FF3-8EA2-9B2849B490BD}.Debug|arm64.Build.0 = Debug|arm64
+		{17478673-FB35-4FF3-8EA2-9B2849B490BD}.Debug|x86.ActiveCfg = Debug|x86
+		{17478673-FB35-4FF3-8EA2-9B2849B490BD}.Debug|x86.Build.0 = Debug|x86
+		{17478673-FB35-4FF3-8EA2-9B2849B490BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17478673-FB35-4FF3-8EA2-9B2849B490BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17478673-FB35-4FF3-8EA2-9B2849B490BD}.Release|arm64.ActiveCfg = Release|arm64
+		{17478673-FB35-4FF3-8EA2-9B2849B490BD}.Release|arm64.Build.0 = Release|arm64
+		{17478673-FB35-4FF3-8EA2-9B2849B490BD}.Release|x86.ActiveCfg = Release|x86
+		{17478673-FB35-4FF3-8EA2-9B2849B490BD}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -28,12 +50,9 @@ Global
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D6B55750-5329-496A-8EAD-898A2B73D370}
 	EndGlobalSection
-	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 2
-		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = https://jeffersonpaz.visualstudio.com/
-		SccLocalPath0 = .
-		SccProjectUniqueName1 = VisualChatGPTStudio.csproj
-		SccLocalPath1 = .
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		VisualChatGPTStudioShared\VisualChatGPTStudioShared.projitems*{17478673-fb35-4ff3-8ea2-9b2849b490bd}*SharedItemsImports = 4
+		VisualChatGPTStudioShared\VisualChatGPTStudioShared.projitems*{8d02bb3e-2996-4b5c-a4be-c1514b7b93df}*SharedItemsImports = 13
+		VisualChatGPTStudioShared\VisualChatGPTStudioShared.projitems*{e0b7c5ac-2e05-4849-81e4-8bf62bbcd16a}*SharedItemsImports = 4
 	EndGlobalSection
 EndGlobal

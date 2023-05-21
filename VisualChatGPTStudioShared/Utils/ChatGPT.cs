@@ -14,6 +14,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
     static class ChatGPT
     {
         private static OpenAIAPI api;
+        private static ChatGPTHttpClientFactory chatGPTHttpClient;
 
         /// <summary>
         /// Requests a completion from the OpenAI API using the given options.
@@ -82,6 +83,11 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
             chat.AppendSystemMessage(options.TurboChatBehavior);
 
+            if (options.TurboChatModelLanguage == TurboChatModelLanguageEnum.GPT_4)
+            {
+                chat.Model = Model.GPT4;
+            }
+
             return chat;
         }
 
@@ -93,25 +99,43 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         {
             if (api == null)
             {
+                chatGPTHttpClient = new();
+
+                if (!string.IsNullOrWhiteSpace(options.Proxy))
+                {
+                    chatGPTHttpClient.SetProxy(options.Proxy);
+                }
 
                 if (options.Service == OpenAIService.AzureOpenAI)
                 {
-                    api = OpenAIAPI.ForAzure(options.AzureAIServiceName, options.DeploymentId, options.ApiKey);
+                    api = OpenAIAPI.ForAzure(options.AzureResourceName, options.AzureDeploymentId, options.ApiKey);
                 }
                 else
                 {
-                    api = new(options.ApiKey);
+                    APIAuthentication auth;
+
+                    if (!string.IsNullOrWhiteSpace(options.OpenAIOrganization))
+                    {
+                        auth = new(options.ApiKey, options.OpenAIOrganization);
+                    }
+                    else
+                    {
+                        auth = new(options.ApiKey);
+                    }
+
+                    api = new(auth);
                 }
 
+                api.HttpClientFactory = chatGPTHttpClient;
+            }
+            else if ((options.Service == OpenAIService.AzureOpenAI && !api.ApiUrlFormat.ToUpper().Contains("AZURE")) || (options.Service == OpenAIService.OpenAI && api.ApiUrlFormat.ToUpper().Contains("AZURE")))
+            {
+                api = null;
+                CreateApiHandler(options);
             }
             else if (api.Auth.ApiKey != options.ApiKey)
             {
                 api.Auth.ApiKey = options.ApiKey;
-            }
-
-            if (!string.IsNullOrWhiteSpace(options.Proxy) && options.Service == OpenAIService.OpenAI)
-            {
-                api.ApiUrlFormat = options.Proxy + "/{0}/{1}";
             }
         }
 
@@ -147,12 +171,6 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                     break;
                 case ModelLanguageEnum.TextAda001:
                     model = Model.AdaText;
-                    break;
-                case ModelLanguageEnum.CodeDavinci:
-                    model = Model.DavinciCode;
-                    break;
-                case ModelLanguageEnum.CodeCushman:
-                    model = Model.CushmanCode;
                     break;
             }
 

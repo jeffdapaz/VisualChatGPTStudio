@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 using MessageBox = System.Windows.MessageBox;
 
 namespace JeffPires.VisualChatGPTStudio.ToolWindows
@@ -141,6 +142,27 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             int index = (int)button.Tag;
 
             Clipboard.SetText(chatItems[index].Document.Text);
+
+            Image img = new() { Source = new BitmapImage(new Uri("pack://application:,,,/VisualChatGPTStudio;component/Resources/check.png")) };
+
+            button.Content = img;
+            button.ToolTip = "Copied!";
+
+            System.Timers.Timer timer = new(2000) { Enabled = true };
+
+            timer.Elapsed += (s, args) =>
+            {
+                Application.Current.Dispatcher.Invoke(new Action(() =>
+                {
+                    img = new() { Source = new BitmapImage(new Uri("pack://application:,,,/VisualChatGPTStudio;component/Resources/copy.png")) };
+
+                    button.Content = img;
+                    button.ToolTip = "Copy code";
+                }));
+
+                timer.Enabled = false;
+                timer.Dispose();
+            };
         }
 
         /// <summary>

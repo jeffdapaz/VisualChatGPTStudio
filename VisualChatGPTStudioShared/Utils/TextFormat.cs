@@ -8,6 +8,28 @@ namespace JeffPires.VisualChatGPTStudio.Utils
     /// </summary>
     internal static class TextFormat
     {
+        public static string GetCommentChars(string filePath)
+        {
+            string extension = System.IO.Path.GetExtension(filePath).TrimStart('.');
+
+            if (extension.Equals("cs", StringComparison.InvariantCultureIgnoreCase) || extension.Equals("js", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return "//";
+            }
+
+            if (extension.Equals("vb", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return "'";
+            }
+
+            if (extension.Equals("sql", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return "--";
+            }
+
+            return "<!--";
+        }
+
         /// <summary>
         /// Formats a given command for a given language 
         /// for example for c#, for visual basic, for sql server, for java script
@@ -23,19 +45,19 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
             string language = string.Empty;
 
-            if (extension == "cs")
+            if (extension.Equals("cs", StringComparison.InvariantCultureIgnoreCase))
             {
                 language = "for C#";
             }
-            else if (extension == "vb")
+            else if (extension.Equals("vb", StringComparison.InvariantCultureIgnoreCase))
             {
                 language = "for Visual Basic";
             }
-            else if (extension == "sql")
+            else if (extension.Equals("sql", StringComparison.InvariantCultureIgnoreCase))
             {
                 language = "for SQL Server";
             }
-            else if (extension == "js")
+            else if (extension.Equals("js", StringComparison.InvariantCultureIgnoreCase))
             {
                 language = "for Java Script";
             }

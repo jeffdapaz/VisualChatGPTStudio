@@ -6,7 +6,6 @@ using Microsoft.VisualStudio.Shell;
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace JeffPires.VisualChatGPTStudio
 {
@@ -47,7 +46,7 @@ namespace JeffPires.VisualChatGPTStudio
         /// <summary>
         /// Initializes the terminal window commands.
         /// </summary>
-        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+        protected override async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await this.RegisterCommandsAsync();
             await TerminalWindowCommand.InitializeAsync(this);

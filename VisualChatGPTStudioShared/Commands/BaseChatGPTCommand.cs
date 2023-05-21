@@ -7,7 +7,6 @@ using Microsoft.VisualStudio.Text;
 using OpenAI_API.Completions;
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 using Span = Microsoft.VisualStudio.Text.Span;
@@ -73,7 +72,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// <remarks>
         /// Use this method instead of <see cref="M:Community.VisualStudio.Toolkit.BaseCommand.Execute(System.Object,System.EventArgs)" /> if you're invoking any async tasks by using async/await patterns.
         /// </remarks>
-        protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
+        protected override async System.Threading.Tasks.Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
             try
             {
@@ -130,7 +129,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// Requests the specified selected text from ChatGPT
         /// </summary>
         /// <param name="selectedText">The selected text.</param>
-        private async Task RequestAsync(string selectedText)
+        private async System.Threading.Tasks.Task RequestAsync(string selectedText)
         {
             string command = GetCommand(selectedText);
 
@@ -213,8 +212,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                     if (typeof(TCommand) == typeof(Explain) || typeof(TCommand) == typeof(FindBugs))
                     {
-                        docView.TextBuffer?.Insert(position, "//");
-                        position += 2;
+                        AddCommentChars();
                     }
 
                     firstIteration = false;
@@ -287,9 +285,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
             lineLength = 0;
 
             InsertANewLine(true);
-
-            docView.TextBuffer?.Insert(position, "//");
-            position += 2;
+            AddCommentChars();
         }
 
         /// <summary>
@@ -302,6 +298,17 @@ namespace JeffPires.VisualChatGPTStudio.Commands
             string[] words = text.Split(' ');
 
             return words.Count(w => w == "public" || w == "private" || w == "protected") >= 2;
+        }
+
+        /// <summary>
+        /// Inserts the comment characters for the current document into the text buffer at the given position.
+        /// </summary>
+        private void AddCommentChars()
+        {
+            string commentChars = TextFormat.GetCommentChars(docView.FilePath);
+
+            docView.TextBuffer?.Insert(position, commentChars);
+            position += commentChars.Length;
         }
     }
 

@@ -14,6 +14,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
     static class ChatGPT
     {
         private static OpenAIAPI api;
+        private static ChatGPTHttpClientFactory chatGPTHttpClient;
 
         /// <summary>
         /// Requests a completion from the OpenAI API using the given options.
@@ -23,7 +24,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <returns>The completion result.</returns>
         public static async Task<CompletionResult> RequestAsync(OptionPageGridGeneral options, string request)
         {
-            CreateApiHandler(options.ApiKey, options.Proxy);
+            CreateApiHandler(options);
 
             return await api.Completions.CreateCompletionAsync(GetRequest(options, request));
         }
@@ -37,7 +38,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <returns>The completion result.</returns>
         public static async Task<CompletionResult> RequestAsync(OptionPageGridGeneral options, string request, string[] stopSequences)
         {
-            CreateApiHandler(options.ApiKey, options.Proxy);
+            CreateApiHandler(options);
 
             return await api.Completions.CreateCompletionAsync(GetRequest(options, request, stopSequences));
         }
@@ -50,7 +51,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <param name="resultHandler">The action to take when the result is received.</param>
         public static async Task RequestAsync(OptionPageGridGeneral options, string request, Action<int, CompletionResult> resultHandler)
         {
-            CreateApiHandler(options.ApiKey, options.Proxy);
+            CreateApiHandler(options);
 
             await api.Completions.StreamCompletionAsync(GetRequest(options, request), resultHandler);
         }
@@ -64,7 +65,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <param name="stopSequences">Up to 4 sequences where the API will stop generating further tokens.</param>
         public static async Task RequestAsync(OptionPageGridGeneral options, string request, Action<int, CompletionResult> resultHandler, string[] stopSequences)
         {
-            CreateApiHandler(options.ApiKey, options.Proxy);
+            CreateApiHandler(options);
 
             await api.Completions.StreamCompletionAsync(GetRequest(options, request, stopSequences), resultHandler);
         }
@@ -76,11 +77,16 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <returns>The newly created conversation.</returns>
         public static Conversation CreateConversation(OptionPageGridGeneral options)
         {
-            CreateApiHandler(options.ApiKey, options.Proxy);
+            CreateApiHandler(options);
 
             Conversation chat = api.Chat.CreateConversation();
 
             chat.AppendSystemMessage(options.TurboChatBehavior);
+
+            if (options.TurboChatModelLanguage == TurboChatModelLanguageEnum.GPT_4)
+            {
+                chat.Model = Model.GPT4;
+            }
 
             return chat;
         }
@@ -88,22 +94,48 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <summary>
         /// Creates an API handler with the given API key and proxy.
         /// </summary>
-        /// <param name="apiKey">The API key to use.</param>
-        /// <param name="proxy">The proxy to use.</param>
-        private static void CreateApiHandler(string apiKey, string proxy)
+        /// <param name="options">All configurations to create the connection</param>
+        private static void CreateApiHandler(OptionPageGridGeneral options)
         {
             if (api == null)
             {
-                api = new(apiKey);
-            }
-            else if (api.Auth.ApiKey != apiKey)
-            {
-                api.Auth.ApiKey = apiKey;
-            }
+                chatGPTHttpClient = new();
 
-            if (!string.IsNullOrWhiteSpace(proxy))
+                if (!string.IsNullOrWhiteSpace(options.Proxy))
+                {
+                    chatGPTHttpClient.SetProxy(options.Proxy);
+                }
+
+                if (options.Service == OpenAIService.AzureOpenAI)
+                {
+                    api = OpenAIAPI.ForAzure(options.AzureResourceName, options.AzureDeploymentId, options.ApiKey);
+                }
+                else
+                {
+                    APIAuthentication auth;
+
+                    if (!string.IsNullOrWhiteSpace(options.OpenAIOrganization))
+                    {
+                        auth = new(options.ApiKey, options.OpenAIOrganization);
+                    }
+                    else
+                    {
+                        auth = new(options.ApiKey);
+                    }
+
+                    api = new(auth);
+                }
+
+                api.HttpClientFactory = chatGPTHttpClient;
+            }
+            else if ((options.Service == OpenAIService.AzureOpenAI && !api.ApiUrlFormat.ToUpper().Contains("AZURE")) || (options.Service == OpenAIService.OpenAI && api.ApiUrlFormat.ToUpper().Contains("AZURE")))
             {
-                api.ApiUrlFormat = proxy + "/{0}/{1}";
+                api = null;
+                CreateApiHandler(options);
+            }
+            else if (api.Auth.ApiKey != options.ApiKey)
+            {
+                api.Auth.ApiKey = options.ApiKey;
             }
         }
 
@@ -139,12 +171,6 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                     break;
                 case ModelLanguageEnum.TextAda001:
                     model = Model.AdaText;
-                    break;
-                case ModelLanguageEnum.CodeDavinci:
-                    model = Model.DavinciCode;
-                    break;
-                case ModelLanguageEnum.CodeCushman:
-                    model = Model.CushmanCode;
                     break;
             }
 

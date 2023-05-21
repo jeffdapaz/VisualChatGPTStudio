@@ -94,7 +94,7 @@
           <ButtonText>Custom Replace</ButtonText>
           <LocCanonicalName>.VisuallChatGPTStudio.CustomReplace</LocCanonicalName>
         </Strings>
-      </Button>
+      </Button>      
       <Button guid="guidVisuallChatGPTStudioPackageCmdSet" id="cmdidTerminalWindowCommand" priority="0x0100" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
         <Icon guid="VisuallChatGPTStudioChatGPTIcon" id="chatGPTIcon" />

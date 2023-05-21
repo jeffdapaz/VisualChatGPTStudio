@@ -71,7 +71,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// Initializes the singleton instance of the command.
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
-        public static async Task InitializeAsync(AsyncPackage package)
+        public static async System.Threading.Tasks.Task InitializeAsync(AsyncPackage package)
         {
             // Switch to the main thread - the call to AddCommand in TerminalWindowCommand's constructor requires
             // the UI thread.
@@ -87,7 +87,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// Sends a request to the ChatGPT window.
         /// </summary>
         /// <param name="command">The command to send to the ChatGPT window.</param>
-        public async Task RequestToWindowAsync(string command)
+        public async System.Threading.Tasks.Task RequestToWindowAsync(string command)
         {
             if (window == null)
             {
@@ -115,7 +115,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// </summary>
         /// <param name="package">The AsyncPackage to be initialized.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        private static async Task InitializeToolWindowAsync(AsyncPackage package)
+        private static async System.Threading.Tasks.Task InitializeToolWindowAsync(AsyncPackage package)
         {
             window = await package.ShowToolWindowAsync(typeof(TerminalWindow), 0, true, package.DisposalToken) as TerminalWindow;
 

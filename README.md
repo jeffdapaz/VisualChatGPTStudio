@@ -101,6 +101,10 @@ For these cases I advise you to make requests via the tool windows to customize 
 
 ## Release Notes
 
+### 1.9.2
+
+- Removed the "one method selection" limit.
+
 ### 1.9.1
 
 - Changed extension icon for VS 2019 edition.

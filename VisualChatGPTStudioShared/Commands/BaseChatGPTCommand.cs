@@ -6,7 +6,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using OpenAI_API.Completions;
 using System;
-using System.Linq;
 using System.Windows.Input;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 using Span = Microsoft.VisualStudio.Text.Span;
@@ -104,13 +103,6 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                 if (string.IsNullOrWhiteSpace(selectedText))
                 {
                     await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, "Please select the code.", buttons: Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
-
-                    return;
-                }
-
-                if (CheckIfSelectedTwoOrMoreMethods(selectedText))
-                {
-                    await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, "Please select one method at a time.", buttons: Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
 
                     return;
                 }
@@ -286,18 +278,6 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             InsertANewLine(true);
             AddCommentChars();
-        }
-
-        /// <summary>
-        /// Check If Selected Two Or More Methods
-        /// </summary>
-        /// <param name="text">The text to check</param>
-        /// <returns>True if has Selected Two Or More Methods</returns>
-        private bool CheckIfSelectedTwoOrMoreMethods(string text)
-        {
-            string[] words = text.Split(' ');
-
-            return words.Count(w => w == "public" || w == "private" || w == "protected") >= 2;
         }
 
         /// <summary>

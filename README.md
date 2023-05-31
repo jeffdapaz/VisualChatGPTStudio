@@ -77,10 +77,6 @@ You can do this here: [https://beta.openai.com/account/api-keys](https://beta.op
 
 See for more details: [https://learn.microsoft.com/azure/cognitive-services/openai/overview](https://learn.microsoft.com/azure/cognitive-services/openai/overview)
 
-I don't have access to Azure OpenAI yet, so I can't test it myself.
-
-However, if you encounter any issue, leave your feedback and I'll see what I can do.
-
 ## Known Issues
 
 Unfortunately, the API that OpenAI makes available for interacting with chatGPT has a limitation on the size of the question plus the given answer.
@@ -100,6 +96,11 @@ For these cases I advise you to make requests via the tool windows to customize 
 - If you find any bugs or unexpected behavior, please leave a comment so I can provide a fix.
 
 ## Release Notes
+
+### 1.9.3
+
+- Added option that permit to define the specific Azure Deployment ID for the Turbo Chat window.
+- Added option that permit to define the Azure API version for the Turbo Chat window.
 
 ### 1.9.2
 

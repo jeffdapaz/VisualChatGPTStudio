@@ -110,6 +110,18 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Description("Set Azure OpenAI deployment id.")]
         [DefaultValue("")]
         public string AzureDeploymentId { get; set; } = string.Empty;
+
+        [Category("Visual chatGPT Studio")]
+        [DisplayName("Azure Turbo Chat Deployment ID")]
+        [Description("Set Azure OpenAI deployment id specific for the Turbo Chat window. This deployment has to be parameterized with the GPT-3.5-Turbo or GPT-4 model.")]
+        [DefaultValue("")]
+        public string AzureTurboChatDeploymentId { get; set; } = string.Empty;
+
+        [Category("Visual chatGPT Studio")]
+        [DisplayName("Azure Turbo Chat API Version")]
+        [Description("Set the Azure OpenAI API version for the Turbo Chat window used on the deployment with the GPT-3.5-Turbo or GPT-4 model.")]
+        [DefaultValue("")]
+        public string AzureTurboChatApiVersion { get; set; } = string.Empty;
     }
 
     /// <summary>

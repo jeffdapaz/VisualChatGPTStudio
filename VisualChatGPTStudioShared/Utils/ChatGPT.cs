@@ -14,6 +14,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
     static class ChatGPT
     {
         private static OpenAIAPI api;
+        private static OpenAIAPI apiForAzureTurboChat;
         private static ChatGPTHttpClientFactory chatGPTHttpClient;
 
         /// <summary>
@@ -77,9 +78,20 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <returns>The newly created conversation.</returns>
         public static Conversation CreateConversation(OptionPageGridGeneral options)
         {
-            CreateApiHandler(options);
+            Conversation chat;
 
-            Conversation chat = api.Chat.CreateConversation();
+            if (options.Service == OpenAIService.OpenAI || string.IsNullOrWhiteSpace(options.AzureTurboChatDeploymentId))
+            {
+                CreateApiHandler(options);
+
+                chat = api.Chat.CreateConversation();
+            }
+            else
+            {
+                CreateApiHandlerForAzureTurboChat(options);
+
+                chat = apiForAzureTurboChat.Chat.CreateConversation();
+            }
 
             chat.AppendSystemMessage(options.TurboChatBehavior);
 
@@ -136,6 +148,36 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             else if (api.Auth.ApiKey != options.ApiKey)
             {
                 api.Auth.ApiKey = options.ApiKey;
+            }
+        }
+
+        /// <summary>
+        /// Creates an API handler for Azure TurboChat using the provided options.
+        /// </summary>
+        /// <param name="options">The options to use for creating the API handler.</param>
+        private static void CreateApiHandlerForAzureTurboChat(OptionPageGridGeneral options)
+        {
+            if (apiForAzureTurboChat == null)
+            {
+                chatGPTHttpClient = new();
+
+                if (!string.IsNullOrWhiteSpace(options.Proxy))
+                {
+                    chatGPTHttpClient.SetProxy(options.Proxy);
+                }
+
+                apiForAzureTurboChat = OpenAIAPI.ForAzure(options.AzureResourceName, options.AzureTurboChatDeploymentId, options.ApiKey);
+
+                apiForAzureTurboChat.HttpClientFactory = chatGPTHttpClient;
+
+                if (!string.IsNullOrWhiteSpace(options.AzureTurboChatApiVersion))
+                {
+                    apiForAzureTurboChat.ApiVersion = options.AzureTurboChatApiVersion;
+                }
+            }
+            else if (apiForAzureTurboChat.Auth.ApiKey != options.ApiKey)
+            {
+                apiForAzureTurboChat.Auth.ApiKey = options.ApiKey;
             }
         }
 

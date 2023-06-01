@@ -93,6 +93,12 @@ For these cases I advise you to make requests via the tool windows to customize 
 
 - The speed and availability of responses directly depend on the API provided by OpenAI.
 
+- If you are using OpenAI service instead Azure and receive a message like "429 - You exceeded your current quota, please check your plan and billing details.", check OpenAI Usage page and see if you still have quota, example:
+
+![image](https://user-images.githubusercontent.com/63928228/242688025-47ec893e-401f-4edb-92a0-127a47a952fe.png)
+
+You can check your quota here: [https://platform.openai.com/account/usage](https://platform.openai.com/account/usage)
+
 - If you find any bugs or unexpected behavior, please leave a comment so I can provide a fix.
 
 ## Release Notes

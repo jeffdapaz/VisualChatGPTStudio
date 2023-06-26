@@ -143,7 +143,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             if (OptionsGeneral.SingleResponse)
             {
-                CompletionResult result = await ChatGPT.RequestAsync(OptionsGeneral, command, stopSequences);
+                string result = await ChatGPT.RequestAsync(OptionsGeneral, command, stopSequences);
 
                 ResultHandler(0, result);
             }
@@ -171,6 +171,87 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// <param name="index">The index.</param>
         /// <param name="result">The result.</param>
         private void ResultHandler(int index, CompletionResult result)
+        {
+            const int LINE_LIMIT = 160;
+
+            try
+            {
+                if (firstIteration)
+                {
+                    _ = VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_RECEIVING_CHATGPT, 2, 2);
+
+                    CommandType commandType = GetCommandType(selectedText);
+
+                    if (commandType == CommandType.Replace)
+                    {
+                        position = positionStart;
+
+                        //Erase current code
+                        _ = docView.TextBuffer?.Replace(new Span(position, docView.TextView.Selection.StreamSelectionSpan.GetText().Length), String.Empty);
+                    }
+                    else if (commandType == CommandType.InsertBefore)
+                    {
+                        position = positionStart;
+
+                        InsertANewLine(false);
+                    }
+                    else
+                    {
+                        position = positionEnd;
+
+                        InsertANewLine(true);
+                    }
+
+                    if (typeof(TCommand) == typeof(Explain) || typeof(TCommand) == typeof(FindBugs))
+                    {
+                        AddCommentChars();
+                    }
+
+                    firstIteration = false;
+                }
+
+                string resultText = result.ToString();
+
+                if (OptionsGeneral.SingleResponse)
+                {
+                    //This code checks if the string "resultText" starts with "\r\n" and if it does, it removes from the string. 
+                    //It will continue to do this until the string no longer starts with "\r\n". 
+                    while (resultText.StartsWith("\r\n"))
+                    {
+                        resultText = resultText.Substring(4);
+                    }
+                }
+                else if (!responseStarted && (resultText.Equals("\n") || resultText.Equals("\r") || resultText.Equals(Environment.NewLine)))
+                {
+                    //Do nothing when API send only break lines on response begin
+                    return;
+                }
+
+                responseStarted = true;
+
+                if (typeof(TCommand) == typeof(AddSummary) && (resultText.Contains("{") || resultText.Contains("}")))
+                {
+                    return;
+                }
+
+                docView.TextBuffer?.Insert(position, resultText);
+
+                position += resultText.Length;
+
+                lineLength += resultText.Length;
+
+                if (lineLength > LINE_LIMIT && (typeof(TCommand) == typeof(Explain) || typeof(TCommand) == typeof(FindBugs)))
+                {
+                    MoveToNextLineAndAddCommentPrefix();
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+        }
+
+        private void ResultHandler(int index, string result)
         {
             const int LINE_LIMIT = 160;
 

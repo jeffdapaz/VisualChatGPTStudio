@@ -23,11 +23,17 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <param name="options">The options to use for the request.</param>
         /// <param name="request">The request to send to the API.</param>
         /// <returns>The completion result.</returns>
-        public static async Task<CompletionResult> RequestAsync(OptionPageGridGeneral options, string request)
+        public static async Task<string> RequestAsync(OptionPageGridGeneral options, string request)
         {
             CreateApiHandler(options);
-
-            return await api.Completions.CreateCompletionAsync(GetRequest(options, request));
+            if (options.Service == OpenAIService.AzureOpenAI)
+            {
+                var chat = api.Chat.CreateConversation();
+                chat.AppendUserInput(request);
+                return await chat.GetResponseFromChatbotAsync();
+            } else {
+                return await api.Completions.CreateCompletionAsync(GetRequest(options, request));
+            }
         }
 
         /// <summary>
@@ -37,11 +43,17 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <param name="request">The request to send to the API.</param>
         /// <param name="stopSequences">Up to 4 sequences where the API will stop generating further tokens.</param>
         /// <returns>The completion result.</returns>
-        public static async Task<CompletionResult> RequestAsync(OptionPageGridGeneral options, string request, string[] stopSequences)
+        public static async Task<string> RequestAsync(OptionPageGridGeneral options, string request, string[] stopSequences)
         {
             CreateApiHandler(options);
-
-            return await api.Completions.CreateCompletionAsync(GetRequest(options, request, stopSequences));
+            if (options.Service == OpenAIService.AzureOpenAI)
+            {
+                var chat = api.Chat.CreateConversation();
+                chat.AppendUserInput(request);
+                return await chat.GetResponseFromChatbotAsync();
+            } else {
+                return await api.Completions.CreateCompletionAsync(GetRequest(options, request, stopSequences));
+            }
         }
 
         /// <summary>
@@ -69,6 +81,37 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             CreateApiHandler(options);
 
             await api.Completions.StreamCompletionAsync(GetRequest(options, request, stopSequences), resultHandler);
+        }
+
+        /// <summary>
+        /// Requests a completion from the OpenAI API using the given options.
+        /// </summary>
+        /// <param name="options">The options to use for the request.</param>
+        /// <param name="request">The request to send to the API.</param>
+        /// <param name="resultHandler">The action to take when the result is received.</param>
+        public static async Task RequestAsync(OptionPageGridGeneral options, string request, Action<int, string> resultHandler)
+        {
+            CreateApiHandler(options);
+
+            var chat = api.Chat.CreateConversation();
+            chat.AppendUserInput(request);
+            await chat.StreamResponseFromChatbotAsync(resultHandler);
+        }
+
+        /// <summary>
+        /// Requests a completion from the OpenAI API using the given options.
+        /// </summary>
+        /// <param name="options">The options to use for the request.</param>
+        /// <param name="request">The request to send to the API.</param>
+        /// <param name="resultHandler">The action to take when the result is received.</param>
+        /// <param name="stopSequences">Up to 4 sequences where the API will stop generating further tokens.</param>
+        public static async Task RequestAsync(OptionPageGridGeneral options, string request, Action<int, string> resultHandler, string[] stopSequences)
+        {
+            CreateApiHandler(options);
+
+            var chat = api.Chat.CreateConversation();
+            chat.AppendUserInput(request);
+            await chat.StreamResponseFromChatbotAsync(resultHandler);
         }
 
         /// <summary>
@@ -121,6 +164,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                 if (options.Service == OpenAIService.AzureOpenAI)
                 {
                     api = OpenAIAPI.ForAzure(options.AzureResourceName, options.AzureDeploymentId, options.ApiKey);
+                    api.ApiVersion = options.AzureTurboChatApiVersion;
                 }
                 else
                 {

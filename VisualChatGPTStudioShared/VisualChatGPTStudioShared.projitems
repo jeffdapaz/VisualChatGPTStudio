@@ -23,6 +23,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Commands\Optimize.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\TerminalWindowCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\TerminalWindowTurboCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\Translate.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionPageGrid.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -31,6 +32,7 @@
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindow.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindowControl.xaml.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindowHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindowTurbo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindowTurboControl.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ChatGPT.cs" />

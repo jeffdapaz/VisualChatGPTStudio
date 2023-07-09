@@ -108,6 +108,9 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="..\Resources\translate.png">
+      <Link>Resources\translate.png</Link>
+    </Resource>
     <Content Include="Icon2019.png">
       <IncludeInVSIX>true</IncludeInVSIX>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

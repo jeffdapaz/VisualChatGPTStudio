@@ -74,6 +74,13 @@
           <LocCanonicalName>.VisuallChatGPTStudio.AskAnything</LocCanonicalName>
         </Strings>
       </Button>
+      <Button guid="VisuallChatGPTStudio" id="Translate" priority="0x0701" type="Button">
+        <Icon guid="VisuallChatGPTStudioTranslateIcon" id="translateIcon" />
+        <Strings>
+          <ButtonText>Translate</ButtonText>
+          <LocCanonicalName>.VisuallChatGPTStudio.Translate</LocCanonicalName>
+        </Strings>
+      </Button>
       <Button guid="VisuallChatGPTStudio" id="CustomBefore" priority="0x0800" type="Button">
         <Icon guid="VisuallChatGPTStudioCustomBeforeIcon" id="customBeforeIcon" />
         <Strings>
@@ -94,7 +101,7 @@
           <ButtonText>Custom Replace</ButtonText>
           <LocCanonicalName>.VisuallChatGPTStudio.CustomReplace</LocCanonicalName>
         </Strings>
-      </Button>      
+      </Button>
       <Button guid="guidVisuallChatGPTStudioPackageCmdSet" id="cmdidTerminalWindowCommand" priority="0x0100" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
         <Icon guid="VisuallChatGPTStudioChatGPTIcon" id="chatGPTIcon" />
@@ -120,6 +127,7 @@
       <Bitmap guid="VisuallChatGPTStudioAddCommentsIcon" href="Resources\addComments.png" usedList="addCommentsIcon"/>
       <Bitmap guid="VisuallChatGPTStudioAddSummaryIcon" href="Resources\addSummary.png" usedList="addSummaryIcon"/>
       <Bitmap guid="VisuallChatGPTStudioAskAnythingIcon" href="Resources\askAnything.png" usedList="askAnythingIcon"/>
+      <Bitmap guid="VisuallChatGPTStudioTranslateIcon" href="Resources\translate.png" usedList="translateIcon"/>
       <Bitmap guid="VisuallChatGPTStudioCustomBeforeIcon" href="Resources\customBefore.png" usedList="customBeforeIcon"/>
       <Bitmap guid="VisuallChatGPTStudioCustomAfterIcon" href="Resources\customAfter.png" usedList="customAfterIcon"/>
       <Bitmap guid="VisuallChatGPTStudioCustomReplaceIcon" href="Resources\customReplace.png" usedList="customReplaceIcon"/>
@@ -137,8 +145,9 @@
     <KeyBinding guid="VisuallChatGPTStudio" id="AddComments" mod1="ALT" key1="6" editor="guidVSStd97" />
     <KeyBinding guid="VisuallChatGPTStudio" id="AddSummary" mod1="ALT" key1="7" editor="guidVSStd97" />
     <KeyBinding guid="VisuallChatGPTStudio" id="AskAnything" mod1="ALT" key1="8" editor="guidVSStd97" />
-    <KeyBinding guid="VisuallChatGPTStudio" id="CustomBefore" mod1="ALT" key1="9" editor="guidVSStd97" />
-    <KeyBinding guid="VisuallChatGPTStudio" id="CustomAfter" mod1="ALT" key1="0" editor="guidVSStd97" />
+    <KeyBinding guid="VisuallChatGPTStudio" id="Translate" mod1="ALT" key1="9" editor="guidVSStd97" />
+    <KeyBinding guid="VisuallChatGPTStudio" id="CustomBefore" mod1="ALT" key1="0" editor="guidVSStd97" />
+    <KeyBinding guid="VisuallChatGPTStudio" id="CustomAfter" mod1="ALT" key1="A" editor="guidVSStd97" />
     <KeyBinding guid="VisuallChatGPTStudio" id="CustomReplace" mod1="ALT" key1="R" editor="guidVSStd97" />
   </KeyBindings>
 
@@ -187,6 +196,10 @@
       <Parent guid="VisuallChatGPTStudio" id="MyGroupForCommands"/>
     </CommandPlacement>
 
+    <CommandPlacement guid="VisuallChatGPTStudio" id="Translate" priority="0x0701" >
+      <Parent guid="VisuallChatGPTStudio" id="MyGroupForCommands"/>
+    </CommandPlacement>
+
     <CommandPlacement guid="VisuallChatGPTStudio" id="CustomBefore" priority="0x0800" >
       <Parent guid="VisuallChatGPTStudio" id="MyGroupForCommands"/>
     </CommandPlacement>
@@ -215,6 +228,7 @@
       <IDSymbol name="AddComments" value="0x0500" />
       <IDSymbol name="AddSummary" value="0x0600" />
       <IDSymbol name="AskAnything" value="0x0700" />
+      <IDSymbol name="Translate" value="0x0701" />
       <IDSymbol name="CustomBefore" value="0x0800" />
       <IDSymbol name="CustomAfter" value="0x0900" />
       <IDSymbol name="CustomReplace" value="0x0901" />
@@ -248,6 +262,9 @@
     </GuidSymbol>
     <GuidSymbol name="VisuallChatGPTStudioAskAnythingIcon" value="{C12A8ED0-FBE5-4815-A3FB-2CB73AB06EBA}">
       <IDSymbol name="askAnythingIcon" value="1" />
+    </GuidSymbol>
+    <GuidSymbol name="VisuallChatGPTStudioTranslateIcon" value="{AE75CD23-1146-4732-8EE1-7BFDACAD3E17}">
+      <IDSymbol name="translateIcon" value="1" />
     </GuidSymbol>
     <GuidSymbol name="VisuallChatGPTStudioCustomBeforeIcon" value="{C12A8ED0-FBE5-4815-A3FB-2CB73AB06ECA}">
       <IDSymbol name="customBeforeIcon" value="1" />

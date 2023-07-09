@@ -13,7 +13,7 @@ You will be able to consult the chatGPT directly through the text editor or thro
 
 Select a method and right click on text editor and you see these new chatGPT commands:
 
-![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio/1.7.1/1679515374543/image__10.png)
+![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/1.10.0/1688942474885/image.png)
 
 - **Complete:** Start write a method, select it and ask for complete.
 - **Add Tests:** Create unit tests for the selected method.
@@ -23,6 +23,7 @@ Select a method and right click on text editor and you see these new chatGPT com
 - **Add Comments:** Add comments for the selected method.
 - **Add Summary:** Add Summary for C# methods.
 - **Ask Anything:** Write a question on the code editor and wait for an answer.
+- **Translate:** Replace selected text with the translated version. In Options window edit the command if you want translate to another language instead English.
 - **Custom Before:** Create a custom command through the options that inserts the response before the selected code.
 - **Custom After:** Create a custom command through the options that inserts the response after the selected code.
 - **Custom Replace:** Create a custom command through the options that replace the selected text with the response.
@@ -57,15 +58,15 @@ Unlike the previous window, in this one the AI "remembers" the entire conversati
 
 While the first tool window uses specific language models for Completions, this window uses specific models for Chats, which are GPT-3.5-Turbo and GPT-4, which can be chosen through the options.
 
-Note that GPT-4 is currently in a limited beta and only accessible to those who have been granted access through OpenAI requisition. 
+Note that GPT-4 it's not currently available for everyone. See [here](https://openai.com/blog/gpt-4-api-general-availability) for more details.
 
-Because of that for now the GPT-4 option is experimental, as I still don't have access to this model, which makes it impossible for me to test it, however, in case of any problems, leave your feedback and I'll try to solve it.
+Because the GPT-4 model is not available to everyone, including myself, I am unable to test it. However, in case of any problems, leave your feedback and I'll try to solve it.
 
 You will find this window in menu View -> Other Windows -> Visual chatGPT Studio Turbo.
 
 ## Authentication
 
-To use this tool it is necessary to connect through the OpenAI API or through Azure OpenAI (experimental).
+To use this tool it is necessary to connect through the OpenAI API or through Azure OpenAI.
 
 ### By OpenAI
 
@@ -75,7 +76,9 @@ You can do this here: [https://beta.openai.com/account/api-keys](https://beta.op
 
 ### By Azure
 
-See for more details: [https://learn.microsoft.com/azure/cognitive-services/openai/overview](https://learn.microsoft.com/azure/cognitive-services/openai/overview)
+See for more details: [https://learn.microsoft.com/azure/cognitive-services/openai/overview](https://learn.microsoft.com/azure/cognitive-services/openai/overview).
+
+It's also necessary create on azure two resources, one for the Turbo window and another for the menu commands and the other tool window. Please read [this](https://github.com/jeffdapaz/VisualChatGPTStudio/issues/31) for more details.
 
 ## Known Issues
 
@@ -102,6 +105,12 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 - If you find any bugs or unexpected behavior, please leave a comment so I can provide a fix.
 
 ## Release Notes
+
+### 1.10.0
+
+- Added the new command "Translate".
+- Grouped options for better usability.
+- Added feedback when code was copied on Tool Window.
 
 ### 1.9.3
 

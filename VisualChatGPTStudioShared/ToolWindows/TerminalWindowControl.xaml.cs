@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.Shell;
 using OpenAI_API.Completions;
 using System;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using Clipboard = System.Windows.Clipboard;
 using MessageBox = System.Windows.MessageBox;
@@ -112,7 +113,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         /// <param name="e">Event arguments.</param>
         private void btnResponseCopy_Click(object sender, RoutedEventArgs e)
         {
-            Clipboard.SetText(txtResponse.Text);
+            TerminalWindowHelper.Copy((Button)sender, txtResponse.Text);
         }
 
         /// <summary>

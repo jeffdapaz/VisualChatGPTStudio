@@ -31,6 +31,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         public bool SingleResponse { get; set; } = false;
 
         [Category("General")]
+        [DisplayName("Base API")]
+        [Description("Change the connection to the OpenAI Base API. format(https://api.openai.com)")]
+        [DefaultValue("")]
+        public string BaseAPI { get; set; } = string.Empty;
+
+        [Category("General")]
         [DisplayName("Proxy")]
         [Description("Connect to OpenAI through a proxy.")]
         [DefaultValue("")]

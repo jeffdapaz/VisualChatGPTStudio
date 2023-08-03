@@ -67,6 +67,13 @@
           <LocCanonicalName>.VisuallChatGPTStudio.AddSummary</LocCanonicalName>
         </Strings>
       </Button>
+      <Button guid="VisuallChatGPTStudio" id="AddSummaryForAll" priority="0x0601" type="Button">
+        <Icon guid="VisuallChatGPTStudioaddSummaryForAllIcon" id="addSummaryForAllIcon" />
+        <Strings>
+          <ButtonText>Add Summary For Entire Class</ButtonText>
+          <LocCanonicalName>.VisuallChatGPTStudio.AddSummaryForAll</LocCanonicalName>
+        </Strings>
+      </Button>
       <Button guid="VisuallChatGPTStudio" id="AskAnything" priority="0x0700" type="Button">
         <Icon guid="VisuallChatGPTStudioAskAnythingIcon" id="askAnythingIcon" />
         <Strings>
@@ -126,6 +133,7 @@
       <Bitmap guid="VisuallChatGPTStudioExplainIcon" href="Resources\explain.png" usedList="explainIcon"/>
       <Bitmap guid="VisuallChatGPTStudioAddCommentsIcon" href="Resources\addComments.png" usedList="addCommentsIcon"/>
       <Bitmap guid="VisuallChatGPTStudioAddSummaryIcon" href="Resources\addSummary.png" usedList="addSummaryIcon"/>
+      <Bitmap guid="VisuallChatGPTStudioaddSummaryForAllIcon" href="Resources\addSummaryForAll.png" usedList="addSummaryForAllIcon"/>
       <Bitmap guid="VisuallChatGPTStudioAskAnythingIcon" href="Resources\askAnything.png" usedList="askAnythingIcon"/>
       <Bitmap guid="VisuallChatGPTStudioTranslateIcon" href="Resources\translate.png" usedList="translateIcon"/>
       <Bitmap guid="VisuallChatGPTStudioCustomBeforeIcon" href="Resources\customBefore.png" usedList="customBeforeIcon"/>
@@ -144,6 +152,7 @@
     <KeyBinding guid="VisuallChatGPTStudio" id="Explain" mod1="ALT" key1="5" editor="guidVSStd97" />
     <KeyBinding guid="VisuallChatGPTStudio" id="AddComments" mod1="ALT" key1="6" editor="guidVSStd97" />
     <KeyBinding guid="VisuallChatGPTStudio" id="AddSummary" mod1="ALT" key1="7" editor="guidVSStd97" />
+    <KeyBinding guid="VisuallChatGPTStudio" id="AddSummaryForAll" mod1="ALT" key1="C" editor="guidVSStd97" />
     <KeyBinding guid="VisuallChatGPTStudio" id="AskAnything" mod1="ALT" key1="8" editor="guidVSStd97" />
     <KeyBinding guid="VisuallChatGPTStudio" id="Translate" mod1="ALT" key1="9" editor="guidVSStd97" />
     <KeyBinding guid="VisuallChatGPTStudio" id="CustomBefore" mod1="ALT" key1="0" editor="guidVSStd97" />
@@ -192,6 +201,10 @@
       <Parent guid="VisuallChatGPTStudio" id="MyGroupForCommands"/>
     </CommandPlacement>
 
+    <CommandPlacement guid="VisuallChatGPTStudio" id="AddSummaryForAll" priority="0x0601" >
+      <Parent guid="VisuallChatGPTStudio" id="MyGroupForCommands"/>
+    </CommandPlacement>
+
     <CommandPlacement guid="VisuallChatGPTStudio" id="AskAnything" priority="0x0700" >
       <Parent guid="VisuallChatGPTStudio" id="MyGroupForCommands"/>
     </CommandPlacement>
@@ -227,6 +240,7 @@
       <IDSymbol name="Explain" value="0x0400" />
       <IDSymbol name="AddComments" value="0x0500" />
       <IDSymbol name="AddSummary" value="0x0600" />
+      <IDSymbol name="AddSummaryForAll" value="0x0601" />
       <IDSymbol name="AskAnything" value="0x0700" />
       <IDSymbol name="Translate" value="0x0701" />
       <IDSymbol name="CustomBefore" value="0x0800" />
@@ -259,6 +273,9 @@
     </GuidSymbol>
     <GuidSymbol name="VisuallChatGPTStudioAddSummaryIcon" value="{C12A8ED0-FBE5-4815-A3FB-2CB73AB06EAA}">
       <IDSymbol name="addSummaryIcon" value="1" />
+    </GuidSymbol>
+    <GuidSymbol name="VisuallChatGPTStudioaddSummaryForAllIcon" value="{2DE8036F-824C-4B98-BF28-0805CCCE17F4}">
+      <IDSymbol name="addSummaryForAllIcon" value="1" />
     </GuidSymbol>
     <GuidSymbol name="VisuallChatGPTStudioAskAnythingIcon" value="{C12A8ED0-FBE5-4815-A3FB-2CB73AB06EBA}">
       <IDSymbol name="askAnythingIcon" value="1" />

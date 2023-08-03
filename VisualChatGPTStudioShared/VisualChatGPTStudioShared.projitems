@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AddComments.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AddSummary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\AddSummaryForAll.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AddTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AskAnything.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\BaseChatGPTCommand.cs" />

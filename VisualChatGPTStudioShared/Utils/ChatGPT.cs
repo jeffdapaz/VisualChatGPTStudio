@@ -99,6 +99,14 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             {
                 chat.Model = Model.GPT4;
             }
+            else if (options.TurboChatModelLanguage == TurboChatModelLanguageEnum.GPT_3_5_Turbo_16k)
+            {
+                chat.Model = "gpt-3.5-turbo-16k";
+            }
+            else
+            {
+                chat.Model = Model.ChatGPTTurbo;
+            }
 
             return chat;
         }

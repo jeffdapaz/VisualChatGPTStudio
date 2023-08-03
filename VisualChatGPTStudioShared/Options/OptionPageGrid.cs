@@ -161,6 +161,7 @@ namespace JeffPires.VisualChatGPTStudio.Options
     public enum TurboChatModelLanguageEnum
     {
         GPT_3_5_Turbo,
+        GPT_3_5_Turbo_16k,
         GPT_4
     }
 

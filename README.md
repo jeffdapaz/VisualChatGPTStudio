@@ -22,6 +22,7 @@ Select a method and right click on text editor and you see these new chatGPT com
 - **Explain:** Write an explanation of the selected method.
 - **Add Comments:** Add comments for the selected method.
 - **Add Summary:** Add Summary for C# methods.
+- **Add Summary For Entire Class:** Add Summary for entire C# class (for methods, properties, enums and for the class itself). Don't need to select the code, only run the command to start the process.
 - **Ask Anything:** Write a question on the code editor and wait for an answer.
 - **Translate:** Replace selected text with the translated version. In Options window edit the command if you want translate to another language instead English.
 - **Custom Before:** Create a custom command through the options that inserts the response before the selected code.
@@ -105,6 +106,12 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 - If you find any bugs or unexpected behavior, please leave a comment so I can provide a fix.
 
 ## Release Notes
+
+### 1.11.0
+
+- Added the new command "Add Summary For Entire Class".
+- Added the gpt-3.5-turbo-16k model for the Turbo Chat Window.
+- Added the "Base API" option.
 
 ### 1.10.0
 

@@ -157,7 +157,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
             try
             {
                 //Some documents does not has format
-                (await VS.GetServiceAsync<DTE, DTE>()).ExecuteCommand("Edit.FormatDocument", string.Empty);
+                (await VS.GetServiceAsync<DTE, DTE>()).ExecuteCommand(Constants.EDIT_DOCUMENT_COMMAND, string.Empty);
             }
             catch (Exception)
             {

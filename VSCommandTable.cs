@@ -28,6 +28,7 @@ namespace JeffPires.VisualChatGPTStudio
         public const int Explain = 0x0400;
         public const int AddComments = 0x0500;
         public const int AddSummary = 0x0600;
+        public const int AddSummaryForAll = 0x0601;
         public const int AskAnything = 0x0700;
         public const int Translate = 0x0701;
         public const int CustomBefore = 0x0800;

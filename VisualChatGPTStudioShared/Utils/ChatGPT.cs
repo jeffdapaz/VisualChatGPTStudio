@@ -153,7 +153,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
                 api.HttpClientFactory = chatGPTHttpClient;
             }
-            else if ((options.Service == OpenAIService.AzureOpenAI && !api.ApiUrlFormat.ToUpper().Contains("AZURE")) || (options.Service == OpenAIService.OpenAI && api.ApiUrlFormat.ToUpper().Contains("AZURE") && string.IsNullOrWhiteSpace(options.BaseAPI)))
+            else if ((options.Service == OpenAIService.AzureOpenAI && !api.ApiUrlFormat.ToUpper().Contains("AZURE")) || (options.Service == OpenAIService.OpenAI && api.ApiUrlFormat.ToUpper().Contains("AZURE")))
             {
                 api = null;
                 CreateApiHandler(options);

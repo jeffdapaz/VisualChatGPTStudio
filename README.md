@@ -13,7 +13,7 @@ You will be able to consult the chatGPT directly through the text editor or thro
 
 Select a method and right click on text editor and you see these new chatGPT commands:
 
-![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/1.10.0/1688942474885/image.png)
+![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/1.11.0/1691094951157/image__1.png)
 
 - **Complete:** Start write a method, select it and ask for complete.
 - **Add Tests:** Create unit tests for the selected method.
@@ -60,8 +60,6 @@ Unlike the previous window, in this one the AI "remembers" the entire conversati
 While the first tool window uses specific language models for Completions, this window uses specific models for Chats, which are GPT-3.5-Turbo and GPT-4, which can be chosen through the options.
 
 Note that GPT-4 it's not currently available for everyone. See [here](https://openai.com/blog/gpt-4-api-general-availability) for more details.
-
-Because the GPT-4 model is not available to everyone, including myself, I am unable to test it. However, in case of any problems, leave your feedback and I'll try to solve it.
 
 You will find this window in menu View -> Other Windows -> Visual chatGPT Studio Turbo.
 

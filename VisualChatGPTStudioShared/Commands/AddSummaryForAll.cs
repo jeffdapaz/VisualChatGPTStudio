@@ -98,7 +98,7 @@ namespace VisualChatGPTStudioShared.Commands
 
                 SyntaxNode root = tree.GetRoot();
 
-                totalDeclarations = root.DescendantNodes().Count(d => d is ClassDeclarationSyntax || d is MethodDeclarationSyntax || d is PropertyDeclarationSyntax || d is EnumDeclarationSyntax) + 1;
+                totalDeclarations = root.DescendantNodes().Count(d => CheckIfMemberTypeIsValid(d)) + 1;
 
                 if (totalDeclarations == 0)
                 {
@@ -111,16 +111,13 @@ namespace VisualChatGPTStudioShared.Commands
 
                 await VS.StatusBar.ShowProgressAsync(PROGRESS_MESSAGE, memberIndex, totalDeclarations);
 
-                foreach (SyntaxNode member in root.DescendantNodes())
+                foreach (SyntaxNode member in root.DescendantNodes().Where(d => CheckIfMemberTypeIsValid(d)))
                 {
-                    if (member is ClassDeclarationSyntax || member is MethodDeclarationSyntax || member is PropertyDeclarationSyntax || member is EnumDeclarationSyntax)
-                    {
-                        editedCode = await AddSummaryToClassMemberAsync(tree, member, textBuffer, editedCode);
+                    editedCode = await AddSummaryToClassMemberAsync(tree, member, textBuffer, editedCode);
 
-                        memberIndex++;
+                    memberIndex++;
 
-                        await VS.StatusBar.ShowProgressAsync(PROGRESS_MESSAGE, memberIndex, totalDeclarations);
-                    }
+                    await VS.StatusBar.ShowProgressAsync(PROGRESS_MESSAGE, memberIndex, totalDeclarations);
                 }
 
                 docView.TextView.TextBuffer.Replace(new Span(0, code.Length), editedCode);
@@ -189,7 +186,6 @@ namespace VisualChatGPTStudioShared.Commands
             return outputBuilder.ToString().Trim();
         }
 
-
         /// <summary>
         /// Adds the summary to the class member.
         /// </summary>
@@ -210,9 +206,9 @@ namespace VisualChatGPTStudioShared.Commands
 
             bodyCode = classMember.ToFullString().Trim();
 
-            string summary = string.Empty;
+            string summary;
 
-            if (classMember is ClassDeclarationSyntax)
+            if (classMember is ClassDeclarationSyntax || classMember is InterfaceDeclarationSyntax)
             {
                 summary = await RequestAsync(declarationCode);
             }
@@ -255,6 +251,23 @@ namespace VisualChatGPTStudioShared.Commands
             }
 
             return resultText;
+        }
+
+        /// <summary>
+        /// Checks if the given SyntaxNode is a valid member type.
+        /// </summary>
+        /// <param name="member">The SyntaxNode to check.</param>
+        /// <returns>True if the SyntaxNode is a valid member type, false otherwise.</returns>
+        private bool CheckIfMemberTypeIsValid(SyntaxNode member)
+        {
+            return member is ClassDeclarationSyntax ||
+                   member is InterfaceDeclarationSyntax ||
+                   member is StructDeclarationSyntax ||
+                   member is MethodDeclarationSyntax ||
+                   member is PropertyDeclarationSyntax ||
+                   member is EnumDeclarationSyntax ||
+                   member is DelegateDeclarationSyntax ||
+                   member is EventDeclarationSyntax;
         }
     }
 }

@@ -263,6 +263,7 @@ namespace VisualChatGPTStudioShared.Commands
             return member is ClassDeclarationSyntax ||
                    member is InterfaceDeclarationSyntax ||
                    member is StructDeclarationSyntax ||
+                   member is ConstructorDeclarationSyntax ||
                    member is MethodDeclarationSyntax ||
                    member is PropertyDeclarationSyntax ||
                    member is EnumDeclarationSyntax ||

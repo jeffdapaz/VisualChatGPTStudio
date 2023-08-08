@@ -105,6 +105,10 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ## Release Notes
 
+### 1.11.2
+
+- Update to add summaries for constructors members when the command "Add Summary For Entire Class" is executed.
+
 ### 1.11.1
 
 - Update to add summaries for more class members when the command "Add Summary For Entire Class" is executed.

@@ -1,5 +1,7 @@
 # Visual chatGPT Studio
 
+English | [Chinese](README-zh.md)
+
 This is an extension that adds chatGPT functionality directly within Visual Studio.
 
 You will be able to consult the chatGPT directly through the text editor or through a new specific tool window.

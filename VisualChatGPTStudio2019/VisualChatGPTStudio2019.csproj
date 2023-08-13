@@ -70,6 +70,9 @@
     <None Include="..\README.md">
       <Link>README.md</Link>
     </None>
+    <None Include="..\README-zh.md">
+      <Link>README-zh.md</Link>
+    </None>
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
       <Generator>VsixManifestGenerator</Generator>

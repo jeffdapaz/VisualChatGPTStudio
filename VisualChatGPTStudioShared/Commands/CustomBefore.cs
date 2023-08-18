@@ -5,7 +5,7 @@ using System;
 namespace JeffPires.VisualChatGPTStudio
 {
     [Command(PackageIds.CustomBefore)]
-    internal sealed class CustomBefore : BaseChatGPTCommand<CustomBefore>
+    internal sealed class CustomBefore : BaseGenericCommand<CustomBefore>
     {
         protected override CommandType GetCommandType(string selectedText)
         {

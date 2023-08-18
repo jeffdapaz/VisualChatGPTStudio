@@ -4,7 +4,7 @@ using JeffPires.VisualChatGPTStudio.Utils;
 namespace JeffPires.VisualChatGPTStudio.Commands
 {
     [Command(PackageIds.Complete)]
-    internal sealed class Complete : BaseChatGPTCommand<Complete>
+    internal sealed class Complete : BaseGenericCommand<Complete>
     {
         protected override CommandType GetCommandType(string selectedText)
         {

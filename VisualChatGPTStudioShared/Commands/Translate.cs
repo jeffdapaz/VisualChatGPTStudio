@@ -6,7 +6,7 @@ using System;
 namespace VisualChatGPTStudioShared.Commands
 {
     [Command(PackageIds.Translate)]
-    internal sealed class Translate : BaseChatGPTCommand<Translate>
+    internal sealed class Translate : BaseGenericCommand<Translate>
     {
         protected override CommandType GetCommandType(string selectedText)
         {

@@ -14,7 +14,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AddSummaryForAll.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AddTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AskAnything.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Commands\BaseChatGPTCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\BaseGenericCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\BaseCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\Complete.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\CustomAfter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\CustomBefore.cs" />
@@ -22,6 +23,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Commands\Explain.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\FindBugs.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\Optimize.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\OptimizeDiffView.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\TerminalWindowCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\TerminalWindowTurboCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\Translate.cs" />

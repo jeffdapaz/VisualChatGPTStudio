@@ -120,6 +120,7 @@
     <Content Include="icons8-chatgpt-512.png">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Resource Include="Resources\optimizeDiffView.png" />
     <Resource Include="Resources\translate.png" />
     <Resource Include="Resources\check.png" />
     <Resource Include="Resources\addComments.png" />

@@ -5,7 +5,7 @@ using System;
 namespace JeffPires.VisualChatGPTStudio
 {
     [Command(PackageIds.CustomReplace)]
-    internal sealed class CustomReplace : BaseChatGPTCommand<CustomReplace>
+    internal sealed class CustomReplace : BaseGenericCommand<CustomReplace>
     {
         protected override CommandType GetCommandType(string selectedText)
         {

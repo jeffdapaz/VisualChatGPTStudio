@@ -46,6 +46,13 @@
           <LocCanonicalName>.VisuallChatGPTStudio.Optimize</LocCanonicalName>
         </Strings>
       </Button>
+      <Button guid="VisuallChatGPTStudio" id="OptimizeDiffView" priority="0x0301" type="Button">
+        <Icon guid="VisuallChatGPTStudioOptimizeDiffViewIcon" id="optimizeDiffViewIcon" />
+        <Strings>
+          <ButtonText>Optimize (Diff View)</ButtonText>
+          <LocCanonicalName>.VisuallChatGPTStudio.OptimizeDiffView</LocCanonicalName>
+        </Strings>
+      </Button>
       <Button guid="VisuallChatGPTStudio" id="Explain" priority="0x0400" type="Button">
         <Icon guid="VisuallChatGPTStudioExplainIcon" id="explainIcon" />
         <Strings>
@@ -130,6 +137,7 @@
       <Bitmap guid="VisuallChatGPTStudioAddTestsIcon" href="Resources\addTests.png" usedList="addTestsIcon"/>
       <Bitmap guid="VisuallChatGPTStudioFindBugsIcon" href="Resources\findBugs.png" usedList="findBugsIcon"/>
       <Bitmap guid="VisuallChatGPTStudioOptimizeIcon" href="Resources\optimize.png" usedList="optimizeIcon"/>
+      <Bitmap guid="VisuallChatGPTStudioOptimizeDiffViewIcon" href="Resources\optimizeDiffView.png" usedList="optimizeDiffViewIcon"/>
       <Bitmap guid="VisuallChatGPTStudioExplainIcon" href="Resources\explain.png" usedList="explainIcon"/>
       <Bitmap guid="VisuallChatGPTStudioAddCommentsIcon" href="Resources\addComments.png" usedList="addCommentsIcon"/>
       <Bitmap guid="VisuallChatGPTStudioAddSummaryIcon" href="Resources\addSummary.png" usedList="addSummaryIcon"/>
@@ -149,6 +157,7 @@
     <KeyBinding guid="VisuallChatGPTStudio" id="AddTests" mod1="ALT" key1="2" editor="guidVSStd97" />
     <KeyBinding guid="VisuallChatGPTStudio" id="FindBugs" mod1="ALT" key1="3" editor="guidVSStd97" />
     <KeyBinding guid="VisuallChatGPTStudio" id="Optimize" mod1="ALT" key1="4" editor="guidVSStd97" />
+    <KeyBinding guid="VisuallChatGPTStudio" id="OptimizeDiffView" mod1="ALT" key1="O" editor="guidVSStd97" />
     <KeyBinding guid="VisuallChatGPTStudio" id="Explain" mod1="ALT" key1="5" editor="guidVSStd97" />
     <KeyBinding guid="VisuallChatGPTStudio" id="AddComments" mod1="ALT" key1="6" editor="guidVSStd97" />
     <KeyBinding guid="VisuallChatGPTStudio" id="AddSummary" mod1="ALT" key1="7" editor="guidVSStd97" />
@@ -186,6 +195,10 @@
     </CommandPlacement>
 
     <CommandPlacement guid="VisuallChatGPTStudio" id="Optimize" priority="0x0300" >
+      <Parent guid="VisuallChatGPTStudio" id="MyGroupForCommands"/>
+    </CommandPlacement>
+
+    <CommandPlacement guid="VisuallChatGPTStudio" id="OptimizeDiffView" priority="0x0301" >
       <Parent guid="VisuallChatGPTStudio" id="MyGroupForCommands"/>
     </CommandPlacement>
 
@@ -237,6 +250,7 @@
       <IDSymbol name="AddTests" value="0x0100" />
       <IDSymbol name="FindBugs" value="0x0200" />
       <IDSymbol name="Optimize" value="0x0300" />
+      <IDSymbol name="OptimizeDiffView" value="0x0301" />
       <IDSymbol name="Explain" value="0x0400" />
       <IDSymbol name="AddComments" value="0x0500" />
       <IDSymbol name="AddSummary" value="0x0600" />
@@ -264,6 +278,9 @@
     </GuidSymbol>
     <GuidSymbol name="VisuallChatGPTStudioOptimizeIcon" value="{C12A8ED0-FBE5-4815-A3FB-2CB73AB06EED}">
       <IDSymbol name="optimizeIcon" value="1" />
+    </GuidSymbol>
+    <GuidSymbol name="VisuallChatGPTStudioOptimizeDiffViewIcon" value="{30E42718-2334-493F-9F85-DB3B0F01F364}">
+      <IDSymbol name="optimizeDiffViewIcon" value="1" />
     </GuidSymbol>
     <GuidSymbol name="VisuallChatGPTStudioExplainIcon" value="{C12A8ED0-FBE5-4815-A3FB-2CB73AB06EEE}">
       <IDSymbol name="explainIcon" value="1" />

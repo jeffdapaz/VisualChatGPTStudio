@@ -1,6 +1,6 @@
 # Visual chatGPT Studio  
 
-[English ](README.md)| Chinese
+[English ](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/README.md)| Chinese
 
 这是一个可以在 Visual Studio 中直接添加 chatGPT 功能的扩展。
 

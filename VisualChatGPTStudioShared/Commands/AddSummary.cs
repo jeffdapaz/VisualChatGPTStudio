@@ -5,7 +5,7 @@ using JeffPires.VisualChatGPTStudio.Utils;
 namespace JeffPires.VisualChatGPTStudio
 {
     [Command(PackageIds.AddSummary)]
-    internal sealed class AddSummary : BaseChatGPTCommand<AddSummary>
+    internal sealed class AddSummary : BaseGenericCommand<AddSummary>
     {
         protected override CommandType GetCommandType(string selectedText)
         {

@@ -5,7 +5,7 @@ using System;
 namespace JeffPires.VisualChatGPTStudio
 {
     [Command(PackageIds.Explain)]
-    internal sealed class Explain : BaseChatGPTCommand<Explain>
+    internal sealed class Explain : BaseGenericCommand<Explain>
     {
         protected override CommandType GetCommandType(string selectedText)
         {

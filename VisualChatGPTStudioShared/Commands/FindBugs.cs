@@ -5,7 +5,7 @@ using System;
 namespace JeffPires.VisualChatGPTStudio
 {
     [Command(PackageIds.FindBugs)]
-    internal sealed class FindBugs : BaseChatGPTCommand<FindBugs>
+    internal sealed class FindBugs : BaseGenericCommand<FindBugs>
     {
         protected override CommandType GetCommandType(string selectedText)
         {

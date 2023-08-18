@@ -1,7 +1,5 @@
 ﻿using Community.VisualStudio.Toolkit;
 using EnvDTE;
-using JeffPires.VisualChatGPTStudio;
-using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -16,7 +14,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 
-namespace VisualChatGPTStudioShared.Commands
+namespace JeffPires.VisualChatGPTStudio.Commands
 {
     /// <summary>
     /// Command to add summary for the entire class.
@@ -24,28 +22,6 @@ namespace VisualChatGPTStudioShared.Commands
     [Command(PackageIds.AddSummaryForAll)]
     internal sealed class AddSummaryForAll : BaseCommand<AddSummaryForAll>
     {
-        /// <summary>
-        /// Gets the OptionsGeneral property of the VisualChatGPTStudioPackage.
-        /// </summary>
-        protected OptionPageGridGeneral OptionsGeneral
-        {
-            get
-            {
-                return ((VisuallChatGPTStudioPackage)this.Package).OptionsGeneral;
-            }
-        }
-
-        /// <summary>
-        /// Gets the OptionsCommands property of the VisualChatGPTStudioPackage.
-        /// </summary>
-        protected OptionPageGridCommands OptionsCommands
-        {
-            get
-            {
-                return ((VisuallChatGPTStudioPackage)this.Package).OptionsCommands;
-            }
-        }
-
         /// <summary>
         /// Executes the command to add summaries to class members.
         /// </summary>
@@ -62,12 +38,8 @@ namespace VisualChatGPTStudioShared.Commands
 
             try
             {
-                if (string.IsNullOrWhiteSpace(OptionsGeneral.ApiKey))
+                if (!await ValidateAPIKeyAsync())
                 {
-                    await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, Constants.MESSAGE_SET_API_KEY, buttons: Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
-
-                    Package.ShowOptionPage(typeof(OptionPageGridGeneral));
-
                     return;
                 }
 
@@ -122,14 +94,7 @@ namespace VisualChatGPTStudioShared.Commands
 
                 docView.TextView.TextBuffer.Replace(new Span(0, code.Length), editedCode);
 
-                try
-                {
-                    (await VS.GetServiceAsync<DTE, DTE>()).ExecuteCommand(Constants.EDIT_DOCUMENT_COMMAND, string.Empty);
-                }
-                catch (Exception)
-                {
-
-                }
+                await FormatDocumentAsync();
 
                 await VS.StatusBar.ShowProgressAsync("Finished", totalDeclarations, totalDeclarations);
             }
@@ -219,7 +184,7 @@ namespace VisualChatGPTStudioShared.Commands
 
             if (string.IsNullOrWhiteSpace(summary))
             {
-                return string.Empty;
+                return editedCode;
             }
 
             return editedCode.Replace(declarationCode, summary + Environment.NewLine + declarationCode);
@@ -236,14 +201,7 @@ namespace VisualChatGPTStudioShared.Commands
 
             CompletionResult result = await ChatGPT.RequestAsync(OptionsGeneral, command, new[] { "public", "private", "internal" });
 
-            string resultText = result.ToString();
-
-            //This code checks if the string "resultText" starts with "\r\n" and if it does, it removes from the string. 
-            //It will continue to do this until the string no longer starts with "\r\n". 
-            while (resultText.StartsWith("\r\n"))
-            {
-                resultText = resultText.Substring(4);
-            }
+            string resultText = RemoveBlankLinesFromResult(result.ToString());
 
             if (resultText.Contains("{") || resultText.Contains("}"))
             {

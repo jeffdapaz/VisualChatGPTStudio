@@ -5,7 +5,7 @@ using System;
 namespace JeffPires.VisualChatGPTStudio
 {
     [Command(PackageIds.AddTests)]
-    internal sealed class AddTests : BaseChatGPTCommand<AddTests>
+    internal sealed class AddTests : BaseGenericCommand<AddTests>
     {
         protected override CommandType GetCommandType(string selectedText)
         {

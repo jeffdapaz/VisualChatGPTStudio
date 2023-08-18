@@ -4,7 +4,7 @@ using JeffPires.VisualChatGPTStudio.Commands;
 namespace JeffPires.VisualChatGPTStudio
 {
     [Command(PackageIds.AskAnything)]
-    internal sealed class AskAnything : BaseChatGPTCommand<AskAnything>
+    internal sealed class AskAnything : BaseGenericCommand<AskAnything>
     {
         protected override CommandType GetCommandType(string selectedText)
         {

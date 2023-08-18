@@ -25,6 +25,7 @@ namespace JeffPires.VisualChatGPTStudio
         public const int AddTests = 0x0100;
         public const int FindBugs = 0x0200;
         public const int Optimize = 0x0300;
+        public const int OptimizeDiffView = 0x0301;
         public const int Explain = 0x0400;
         public const int AddComments = 0x0500;
         public const int AddSummary = 0x0600;

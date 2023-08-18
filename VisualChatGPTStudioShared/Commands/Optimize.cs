@@ -5,7 +5,7 @@ using System;
 namespace JeffPires.VisualChatGPTStudio
 {
     [Command(PackageIds.Optimize)]
-    internal sealed class Optimize : BaseChatGPTCommand<Optimize>
+    internal sealed class Optimize : BaseGenericCommand<Optimize>
     {
         protected override CommandType GetCommandType(string selectedText)
         {

@@ -1,6 +1,6 @@
 # Visual chatGPT Studio
 
-English | [Chinese](README-zh.md)
+English | [Chinese](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/README-zh.md)
 
 This is an extension that adds chatGPT functionality directly within Visual Studio.
 
@@ -15,14 +15,15 @@ You will be able to consult the chatGPT directly through the text editor or thro
 
 Select a method and right click on text editor and you see these new chatGPT commands:
 
-![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/1.11.0/1691094951157/image__1.png)
+![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/1.12.0/1692396281064/image__3.png)
 
 - **Complete:** Start write a method, select it and ask for complete.
 - **Add Tests:** Create unit tests for the selected method.
-- **Find Bugs:** Find bugs for the selected method.
-- **Optimize:** Optimize the selected method.
-- **Explain:** Write an explanation of the selected method.
-- **Add Comments:** Add comments for the selected method.
+- **Find Bugs:** Find bugs for the selected code.
+- **Optimize:** Optimize the selected code.
+- **Optimize (Diff View):** Optimize the selected code, however, instead of the result being written in the code editor, a new window will open where you can compare the original code with the version optimized by chatGPT.
+- **Explain:** Write an explanation of the selected code.
+- **Add Comments:** Add comments for the selected code.
 - **Add Summary:** Add Summary for C# methods.
 - **Add Summary For Entire Class:** Add Summary for entire C# class (for methods, properties, enums, interfaces, classes, etc). Don't need to select the code, only run the command to start the process.
 - **Ask Anything:** Write a question on the code editor and wait for an answer.
@@ -106,6 +107,12 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 - If you find any bugs or unexpected behavior, please leave a comment so I can provide a fix.
 
 ## Release Notes
+
+### 1.12.0
+
+- Added the new command "Optimize (Diff View)".
+- Minor fix to the "Add Summary For Entire Class" command where in some cases where chatGPT did not respond well, the class code was erased.
+- Added Chinese readme. Thanks to [ATFmxyl](https://github.com/ATFmxyl) for the collaboration!
 
 ### 1.11.2
 

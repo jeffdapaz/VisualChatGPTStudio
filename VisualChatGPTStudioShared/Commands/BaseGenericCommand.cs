@@ -1,6 +1,4 @@
 ﻿using Community.VisualStudio.Toolkit;
-using EnvDTE;
-using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
@@ -13,11 +11,11 @@ using Span = Microsoft.VisualStudio.Text.Span;
 namespace JeffPires.VisualChatGPTStudio.Commands
 {
     /// <summary>
-    /// Base abstract class for commands
+    /// Base abstract class for generic commands
     /// </summary>
     /// <typeparam name="TCommand">The type of the command.</typeparam>
     /// <seealso cref="BaseCommand&lt;&gt;" />
-    internal abstract class BaseChatGPTCommand<TCommand> : BaseCommand<TCommand> where TCommand : class, new()
+    internal abstract class BaseGenericCommand<TCommand> : BaseCommand<TCommand> where TCommand : class, new()
     {
         protected DocumentView docView;
         private string selectedText;
@@ -27,28 +25,6 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         private int lineLength;
         private bool firstIteration;
         private bool responseStarted;
-
-        /// <summary>
-        /// Gets the OptionsGeneral property of the VisualChatGPTStudioPackage.
-        /// </summary>
-        protected OptionPageGridGeneral OptionsGeneral
-        {
-            get
-            {
-                return ((VisuallChatGPTStudioPackage)this.Package).OptionsGeneral;
-            }
-        }
-
-        /// <summary>
-        /// Gets the OptionsCommands property of the VisualChatGPTStudioPackage.
-        /// </summary>
-        protected OptionPageGridCommands OptionsCommands
-        {
-            get
-            {
-                return ((VisuallChatGPTStudioPackage)this.Package).OptionsCommands;
-            }
-        }
 
         /// <summary>
         /// Gets the type of command.
@@ -75,12 +51,8 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(OptionsGeneral.ApiKey))
+                if (!await ValidateAPIKeyAsync())
                 {
-                    await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, Constants.MESSAGE_SET_API_KEY, buttons: Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
-
-                    Package.ShowOptionPage(typeof(OptionPageGridGeneral));
-
                     return;
                 }
 
@@ -100,10 +72,8 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                 selectedText = docView.TextView.Selection.StreamSelectionSpan.GetText();
 
-                if (string.IsNullOrWhiteSpace(selectedText))
+                if (!await ValidateCodeSelected(selectedText))
                 {
-                    await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, "Please select the code.", buttons: Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
-
                     return;
                 }
 
@@ -152,17 +122,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                 await ChatGPT.RequestAsync(OptionsGeneral, command, ResultHandler, stopSequences);
             }
 
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-            try
-            {
-                //Some documents does not has format
-                (await VS.GetServiceAsync<DTE, DTE>()).ExecuteCommand(Constants.EDIT_DOCUMENT_COMMAND, string.Empty);
-            }
-            catch (Exception)
-            {
-
-            }
+            await FormatDocumentAsync();
         }
 
         /// <summary>
@@ -214,12 +174,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                 if (OptionsGeneral.SingleResponse)
                 {
-                    //This code checks if the string "resultText" starts with "\r\n" and if it does, it removes from the string. 
-                    //It will continue to do this until the string no longer starts with "\r\n". 
-                    while (resultText.StartsWith("\r\n"))
-                    {
-                        resultText = resultText.Substring(4);
-                    }
+                    resultText = RemoveBlankLinesFromResult(resultText);
                 }
                 else if (!responseStarted && (resultText.Equals("\n") || resultText.Equals("\r") || resultText.Equals(Environment.NewLine)))
                 {

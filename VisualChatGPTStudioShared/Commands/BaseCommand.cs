@@ -85,13 +85,20 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// <summary>
         /// Removes the blank lines from the begin of result.
         /// </summary>
-        /// <param name="result">The result.</param>
-        /// <returns></returns>
+        /// <param name="result">The string to remove blank lines from.</param>
+        /// <returns>The string with blank lines removed.</returns>
         protected string RemoveBlankLinesFromResult(string result)
         {
-            while (result.StartsWith("\r\n"))
+            while (result.StartsWith("\r\n") || result.StartsWith("\n"))
             {
-                result = result.Substring(4);
+                if (result.StartsWith("\r\n"))
+                {
+                    result = result.Substring(4);
+                }
+                else
+                {
+                    result = result.Substring(2);
+                }
             }
 
             return result;

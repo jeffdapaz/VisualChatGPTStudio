@@ -2,14 +2,14 @@
 
 [English ](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/README.md)| Chinese
 
-这是一个可以在 Visual Studio 中直接添加 chatGPT 功能的扩展。
+这是一个在Visual Studio内直接添加 chatGPT 功能的扩展。
 
-你可以通过文本编辑器或者一个新的特定的工具窗口直接咨询 chatGPT。 
+你可以通过文本编辑器或者一个新的特定的工具窗口直接和 chatGPT 对话 
 
 [这里观看一些示例。](https://www.youtube.com/watch?v=h_wUl_IjWRU)
 
-- 对于 Visual Studio 2022:[这里](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio)  
-- 对于 Visual Studio 2019:[这里](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio2019)
+- 适用于Visual Studio 2022的版本:[点这里](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio)  
+- 适用于Visual Studio 2019的版本:[点这里](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio2019)
 
 ## 文本编辑器中的功能
 
@@ -21,7 +21,7 @@
 - **添加测试：** 为选定的方法创建单元测试。
 - **寻找错误：** 找出选定代码中的错误。
 - **优化：** 优化选定的代码。
-- **优化（差异视图）：** 优化选定的代码，但不是将结果写入代码编辑器，而是会打开一个新窗口，在该窗口中可以将原始代码与 chatGPT 优化版本进行比较。
+- **优化（差异视图）：** 优化选定的代码，但不是将结果写入代码编辑器，而是会打开一个新窗口，在该窗口中可以将原始代码与 ChatGPT 优化版本进行比较。
 - **解释：** 对选定的代码编写解释。
 - **添加注释：** 为选定的代码添加注释。
 - **添加摘要：** 为 C# 方法添加摘要。
@@ -36,9 +36,9 @@
 
 如果你想要 chatGPT 以另一种语言回复和/或由于某些原因要自定义命令,你可以通过选项编辑默认命令:
 
-![图片](https://user-images.githubusercontent.com/63928228/226494626-d422a843-2512-4dee-a177-045f39c0b6d3.png)
+![image](https://user-images.githubusercontent.com/63928228/226494626-d422a843-2512-4dee-a177-045f39c0b6d3.png)
 
-例如,通过将“解释”命令的“解释”提示更改为“用西班牙语解释”(或只是“解释”),OpenAI API 将用西班牙语而不是默认的英语命令编写注释。
+例如，将 "Explain "命令的 "Explain "提示改成 "Expllicar en español"（或直接改成 "Expllicar"），OpenAI API 就会以西班牙语编写注释，而不是使用默认的英语命令。
 
 ## “Visual chatGPT Studio”工具窗口中的功能
 
@@ -46,13 +46,13 @@
 
 此窗口中的交互使用此扩展的选项中定义的参数(以及代码编辑器中的命令): 
 
-![图片](https://user-images.githubusercontent.com/63928228/225486306-d29b1ec3-2ccd-4d74-8153-806a84abe5ea.png)
+![image](https://user-images.githubusercontent.com/63928228/225486306-d29b1ec3-2ccd-4d74-8153-806a84abe5ea.png)
 
 你可以在菜单查看->其他窗口-> Visual chatGPT Studio 中找到此窗口。
 
 ## “Visual chatGPT Studio Turbo”工具窗口中的功能
 
-在这个新的窗口编辑器中,你可以像在 chatGPT 门户本身中一样直接与 chatGPT 进行交互:
+在这个新的窗口编辑器中,你可以像在 chatGPT 网页端一样直接与 chatGPT 进行交互:
 
 与前一个窗口不同,在这个窗口中,AI“记住”了整个对话,甚至可以通过选项参数化一个人格:
 
@@ -84,7 +84,7 @@
 
 ## 已知问题
 
-不幸的是,OpenAI 为与 chatGPT 交互提供的 API 对问题加答案的大小有限制。
+遗憾的是，OpenAI 提供的与 chatGPT 交互的应用程序接口对问题和给定答案的大小有限制。
 
 如果发送的问题太长(例如,有许多行的方法)和/或生成的响应太长,API 可能会截断响应或者根本不响应。
 
@@ -92,21 +92,26 @@
 
 ## 免责声明
 
-- 由于此扩展取决于 OpenAI 提供的 API,他们可能会在未事先通知的情况下对此扩展的操作进行一些更改。
+- 由于此扩展依赖于OpenAI提供的API，他们可能会在没有事先通知的情况下进行一些更改，从而影响到此扩展的运行。
 
-- 由于此扩展取决于 OpenAI 提供的 API,可能会生成与预期不符的响应。
+- 由于此扩展依赖于OpenAI提供的API，生成的回复可能不会符合预期。
 
-- 对响应的速度和可用性直接取决于 OpenAI 提供的 API。
+- 响应的速度和可用性直接取决于 OpenAI 提供的 API 接口。
 
-- 如果你使用 OpenAI 服务而不是 Azure 并收到类似“429 - 您超过了当前配额,请检查您的计划和账单详细信息。”的消息,请检查 OpenAI 使用页面并查看您是否还有配额,例如:
+- 如果您使用的是 OpenAI 服务而不是 Azure，并收到类似 "429 - 您超出了当前配额，请检查您的计划和账单详情 "的消息，请检查 OpenAI 使用页面，看看是否仍有配额，例如：
 
 ![image](https://user-images.githubusercontent.com/63928228/242688025-47ec893e-401f-4edb-92a0-127a47a952fe.png)
 
 您可以在此处检查您的配额:[https://platform.openai.com/account/usage](https://platform.openai.com/account/usage)
 
-- 如果您发现任何错误或异常行为,请留言以便我提供修复。
+- 如果您发现任何错误或异常行为,请提交 issue 来方便我进行修复。
 
 ## 发行说明
+
+### 1.12.1
+
+- 对“为整个类添加摘要”的命令进行了轻微修正。
+- 在显示“优化（差异视图）”命令的差异视图时，差异视图上的文件扩展名将根据原始文件扩展名显示。
 
 ### 1.12.0
 

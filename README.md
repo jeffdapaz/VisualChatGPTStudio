@@ -108,6 +108,11 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ## Release Notes
 
+### 1.12.1
+
+- Minor fixes to the "Add Summary For Entire Class" command.
+- When displaying the Diff View for the command "Optimize (Diff View)", the file extension on Diff View will be according to the original file extension.
+
 ### 1.12.0
 
 - Added the new command "Optimize (Diff View)".

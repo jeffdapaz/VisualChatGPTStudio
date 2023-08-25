@@ -41,7 +41,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                 string resultText = RemoveBlankLinesFromResult(result.ToString());
 
-                await ShowDiffViewAsync(selectedText, resultText);
+                await ShowDiffViewAsync(docView.FilePath, selectedText, resultText);
 
                 await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_RECEIVING_CHATGPT, 2, 2);
             }
@@ -58,11 +58,13 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// </summary>
         /// <param name="originalCode">The original code.</param>
         /// <param name="optimizedCode">The optimized code.</param>
-        private async System.Threading.Tasks.Task ShowDiffViewAsync(string originalCode, string optimizedCode)
+        private async System.Threading.Tasks.Task ShowDiffViewAsync(string filePath, string originalCode, string optimizedCode)
         {
+            string extension = System.IO.Path.GetExtension(filePath).TrimStart('.');
+
             string tempFolder = System.IO.Path.GetTempPath();
-            string tempFilePath1 = System.IO.Path.Combine(tempFolder, "Original.cs");
-            string tempFilePath2 = System.IO.Path.Combine(tempFolder, "Optimized.cs");
+            string tempFilePath1 = System.IO.Path.Combine(tempFolder, $"Original.{extension}");
+            string tempFilePath2 = System.IO.Path.Combine(tempFolder, $"Optimized.{extension}");
 
             System.IO.File.WriteAllText(tempFilePath1, originalCode);
             System.IO.File.WriteAllText(tempFilePath2, optimizedCode);

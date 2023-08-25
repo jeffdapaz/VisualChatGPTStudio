@@ -161,33 +161,28 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// <returns>The code edited with the summary added.</returns>
         private async System.Threading.Tasks.Task<string> AddSummaryToClassMemberAsync(SyntaxTree tree, SyntaxNode classMember, ITextBuffer textBuffer, string editedCode)
         {
-            int lineNumber;
-            string declarationCode;
-            string bodyCode;
-
-            lineNumber = tree.GetLineSpan(classMember.Span).StartLinePosition.Line;
-
-            declarationCode = textBuffer.CurrentSnapshot.GetLineFromLineNumber(lineNumber).GetText();
-
-            bodyCode = classMember.ToFullString().Trim();
-
+            string code;
             string summary;
 
             if (classMember is ClassDeclarationSyntax || classMember is InterfaceDeclarationSyntax)
             {
-                summary = await RequestAsync(declarationCode);
+                int line = tree.GetLineSpan(classMember.Span).StartLinePosition.Line;
+
+                code = textBuffer.CurrentSnapshot.GetLineFromLineNumber(line).GetText();
             }
             else
             {
-                summary = await RequestAsync(bodyCode);
+                code = classMember.ToFullString().Trim();
             }
+
+            summary = await RequestAsync(code);
 
             if (string.IsNullOrWhiteSpace(summary))
             {
                 return editedCode;
             }
 
-            return editedCode.Replace(declarationCode, summary + Environment.NewLine + declarationCode);
+            return editedCode.Replace(code, summary + Environment.NewLine + code);
         }
 
         /// <summary>

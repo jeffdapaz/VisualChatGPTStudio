@@ -1,5 +1,4 @@
-﻿using Community.VisualStudio.Toolkit;
-using JeffPires.VisualChatGPTStudio.Options;
+﻿using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils;
 using Microsoft.VisualStudio.Shell;
 using OpenAI_API.Chat;
@@ -62,7 +61,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
                     return;
                 }
 
-                await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_WAITING_CHATGPT, 1, 2);
+                string request = options.MinifyRequests ? TextFormat.MinifyText(txtRequest.Text) : txtRequest.Text;
+
+                request = TextFormat.RemoveCharactersFromText(request, options.CharactersToRemoveFromRequests.Split(','));
 
                 chatItems.Add(new ChatTurboItem(AuthorEnum.Me, txtRequest.Text, true, 0));
 
@@ -70,8 +71,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 Application.Current.Dispatcher.Invoke(new Action(() =>
                 {
-                    btnRequestSend.IsEnabled = false;
-                    btnClear.IsEnabled = false;
+                    EnableDisableButtons(false);
                     txtRequest.Text = string.Empty;
                     chatList.Items.Refresh();
                     scrollViewer.ScrollToEnd();
@@ -94,19 +94,13 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 scrollViewer.ScrollToEnd();
 
-                btnRequestSend.IsEnabled = true;
-                btnClear.IsEnabled = true;
-
-                await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_RECEIVING_CHATGPT, 2, 2);
+                EnableDisableButtons(true);
             }
             catch (Exception ex)
             {
-                await VS.StatusBar.ShowProgressAsync(ex.Message, 2, 2);
+                EnableDisableButtons(true);
 
                 MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
-
-                btnRequestSend.IsEnabled = true;
-                btnClear.IsEnabled = true;
             }
         }
 
@@ -144,14 +138,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         }
 
         /// <summary>
-        /// This method changes the syntax highlighting of the textbox based on the language detected in the text.
-        /// </summary>
-        private void txtRequest_TextChanged(object sender, EventArgs e)
-        {
-            txtRequest.SyntaxHighlighting = ICSharpCode.AvalonEdit.Highlighting.HighlightingManager.Instance.GetDefinition(TextFormat.DetectCodeLanguage(txtRequest.Text));
-        }
-
-        /// <summary>
         /// Handles the mouse wheel event for the text editor by scrolling the view.
         /// </summary>
         /// <param name="sender">The object that raised the event.</param>
@@ -181,6 +167,18 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             chatItems = new();
 
             chatList.ItemsSource = chatItems;
+        }
+
+        /// <summary>
+        /// Enables or disables the buttons based on the given boolean value.
+        /// </summary>
+        /// <param name="enable">Boolean value to enable or disable the buttons.</param>
+        private void EnableDisableButtons(bool enable)
+        {
+            grdProgress.Visibility = enable ? Visibility.Collapsed : Visibility.Visible;
+
+            btnClear.IsEnabled = enable;
+            btnRequestSend.IsEnabled = enable;
         }
 
         #endregion Methods                            

@@ -31,7 +31,12 @@
             <RowDefinition Height="Auto" MinHeight="65"/>
         </Grid.RowDefinitions>
         <Grid Name="grdChat" Grid.Row="0">
-            <ScrollViewer x:Name="scrollViewer" VerticalScrollBarVisibility="Auto">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <ScrollViewer Grid.Row="0" x:Name="scrollViewer" VerticalScrollBarVisibility="Auto">
                 <ItemsControl Grid.Row="0" Name="chatList">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
@@ -71,6 +76,10 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </ScrollViewer>
+            <Grid Name="grdProgress" Grid.Row="2" Visibility="Collapsed">
+                <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="True" />
+                <TextBlock Text="Waiting chatGPT response" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Black" />
+            </Grid>
         </Grid>
         <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Background="Blue" Margin="0,5,0,5" />
         <Grid Name="grdRequest" Grid.Row="2">
@@ -83,7 +92,7 @@
             </Grid.ColumnDefinitions>
             <avalonEdit:TextEditor        
                 xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit" BorderBrush="DarkGray" BorderThickness="1"
-                Name="txtRequest" Grid.Column="1" TextChanged="txtRequest_TextChanged"
+                Name="txtRequest" Grid.Column="1" 
                 HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" ShowLineNumbers="false">
                 <avalonEdit:TextEditor.ContextMenu>
                     <ContextMenu>

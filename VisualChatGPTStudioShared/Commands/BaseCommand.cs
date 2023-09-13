@@ -89,7 +89,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// <returns>The string with blank lines removed.</returns>
         protected string RemoveBlankLinesFromResult(string result)
         {
-            while (result.StartsWith("\r\n") || result.StartsWith("\n"))
+            while (result.StartsWith("\r\n") || result.StartsWith("\n") || result.StartsWith("\r"))
             {
                 if (result.StartsWith("\r\n"))
                 {
@@ -113,10 +113,9 @@ namespace JeffPires.VisualChatGPTStudio.Commands
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                //Some documents does not has format
-                (await VS.GetServiceAsync<DTE, DTE>()).ExecuteCommand(Constants.EDIT_DOCUMENT_COMMAND);
+                (await GetDTEAsync()).ExecuteCommand(Constants.EDIT_DOCUMENT_COMMAND);
             }
-            catch (Exception)
+            catch (Exception) //Some documents do not support formatting
             {
 
             }

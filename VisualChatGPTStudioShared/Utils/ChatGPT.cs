@@ -234,6 +234,13 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                 stopSequences = options.StopSequences.Split(',');
             }
 
+            if (options.MinifyRequests)
+            {
+                request = TextFormat.MinifyText(request);
+            }
+
+            request = TextFormat.RemoveCharactersFromText(request, options.CharactersToRemoveFromRequests.Split(','));
+
             return new(request, model, options.MaxTokens, options.Temperature, presencePenalty: options.PresencePenalty, frequencyPenalty: options.FrequencyPenalty, top_p: options.TopP, stopSequences: stopSequences);
         }
     }

@@ -36,6 +36,18 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DefaultValue("")]
         public string Proxy { get; set; } = string.Empty;
 
+        [Category("General")]
+        [DisplayName("Minify Requests")]
+        [Description("If true, all requests to OpenAI will be minified. Ideal to save Tokens.")]
+        [DefaultValue(false)]
+        public bool MinifyRequests { get; set; } = false;
+
+        [Category("General")]
+        [DisplayName("Characters To Remove From Requests")]
+        [Description("Add characters or words to be removed from all requests made to OpenAI. They must be separated by commas, e.g. a,1,TODO:,{")]
+        [DefaultValue("")]
+        public string CharactersToRemoveFromRequests { get; set; } = string.Empty;
+
         #endregion General
 
         #region Model Parameters

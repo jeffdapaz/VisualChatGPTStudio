@@ -8,6 +8,40 @@ namespace JeffPires.VisualChatGPTStudio.Utils
     /// </summary>
     internal static class TextFormat
     {
+        /// <summary>
+        /// Removes all whitespace and break lines from a given string.
+        /// </summary>
+        /// <param name="textToMinify">The string to minify.</param>
+        /// <returns>A minified version of the given string.</returns>
+        public static string MinifyText(string textToMinify)
+        {
+            return Regex.Replace(textToMinify, @"\s+", " ");
+        }
+
+        /// <summary>
+        /// Removes the specified characters from the given text.
+        /// </summary>
+        /// <param name="text">The text from which to remove the characters.</param>
+        /// <param name="charsToRemove">The characters to remove from the text.</param>
+        /// <returns>The text with the specified characters removed.</returns>
+        public static string RemoveCharactersFromText(string text, string[] charsToRemove)
+        {
+            foreach (string character in charsToRemove)
+            {
+                if (!string.IsNullOrEmpty(character))
+                {
+                    text = text.Replace(character, string.Empty);
+                }
+            }
+
+            return text;
+        }
+
+        /// <summary>
+        /// Gets the comment characters for a given file path.
+        /// </summary>
+        /// <param name="filePath">The file path.</param>
+        /// <returns>The comment characters for the given file path.</returns>
         public static string GetCommentChars(string filePath)
         {
             string extension = System.IO.Path.GetExtension(filePath).TrimStart('.');

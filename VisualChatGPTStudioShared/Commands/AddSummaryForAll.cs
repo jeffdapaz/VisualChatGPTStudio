@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using OpenAI_API.Completions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -172,7 +173,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
             }
             else
             {
-                code = classMember.ToFullString().Trim();
+                code = RemoveRegionTagsFromCode(classMember.ToFullString().Trim());
             }
 
             summary = await RequestAsync(code);
@@ -222,6 +223,28 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                    member is EnumDeclarationSyntax ||
                    member is DelegateDeclarationSyntax ||
                    member is EventDeclarationSyntax;
+        }
+
+        /// <summary>
+        /// Removes region tags from the given code.
+        /// </summary>
+        /// <param name="code">The code to remove region tags from.</param>
+        /// <returns>The code with region tags removed.</returns>
+        private string RemoveRegionTagsFromCode(string code)
+        {
+            string[] lines = code.Split('\r');
+
+            List<string> newLines = new();
+
+            foreach (string line in lines)
+            {
+                if (!line.Contains("#region") && !line.Contains("#endregion"))
+                {
+                    newLines.Add(line);
+                }
+            }
+
+            return RemoveBlankLinesFromResult(string.Join("\r", newLines));
         }
     }
 }

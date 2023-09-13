@@ -108,6 +108,13 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ## Release Notes
 
+### 1.13.0
+
+- Added the new Option "Minify Requests". If true, all requests to OpenAI will be minified. Ideal to save Tokens.
+- Added the new Option "Characters To Remove From Requests". Add characters or words to be removed from all requests made to OpenAI. They must be separated by commas, e.g. "a,1,TODO:,{".
+- Now the progress status will show on the Tool Windows itself.
+- Fix for "Add Summary For Entire Class" command when the class has "region" tags.
+
 ### 1.12.1
 
 - Minor fixes to the "Add Summary For Entire Class" command.

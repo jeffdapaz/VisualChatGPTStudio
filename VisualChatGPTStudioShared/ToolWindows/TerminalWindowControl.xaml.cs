@@ -66,7 +66,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
                     return;
                 }
 
-                await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_WAITING_CHATGPT, 1, 2);
+                EnableDisableButtons(false);
 
                 string selection = txtRequest.Text;
 
@@ -76,7 +76,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             }
             catch (Exception ex)
             {
-                await VS.StatusBar.ShowProgressAsync(ex.Message, 2, 2);
+                EnableDisableButtons(true);
 
                 MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
             }
@@ -148,7 +148,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         {
             if (firstInteration)
             {
-                await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_RECEIVING_CHATGPT, 2, 2);
+                EnableDisableButtons(true);
 
                 firstInteration = false;
                 responseStarted = false;
@@ -183,6 +183,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 await VS.StatusBar.ShowProgressAsync("Requesting chatGPT", 1, 2);
 
+                EnableDisableButtons(false);
+
                 txtRequest.Text = command;
 
                 txtResponse.Text = string.Empty;
@@ -193,8 +195,21 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             {
                 await VS.StatusBar.ShowProgressAsync(ex.Message, 2, 2);
 
+                EnableDisableButtons(true);
+
                 MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
             }
+        }
+
+        /// <summary>
+        /// Enables or disables the buttons based on the given boolean value.
+        /// </summary>
+        /// <param name="enable">Boolean value to enable or disable the buttons.</param>
+        private void EnableDisableButtons(bool enable)
+        {
+            grdProgress.Visibility = enable ? Visibility.Collapsed : Visibility.Visible;
+
+            btnRequestSend.IsEnabled = enable;
         }
 
         #endregion Methods        

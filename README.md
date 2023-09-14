@@ -114,6 +114,7 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 - Added the new Option "Characters To Remove From Requests". Add characters or words to be removed from all requests made to OpenAI. They must be separated by commas, e.g. "a,1,TODO:,{".
 - Now the progress status will show on the Tool Windows itself.
 - Fix for "Add Summary For Entire Class" command when the class has "region" tags.
+- Fix the "Add Comments" command to detect properly if was selected one or more lines code.
 
 ### 1.12.1
 

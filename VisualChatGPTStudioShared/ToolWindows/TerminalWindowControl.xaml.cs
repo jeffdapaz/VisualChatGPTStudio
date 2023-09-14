@@ -150,6 +150,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             {
                 EnableDisableButtons(true);
 
+                await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_RECEIVING_CHATGPT, 2, 2);
+
                 firstInteration = false;
                 responseStarted = false;
             }

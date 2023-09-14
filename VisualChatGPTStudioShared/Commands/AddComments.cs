@@ -9,7 +9,7 @@ namespace JeffPires.VisualChatGPTStudio
     {
         protected override CommandType GetCommandType(string selectedText)
         {
-            if (selectedText.Contains(Environment.NewLine))
+            if (CodeContainsMultipleLines(selectedText))
             {
                 return CommandType.Replace;
             }
@@ -19,12 +19,17 @@ namespace JeffPires.VisualChatGPTStudio
 
         protected override string GetCommand(string selectedText)
         {
-            if (selectedText.Contains(Environment.NewLine))
+            if (CodeContainsMultipleLines(selectedText))
             {
                 return $"{OptionsCommands.AddCommentsForLines}{Environment.NewLine}{Environment.NewLine}{selectedText}";
             }
 
             return $"{OptionsCommands.AddCommentsForLine}{Environment.NewLine}{Environment.NewLine}{selectedText}";
+        }
+
+        private bool CodeContainsMultipleLines(string code)
+        {
+            return code.Contains("\r\n") || code.Contains("\n") || code.Contains("\r");
         }
     }
 }

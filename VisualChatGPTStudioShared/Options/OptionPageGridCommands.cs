@@ -49,14 +49,14 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Category("Commands")]
         [DisplayName("Add Comments for one line")]
         [Description("Set the \"Add Comments\" command when one line was selected")]
-        [DefaultValue("Comment")]
-        public string AddCommentsForLine { get; set; } = "Comment";
+        [DefaultValue("Comment. Add comment char for each comment line")]
+        public string AddCommentsForLine { get; set; } = "Comment. Add comment char for each comment line";
 
         [Category("Commands")]
         [DisplayName("Add Comments for multiple lines")]
         [Description("Set the \"Add Comments\" command when multiple lines was selected")]
-        [DefaultValue("Rewrite the code with comments")]
-        public string AddCommentsForLines { get; set; } = "Rewrite the code with comments";
+        [DefaultValue("Rewrite the code with comments. Add comment char for each comment line")]
+        public string AddCommentsForLines { get; set; } = "Rewrite the code with comments. Add comment char for each comment line";
 
         [Category("Commands")]
         [DisplayName("Translate")]

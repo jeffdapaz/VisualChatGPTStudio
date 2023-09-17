@@ -70,10 +70,9 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// or by default.
         /// </summary>
         /// <param name="command">The command.</param>
-        /// <param name="selectedText">The selected text.</param>
         /// <param name="filePath">The file path.</param>
         /// <returns>A Formatted string</returns>
-        public static string FormatForCompleteCommand(string command, string selectedText, string filePath)
+        public static string FormatForCompleteCommand(string command, string filePath)
         {
             string extension = System.IO.Path.GetExtension(filePath).TrimStart('.');
 
@@ -96,7 +95,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                 language = "for Java Script";
             }
 
-            return $"{command} {language}: {selectedText}";
+            return $"{command} {language}: ";
         }
 
         /// <summary>
@@ -137,7 +136,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                 }
             }
 
-            return string.Format(command, summaryFormat) + Environment.NewLine + "for" + Environment.NewLine + selectedText;
+            return string.Format(command, summaryFormat) + Environment.NewLine + "for";
         }
 
         /// <summary>

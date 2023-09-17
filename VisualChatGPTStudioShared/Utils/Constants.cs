@@ -12,5 +12,6 @@
         public const string MESSAGE_WAITING_CHATGPT = "Waiting chatGPT response";
         public const string MESSAGE_RECEIVING_CHATGPT = "Waiting chatGPT response";
         public const string MESSAGE_WRITE_REQUEST = "Please write a request.";
+        public const string MESSAGE_SET_COMMAND = "Please, set the command for \"{0}\" through the Options.";
     }
 }

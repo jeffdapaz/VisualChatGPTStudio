@@ -1,7 +1,6 @@
 ﻿using Community.VisualStudio.Toolkit;
 using JeffPires.VisualChatGPTStudio.Utils;
 using Microsoft.VisualStudio.Shell;
-using OpenAI_API.Completions;
 using System;
 
 namespace JeffPires.VisualChatGPTStudio.Commands
@@ -24,24 +23,29 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                     return;
                 }
 
+                if (string.IsNullOrWhiteSpace(OptionsCommands.Optimize))
+                {
+                    await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, string.Format(Constants.MESSAGE_SET_COMMAND, nameof(Optimize)), buttons: Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
+
+                    return;
+                }
+
                 DocumentView docView = await VS.Documents.GetActiveDocumentViewAsync();
 
                 string selectedText = docView.TextView.Selection.StreamSelectionSpan.GetText();
 
-                if (!await ValidateCodeSelected(selectedText))
+                if (!await ValidateCodeSelectedAsync(selectedText))
                 {
                     return;
                 }
 
                 await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_WAITING_CHATGPT, 1, 2);
 
-                string command = $"{OptionsCommands.Optimize}{Environment.NewLine}{Environment.NewLine}{selectedText}";
+                string result = await ChatGPT.GetResponseAsync(OptionsGeneral, OptionsCommands.Optimize, selectedText, OptionsGeneral.StopSequences?.Split(','));
 
-                CompletionResult result = await ChatGPT.RequestAsync(OptionsGeneral, command);
+                result = RemoveBlankLinesFromResult(result.ToString());
 
-                string resultText = RemoveBlankLinesFromResult(result.ToString());
-
-                await ShowDiffViewAsync(docView.FilePath, selectedText, resultText);
+                await ShowDiffViewAsync(docView.FilePath, selectedText, result);
 
                 await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_RECEIVING_CHATGPT, 2, 2);
             }

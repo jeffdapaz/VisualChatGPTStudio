@@ -48,6 +48,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DefaultValue("")]
         public string CharactersToRemoveFromRequests { get; set; } = string.Empty;
 
+        [Category("General")]
+        [DisplayName("Turbo Chat Behavior")]
+        [Description("Set the behavior of the assistant.")]
+        [DefaultValue("You are a programmer assistant called Visual chatGPT Studio, and your role is help developers and resolve programmer problems.")]
+        public string TurboChatBehavior { get; set; } = "You are a programmer assistant called Visual chatGPT Studio, and your role is help developers and resolve programmer problems.";
+
         #endregion General
 
         #region Model Parameters
@@ -55,9 +61,9 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Category("Model Parameters")]
         [DisplayName("Model Language")]
         [Description("See \"https://platform.openai.com/docs/models/overview\" for more details.")]
-        [DefaultValue(ModelLanguageEnum.TextDavinci003)]
+        [DefaultValue(ModelLanguageEnum.GPT_3_5_Turbo)]
         [TypeConverter(typeof(EnumConverter))]
-        public ModelLanguageEnum Model { get; set; } = ModelLanguageEnum.TextDavinci003;
+        public ModelLanguageEnum Model { get; set; } = ModelLanguageEnum.GPT_3_5_Turbo;
 
         [Category("Model Parameters")]
         [DisplayName("Max Tokens")]
@@ -99,24 +105,7 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DefaultValue("")]
         public string StopSequences { get; set; } = string.Empty;
 
-        #endregion Model Parameters       
-
-        #region Turbo Chat Window
-
-        [Category("Turbo Chat Window")]
-        [DisplayName("Turbo Chat Behavior")]
-        [Description("Set the behavior of the assistant.")]
-        [DefaultValue("You are a programmer assistant called Visual chatGPT Studio, and your role is help developers and resolve programmer problems.")]
-        public string TurboChatBehavior { get; set; } = "You are a programmer assistant called Visual chatGPT Studio, and your role is help developers and resolve programmer problems.";
-
-        [Category("Turbo Chat Window")]
-        [DisplayName("Turbo Chat Model Language")]
-        [Description("Set the Turbo Chat Model Language. See \"https://platform.openai.com/docs/guides/chat\" for more details.")]
-        [DefaultValue(TurboChatModelLanguageEnum.GPT_3_5_Turbo)]
-        [TypeConverter(typeof(EnumConverter))]
-        public TurboChatModelLanguageEnum TurboChatModelLanguage { get; set; } = TurboChatModelLanguageEnum.GPT_3_5_Turbo;
-
-        #endregion Turbo Chat Window
+        #endregion Model Parameters   
 
         #region Azure
 
@@ -133,16 +122,10 @@ namespace JeffPires.VisualChatGPTStudio.Options
         public string AzureDeploymentId { get; set; } = string.Empty;
 
         [Category("Azure")]
-        [DisplayName("Azure Turbo Chat Deployment ID")]
-        [Description("Set Azure OpenAI deployment id specific for the Turbo Chat window. This deployment has to be parameterized with the GPT-3.5-Turbo or GPT-4 model.")]
+        [DisplayName("Azure API Version")]
+        [Description("Set the Azure OpenAI API version used on the deployment with the GPT-3.5-Turbo or GPT-4 model.")]
         [DefaultValue("")]
-        public string AzureTurboChatDeploymentId { get; set; } = string.Empty;
-
-        [Category("Azure")]
-        [DisplayName("Azure Turbo Chat API Version")]
-        [Description("Set the Azure OpenAI API version for the Turbo Chat window used on the deployment with the GPT-3.5-Turbo or GPT-4 model.")]
-        [DefaultValue("")]
-        public string AzureTurboChatApiVersion { get; set; } = string.Empty;
+        public string AzureApiVersion { get; set; } = string.Empty;
 
         #endregion Azure
 
@@ -166,17 +149,6 @@ namespace JeffPires.VisualChatGPTStudio.Options
     /// Enum containing the different types of model languages.
     /// </summary>
     public enum ModelLanguageEnum
-    {
-        TextDavinci003,
-        TextCurie001,
-        TextBabbage001,
-        TextAda001
-    }
-
-    /// <summary>
-    /// Enum to represent the language model used by TurboChat. 
-    /// </summary>
-    public enum TurboChatModelLanguageEnum
     {
         GPT_3_5_Turbo,
         GPT_3_5_Turbo_16k,

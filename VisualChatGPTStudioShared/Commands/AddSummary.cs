@@ -14,6 +14,11 @@ namespace JeffPires.VisualChatGPTStudio
 
         protected override string GetCommand(string selectedText)
         {
+            if (string.IsNullOrWhiteSpace(OptionsCommands.AddSummary))
+            {
+                return string.Empty;
+            }
+
             return TextFormat.FormatCommandForSummary($"{OptionsCommands.AddSummary}\r\n\r\n{{0}}\r\n\r\n", selectedText);
         }
     }

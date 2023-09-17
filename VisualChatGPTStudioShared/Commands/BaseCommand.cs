@@ -70,7 +70,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// </summary>
         /// <param name="selectedCode">The selected code.</param>
         /// <returns>True if the code is valid, false otherwise.</returns>
-        protected async Task<bool> ValidateCodeSelected(string selectedCode)
+        protected async Task<bool> ValidateCodeSelectedAsync(string selectedCode)
         {
             if (string.IsNullOrWhiteSpace(selectedCode))
             {

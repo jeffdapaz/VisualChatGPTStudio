@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
-using OpenAI_API.Completions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,6 +46,13 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                 if (!System.IO.Path.GetExtension(docView.FilePath).TrimStart('.').Equals("cs", StringComparison.InvariantCultureIgnoreCase))
                 {
                     await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, "This command is for C# code only.", buttons: Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
+
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(OptionsCommands.AddSummary))
+                {
+                    await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, string.Format(Constants.MESSAGE_SET_COMMAND, nameof(AddSummary)), buttons: Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
 
                     return;
                 }
@@ -195,16 +201,16 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         {
             string command = TextFormat.FormatCommandForSummary($"{OptionsCommands.AddSummary}\r\n\r\n{{0}}\r\n\r\n", code);
 
-            CompletionResult result = await ChatGPT.RequestAsync(OptionsGeneral, command, new[] { "public", "private", "internal" });
+            string result = await ChatGPT.GetResponseAsync(OptionsGeneral, command, code, new string[] { "public", "private", "internal" });
 
-            string resultText = RemoveBlankLinesFromResult(result.ToString());
+            result = RemoveBlankLinesFromResult(result);
 
-            if (resultText.Contains("{") || resultText.Contains("}"))
+            if (result.Contains("{") || result.Contains("}"))
             {
                 return string.Empty;
             }
 
-            return resultText;
+            return result;
         }
 
         /// <summary>

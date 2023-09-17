@@ -1,7 +1,6 @@
 ﻿using Community.VisualStudio.Toolkit;
 using JeffPires.VisualChatGPTStudio;
 using JeffPires.VisualChatGPTStudio.Commands;
-using System;
 
 namespace VisualChatGPTStudioShared.Commands
 {
@@ -15,7 +14,7 @@ namespace VisualChatGPTStudioShared.Commands
 
         protected override string GetCommand(string selectedText)
         {
-            return $"{OptionsCommands.Translate}{Environment.NewLine}{selectedText}";
+            return OptionsCommands.Translate;
         }
     }
 }

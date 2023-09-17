@@ -118,7 +118,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
                 return;
             }
 
-            chat = ChatGPT.CreateConversation(options);
+            chat = ChatGPT.CreateConversation(options, options.TurboChatBehavior);
+
             chatItems.Clear();
             chatList.Items.Refresh();
         }
@@ -162,7 +163,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             this.options = options;
             this.package = package;
 
-            chat = ChatGPT.CreateConversation(options);
+            chat = ChatGPT.CreateConversation(options, options.TurboChatBehavior);
 
             chatItems = new();
 

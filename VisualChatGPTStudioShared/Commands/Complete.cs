@@ -1,4 +1,5 @@
 ﻿using Community.VisualStudio.Toolkit;
+using EnvDTE;
 using JeffPires.VisualChatGPTStudio.Utils;
 
 namespace JeffPires.VisualChatGPTStudio.Commands
@@ -13,7 +14,12 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
         protected override string GetCommand(string selectedText)
         {
-            return TextFormat.FormatForCompleteCommand(OptionsCommands.Complete, selectedText, docView.FilePath);
+            if (string.IsNullOrWhiteSpace(selectedText))
+            {
+                return string.Empty;
+            }
+
+            return TextFormat.FormatForCompleteCommand(OptionsCommands.Complete, docView.FilePath);
         }
     }
 }

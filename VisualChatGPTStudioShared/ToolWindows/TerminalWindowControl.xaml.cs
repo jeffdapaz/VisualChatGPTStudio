@@ -2,12 +2,12 @@
 using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils;
 using Microsoft.VisualStudio.Shell;
-using OpenAI_API.Completions;
 using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Clipboard = System.Windows.Clipboard;
+using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 using MessageBox = System.Windows.MessageBox;
 using UserControl = System.Windows.Controls.UserControl;
 
@@ -22,7 +22,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
         private OptionPageGridGeneral options;
         private Package package;
-        private bool firstInteration;
+        private bool firstIteration;
         private bool responseStarted;
 
         #endregion Properties
@@ -57,7 +57,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
                     return;
                 }
 
-                firstInteration = true;
+                firstIteration = true;
                 responseStarted = false;
 
                 if (string.IsNullOrWhiteSpace(txtRequest.Text))
@@ -68,11 +68,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 EnableDisableButtons(false);
 
-                string selection = txtRequest.Text;
-
                 txtResponse.Text = string.Empty;
 
-                await ChatGPT.RequestAsync(options, selection, ResultHandler);
+                await ChatGPT.GetResponseAsync(options, string.Empty, txtRequest.Text, options.StopSequences.Split(','), ResultHandler);
             }
             catch (Exception ex)
             {
@@ -142,23 +140,20 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         /// <summary>
         /// Handles the result of an operation and appends it to the end of the txtResponse control.
         /// </summary>
-        /// <param name="index">The index of the operation.</param>
         /// <param name="result">The result of the operation.</param>
-        private async void ResultHandler(int index, CompletionResult result)
+        private async void ResultHandler(string result)
         {
-            if (firstInteration)
+            if (firstIteration)
             {
                 EnableDisableButtons(true);
 
                 await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_RECEIVING_CHATGPT, 2, 2);
 
-                firstInteration = false;
+                firstIteration = false;
                 responseStarted = false;
             }
 
-            string resultText = result.ToString();
-
-            if (!responseStarted && (resultText.Equals("\n") || resultText.Equals("\r") || resultText.Equals(Environment.NewLine)))
+            if (!responseStarted && (result.Equals("\n") || result.Equals("\r") || result.Equals(Environment.NewLine)))
             {
                 //Do nothing when API send only break lines on response begin
                 return;
@@ -166,7 +161,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
             responseStarted = true;
 
-            txtResponse.AppendText(resultText);
+            txtResponse.AppendText(result);
 
             txtResponse.SyntaxHighlighting = ICSharpCode.AvalonEdit.Highlighting.HighlightingManager.Instance.GetDefinition(TextFormat.DetectCodeLanguage(txtResponse.Text));
 
@@ -174,24 +169,34 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         }
 
         /// <summary>
-        /// Sends a request to the ChatGPT window and handles the response.
+        /// Requests to the chatGPT window with the given command and selected text.
         /// </summary>
-        /// <param name="command">The command to send to the ChatGPT window.</param>
-        public async System.Threading.Tasks.Task RequestToWindowAsync(string command)
+        /// <param name="command">The command to be sent.</param>
+        /// <param name="selectedText">The selected text to be sent.</param>
+        public async System.Threading.Tasks.Task RequestToWindowAsync(string command, string selectedText)
         {
             try
             {
-                firstInteration = true;
+                firstIteration = true;
 
                 await VS.StatusBar.ShowProgressAsync("Requesting chatGPT", 1, 2);
 
                 EnableDisableButtons(false);
 
-                txtRequest.Text = command;
+                txtRequest.Text = command + Environment.NewLine + Environment.NewLine + selectedText;
 
                 txtResponse.Text = string.Empty;
 
-                await ChatGPT.RequestAsync(options, command, ResultHandler);
+                if (options.SingleResponse)
+                {
+                    string result = await ChatGPT.GetResponseAsync(options, command, selectedText, options.StopSequences.Split(','));
+
+                    ResultHandler(result);
+                }
+                else
+                {
+                    await ChatGPT.GetResponseAsync(options, command, selectedText, options.StopSequences.Split(','), ResultHandler);
+                }
             }
             catch (Exception ex)
             {

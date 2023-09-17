@@ -13,7 +13,7 @@ namespace JeffPires.VisualChatGPTStudio
 
         protected override string GetCommand(string selectedText)
         {
-            return selectedText;
+            return string.Empty;
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using Community.VisualStudio.Toolkit;
 using JeffPires.VisualChatGPTStudio.Commands;
-using System;
 
 namespace JeffPires.VisualChatGPTStudio
 {
@@ -21,10 +20,10 @@ namespace JeffPires.VisualChatGPTStudio
         {
             if (CodeContainsMultipleLines(selectedText))
             {
-                return $"{OptionsCommands.AddCommentsForLines}{Environment.NewLine}{Environment.NewLine}{selectedText}";
+                return OptionsCommands.AddCommentsForLines;
             }
 
-            return $"{OptionsCommands.AddCommentsForLine}{Environment.NewLine}{Environment.NewLine}{selectedText}";
+            return OptionsCommands.AddCommentsForLine;
         }
 
         private bool CodeContainsMultipleLines(string code)

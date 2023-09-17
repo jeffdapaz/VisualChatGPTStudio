@@ -1,6 +1,5 @@
 ﻿using Community.VisualStudio.Toolkit;
 using JeffPires.VisualChatGPTStudio.Commands;
-using System;
 
 namespace JeffPires.VisualChatGPTStudio
 {
@@ -14,7 +13,7 @@ namespace JeffPires.VisualChatGPTStudio
 
         protected override string GetCommand(string selectedText)
         {
-            return $"{OptionsCommands.Optimize}{Environment.NewLine}{Environment.NewLine}{selectedText}";
+            return OptionsCommands.Optimize;
         }
     }
 }

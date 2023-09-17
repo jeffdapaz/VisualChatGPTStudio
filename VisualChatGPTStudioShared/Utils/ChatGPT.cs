@@ -1,7 +1,6 @@
 ﻿using JeffPires.VisualChatGPTStudio.Options;
 using OpenAI_API;
 using OpenAI_API.Chat;
-using OpenAI_API.Completions;
 using OpenAI_API.Models;
 using System;
 using System.Threading.Tasks;
@@ -18,69 +17,46 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         private static ChatGPTHttpClientFactory chatGPTHttpClient;
 
         /// <summary>
-        /// Requests a completion from the OpenAI API using the given options.
+        /// Creates a conversation with the chatbot and returns the response from the chatbot.
         /// </summary>
-        /// <param name="options">The options to use for the request.</param>
-        /// <param name="request">The request to send to the API.</param>
-        /// <returns>The completion result.</returns>
-        public static async Task<CompletionResult> RequestAsync(OptionPageGridGeneral options, string request)
+        /// <param name="options">The options for the conversation.</param>
+        /// <param name="systemMessage">The initial system message.</param>
+        /// <param name="userInput">The user input.</param>
+        /// <param name="stopSequences">The list of stop sequences.</param>
+        /// <returns>The response from the chatbot.</returns>
+        public static async Task<string> GetResponseAsync(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences)
         {
-            CreateApiHandler(options);
+            Conversation chat = CreateConversationForCompletations(options, systemMessage, userInput, stopSequences);
 
-            return await api.Completions.CreateCompletionAsync(GetRequest(options, request));
+            return await chat.GetResponseFromChatbotAsync();
         }
 
         /// <summary>
-        /// Requests a completion from the OpenAI API using the given options.
+        /// Creates a conversation for completations and streams the response from the chatbot.
         /// </summary>
-        /// <param name="options">The options to use for the request.</param>
-        /// <param name="request">The request to send to the API.</param>
-        /// <param name="stopSequences">Up to 4 sequences where the API will stop generating further tokens.</param>
-        /// <returns>The completion result.</returns>
-        public static async Task<CompletionResult> RequestAsync(OptionPageGridGeneral options, string request, string[] stopSequences)
+        /// <param name="options">The options page grid general.</param>
+        /// <param name="systemMessage">The system message.</param>
+        /// <param name="userInput">The user input.</param>
+        /// <param name="stopSequences">The stop sequences.</param>
+        /// <param name="resultHandler">The result handler.</param>
+        public static async Task GetResponseAsync(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences, Action<string> resultHandler)
         {
-            CreateApiHandler(options);
+            Conversation chat = CreateConversationForCompletations(options, systemMessage, userInput, stopSequences);
 
-            return await api.Completions.CreateCompletionAsync(GetRequest(options, request, stopSequences));
+            await chat.StreamResponseFromChatbotAsync(resultHandler);
         }
 
         /// <summary>
-        /// Requests a completion from the OpenAI API using the given options.
-        /// </summary>
-        /// <param name="options">The options to use for the request.</param>
-        /// <param name="request">The request to send to the API.</param>
-        /// <param name="resultHandler">The action to take when the result is received.</param>
-        public static async Task RequestAsync(OptionPageGridGeneral options, string request, Action<int, CompletionResult> resultHandler)
-        {
-            CreateApiHandler(options);
-
-            await api.Completions.StreamCompletionAsync(GetRequest(options, request), resultHandler);
-        }
-
-        /// <summary>
-        /// Requests a completion from the OpenAI API using the given options.
-        /// </summary>
-        /// <param name="options">The options to use for the request.</param>
-        /// <param name="request">The request to send to the API.</param>
-        /// <param name="resultHandler">The action to take when the result is received.</param>
-        /// <param name="stopSequences">Up to 4 sequences where the API will stop generating further tokens.</param>
-        public static async Task RequestAsync(OptionPageGridGeneral options, string request, Action<int, CompletionResult> resultHandler, string[] stopSequences)
-        {
-            CreateApiHandler(options);
-
-            await api.Completions.StreamCompletionAsync(GetRequest(options, request, stopSequences), resultHandler);
-        }
-
-        /// <summary>
-        /// Creates a new conversation and appends a system message with the specified TurboChatBehavior.
+        /// Creates a conversation with the specified options and system message.
         /// </summary>
         /// <param name="options">The options to use for the conversation.</param>
-        /// <returns>The newly created conversation.</returns>
-        public static Conversation CreateConversation(OptionPageGridGeneral options)
+        /// <param name="systemMessage">The system message to append to the conversation.</param>
+        /// <returns>The created conversation.</returns>
+        public static Conversation CreateConversation(OptionPageGridGeneral options, string systemMessage)
         {
             Conversation chat;
 
-            if (options.Service == OpenAIService.OpenAI || string.IsNullOrWhiteSpace(options.AzureTurboChatDeploymentId))
+            if (options.Service == OpenAIService.OpenAI || string.IsNullOrWhiteSpace(options.AzureDeploymentId))
             {
                 CreateApiHandler(options);
 
@@ -93,19 +69,56 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                 chat = apiForAzureTurboChat.Chat.CreateConversation();
             }
 
-            chat.AppendSystemMessage(options.TurboChatBehavior);
+            chat.AppendSystemMessage(systemMessage);
 
-            if (options.TurboChatModelLanguage == TurboChatModelLanguageEnum.GPT_4)
+            chat.RequestParameters.Temperature = options.Temperature;
+            chat.RequestParameters.MaxTokens = options.MaxTokens;
+            chat.RequestParameters.TopP = options.TopP;
+            chat.RequestParameters.FrequencyPenalty = options.FrequencyPenalty;
+            chat.RequestParameters.PresencePenalty = options.PresencePenalty;
+
+            if (options.Model == ModelLanguageEnum.GPT_4)
             {
                 chat.Model = Model.GPT4;
             }
-            else if (options.TurboChatModelLanguage == TurboChatModelLanguageEnum.GPT_3_5_Turbo_16k)
+            else if (options.Model == ModelLanguageEnum.GPT_3_5_Turbo_16k)
             {
                 chat.Model = "gpt-3.5-turbo-16k";
             }
             else
             {
                 chat.Model = Model.ChatGPTTurbo;
+            }
+
+            return chat;
+        }
+
+        /// <summary>
+        /// Creates a conversation for completations with the given parameters.
+        /// </summary>
+        /// <param name="options">The options.</param>
+        /// <param name="systemMessage">The system message.</param>
+        /// <param name="userInput">The user input.</param>
+        /// <param name="stopSequences">The stop sequences.</param>
+        /// <returns>
+        /// The created conversation.
+        /// </returns>
+        private static Conversation CreateConversationForCompletations(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences)
+        {
+            Conversation chat = CreateConversation(options, systemMessage);
+
+            if (options.MinifyRequests)
+            {
+                userInput = TextFormat.MinifyText(userInput);
+            }
+
+            userInput = TextFormat.RemoveCharactersFromText(userInput, options.CharactersToRemoveFromRequests.Split(','));
+
+            chat.AppendUserInput(userInput);
+
+            if (stopSequences != null && stopSequences.Length > 0)
+            {
+                chat.RequestParameters.MultipleStopSequences = stopSequences;
             }
 
             return chat;
@@ -179,69 +192,19 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                     chatGPTHttpClient.SetProxy(options.Proxy);
                 }
 
-                apiForAzureTurboChat = OpenAIAPI.ForAzure(options.AzureResourceName, options.AzureTurboChatDeploymentId, options.ApiKey);
+                apiForAzureTurboChat = OpenAIAPI.ForAzure(options.AzureResourceName, options.AzureDeploymentId, options.ApiKey);
 
                 apiForAzureTurboChat.HttpClientFactory = chatGPTHttpClient;
 
-                if (!string.IsNullOrWhiteSpace(options.AzureTurboChatApiVersion))
+                if (!string.IsNullOrWhiteSpace(options.AzureApiVersion))
                 {
-                    apiForAzureTurboChat.ApiVersion = options.AzureTurboChatApiVersion;
+                    apiForAzureTurboChat.ApiVersion = options.AzureApiVersion;
                 }
             }
             else if (apiForAzureTurboChat.Auth.ApiKey != options.ApiKey)
             {
                 apiForAzureTurboChat.Auth.ApiKey = options.ApiKey;
             }
-        }
-
-        /// <summary>
-        /// Gets a CompletionRequest object based on the given options and request.
-        /// </summary>
-        /// <param name="options">The options to use for the request.</param>
-        /// <param name="request">The request string.</param>
-        /// <returns>A CompletionRequest object.</returns>
-        private static CompletionRequest GetRequest(OptionPageGridGeneral options, string request)
-        {
-            return GetRequest(options, request, null);
-        }
-
-        /// <summary>
-        /// Gets a CompletionRequest object based on the given options and request.
-        /// </summary>
-        /// <param name="options">The options to use for the request.</param>
-        /// <param name="request">The request string.</param>
-        /// <param name="stopSequences">Up to 4 sequences where the API will stop generating further tokens.</param>
-        /// <returns>A CompletionRequest object.</returns>
-        private static CompletionRequest GetRequest(OptionPageGridGeneral options, string request, string[] stopSequences)
-        {
-            Model model = Model.DavinciText;
-
-            switch (options.Model)
-            {
-                case ModelLanguageEnum.TextCurie001:
-                    model = Model.CurieText;
-                    break;
-                case ModelLanguageEnum.TextBabbage001:
-                    model = Model.BabbageText;
-                    break;
-                case ModelLanguageEnum.TextAda001:
-                    model = Model.AdaText;
-                    break;
-            }
-
-            if (stopSequences == null || stopSequences.Length == 0)
-            {
-                stopSequences = options.StopSequences.Split(',');
-            }
-
-            if (options.MinifyRequests)
-            {
-                request = TextFormat.MinifyText(request);
-            }
-
-            request = TextFormat.RemoveCharactersFromText(request, options.CharactersToRemoveFromRequests.Split(','));
-
-            return new(request, model, options.MaxTokens, options.Temperature, presencePenalty: options.PresencePenalty, frequencyPenalty: options.FrequencyPenalty, top_p: options.TopP, stopSequences: stopSequences);
         }
     }
 }

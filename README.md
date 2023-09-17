@@ -2,14 +2,30 @@
 
 English | [Chinese](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/README-zh.md)
 
+- For Visual Studio 2022: [here](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio)
+- For Visual Studio 2019: [here](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio2019)
+
+## ⚠ ATTENTION!!! Since version 2.0.0 we have a breaking change. 
+
+Due to the discontinuation of Completation Models by OpenAI (more information [here](https://openai.com/blog/gpt-4-api-general-availability)), this extension no longer provide support for these models.  
+
+From now on, all requests to OpenAI will be made using Chat Models, which are at the moment GPT-3.5-TURBO, GPT-3.5-TURBO-16K E GPT-4.
+
+### How can this maybe affect you?
+
+- As the models are different, the behavior of the responses may be different, especially if you have customized the commands. If the responses start to not be as expected, it will be necessary to adjust the commands or the request parameters through the Options.
+
+- For Azure users: Before the 2.0.0 version, you had to create two resources to could use properly this extension, one resource for Completation Models and another one for Chat Models. Now this is not more necessary, you only need to have one resource that use Chat Model. Because of that Azure users need adjust the Azure parameters through Options.
+
+- And if after the steps above you still have issues, please, leave me a comment for I can adjust or fix.
+
+## Description
+
 This is an extension that adds chatGPT functionality directly within Visual Studio.
 
 You will be able to consult the chatGPT directly through the text editor or through a new specific tool window.
 
 [Watch here some examples.](https://www.youtube.com/watch?v=h_wUl_IjWRU)
-
-- For Visual Studio 2022: [here](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio)
-- For Visual Studio 2019: [here](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio2019)
 
 ## Features in text editor
 
@@ -52,17 +68,13 @@ You will find this window in menu View -> Other Windows -> Visual chatGPT Studio
 
 ## Features by "Visual chatGPT Studio Turbo" tool window
 
-In this new window editor you can interact directly with chatGPT as if you were in the chatGPT portal itself:
+In this window editor you can interact directly with chatGPT as if you were in the chatGPT portal itself:
 
 Unlike the previous window, in this one the AI "remembers" the entire conversation, and it can even assume a personality that can be parameterized through the options:
 
 ![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio/1.7.1/1679515374543/image__11.png)
 
 ![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio/1.7.3/1679698833202/image__14.png)
-
-While the first tool window uses specific language models for Completions, this window uses specific models for Chats, which are GPT-3.5-Turbo and GPT-4, which can be chosen through the options.
-
-Note that GPT-4 it's not currently available for everyone. See [here](https://openai.com/blog/gpt-4-api-general-availability) for more details.
 
 You will find this window in menu View -> Other Windows -> Visual chatGPT Studio Turbo.
 
@@ -80,7 +92,7 @@ You can do this here: [https://beta.openai.com/account/api-keys](https://beta.op
 
 See for more details: [https://learn.microsoft.com/azure/cognitive-services/openai/overview](https://learn.microsoft.com/azure/cognitive-services/openai/overview).
 
-It's also necessary create on azure two resources, one for the Turbo window and another for the menu commands and the other tool window. Please read [this](https://github.com/jeffdapaz/VisualChatGPTStudio/issues/31) for more details.
+Please read [this](https://github.com/jeffdapaz/VisualChatGPTStudio/issues/31) for some more information.
 
 ## Known Issues
 
@@ -107,6 +119,12 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 - If you find any bugs or unexpected behavior, please leave a comment so I can provide a fix.
 
 ## Release Notes
+
+### 2.0.0
+
+- Completation models removed. Now all requests will be made through Chat Models.
+- Adjusted the parameters of the Options for Azure due to no longer needing two resources.
+- Some minor refactors and fixes.
 
 ### 1.13.0
 

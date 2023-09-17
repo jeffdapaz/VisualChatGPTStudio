@@ -26,13 +26,13 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <returns>The response from the chatbot.</returns>
         public static async Task<string> GetResponseAsync(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences)
         {
-            Conversation chat = CreateConversationForCompletations(options, systemMessage, userInput, stopSequences);
+            Conversation chat = CreateConversationForCompletions(options, systemMessage, userInput, stopSequences);
 
             return await chat.GetResponseFromChatbotAsync();
         }
 
         /// <summary>
-        /// Creates a conversation for completations and streams the response from the chatbot.
+        /// Creates a conversation for Completions and streams the response from the chatbot.
         /// </summary>
         /// <param name="options">The options page grid general.</param>
         /// <param name="systemMessage">The system message.</param>
@@ -41,7 +41,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <param name="resultHandler">The result handler.</param>
         public static async Task GetResponseAsync(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences, Action<string> resultHandler)
         {
-            Conversation chat = CreateConversationForCompletations(options, systemMessage, userInput, stopSequences);
+            Conversation chat = CreateConversationForCompletions(options, systemMessage, userInput, stopSequences);
 
             await chat.StreamResponseFromChatbotAsync(resultHandler);
         }
@@ -94,7 +94,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         }
 
         /// <summary>
-        /// Creates a conversation for completations with the given parameters.
+        /// Creates a conversation for Completions with the given parameters.
         /// </summary>
         /// <param name="options">The options.</param>
         /// <param name="systemMessage">The system message.</param>
@@ -103,7 +103,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <returns>
         /// The created conversation.
         /// </returns>
-        private static Conversation CreateConversationForCompletations(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences)
+        private static Conversation CreateConversationForCompletions(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences)
         {
             Conversation chat = CreateConversation(options, systemMessage);
 

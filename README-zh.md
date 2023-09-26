@@ -2,14 +2,30 @@
 
 [English ](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/README.md)| Chinese
 
+- 适用于Visual Studio 2022的版本:[点这里](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio)  
+- 适用于Visual Studio 2019的版本:[点这里](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio2019)
+
+⚠ 注意!!! 自从版本 2.0.0 起，我们有一个重大变化。
+
+由于 OpenAI 停止支持完成模型（更多信息请参见[这里](https://openai.com/blog/gpt-4-api-general-availability)），此扩展不再提供对这些模型的支持。
+
+从现在开始，所有对 OpenAI 的请求将使用聊天模型进行，目前使用的是 GPT-3.5-TURBO、GPT-3.5-TURBO-16K 和 GPT-4。
+
+### 这可能会对你产生什么影响？
+
+- 由于模型不同，响应的行为也可能不同，特别是如果您自定义了命令。如果响应开始与预期不符，则有必要通过选项调整命令或请求参数。
+
+- Azure 用户：在 2.0.0 版本之前，您必须创建两个资源才能正确使用此扩展，一个资源用于 Completion Models，另一个用于 Chat Models。现在不需要了，只需创建一个使用聊天模型的资源即可。因此，Azure 用户需要通过 "选项 "调整 Azure 参数。
+
+- 如果按上述步骤操作后仍有问题，请给我留言，以便我进行调整或修复。
+
+## 描述
+
 这是一个在Visual Studio内直接添加 chatGPT 功能的扩展。
 
 你可以通过文本编辑器或者一个新的特定的工具窗口直接和 chatGPT 对话 
 
-[这里观看一些示例。](https://www.youtube.com/watch?v=h_wUl_IjWRU)
-
-- 适用于Visual Studio 2022的版本:[点这里](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio)  
-- 适用于Visual Studio 2019的版本:[点这里](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio2019)
+[使用示例](https://www.youtube.com/watch?v=h_wUl_IjWRU)https://www.youtube.com/watch?v=h_wUl_IjWRU
 
 ## 文本编辑器中的功能
 
@@ -52,17 +68,13 @@
 
 ## “Visual chatGPT Studio Turbo”工具窗口中的功能
 
-在这个新的窗口编辑器中,你可以像在 chatGPT 网页端一样直接与 chatGPT 进行交互:
+在这个窗口编辑器中,你可以像在 chatGPT 网页端一样直接与 chatGPT 进行交互:
 
 与前一个窗口不同,在这个窗口中,AI“记住”了整个对话,甚至可以通过选项参数化一个人格:
 
 ![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio/1.7.1/1679515374543/image__11.png)
 
 ![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio/1.7.3/1679698833202/image__14.png)
-
-虽然第一个工具窗口使用了特定的语言模型用于完成,但这个窗口使用了特定的聊天模型,即 GPT-3.5-Turbo 和 GPT-4,可以通过选项进行选择。
-
-请注意,GPT-4 当前并非对所有人开放。更多详细信息请参阅[此处](https://openai.com/blog/gpt-4-api-general-availability)。
 
 你可以在菜单查看->其他窗口-> Visual chatGPT Studio Turbo 中找到此窗口。  
 
@@ -78,9 +90,9 @@
 
 ### 通过 Azure
 
-更多详细信息请参阅:[https://learn.microsoft.com/azure/cognitive-services/openai/overview](https://learn.microsoft.com/azure/cognitive-services/openai/overview)。
+详情请见[https://learn.microsoft.com/azure/cognitive-services/openai/overview](https://learn.microsoft.com/azure/cognitive-services/openai/overview).
 
-你还需要在 Azure 上创建两个资源,一个用于 Turbo 窗口,另一个用于菜单命令和其他工具窗口。更多详细信息请阅读[此处](https://github.com/jeffdapaz/VisualChatGPTStudio/issues/31)。
+请阅读 [this](https://github.com/jeffdapaz/VisualChatGPTStudio/issues/31) 了解更多信息。
 
 ## 已知问题
 
@@ -107,6 +119,12 @@
 - 如果您发现任何错误或异常行为,请提交 issue 来方便我进行修复。
 
 ## 发行说明
+
+### 2.0.0
+
+- 移除了Completion模型。现在所有请求都将通过Chat Models进行。
+- 调整了Azure选项的参数，因为不再需要两个资源。
+- 进行了一些小的重构和修复。
 
 ### 1.13.0
 

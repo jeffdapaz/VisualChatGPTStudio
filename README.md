@@ -17,7 +17,7 @@ You will be able to consult the chatGPT directly through the text editor or thro
 
 Select a method and right click on text editor and you see these new chatGPT commands:
 
-![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/1.12.0/1692396281064/image__3.png)
+![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/2.1.0/1697062741546/image__2.png)
 
 - **Complete:** Start write a method, select it and ask for complete.
 - **Add Tests:** Create unit tests for the selected method.

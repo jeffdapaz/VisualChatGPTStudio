@@ -117,13 +117,21 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\addSummaryForAll.png" />
     <Resource Include="..\Resources\translate.png">
       <Link>Resources\translate.png</Link>
     </Resource>
     <Resource Include="..\Resources\optimizeDiffView.png">
       <Link>Resources\optimizeDiffView.png</Link>
     </Resource>
+    <Resource Include="..\Resources\cancel.png">
+      <Link>Resources\cancel.png</Link>
+    </Resource>
+    <Resource Include="..\Resources\addSummaryForAll.png">
+      <Link>Resources\addSummaryForAll.png</Link>
+    </Resource>
+    <Content Include="..\Resources\cancelCommand.png">
+      <Link>Resources\cancelCommand.png</Link>
+    </Content>
     <Content Include="Icon2019.png">
       <IncludeInVSIX>true</IncludeInVSIX>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

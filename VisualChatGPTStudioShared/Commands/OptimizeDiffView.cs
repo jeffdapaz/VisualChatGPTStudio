@@ -2,6 +2,7 @@
 using JeffPires.VisualChatGPTStudio.Utils;
 using Microsoft.VisualStudio.Shell;
 using System;
+using System.Threading;
 
 namespace JeffPires.VisualChatGPTStudio.Commands
 {
@@ -41,7 +42,9 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                 await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_WAITING_CHATGPT, 1, 2);
 
-                string result = await ChatGPT.GetResponseAsync(OptionsGeneral, OptionsCommands.Optimize, selectedText, OptionsGeneral.StopSequences?.Split(','));
+                CancellationTokenSource = new CancellationTokenSource();
+
+                string result = await ChatGPT.GetResponseAsync(OptionsGeneral, OptionsCommands.Optimize, selectedText, OptionsGeneral.StopSequences?.Split(','), CancellationTokenSource.Token);
 
                 result = RemoveBlankLinesFromResult(result.ToString());
 
@@ -53,7 +56,10 @@ namespace JeffPires.VisualChatGPTStudio.Commands
             {
                 await VS.StatusBar.ShowProgressAsync(ex.Message, 2, 2);
 
-                await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, ex.Message, Microsoft.VisualStudio.Shell.Interop.OLEMSGICON.OLEMSGICON_WARNING, Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
+                if (ex is not OperationCanceledException)
+                {
+                    await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, ex.Message, Microsoft.VisualStudio.Shell.Interop.OLEMSGICON.OLEMSGICON_WARNING, Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
+                }
             }
         }
 

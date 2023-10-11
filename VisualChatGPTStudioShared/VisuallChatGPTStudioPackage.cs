@@ -22,6 +22,11 @@ namespace JeffPires.VisualChatGPTStudio
     public sealed class VisuallChatGPTStudioPackage : ToolkitPackage
     {
         /// <summary>
+        /// Gets or sets the cancellation token source.
+        /// </summary>
+        public CancellationTokenSource CancellationTokenSource { get; set; }
+
+        /// <summary>
         /// Gets the OptionPageGridGeneral object.
         /// </summary>
         public OptionPageGridGeneral OptionsGeneral

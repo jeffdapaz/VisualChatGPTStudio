@@ -3,6 +3,7 @@ using EnvDTE;
 using JeffPires.VisualChatGPTStudio.Options;
 using Microsoft.VisualStudio.Shell;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 
@@ -14,6 +15,21 @@ namespace JeffPires.VisualChatGPTStudio.Commands
     /// <typeparam name="TCommand">The type of the command.</typeparam>
     internal abstract class BaseCommand<TCommand> : Community.VisualStudio.Toolkit.BaseCommand<TCommand> where TCommand : class, new()
     {
+        /// <summary>
+        /// Gets or sets the cancellation token source.
+        /// </summary>
+        protected CancellationTokenSource CancellationTokenSource
+        {
+            get
+            {
+                return ((VisuallChatGPTStudioPackage)this.Package).CancellationTokenSource;
+            }
+            set
+            {
+                ((VisuallChatGPTStudioPackage)this.Package).CancellationTokenSource = value;
+            }
+        }
+
         /// <summary>
         /// Gets the OptionsGeneral property of the VisualChatGPTStudioPackage.
         /// </summary>

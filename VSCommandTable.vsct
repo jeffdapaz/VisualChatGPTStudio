@@ -116,6 +116,13 @@
           <LocCanonicalName>.VisuallChatGPTStudio.CustomReplace</LocCanonicalName>
         </Strings>
       </Button>
+      <Button guid="VisuallChatGPTStudio" id="Cancel" priority="0x0999" type="Button">
+        <Icon guid="VisuallChatGPTStudioCancelIcon" id="cancelIcon" />
+        <Strings>
+          <ButtonText>Cancel</ButtonText>
+          <LocCanonicalName>.VisuallChatGPTStudio.Cancel</LocCanonicalName>
+        </Strings>
+      </Button>
       <Button guid="guidVisuallChatGPTStudioPackageCmdSet" id="cmdidTerminalWindowCommand" priority="0x0100" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
         <Icon guid="VisuallChatGPTStudioChatGPTIcon" id="chatGPTIcon" />
@@ -147,6 +154,7 @@
       <Bitmap guid="VisuallChatGPTStudioCustomBeforeIcon" href="Resources\customBefore.png" usedList="customBeforeIcon"/>
       <Bitmap guid="VisuallChatGPTStudioCustomAfterIcon" href="Resources\customAfter.png" usedList="customAfterIcon"/>
       <Bitmap guid="VisuallChatGPTStudioCustomReplaceIcon" href="Resources\customReplace.png" usedList="customReplaceIcon"/>
+      <Bitmap guid="VisuallChatGPTStudioCancelIcon" href="Resources\cancelCommand.png" usedList="cancelIcon"/>
       <Bitmap guid="VisuallChatGPTStudioChatGPTIcon" href="Resources\bot.png" usedList="chatGPTIcon"/>
       <Bitmap guid="VisuallChatGPTStudioTurboIcon" href="Resources\turbo.png" usedList="turboIcon"/>
     </Bitmaps>
@@ -167,6 +175,7 @@
     <KeyBinding guid="VisuallChatGPTStudio" id="CustomBefore" mod1="ALT" key1="0" editor="guidVSStd97" />
     <KeyBinding guid="VisuallChatGPTStudio" id="CustomAfter" mod1="ALT" key1="A" editor="guidVSStd97" />
     <KeyBinding guid="VisuallChatGPTStudio" id="CustomReplace" mod1="ALT" key1="R" editor="guidVSStd97" />
+    <KeyBinding guid="VisuallChatGPTStudio" id="Cancel" mod1="ALT" key1="Z" editor="guidVSStd97" />
   </KeyBindings>
 
   <CommandPlacements>
@@ -238,6 +247,10 @@
       <Parent guid="VisuallChatGPTStudio" id="MyGroupForCommands"/>
     </CommandPlacement>
 
+    <CommandPlacement guid="VisuallChatGPTStudio" id="Cancel" priority="0x0999" >
+      <Parent guid="VisuallChatGPTStudio" id="MyGroupForCommands"/>
+    </CommandPlacement>
+
   </CommandPlacements>
 
   <Symbols>
@@ -260,6 +273,7 @@
       <IDSymbol name="CustomBefore" value="0x0800" />
       <IDSymbol name="CustomAfter" value="0x0900" />
       <IDSymbol name="CustomReplace" value="0x0901" />
+      <IDSymbol name="Cancel" value="0x0999" />
     </GuidSymbol>
 
     <GuidSymbol value="{8b0b1a54-4655-4dae-8984-022f82a739f2}" name="guidVisuallChatGPTStudioPackageCmdSet">
@@ -308,6 +322,9 @@
     </GuidSymbol>
     <GuidSymbol name="VisuallChatGPTStudioCustomReplaceIcon" value="{38A870F1-BED8-4322-B98B-11A53E51821C}">
       <IDSymbol name="customReplaceIcon" value="1" />
+    </GuidSymbol>
+    <GuidSymbol name="VisuallChatGPTStudioCancelIcon" value="{D346ADF7-8DF0-48DE-B268-7149699B3CF8}">
+      <IDSymbol name="cancelIcon" value="1" />
     </GuidSymbol>
     <GuidSymbol name="VisuallChatGPTStudioChatGPTIcon" value="{4C9AF432-30B5-44CB-9A6E-3121C6DC7A49}">
       <IDSymbol name="chatGPTIcon" value="1" />

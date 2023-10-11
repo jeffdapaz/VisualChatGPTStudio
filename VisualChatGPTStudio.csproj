@@ -138,6 +138,8 @@
     <Resource Include="Resources\explain.png" />
     <Resource Include="Resources\findBugs.png" />
     <Resource Include="Resources\garbage.png" />
+    <Resource Include="Resources\cancel.png" />
+    <Resource Include="Resources\cancelCommand.png" />
     <Content Include="Resources\Icon.png">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>

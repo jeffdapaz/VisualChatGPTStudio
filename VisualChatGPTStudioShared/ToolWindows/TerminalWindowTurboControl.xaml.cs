@@ -4,6 +4,8 @@ using Microsoft.VisualStudio.Shell;
 using OpenAI_API.Chat;
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -22,6 +24,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         private Package package;
         private Conversation chat;
         private List<ChatTurboItem> chatItems;
+        private CancellationTokenSource cancellationTokenSource;
 
         #endregion Properties
 
@@ -42,7 +45,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         /// <summary>
         /// Handles the Click event of the btnRequestSend control.
         /// </summary>
-        public async void SendRequestAsync(Object sender, ExecutedRoutedEventArgs e)
+        public async void SendRequest(Object sender, ExecutedRoutedEventArgs e)
         {
             try
             {
@@ -77,7 +80,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
                     scrollViewer.ScrollToEnd();
                 }));
 
-                string response = await chat.GetResponseFromChatbotAsync();
+                string response = await RequestAsync();
 
                 List<ChatTurboResponseSegment> segments = TurboChatHelper.GetChatTurboResponseSegments(response);
 
@@ -96,12 +99,26 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 EnableDisableButtons(true);
             }
+            catch (OperationCanceledException)
+            {
+                EnableDisableButtons(true);
+            }
             catch (Exception ex)
             {
                 EnableDisableButtons(true);
 
                 MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
             }
+        }
+
+        /// <summary>
+        /// Cancels the request.
+        /// </summary>
+        public async void CancelRequest(Object sender, ExecutedRoutedEventArgs e)
+        {
+            EnableDisableButtons(true);
+
+            cancellationTokenSource.Cancel();
         }
 
         /// <summary>
@@ -171,6 +188,23 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         }
 
         /// <summary>
+        /// Sends a request to the chatbot asynchronously and waits for a response.
+        /// </summary>
+        /// <returns>The response from the chatbot.</returns>
+        private async Task<string> RequestAsync()
+        {
+            cancellationTokenSource = new CancellationTokenSource();
+
+            Task<string> task = chat.GetResponseFromChatbotAsync();
+
+            await System.Threading.Tasks.Task.WhenAny(task, System.Threading.Tasks.Task.Delay(Timeout.Infinite, cancellationTokenSource.Token));
+
+            cancellationTokenSource.Token.ThrowIfCancellationRequested();
+
+            return await task;
+        }
+
+        /// <summary>
         /// Enables or disables the buttons based on the given boolean value.
         /// </summary>
         /// <param name="enable">Boolean value to enable or disable the buttons.</param>
@@ -180,6 +214,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
             btnClear.IsEnabled = enable;
             btnRequestSend.IsEnabled = enable;
+            btnCancel.IsEnabled = !enable;
+
+            btnClear.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
+            btnRequestSend.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
+            btnCancel.Visibility = !enable ? Visibility.Visible : Visibility.Collapsed;
         }
 
         #endregion Methods                            

@@ -13,15 +13,18 @@
              Name="MyToolWindow">
     <UserControl.Resources>
         <RoutedUICommand x:Key="sendCommand" Text="Text" />
+        <RoutedUICommand x:Key="cancelCommand" Text="Text" />
         <utils:HighlightingDefinitionConverter x:Key="HighlightingDefinitionConverter" />
     </UserControl.Resources>
 
     <UserControl.CommandBindings>
-        <CommandBinding Command="{StaticResource sendCommand}" Executed="SendRequestAsync" />
+        <CommandBinding Command="{StaticResource sendCommand}" Executed="SendRequest" />
+        <CommandBinding Command="{StaticResource cancelCommand}" Executed="CancelRequest" />
     </UserControl.CommandBindings>
 
     <UserControl.InputBindings>
         <KeyBinding Key="Enter" Modifiers="Ctrl" Command="{StaticResource sendCommand}" />
+        <KeyBinding Key="Z" Modifiers="Alt" Command="{StaticResource cancelCommand}" />
     </UserControl.InputBindings>
 
     <Grid Name="grdRoot" Margin="5">
@@ -106,6 +109,9 @@
                 </Button>
                 <Button Height="30" Width="30" Name="btnRequestSend" ToolTip="Send (Ctrl+Enter)" Command="{StaticResource sendCommand}">
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/send.png" Width="20" Height="20"/>
+                </Button>
+                <Button Height="30" Width="30" Name="btnCancel" ToolTip="Cancel (Alt+Z)" Command="{StaticResource cancelCommand}" Visibility="Collapsed" IsEnabled="False">
+                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/cancel.png" Width="20" Height="20"/>
                 </Button>
             </StackPanel>
         </Grid>

@@ -3,6 +3,7 @@ using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils;
 using Microsoft.VisualStudio.Shell;
 using System;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -24,6 +25,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         private Package package;
         private bool firstIteration;
         private bool responseStarted;
+        private CancellationTokenSource cancellationTokenSource;
 
         #endregion Properties
 
@@ -66,18 +68,34 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
                     return;
                 }
 
-                EnableDisableButtons(false);
+                EnableDisableButtons(false, true);
 
                 txtResponse.Text = string.Empty;
 
-                await ChatGPT.GetResponseAsync(options, string.Empty, txtRequest.Text, options.StopSequences.Split(','), ResultHandler);
+                cancellationTokenSource = new CancellationTokenSource();
+
+                await ChatGPT.GetResponseAsync(options, string.Empty, txtRequest.Text, options.StopSequences.Split(','), ResultHandler, cancellationTokenSource.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                EnableDisableButtons(true, false);
             }
             catch (Exception ex)
             {
-                EnableDisableButtons(true);
+                EnableDisableButtons(true, false);
 
                 MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
             }
+        }
+
+        /// <summary>
+        /// Cancels the request.
+        /// </summary>
+        public async void CancelRequest(Object sender, ExecutedRoutedEventArgs e)
+        {
+            btnCancel.IsEnabled = false;
+
+            cancellationTokenSource.Cancel();
         }
 
         /// <summary>
@@ -143,9 +161,14 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         /// <param name="result">The result of the operation.</param>
         private async void ResultHandler(string result)
         {
+            if (cancellationTokenSource.IsCancellationRequested)
+            {
+                return;
+            }
+
             if (firstIteration)
             {
-                EnableDisableButtons(true);
+                EnableDisableButtons(true, true);
 
                 await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_RECEIVING_CHATGPT, 2, 2);
 
@@ -181,42 +204,50 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 await VS.StatusBar.ShowProgressAsync("Requesting chatGPT", 1, 2);
 
-                EnableDisableButtons(false);
+                EnableDisableButtons(false, true);
 
                 txtRequest.Text = command + Environment.NewLine + Environment.NewLine + selectedText;
 
                 txtResponse.Text = string.Empty;
 
+                cancellationTokenSource = new CancellationTokenSource();
+
                 if (options.SingleResponse)
                 {
-                    string result = await ChatGPT.GetResponseAsync(options, command, selectedText, options.StopSequences.Split(','));
+                    string result = await ChatGPT.GetResponseAsync(options, command, selectedText, options.StopSequences.Split(','), cancellationTokenSource.Token);
 
                     ResultHandler(result);
                 }
                 else
                 {
-                    await ChatGPT.GetResponseAsync(options, command, selectedText, options.StopSequences.Split(','), ResultHandler);
+                    await ChatGPT.GetResponseAsync(options, command, selectedText, options.StopSequences.Split(','), ResultHandler, cancellationTokenSource.Token);
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                EnableDisableButtons(true, false);
             }
             catch (Exception ex)
             {
                 await VS.StatusBar.ShowProgressAsync(ex.Message, 2, 2);
 
-                EnableDisableButtons(true);
+                EnableDisableButtons(true, false);
 
                 MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
         /// <summary>
-        /// Enables or disables the buttons based on the given boolean value.
+        /// Enables or disables the send button and cancel button based on the provided parameters.
         /// </summary>
-        /// <param name="enable">Boolean value to enable or disable the buttons.</param>
-        private void EnableDisableButtons(bool enable)
+        /// <param name="enableSendButton">A boolean value indicating whether to enable or disable the send button.</param>
+        /// <param name="enableCancelButton">A boolean value indicating whether to enable or disable the cancel button.</param>
+        private void EnableDisableButtons(bool enableSendButton, bool enableCancelButton)
         {
-            grdProgress.Visibility = enable ? Visibility.Collapsed : Visibility.Visible;
+            grdProgress.Visibility = enableSendButton ? Visibility.Collapsed : Visibility.Visible;
 
-            btnRequestSend.IsEnabled = enable;
+            btnRequestSend.IsEnabled = enableSendButton;
+            btnCancel.IsEnabled = enableCancelButton;
         }
 
         #endregion Methods        

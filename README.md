@@ -5,20 +5,6 @@ English | [Chinese](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master
 - For Visual Studio 2022: [here](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio)
 - For Visual Studio 2019: [here](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio2019)
 
-## ⚠ ATTENTION!!! Since version 2.0.0 we have a breaking change. 
-
-Due to the discontinuation of Completion Models by OpenAI (more information [here](https://openai.com/blog/gpt-4-api-general-availability)), this extension no longer provide support for these models.  
-
-From now on, all requests to OpenAI will be made using Chat Models, which are at the moment GPT-3.5-TURBO, GPT-3.5-TURBO-16K E GPT-4.
-
-### How can this maybe affect you?
-
-- As the models are different, the behavior of the responses may be different, especially if you have customized the commands. If the responses start to not be as expected, it will be necessary to adjust the commands or the request parameters through the Options.
-
-- For Azure users: Before the 2.0.0 version, you had to create two resources to could use properly this extension, one resource for Completion Models and another one for Chat Models. Now this is not more necessary, you only need to have one resource that use Chat Model. Because of that Azure users need adjust the Azure parameters through Options.
-
-- And if after the steps above you still have issues, please, leave me a comment for I can adjust or fix.
-
 ## Description
 
 This is an extension that adds chatGPT functionality directly within Visual Studio.
@@ -47,6 +33,7 @@ Select a method and right click on text editor and you see these new chatGPT com
 - **Custom Before:** Create a custom command through the options that inserts the response before the selected code.
 - **Custom After:** Create a custom command through the options that inserts the response after the selected code.
 - **Custom Replace:** Create a custom command through the options that replace the selected text with the response.
+- **Cancel:** Cancel receiving/waiting any command requests.
 
 And if you desire that the responses be written on tool window instead on the code editor, press and hold the SHIFT key and select the command (not work with the shortcuts).
 
@@ -119,6 +106,10 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 - If you find any bugs or unexpected behavior, please leave a comment so I can provide a fix.
 
 ## Release Notes
+
+### 2.1.0
+
+- Added the "Cancel" commands to stop receiving/waiting the requests.
 
 ### 2.0.0
 

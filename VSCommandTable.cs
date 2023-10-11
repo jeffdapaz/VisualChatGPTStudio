@@ -35,5 +35,6 @@ namespace JeffPires.VisualChatGPTStudio
         public const int CustomBefore = 0x0800;
         public const int CustomAfter = 0x0900;
         public const int CustomReplace = 0x0901;
+        public const int Cancel = 0x0999;
     }
 }

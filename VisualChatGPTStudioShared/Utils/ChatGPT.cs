@@ -3,6 +3,7 @@ using OpenAI_API;
 using OpenAI_API.Chat;
 using OpenAI_API.Models;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace JeffPires.VisualChatGPTStudio.Utils
@@ -17,33 +18,46 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         private static ChatGPTHttpClientFactory chatGPTHttpClient;
 
         /// <summary>
-        /// Creates a conversation with the chatbot and returns the response from the chatbot.
+        /// Asynchronously gets a response from a chatbot.
         /// </summary>
-        /// <param name="options">The options for the conversation.</param>
-        /// <param name="systemMessage">The initial system message.</param>
-        /// <param name="userInput">The user input.</param>
-        /// <param name="stopSequences">The list of stop sequences.</param>
+        /// <param name="options">The options for the chatbot.</param>
+        /// <param name="systemMessage">The system message to send to the chatbot.</param>
+        /// <param name="userInput">The user input to send to the chatbot.</param>
+        /// <param name="stopSequences">The stop sequences to use for ending the conversation.</param>
+        /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
         /// <returns>The response from the chatbot.</returns>
-        public static async Task<string> GetResponseAsync(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences)
+        public static async Task<string> GetResponseAsync(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences, CancellationToken cancellationToken)
         {
             Conversation chat = CreateConversationForCompletions(options, systemMessage, userInput, stopSequences);
 
-            return await chat.GetResponseFromChatbotAsync();
+            Task<string> task = chat.GetResponseFromChatbotAsync();
+
+            await Task.WhenAny(task, Task.Delay(Timeout.Infinite, cancellationToken));
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return await task;
         }
 
         /// <summary>
-        /// Creates a conversation for Completions and streams the response from the chatbot.
+        /// Asynchronously gets the response from the chatbot.
         /// </summary>
-        /// <param name="options">The options page grid general.</param>
-        /// <param name="systemMessage">The system message.</param>
-        /// <param name="userInput">The user input.</param>
-        /// <param name="stopSequences">The stop sequences.</param>
-        /// <param name="resultHandler">The result handler.</param>
-        public static async Task GetResponseAsync(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences, Action<string> resultHandler)
+        /// <param name="options">The options for the chat.</param>
+        /// <param name="systemMessage">The system message to display in the chat.</param>
+        /// <param name="userInput">The user input in the chat.</param>
+        /// <param name="stopSequences">The stop sequences to end the conversation.</param>
+        /// <param name="resultHandler">The action to handle the chatbot response.</param>
+        /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        public static async Task GetResponseAsync(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences, Action<string> resultHandler, CancellationToken cancellationToken)
         {
             Conversation chat = CreateConversationForCompletions(options, systemMessage, userInput, stopSequences);
 
-            await chat.StreamResponseFromChatbotAsync(resultHandler);
+            Task task = chat.StreamResponseFromChatbotAsync(resultHandler);
+
+            await Task.WhenAny(task, Task.Delay(Timeout.Infinite, cancellationToken));
+
+            cancellationToken.ThrowIfCancellationRequested();
         }
 
         /// <summary>

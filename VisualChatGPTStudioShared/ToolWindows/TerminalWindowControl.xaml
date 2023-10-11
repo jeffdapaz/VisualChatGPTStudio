@@ -11,14 +11,17 @@
              Name="MyToolWindow">
     <UserControl.Resources>
         <RoutedUICommand x:Key="sendCommand" Text="Text" />
+        <RoutedUICommand x:Key="cancelCommand" Text="Text" />
     </UserControl.Resources>
 
     <UserControl.CommandBindings>
         <CommandBinding Command="{StaticResource sendCommand}" Executed="SendRequest" />
+        <CommandBinding Command="{StaticResource cancelCommand}" Executed="CancelRequest" />
     </UserControl.CommandBindings>
 
     <UserControl.InputBindings>
         <KeyBinding Key="Enter" Modifiers="Ctrl" Command="{StaticResource sendCommand}" />
+        <KeyBinding Key="Z" Modifiers="Alt" Command="{StaticResource cancelCommand}" />
     </UserControl.InputBindings>
 
     <Grid Name="grdRoot" Margin="5">
@@ -46,19 +49,24 @@
                     <ColumnDefinition Width="5" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="5" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="5" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" HorizontalAlignment="Left">Ask:</TextBlock>
                 <Button Grid.Column="2" Height="20" Width="20" HorizontalAlignment="Left" Name="btnRequestSend" ToolTip="Send (Ctrl+Enter)" Command="{StaticResource sendCommand}">
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/send.png" Width="15" Height="15"/>
                 </Button>
-                <Button Grid.Column="4" Height="20" Width="20" HorizontalAlignment="Left" Name="btnRequestPast" Click="btnRequestPast_Click" ToolTip="Paste">
+                <Button Grid.Column="4" Height="20" Width="20" HorizontalAlignment="Left" Name="btnCancel" ToolTip="Cancel (Alt+Z)" Command="{StaticResource cancelCommand}" IsEnabled="False">
+                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/cancel.png" Width="15" Height="15"/>
+                </Button>
+                <Button Grid.Column="6" Height="20" Width="20" HorizontalAlignment="Left" Name="btnRequestPast" Click="btnRequestPast_Click" ToolTip="Paste">
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/paste.png" Width="15" Height="15"/>
                 </Button>
-                <Button Grid.Column="6" Height="20" Width="20" HorizontalAlignment="Left" Name="btnRequestClear" Click="btnRequestClear_Click" ToolTip="Clear">
+                <Button Grid.Column="8" Height="20" Width="20" HorizontalAlignment="Left" Name="btnRequestClear" Click="btnRequestClear_Click" ToolTip="Clear">
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/clear.png" Width="15" Height="15"/>
-                </Button>
-                <Grid Name="grdProgress" Grid.Column="8" Visibility="Collapsed">
+                </Button>                
+                <Grid Name="grdProgress" Grid.Column="10" Visibility="Collapsed">
                     <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="True" />
                     <TextBlock Text="Waiting chatGPT response" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Black" />
                 </Grid>

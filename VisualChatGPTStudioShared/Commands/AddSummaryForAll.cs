@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 
@@ -88,6 +89,8 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                 int memberIndex = 1;
 
+                CancellationTokenSource = new CancellationTokenSource();
+
                 await VS.StatusBar.ShowProgressAsync(PROGRESS_MESSAGE, memberIndex, totalDeclarations);
 
                 foreach (SyntaxNode member in root.DescendantNodes().Where(d => CheckIfMemberTypeIsValid(d)))
@@ -107,14 +110,17 @@ namespace JeffPires.VisualChatGPTStudio.Commands
             }
             catch (Exception ex)
             {
+                await VS.StatusBar.ShowProgressAsync(ex.Message, totalDeclarations, totalDeclarations);
+
                 if (!string.IsNullOrWhiteSpace(originalCode))
                 {
                     docView.TextView.TextBuffer.Replace(new Span(0, originalCode.Length), originalCode);
                 }
 
-                await VS.StatusBar.ShowProgressAsync(ex.Message, totalDeclarations, totalDeclarations);
-
-                await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, ex.Message, Microsoft.VisualStudio.Shell.Interop.OLEMSGICON.OLEMSGICON_WARNING, Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
+                if (ex is not OperationCanceledException)
+                {
+                    await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, ex.Message, Microsoft.VisualStudio.Shell.Interop.OLEMSGICON.OLEMSGICON_WARNING, Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
+                }
             }
         }
 
@@ -201,7 +207,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         {
             string command = TextFormat.FormatCommandForSummary($"{OptionsCommands.AddSummary}\r\n\r\n{{0}}\r\n\r\n", code);
 
-            string result = await ChatGPT.GetResponseAsync(OptionsGeneral, command, code, new string[] { "public", "private", "internal" });
+            string result = await ChatGPT.GetResponseAsync(OptionsGeneral, command, code, new string[] { "public", "private", "internal" }, CancellationTokenSource.Token);
 
             result = RemoveBlankLinesFromResult(result);
 

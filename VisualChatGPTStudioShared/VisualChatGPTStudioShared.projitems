@@ -16,6 +16,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AskAnything.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\BaseGenericCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\BaseCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\Cancel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\Complete.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\CustomAfter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\CustomBefore.cs" />

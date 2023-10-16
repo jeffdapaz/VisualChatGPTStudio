@@ -1,6 +1,8 @@
-﻿using JeffPires.VisualChatGPTStudio.Options;
+﻿using Community.VisualStudio.Toolkit;
+using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text;
 using OpenAI_API.Chat;
 using System;
 using System.Collections.Generic;
@@ -25,6 +27,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         private Conversation chat;
         private List<ChatTurboItem> chatItems;
         private CancellationTokenSource cancellationTokenSource;
+        private DocumentView docView;
 
         #endregion Properties
 
@@ -43,72 +46,19 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         #region Event Handlers
 
         /// <summary>
+        /// Handles the Click event of the btnRequestCode control.
+        /// </summary>
+        public async void SendCode(Object sender, ExecutedRoutedEventArgs e)
+        {
+            await RequestAsync(CommandType.Code);
+        }
+
+        /// <summary>
         /// Handles the Click event of the btnRequestSend control.
         /// </summary>
         public async void SendRequest(Object sender, ExecutedRoutedEventArgs e)
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(options.ApiKey))
-                {
-                    MessageBox.Show(Constants.MESSAGE_SET_API_KEY, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
-
-                    package.ShowOptionPage(typeof(OptionPageGridGeneral));
-
-                    return;
-                }
-
-                if (string.IsNullOrWhiteSpace(txtRequest.Text))
-                {
-                    MessageBox.Show(Constants.MESSAGE_WRITE_REQUEST, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Information);
-                    return;
-                }
-
-                string request = options.MinifyRequests ? TextFormat.MinifyText(txtRequest.Text) : txtRequest.Text;
-
-                request = TextFormat.RemoveCharactersFromText(request, options.CharactersToRemoveFromRequests.Split(','));
-
-                chatItems.Add(new ChatTurboItem(AuthorEnum.Me, txtRequest.Text, true, 0));
-
-                chat.AppendUserInput(txtRequest.Text);
-
-                Application.Current.Dispatcher.Invoke(new Action(() =>
-                {
-                    EnableDisableButtons(false);
-                    txtRequest.Text = string.Empty;
-                    chatList.Items.Refresh();
-                    scrollViewer.ScrollToEnd();
-                }));
-
-                string response = await RequestAsync();
-
-                List<ChatTurboResponseSegment> segments = TurboChatHelper.GetChatTurboResponseSegments(response);
-
-                AuthorEnum author;
-
-                for (int i = 0; i < segments.Count; i++)
-                {
-                    author = segments[i].IsCode ? AuthorEnum.ChatGPTCode : AuthorEnum.ChatGPT;
-
-                    chatItems.Add(new ChatTurboItem(author, segments[i].Content, i == 0, chatItems.Count));
-                }
-
-                chatList.Items.Refresh();
-
-                scrollViewer.ScrollToEnd();
-
-                EnableDisableButtons(true);
-            }
-            catch (OperationCanceledException)
-            {
-                EnableDisableButtons(true);
-            }
-            catch (Exception ex)
-            {
-                EnableDisableButtons(true);
-
-                MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
+            await RequestAsync(CommandType.Request);
         }
 
         /// <summary>
@@ -188,10 +138,104 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         }
 
         /// <summary>
+        /// Sends a request asynchronously based on the command type.
+        /// </summary>
+        /// <param name="commandType">The type of command to execute.</param>
+        private async System.Threading.Tasks.Task RequestAsync(CommandType commandType)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(options.ApiKey))
+                {
+                    MessageBox.Show(Constants.MESSAGE_SET_API_KEY, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                    package.ShowOptionPage(typeof(OptionPageGridGeneral));
+
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(txtRequest.Text))
+                {
+                    MessageBox.Show(Constants.MESSAGE_WRITE_REQUEST, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                if (commandType == CommandType.Code)
+                {
+                    docView = await VS.Documents.GetActiveDocumentViewAsync();
+
+                    string originalCode = docView.TextView.TextBuffer.CurrentSnapshot.GetText();
+
+                    if (options.MinifyRequests)
+                    {
+                        originalCode = TextFormat.MinifyText(originalCode);
+                    }
+
+                    originalCode = TextFormat.RemoveCharactersFromText(originalCode, options.CharactersToRemoveFromRequests.Split(','));
+
+                    chat.AppendSystemMessage(options.TurboChatCodeCommand);
+                    chat.AppendUserInput(originalCode);
+                }
+
+                chatItems.Add(new ChatTurboItem(AuthorEnum.Me, txtRequest.Text, true, 0));
+
+                string request = options.MinifyRequests ? TextFormat.MinifyText(txtRequest.Text) : txtRequest.Text;
+
+                request = TextFormat.RemoveCharactersFromText(request, options.CharactersToRemoveFromRequests.Split(','));
+
+                chat.AppendUserInput(request);
+
+                Application.Current.Dispatcher.Invoke(new Action(() =>
+                {
+                    EnableDisableButtons(false);
+                    txtRequest.Text = string.Empty;
+                    chatList.Items.Refresh();
+                    scrollViewer.ScrollToEnd();
+                }));
+
+                string response = await SendRequestAsync();
+
+                List<ChatTurboResponseSegment> segments = TurboChatHelper.GetChatTurboResponseSegments(response);
+
+                AuthorEnum author;
+
+                for (int i = 0; i < segments.Count; i++)
+                {
+                    author = segments[i].IsCode ? AuthorEnum.ChatGPTCode : AuthorEnum.ChatGPT;
+
+                    if (author == AuthorEnum.ChatGPTCode && commandType == CommandType.Code)
+                    {
+                        docView.TextView.TextBuffer.Replace(new Span(0, docView.TextView.TextBuffer.CurrentSnapshot.Length), segments[i].Content);
+                    }
+                    else
+                    {
+                        chatItems.Add(new ChatTurboItem(author, segments[i].Content, i == 0, chatItems.Count));
+                    }
+                }
+
+                chatList.Items.Refresh();
+
+                scrollViewer.ScrollToEnd();
+
+                EnableDisableButtons(true);
+            }
+            catch (OperationCanceledException)
+            {
+                EnableDisableButtons(true);
+            }
+            catch (Exception ex)
+            {
+                EnableDisableButtons(true);
+
+                MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        /// <summary>
         /// Sends a request to the chatbot asynchronously and waits for a response.
         /// </summary>
         /// <returns>The response from the chatbot.</returns>
-        private async Task<string> RequestAsync()
+        private async Task<string> SendRequestAsync()
         {
             cancellationTokenSource = new CancellationTokenSource();
 
@@ -213,14 +257,25 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             grdProgress.Visibility = enable ? Visibility.Collapsed : Visibility.Visible;
 
             btnClear.IsEnabled = enable;
+            btnRequestCode.IsEnabled = enable;
             btnRequestSend.IsEnabled = enable;
             btnCancel.IsEnabled = !enable;
 
             btnClear.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
+            btnRequestCode.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
             btnRequestSend.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
             btnCancel.Visibility = !enable ? Visibility.Visible : Visibility.Collapsed;
         }
 
         #endregion Methods                            
+    }
+
+    /// <summary>
+    /// Represents the different types of commands that can be used.
+    /// </summary>
+    enum CommandType
+    {
+        Code = 0,
+        Request = 1
     }
 }

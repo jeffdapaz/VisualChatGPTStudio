@@ -48,12 +48,6 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DefaultValue("")]
         public string CharactersToRemoveFromRequests { get; set; } = string.Empty;
 
-        [Category("General")]
-        [DisplayName("Turbo Chat Behavior")]
-        [Description("Set the behavior of the assistant.")]
-        [DefaultValue("You are a programmer assistant called Visual chatGPT Studio, and your role is help developers and resolve programmer problems.")]
-        public string TurboChatBehavior { get; set; } = "You are a programmer assistant called Visual chatGPT Studio, and your role is help developers and resolve programmer problems.";
-
         #endregion General
 
         #region Model Parameters
@@ -143,6 +137,22 @@ namespace JeffPires.VisualChatGPTStudio.Options
         public string BaseAPI { get; set; } = string.Empty;
 
         #endregion OpenAI
+
+        #region Turbo Chat
+
+        [Category("Turbo Chat")]
+        [DisplayName("Turbo Chat Behavior")]
+        [Description("Set the behavior of the assistant.")]
+        [DefaultValue("You are a programmer assistant called Visual chatGPT Studio, and your role is help developers and resolve programmer problems.")]
+        public string TurboChatBehavior { get; set; } = "You are a programmer assistant called Visual chatGPT Studio, and your role is help developers and resolve programmer problems.";
+
+        [Category("Turbo Chat")]
+        [DisplayName("Turbo Chat Code Command")]
+        [Description("Define the instruction that will send to the assistant when requesting code assistance.")]
+        [DefaultValue("Apply the change requested by the user to the code")]
+        public string TurboChatCodeCommand { get; set; } = "Apply the change requested by the user to the code";
+
+        #endregion Turbo Chat
     }
 
     /// <summary>

@@ -9,9 +9,11 @@ English | [Chinese](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master
 
 This is an extension that adds chatGPT functionality directly within Visual Studio.
 
-You will be able to consult the chatGPT directly through the text editor or through a new specific tool window.
+You will be able to consult the chatGPT directly through the text editor or through a new specifics tool windows.
 
-[Watch here some examples.](https://www.youtube.com/watch?v=h_wUl_IjWRU)
+Watch here some examples:
+
+[<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/275614252-5f824ba6-df13-45e3-928e-086609fe1bcd.png" width="70%">](https://youtu.be/eU5hEh6e5Ow)
 
 ## Features in text editor
 
@@ -47,9 +49,9 @@ For example, by changing the "Explain" prompt of the Explain command to "Explica
 
 In this tool window you can ask questions to chatGPT and receive answers directly in it.
 
-The interactions made in this window use the parameters defined in the options of this extension (as well as the commands in the code editor):
-
 ![image](https://user-images.githubusercontent.com/63928228/225486306-d29b1ec3-2ccd-4d74-8153-806a84abe5ea.png)
+
+This window can also used to redirect the commands responses to it holding the SHIFT key while execute some command, to avoid edit the code when you do not want.
 
 You will find this window in menu View -> Other Windows -> Visual chatGPT Studio.
 
@@ -57,13 +59,24 @@ You will find this window in menu View -> Other Windows -> Visual chatGPT Studio
 
 In this window editor you can interact directly with chatGPT as if you were in the chatGPT portal itself:
 
-Unlike the previous window, in this one the AI "remembers" the entire conversation, and it can even assume a personality that can be parameterized through the options:
+Unlike the previous window, in this one the AI "remembers" the entire conversation:
 
-![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio/1.7.1/1679515374543/image__11.png)
+![image](https://github.com/jeffdapaz/VisualChatGPTStudio/assets/63928228/ff47bf5c-8324-46ba-a039-173c172337e0)
 
-![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio/1.7.3/1679698833202/image__14.png)
+You can also interact with the opened code editor through the "Send Code" button. Using this button the OpenAI API becomes aware of all the code in the opened editor, and you can request interactions directly to your code, for example:
+
+- Ask to add new method on specific line, or between two existing methods;
+- Change a existing method to add a new parameter;
+- Ask if the class has any bugs;
+- Etc.
+
+But pay attention. Because that will send the entire code from opened file to API, this can increase the tokens consume. And also will can reach the token limit per request sooner, but you can increase this limit using the GPT-3.5-Turbo-16k model.
 
 You will find this window in menu View -> Other Windows -> Visual chatGPT Studio Turbo.
+
+Watch here some examples using the Turbo Chat:
+
+[<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/275615943-a37e30c3-d597-42de-8a38-7d0cdbfe942f.png" width="70%">](https://youtu.be/2NHWWXFMpd0)
 
 ## Authentication
 
@@ -106,6 +119,10 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 - If you find any bugs or unexpected behavior, please leave a comment so I can provide a fix.
 
 ## Release Notes
+
+### 2.2.0
+
+- Added the "Send Code" command on Turbo Chat window.
 
 ### 2.1.0
 

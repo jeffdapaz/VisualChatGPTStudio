@@ -16,6 +16,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         private static OpenAIAPI api;
         private static OpenAIAPI apiForAzureTurboChat;
         private static ChatGPTHttpClientFactory chatGPTHttpClient;
+        private static readonly TimeSpan timeout = new(0, 0, 120);
 
         /// <summary>
         /// Asynchronously gets a response from a chatbot.
@@ -32,7 +33,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
             Task<string> task = chat.GetResponseFromChatbotAsync();
 
-            await Task.WhenAny(task, Task.Delay(Timeout.Infinite, cancellationToken));
+            await Task.WhenAny(task, Task.Delay(timeout, cancellationToken));
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -55,7 +56,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
             Task task = chat.StreamResponseFromChatbotAsync(resultHandler);
 
-            await Task.WhenAny(task, Task.Delay(Timeout.Infinite, cancellationToken));
+            await Task.WhenAny(task, Task.Delay(timeout, cancellationToken));
 
             cancellationToken.ThrowIfCancellationRequested();
         }

@@ -120,6 +120,10 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ## Release Notes
 
+### 2.2.1
+
+- Added timeout to requests.
+
 ### 2.2.0
 
 - Added the "Send Code" command on Turbo Chat window.

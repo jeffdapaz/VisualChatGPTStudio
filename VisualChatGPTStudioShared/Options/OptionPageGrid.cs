@@ -149,8 +149,8 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Category("Turbo Chat")]
         [DisplayName("Turbo Chat Code Command")]
         [Description("Define the instruction that will send to the assistant when requesting code assistance.")]
-        [DefaultValue("Apply the change requested by the user to the code")]
-        public string TurboChatCodeCommand { get; set; } = "Apply the change requested by the user to the code";
+        [DefaultValue("Apply the change requested by the user to the code, but rewrite the original code that was not changed")]
+        public string TurboChatCodeCommand { get; set; } = "Apply the change requested by the user to the code, but rewrite the original code that was not changed";
 
         #endregion Turbo Chat
     }

@@ -28,6 +28,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         private List<ChatTurboItem> chatItems;
         private CancellationTokenSource cancellationTokenSource;
         private DocumentView docView;
+        private bool shiftKeyPressed;
 
         #endregion Properties
 
@@ -145,6 +146,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         {
             try
             {
+                shiftKeyPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
+
                 if (string.IsNullOrWhiteSpace(options.ApiKey))
                 {
                     MessageBox.Show(Constants.MESSAGE_SET_API_KEY, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -203,7 +206,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
                 {
                     author = segments[i].IsCode ? AuthorEnum.ChatGPTCode : AuthorEnum.ChatGPT;
 
-                    if (author == AuthorEnum.ChatGPTCode && commandType == CommandType.Code)
+                    if (author == AuthorEnum.ChatGPTCode && commandType == CommandType.Code && !shiftKeyPressed)
                     {
                         docView.TextView.TextBuffer.Replace(new Span(0, docView.TextView.TextBuffer.CurrentSnapshot.Length), segments[i].Content);
                     }

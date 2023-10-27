@@ -26,6 +26,7 @@
 
     <UserControl.InputBindings>
         <KeyBinding Key="Enter" Modifiers="Ctrl+Alt" Command="{StaticResource sendCode}" />
+        <KeyBinding Key="Enter" Modifiers="Ctrl+Alt+Shift" Command="{StaticResource sendCode}" />
         <KeyBinding Key="Enter" Modifiers="Ctrl" Command="{StaticResource sendCommand}" />
         <KeyBinding Key="Z" Modifiers="Alt" Command="{StaticResource cancelCommand}" />
     </UserControl.InputBindings>

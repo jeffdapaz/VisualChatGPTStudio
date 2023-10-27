@@ -41,7 +41,7 @@ And if you desire that the responses be written on tool window instead on the co
 
 If you want chatGPT to respond in another language and/or want to customize the commands for some reason, you can edit the default commands through the options:
 
-![image](https://user-images.githubusercontent.com/63928228/226494626-d422a843-2512-4dee-a177-045f39c0b6d3.png)
+<img src="https://user-images.githubusercontent.com/63928228/226494626-d422a843-2512-4dee-a177-045f39c0b6d3.png" width="60%">
 
 For example, by changing the "Explain" prompt of the Explain command to "Explicar en español" (or just "Explicar"), the OpenAI API will write the comments in Spanish instead of using the default English command.
 
@@ -71,6 +71,8 @@ You can also interact with the opened code editor through the "Send Code" button
 - Etc.
 
 But pay attention. Because that will send the entire code from opened file to API, this can increase the tokens consume. And also will can reach the token limit per request sooner, but you can increase this limit using the GPT-3.5-Turbo-16k model.
+
+By executing this command, you can also hold down the SHIFT key when press the "Send Code" button so that the code will be write directly in the chat window instead of the code editor, in case you want to preserve the original code and/or analyze the response before applying it to the opened code editor.
 
 You will find this window in menu View -> Other Windows -> Visual chatGPT Studio Turbo.
 
@@ -112,13 +114,18 @@ For these cases I advise you to make requests via the tool windows to customize 
 
 - If you are using OpenAI service instead Azure and receive a message like "429 - You exceeded your current quota, please check your plan and billing details.", check OpenAI Usage page and see if you still have quota, example:
 
-![image](https://user-images.githubusercontent.com/63928228/242688025-47ec893e-401f-4edb-92a0-127a47a952fe.png)
+<img src="https://user-images.githubusercontent.com/63928228/242688025-47ec893e-401f-4edb-92a0-127a47a952fe.png" width="50%">
 
 You can check your quota here: [https://platform.openai.com/account/usage](https://platform.openai.com/account/usage)
 
 - If you find any bugs or unexpected behavior, please leave a comment so I can provide a fix.
 
 ## Release Notes
+
+### 2.2.2
+
+- Added the possibility to hold the SHIFT key when executing the "Send Code" command to write the code in the Turbo Chat Window instead of the code editor.
+- Turbo Chat Code Command on options changed from "Apply the change requested by the user to the code" to "Apply the change requested by the user to the code, but rewrite the original code that was not changed" for better behavior.
 
 ### 2.2.1
 
@@ -281,7 +288,7 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 - Now it's possible to customize the OpenAI API requests parameters:
 
-![image](https://user-images.githubusercontent.com/63928228/223844877-d11a524b-472d-4046-94c5-70e6d3a49752.png)
+<img src="https://user-images.githubusercontent.com/63928228/223844877-d11a524b-472d-4046-94c5-70e6d3a49752.png" width="60%">
 
 But only change the default values if you know what you're doing, otherwise you might experience some unexpected behavior.
 

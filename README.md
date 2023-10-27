@@ -1,9 +1,10 @@
-# Visual chatGPT Studio
+# Visual chatGPT Studio <img src="https://user-images.githubusercontent.com/63928228/278760982-5a3be81c-0cb0-4e59-98f6-705b371553e5.png" width="3%"> 
 
-English | [Chinese](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/README-zh.md)
+💬 English | [Chinese](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/README-zh.md)
 
-- For Visual Studio 2022: [here](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio)
-- For Visual Studio 2019: [here](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio2019)
+👉 For Visual Studio 2022: [here](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio)
+
+👉 For Visual Studio 2019: [here](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio2019)
 
 ## Description
 
@@ -15,7 +16,7 @@ Watch here some examples:
 
 [<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/275614252-5f824ba6-df13-45e3-928e-086609fe1bcd.png" width="70%">](https://youtu.be/eU5hEh6e5Ow)
 
-## Features in text editor
+## Features on code editor 👩‍💻
 
 Select a method and right click on text editor and you see these new chatGPT commands:
 
@@ -45,7 +46,7 @@ If you want chatGPT to respond in another language and/or want to customize the 
 
 For example, by changing the "Explain" prompt of the Explain command to "Explicar en español" (or just "Explicar"), the OpenAI API will write the comments in Spanish instead of using the default English command.
 
-## Features by "Visual chatGPT Studio" tool window
+## Features by "Visual chatGPT Studio" tool window 🛠
 
 In this tool window you can ask questions to chatGPT and receive answers directly in it.
 
@@ -55,7 +56,7 @@ This window can also used to redirect the commands responses to it holding the S
 
 You will find this window in menu View -> Other Windows -> Visual chatGPT Studio.
 
-## Features by "Visual chatGPT Studio Turbo" tool window
+## Features by "Visual chatGPT Studio Turbo" tool window 🚀
 
 In this window editor you can interact directly with chatGPT as if you were in the chatGPT portal itself:
 
@@ -80,7 +81,7 @@ Watch here some examples using the Turbo Chat:
 
 [<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/275615943-a37e30c3-d597-42de-8a38-7d0cdbfe942f.png" width="70%">](https://youtu.be/2NHWWXFMpd0)
 
-## Authentication
+## Authentication 🔑
 
 To use this tool it is necessary to connect through the OpenAI API or through Azure OpenAI.
 
@@ -96,7 +97,7 @@ See for more details: [https://learn.microsoft.com/azure/cognitive-services/open
 
 Please read [this](https://github.com/jeffdapaz/VisualChatGPTStudio/issues/31) for some more information.
 
-## Known Issues
+## Known Issues ⚠
 
 Unfortunately, the API that OpenAI makes available for interacting with chatGPT has a limitation on the size of the question plus the given answer.
 
@@ -119,6 +120,12 @@ For these cases I advise you to make requests via the tool windows to customize 
 You can check your quota here: [https://platform.openai.com/account/usage](https://platform.openai.com/account/usage)
 
 - If you find any bugs or unexpected behavior, please leave a comment so I can provide a fix.
+
+## Donations
+
+☕ Buy me a coffee and support me to empower you more. Thank you! 🙏
+
+[<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/278758680-f5fc9df2-a330-4d6a-ae13-9190b7b8f57b.png" width="20%">](https://www.paypal.com/donate/?hosted_button_id=2Y55G8YYC6Q3E)
 
 ## Release Notes
 

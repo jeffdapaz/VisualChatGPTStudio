@@ -41,7 +41,7 @@ And if you desire that the responses be written on tool window instead on the co
 
 If you want chatGPT to respond in another language and/or want to customize the commands for some reason, you can edit the default commands through the options:
 
-<img src="https://user-images.githubusercontent.com/63928228/226494626-d422a843-2512-4dee-a177-045f39c0b6d3.png" width="60%">
+<img src="https://user-images.githubusercontent.com/63928228/226494626-d422a843-2512-4dee-a177-045f39c0b6d3.png" width="70%">
 
 For example, by changing the "Explain" prompt of the Explain command to "Explicar en español" (or just "Explicar"), the OpenAI API will write the comments in Spanish instead of using the default English command.
 
@@ -114,7 +114,7 @@ For these cases I advise you to make requests via the tool windows to customize 
 
 - If you are using OpenAI service instead Azure and receive a message like "429 - You exceeded your current quota, please check your plan and billing details.", check OpenAI Usage page and see if you still have quota, example:
 
-<img src="https://user-images.githubusercontent.com/63928228/242688025-47ec893e-401f-4edb-92a0-127a47a952fe.png" width="50%">
+<img src="https://user-images.githubusercontent.com/63928228/242688025-47ec893e-401f-4edb-92a0-127a47a952fe.png" width="60%">
 
 You can check your quota here: [https://platform.openai.com/account/usage](https://platform.openai.com/account/usage)
 
@@ -288,7 +288,7 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 - Now it's possible to customize the OpenAI API requests parameters:
 
-<img src="https://user-images.githubusercontent.com/63928228/223844877-d11a524b-472d-4046-94c5-70e6d3a49752.png" width="60%">
+<img src="https://user-images.githubusercontent.com/63928228/223844877-d11a524b-472d-4046-94c5-70e6d3a49752.png" width="70%">
 
 But only change the default values if you know what you're doing, otherwise you might experience some unexpected behavior.
 

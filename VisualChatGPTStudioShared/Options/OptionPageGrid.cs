@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.Shell;
+﻿using JeffPires.VisualChatGPTStudio.Utils;
+using Microsoft.VisualStudio.Shell;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 
@@ -153,24 +154,5 @@ namespace JeffPires.VisualChatGPTStudio.Options
         public string TurboChatCodeCommand { get; set; } = "Apply the change requested by the user to the code, but rewrite the original code that was not changed";
 
         #endregion Turbo Chat
-    }
-
-    /// <summary>
-    /// Enum containing the different types of model languages.
-    /// </summary>
-    public enum ModelLanguageEnum
-    {
-        GPT_3_5_Turbo,
-        GPT_3_5_Turbo_16k,
-        GPT_4
-    }
-
-    /// <summary>
-    /// Enum to represent the different OpenAI services available.
-    /// </summary>
-    public enum OpenAIService
-    {
-        OpenAI,
-        AzureOpenAI
     }
 }

@@ -92,18 +92,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             chat.RequestParameters.FrequencyPenalty = options.FrequencyPenalty;
             chat.RequestParameters.PresencePenalty = options.PresencePenalty;
 
-            if (options.Model == ModelLanguageEnum.GPT_4)
-            {
-                chat.Model = Model.GPT4;
-            }
-            else if (options.Model == ModelLanguageEnum.GPT_3_5_Turbo_16k)
-            {
-                chat.Model = "gpt-3.5-turbo-16k";
-            }
-            else
-            {
-                chat.Model = Model.ChatGPTTurbo;
-            }
+            chat.Model = options.Model.GetStringValue();
 
             return chat;
         }
@@ -221,5 +210,31 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                 apiForAzureTurboChat.Auth.ApiKey = options.ApiKey;
             }
         }
+    }
+
+    /// <summary>
+    /// Enum containing the different types of model languages.
+    /// </summary>
+    public enum ModelLanguageEnum
+    {
+        [EnumStringValue("gpt-3.5-turbo")]
+        GPT_3_5_Turbo,
+        [EnumStringValue("gpt-3.5-turbo-16k")]
+        GPT_3_5_Turbo_16k,
+        [EnumStringValue("gpt-3.5-turbo-1106")]
+        GPT_3_5_Turbo_1106,
+        [EnumStringValue("gpt-4")]
+        GPT_4,
+        [EnumStringValue("gpt-4-1106-preview")]
+        GPT_4_Turbo
+    }
+
+    /// <summary>
+    /// Enum to represent the different OpenAI services available.
+    /// </summary>
+    public enum OpenAIService
+    {
+        OpenAI,
+        AzureOpenAI
     }
 }

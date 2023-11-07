@@ -71,7 +71,7 @@ You can also interact with the opened code editor through the "Send Code" button
 - Ask if the class has any bugs;
 - Etc.
 
-But pay attention. Because that will send the entire code from opened file to API, this can increase the tokens consume. And also will can reach the token limit per request sooner, but you can increase this limit using the GPT-3.5-Turbo-16k model.
+But pay attention. Because that will send the entire code from opened file to API, this can increase the tokens consume. And also will can reach the token limit per request sooner depending the model you are using. Set a model with large tokens limit can solve this limitation.
 
 By executing this command, you can also hold down the SHIFT key when press the "Send Code" button so that the code will be write directly in the chat window instead of the code editor, in case you want to preserve the original code and/or analyze the response before applying it to the opened code editor.
 
@@ -128,6 +128,10 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 [<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/278758680-f5fc9df2-a330-4d6a-ae13-9190b7b8f57b.png" width="20%">](https://www.paypal.com/donate/?hosted_button_id=2Y55G8YYC6Q3E)
 
 ## Release Notes
+
+### 2.3.0
+
+- Added the new models gpt-3.5-turbo-1106 and gpt-4-1106-preview (maybe not work with Azure yet). See [here](https://openai.com/blog/new-models-and-developer-products-announced-at-devday) for more details about these new models.
 
 ### 2.2.2
 

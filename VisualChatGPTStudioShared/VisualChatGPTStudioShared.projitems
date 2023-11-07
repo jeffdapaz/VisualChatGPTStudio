@@ -43,6 +43,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ChatTurboItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ChatGPTHttpClientFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Constants.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\EnumHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\HighlightingDefinitionConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\HttpClientCustom.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\TextFormat.cs" />

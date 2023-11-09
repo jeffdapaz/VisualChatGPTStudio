@@ -115,6 +115,9 @@
     <PackageReference Include="OpenAI">
       <Version>1.7.2</Version>
     </PackageReference>
+    <PackageReference Include="VsixLogger">
+      <Version>1.1.44</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Resource Include="..\Resources\translate.png">

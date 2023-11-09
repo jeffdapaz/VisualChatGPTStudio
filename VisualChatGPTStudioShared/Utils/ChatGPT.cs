@@ -1,7 +1,7 @@
 ﻿using JeffPires.VisualChatGPTStudio.Options;
+using JeffPires.VisualChatGPTStudio.Utils.Http;
 using OpenAI_API;
 using OpenAI_API.Chat;
-using OpenAI_API.Models;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -136,7 +136,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         {
             if (api == null)
             {
-                chatGPTHttpClient = new();
+                chatGPTHttpClient = new(options);
 
                 if (!string.IsNullOrWhiteSpace(options.Proxy))
                 {
@@ -189,7 +189,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         {
             if (apiForAzureTurboChat == null)
             {
-                chatGPTHttpClient = new();
+                chatGPTHttpClient = new(options);
 
                 if (!string.IsNullOrWhiteSpace(options.Proxy))
                 {

@@ -2,6 +2,7 @@
 using JeffPires.VisualChatGPTStudio.Commands;
 using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.ToolWindows;
+using JeffPires.VisualChatGPTStudio.Utils;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.Runtime.InteropServices;
@@ -53,6 +54,8 @@ namespace JeffPires.VisualChatGPTStudio
         /// </summary>
         protected override async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
+            Logger.Initialize(this, Constants.EXTENSION_NAME);
+
             await this.RegisterCommandsAsync();
             await TerminalWindowCommand.InitializeAsync(this);
             await TerminalWindowTurboCommand.InitializeAsync(this);

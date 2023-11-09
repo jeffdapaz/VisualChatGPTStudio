@@ -49,6 +49,18 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DefaultValue("")]
         public string CharactersToRemoveFromRequests { get; set; } = string.Empty;
 
+        [Category("General")]
+        [DisplayName("Log Requests")]
+        [Description("If true, all requests to OpenAI will be logged to the Output window.")]
+        [DefaultValue(false)]
+        public bool LogRequests  { get; set; } = false;
+
+        [Category("General")]
+        [DisplayName("Log Responses")]
+        [Description("If true, all responses to OpenAI will be logged to the Output window.")]
+        [DefaultValue(false)]
+        public bool LogResponses { get; set; } = false;
+
         #endregion General
 
         #region Model Parameters

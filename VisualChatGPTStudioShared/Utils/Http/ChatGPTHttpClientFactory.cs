@@ -1,11 +1,11 @@
-﻿using System;
+﻿using JeffPires.VisualChatGPTStudio.Options;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using VisualChatGPTStudioShared.Utils;
 
-namespace JeffPires.VisualChatGPTStudio.Utils
+namespace JeffPires.VisualChatGPTStudio.Utils.Http
 {
     /// <summary>
     /// This class provides a factory for creating HttpClient instances for use with the ChatGPT API.
@@ -15,6 +15,16 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         private readonly Dictionary<string, HttpClientCustom> httpClients = new();
         private static readonly object objLock = new();
         private string m_proxy;
+        private readonly OptionPageGridGeneral options;
+
+        /// <summary>
+        /// Initializes a new instance of the ChatGPTHttpClientFactory class.
+        /// </summary>
+        /// <param name="options">The options for configuring the HttpClient.</param>
+        public ChatGPTHttpClientFactory(OptionPageGridGeneral options)
+        {
+            this.options = options;
+        }
 
         /// <summary>
         /// Creates an HttpClient with the given name.
@@ -68,9 +78,10 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// </summary>
         /// <param name="handler">The message handler.</param>
         /// <returns>An HttpClient with the specified message handler and default settings.</returns>
-        protected static HttpClientCustom CreateHttpClient(HttpMessageHandler handler)
+        protected HttpClientCustom CreateHttpClient(HttpMessageHandler handler)
         {
             HttpClientCustom lookHttp = new(handler);
+
             lookHttp.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate");
             lookHttp.DefaultRequestHeaders.Connection.Add("keep-alive");
             lookHttp.Timeout = new TimeSpan(0, 0, 120);
@@ -83,18 +94,25 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// </summary>
         /// <param name="proxy">The proxy settings to use.</param>
         /// <returns>An HttpMessageHandler with the specified proxy settings.</returns>
-        protected static HttpMessageHandler CreateMessageHandler(string proxy = null)
+        protected HttpMessageHandler CreateMessageHandler(string proxy = null)
         {
-            HttpClientHandler handler = new HttpClientHandler();
+            HttpClientHandler handler;
+
+            if (options.LogRequests || options.LogResponses)
+            {
+                handler = new RequestCaptureHandler(options.LogRequests, options.LogResponses);
+            }
+            else
+            {
+                handler = new HttpClientHandler();
+            }
+
             handler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
             handler.UseCookies = true;
             handler.AllowAutoRedirect = true;
             handler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;
             handler.MaxConnectionsPerServer = 256;
-            handler.SslProtocols =
-                System.Security.Authentication.SslProtocols.Tls12 |
-                System.Security.Authentication.SslProtocols.Tls11 |
-                System.Security.Authentication.SslProtocols.Tls;
+            handler.SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls11 | System.Security.Authentication.SslProtocols.Tls;
 
             if (!string.IsNullOrEmpty(proxy))
             {

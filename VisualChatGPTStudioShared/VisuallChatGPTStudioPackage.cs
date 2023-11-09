@@ -1,6 +1,7 @@
 ﻿using Community.VisualStudio.Toolkit;
 using JeffPires.VisualChatGPTStudio.Commands;
 using JeffPires.VisualChatGPTStudio.Options;
+using JeffPires.VisualChatGPTStudio.Options.Commands;
 using JeffPires.VisualChatGPTStudio.ToolWindows;
 using JeffPires.VisualChatGPTStudio.Utils;
 using Microsoft.VisualStudio.Shell;
@@ -16,8 +17,8 @@ namespace JeffPires.VisualChatGPTStudio
     [Guid(PackageGuids.VisuallChatGPTStudioString)]
     [ProvideOptionPage(typeof(OptionPageGridGeneral), "Visual chatGPT Studio", "General", 0, 0, true)]
     [ProvideProfile(typeof(OptionPageGridGeneral), "Visual chatGPT Studio", "General", 0, 0, true)]
-    [ProvideOptionPage(typeof(OptionPageGridCommands), "Visual chatGPT Studio", "Commands", 1, 1, true)]
-    [ProvideProfile(typeof(OptionPageGridCommands), "Visual chatGPT Studio", "Commands", 1, 1, true)]
+    [ProvideOptionPage(typeof(OptionCommands), "Visual chatGPT Studio", "Commands", 1, 1, true)]
+    [ProvideProfile(typeof(OptionCommands), "Visual chatGPT Studio", "Commands", 1, 1, true)]
     [ProvideToolWindow(typeof(TerminalWindow))]
     [ProvideToolWindow(typeof(TerminalWindowTurbo))]
     public sealed class VisuallChatGPTStudioPackage : ToolkitPackage
@@ -41,11 +42,11 @@ namespace JeffPires.VisualChatGPTStudio
         /// <summary>
         /// Gets the OptionPageGridCommands object.
         /// </summary>
-        public OptionPageGridCommands OptionsCommands
+        public OptionCommands OptionsCommands
         {
             get
             {
-                return (OptionPageGridCommands)GetDialogPage(typeof(OptionPageGridCommands));
+                return (OptionCommands)GetDialogPage(typeof(OptionCommands));
             }
         }
 

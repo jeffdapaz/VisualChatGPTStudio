@@ -1,5 +1,6 @@
 ﻿using Community.VisualStudio.Toolkit;
 using JeffPires.VisualChatGPTStudio.Commands;
+using JeffPires.VisualChatGPTStudio.Options.Commands;
 using JeffPires.VisualChatGPTStudio.Utils;
 
 namespace JeffPires.VisualChatGPTStudio
@@ -14,12 +15,14 @@ namespace JeffPires.VisualChatGPTStudio
 
         protected override string GetCommand(string selectedText)
         {
-            if (string.IsNullOrWhiteSpace(OptionsCommands.AddSummary))
+            string command = OptionsCommands.GetCommandAsync(CommandsType.AddSummary).Result;
+
+            if (string.IsNullOrWhiteSpace(command))
             {
                 return string.Empty;
             }
 
-            return TextFormat.FormatCommandForSummary($"{OptionsCommands.AddSummary}\r\n\r\n{{0}}\r\n\r\n", selectedText);
+            return TextFormat.FormatCommandForSummary($"{command}\r\n\r\n{{0}}\r\n\r\n", selectedText);
         }
     }
 }

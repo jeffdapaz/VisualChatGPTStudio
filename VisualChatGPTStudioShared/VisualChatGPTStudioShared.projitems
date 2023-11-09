@@ -28,10 +28,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)Commands\TerminalWindowCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\TerminalWindowTurboCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\Translate.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\Commands\Commands.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\Commands\OptionCommandsWindow.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionPageGrid.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)Options\OptionPageGridCommands.cs">
+    <Compile Include="$(MSBuildThisFileDirectory)Options\Commands\OptionCommands.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindow.cs" />
@@ -44,7 +46,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Constants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\EnumHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\HighlightingDefinitionConverter.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\HttpClientCustom.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Http\ChatGPTHttpClientFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Http\HttpClientCustom.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Http\RequestCaptureHandler.cs" />
@@ -53,6 +54,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)VisuallChatGPTStudioPackage.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="$(MSBuildThisFileDirectory)Options\Commands\OptionCommandsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindowControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

@@ -1,6 +1,7 @@
 ﻿using Community.VisualStudio.Toolkit;
 using EnvDTE;
 using JeffPires.VisualChatGPTStudio.Options;
+using JeffPires.VisualChatGPTStudio.Options.Commands;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.Threading;
@@ -44,7 +45,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// <summary>
         /// Gets the OptionsCommands property of the VisualChatGPTStudioPackage.
         /// </summary>
-        protected OptionPageGridCommands OptionsCommands
+        protected OptionCommands OptionsCommands
         {
             get
             {

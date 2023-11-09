@@ -6,7 +6,7 @@
 
 👉 For Visual Studio 2019: [here](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio2019)
 
-## Description
+## Description 
 
 This is an extension that adds chatGPT functionality directly within Visual Studio.
 
@@ -40,11 +40,19 @@ Select a method and right click on text editor and you see these new chatGPT com
 
 And if you desire that the responses be written on tool window instead on the code editor, press and hold the SHIFT key and select the command (not work with the shortcuts).
 
-If you want chatGPT to respond in another language and/or want to customize the commands for some reason, you can edit the default commands through the options:
+## Edit the Commands 📐
 
-<img src="https://user-images.githubusercontent.com/63928228/226494626-d422a843-2512-4dee-a177-045f39c0b6d3.png" width="70%">
+The pre-defined commands can be edited at will to meet your needs and the needs of the project you are currently working on.
 
-For example, by changing the "Explain" prompt of the Explain command to "Explicar en español" (or just "Explicar"), the OpenAI API will write the comments in Spanish instead of using the default English command.
+It is also possible to define specific commands per Solution or Project. If you are not working on a project that has specific commands for it, the default commands will be used.
+
+Some examples that you can do:
+
+- **Define specific framework or language:** For example, you can have specific commands to create unit tests using MSTests for a project and XUnit for another one.
+- **Work in another language:** For example, if you work in projects that use another language different that you mother language, you can set commands for your language and commands to another language for another projects.
+- **ETC**.
+
+<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/281889918-f6bae902-077b-4688-84ca-d661a9336866.png" width="100%">
 
 ## Features by "Visual chatGPT Studio" tool window 🛠
 
@@ -133,6 +141,7 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 - Added the new models gpt-3.5-turbo-1106 and gpt-4-1106-preview (maybe not work with Azure yet). See [here](https://openai.com/blog/new-models-and-developer-products-announced-at-devday) for more details about these new models.
 - Add the new options "Log Request" and "Log Responses". If ON, all requests and/or responses to OpenAI will be logged to the Output window.
+- Commands Options reformulated. Now it's possible set commands by Projects and Solutions.
 
 ### 2.2.2
 

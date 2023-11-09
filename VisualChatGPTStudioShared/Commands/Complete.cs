@@ -1,5 +1,6 @@
 ﻿using Community.VisualStudio.Toolkit;
 using EnvDTE;
+using JeffPires.VisualChatGPTStudio.Options.Commands;
 using JeffPires.VisualChatGPTStudio.Utils;
 
 namespace JeffPires.VisualChatGPTStudio.Commands
@@ -19,7 +20,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                 return string.Empty;
             }
 
-            return TextFormat.FormatForCompleteCommand(OptionsCommands.Complete, docView.FilePath);
+            return TextFormat.FormatForCompleteCommand(OptionsCommands.GetCommandAsync(CommandsType.Complete).Result, docView.FilePath);
         }
     }
 }

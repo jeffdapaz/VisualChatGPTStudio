@@ -1,5 +1,6 @@
 ﻿using Community.VisualStudio.Toolkit;
 using EnvDTE;
+using JeffPires.VisualChatGPTStudio.Options.Commands;
 using JeffPires.VisualChatGPTStudio.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -51,7 +52,9 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                     return;
                 }
 
-                if (string.IsNullOrWhiteSpace(OptionsCommands.AddSummary))
+                string command = await OptionsCommands.GetCommandAsync(CommandsType.AddSummary);
+
+                if (string.IsNullOrWhiteSpace(command))
                 {
                     await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, string.Format(Constants.MESSAGE_SET_COMMAND, nameof(AddSummary)), buttons: Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
 
@@ -205,7 +208,9 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// <returns>The summary of the code.</returns>
         private async Task<string> RequestAsync(string code)
         {
-            string command = TextFormat.FormatCommandForSummary($"{OptionsCommands.AddSummary}\r\n\r\n{{0}}\r\n\r\n", code);
+            string command = await OptionsCommands.GetCommandAsync(CommandsType.AddSummary);
+
+            command = TextFormat.FormatCommandForSummary($"{command}\r\n\r\n{{0}}\r\n\r\n", code);
 
             string result = await ChatGPT.GetResponseAsync(OptionsGeneral, command, code, new string[] { "public", "private", "internal" }, CancellationTokenSource.Token);
 

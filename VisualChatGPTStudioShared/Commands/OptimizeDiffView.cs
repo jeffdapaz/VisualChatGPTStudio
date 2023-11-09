@@ -1,4 +1,5 @@
 ﻿using Community.VisualStudio.Toolkit;
+using JeffPires.VisualChatGPTStudio.Options.Commands;
 using JeffPires.VisualChatGPTStudio.Utils;
 using Microsoft.VisualStudio.Shell;
 using System;
@@ -24,7 +25,9 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                     return;
                 }
 
-                if (string.IsNullOrWhiteSpace(OptionsCommands.Optimize))
+                string command = await OptionsCommands.GetCommandAsync(CommandsType.Optimize);
+
+                if (string.IsNullOrWhiteSpace(command))
                 {
                     await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, string.Format(Constants.MESSAGE_SET_COMMAND, nameof(Optimize)), buttons: Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
 
@@ -44,7 +47,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                 CancellationTokenSource = new CancellationTokenSource();
 
-                string result = await ChatGPT.GetResponseAsync(OptionsGeneral, OptionsCommands.Optimize, selectedText, OptionsGeneral.StopSequences?.Split(','), CancellationTokenSource.Token);
+                string result = await ChatGPT.GetResponseAsync(OptionsGeneral, command, selectedText, OptionsGeneral.StopSequences?.Split(','), CancellationTokenSource.Token);
 
                 result = RemoveBlankLinesFromResult(result.ToString());
 

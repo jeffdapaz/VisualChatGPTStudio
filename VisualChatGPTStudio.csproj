@@ -123,6 +123,8 @@
     <Content Include="icons8-chatgpt-512.png">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Resource Include="Resources\information.png" />
+    <Resource Include="Resources\solutionContext.png" />
     <Resource Include="Resources\optimizeDiffView.png" />
     <Resource Include="Resources\translate.png" />
     <Resource Include="Resources\check.png" />
@@ -143,6 +145,22 @@
     <Resource Include="Resources\garbage.png" />
     <Resource Include="Resources\cancel.png" />
     <Resource Include="Resources\cancelCommand.png" />
+    <Resource Include="Resources\addSummaryForAll.png" />
+    <Resource Include="Resources\FileTypes\config.png" />
+    <Resource Include="Resources\FileTypes\cs.png" />
+    <Resource Include="Resources\FileTypes\css.png" />
+    <Resource Include="Resources\FileTypes\folder.png" />
+    <Resource Include="Resources\FileTypes\html.png" />
+    <Resource Include="Resources\FileTypes\js.png" />
+    <Resource Include="Resources\FileTypes\json.png" />
+    <Resource Include="Resources\FileTypes\md.png" />
+    <Resource Include="Resources\FileTypes\sql.png" />
+    <Resource Include="Resources\FileTypes\ts.png" />
+    <Resource Include="Resources\FileTypes\vb.png" />
+    <Resource Include="Resources\FileTypes\xaml.png" />
+    <Resource Include="Resources\FileTypes\xml.png" />
+    <Resource Include="Resources\FileTypes\sln.png" />
+    <Resource Include="Resources\FileTypes\vs.png" />
     <Content Include="Resources\Icon.png">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -152,6 +170,7 @@
     <Resource Include="Resources\turbo.png" />
     <Resource Include="Resources\vs.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="VisualChatGPTStudioShared\VisualChatGPTStudioShared.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />

@@ -57,17 +57,6 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         }
 
         /// <summary>
-        /// Gets the service provider from the owner package.
-        /// </summary>
-        private IAsyncServiceProvider ServiceProvider
-        {
-            get
-            {
-                return this.package;
-            }
-        }
-
-        /// <summary>
         /// Initializes the singleton instance of the command.
         /// </summary>
         /// <param name="package">Owner package, not null.</param>

@@ -21,6 +21,7 @@ namespace JeffPires.VisualChatGPTStudio
     [ProvideProfile(typeof(OptionCommands), "Visual chatGPT Studio", "Commands", 1, 1, true)]
     [ProvideToolWindow(typeof(TerminalWindow))]
     [ProvideToolWindow(typeof(TerminalWindowTurbo))]
+    [ProvideToolWindow(typeof(TerminalWindowSolutionContext))]
     public sealed class VisuallChatGPTStudioPackage : ToolkitPackage
     {
         /// <summary>
@@ -60,6 +61,7 @@ namespace JeffPires.VisualChatGPTStudio
             await this.RegisterCommandsAsync();
             await TerminalWindowCommand.InitializeAsync(this);
             await TerminalWindowTurboCommand.InitializeAsync(this);
+            await TerminalWindowSolutionContextCommand.InitializeAsync(this);
         }
     }
 }

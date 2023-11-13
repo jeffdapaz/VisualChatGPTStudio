@@ -135,6 +135,57 @@
     <Content Include="..\Resources\cancelCommand.png">
       <Link>Resources\cancelCommand.png</Link>
     </Content>
+    <Resource Include="..\Resources\solutionContext.png">
+      <Link>Resources\solutionContext.png</Link>
+    </Resource>
+    <Resource Include="..\Resources\information.png">
+      <Link>Resources\information.png</Link>
+    </Resource>
+    <Resource Include="..\Resources\FileTypes\config.png">
+      <Link>Resources\FileTypes\config.png</Link>
+    </Resource>
+    <Resource Include="..\Resources\FileTypes\cs.png">
+      <Link>Resources\FileTypes\cs.png</Link>
+    </Resource>
+    <Resource Include="..\Resources\FileTypes\css.png">
+      <Link>Resources\FileTypes\css.png</Link>
+    </Resource>
+    <Resource Include="..\Resources\FileTypes\folder.png">
+      <Link>Resources\FileTypes\folder.png</Link>
+    </Resource>
+    <Resource Include="..\Resources\FileTypes\html.png">
+      <Link>Resources\FileTypes\html.png</Link>
+    </Resource>
+    <Resource Include="..\Resources\FileTypes\js.png">
+      <Link>Resources\FileTypes\js.png</Link>
+    </Resource>
+    <Resource Include="..\Resources\FileTypes\json.png">
+      <Link>Resources\FileTypes\json.png</Link>
+    </Resource>
+    <Resource Include="..\Resources\FileTypes\md.png">
+      <Link>Resources\FileTypes\md.png</Link>
+    </Resource>
+    <Resource Include="..\Resources\FileTypes\sql.png">
+      <Link>Resources\FileTypes\sql.png</Link>
+    </Resource>
+    <Resource Include="..\Resources\FileTypes\ts.png">
+      <Link>Resources\FileTypes\ts.png</Link>
+    </Resource>
+    <Resource Include="..\Resources\FileTypes\vb.png">
+      <Link>Resources\FileTypes\vb.png</Link>
+    </Resource>
+    <Resource Include="..\Resources\FileTypes\xaml.png">
+      <Link>Resources\FileTypes\xaml.png</Link>
+    </Resource>
+    <Resource Include="..\Resources\FileTypes\xml.png">
+      <Link>Resources\FileTypes\xml.png</Link>
+    </Resource>
+    <Resource Include="..\Resources\FileTypes\sln.png">
+      <Link>Resources\FileTypes\sln.png</Link>
+    </Resource>
+    <Resource Include="..\Resources\FileTypes\vs.png">
+      <Link>Resources\FileTypes\vs.png</Link>
+    </Resource>
     <Content Include="Icon2019.png">
       <IncludeInVSIX>true</IncludeInVSIX>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

@@ -137,6 +137,13 @@
           <ButtonText>Visual chatGPT Studio Turbo</ButtonText>
         </Strings>
       </Button>
+      <Button guid="guidVisuallChatGPTStudioPackageCmdSet" id="cmdidTerminalWindowSolutionContextCommand" priority="0x0100" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
+        <Icon guid="VisuallChatGPTStudioSolutionContextIcon" id="solutionContextIcon" />
+        <Strings>
+          <ButtonText>Visual chatGPT Studio Solution Context</ButtonText>
+        </Strings>
+      </Button>
     </Buttons>
 
     <Bitmaps>
@@ -157,6 +164,7 @@
       <Bitmap guid="VisuallChatGPTStudioCancelIcon" href="Resources\cancelCommand.png" usedList="cancelIcon"/>
       <Bitmap guid="VisuallChatGPTStudioChatGPTIcon" href="Resources\bot.png" usedList="chatGPTIcon"/>
       <Bitmap guid="VisuallChatGPTStudioTurboIcon" href="Resources\turbo.png" usedList="turboIcon"/>
+      <Bitmap guid="VisuallChatGPTStudioSolutionContextIcon" href="Resources\solutionContext.png" usedList="solutionContextIcon"/>
     </Bitmaps>
   </Commands>
 
@@ -279,6 +287,7 @@
     <GuidSymbol value="{8b0b1a54-4655-4dae-8984-022f82a739f2}" name="guidVisuallChatGPTStudioPackageCmdSet">
       <IDSymbol value="256" name="cmdidTerminalWindowCommand" />
       <IDSymbol value="257" name="cmdidTerminalWindowTurboCommand" />
+      <IDSymbol value="258" name="cmdidTerminalWindowSolutionContextCommand" />
     </GuidSymbol>
 
     <GuidSymbol name="VisuallChatGPTStudioCompleteIcon" value="{C12A8ED0-FBE5-4815-A3FB-2CB73AB06EEA}">
@@ -331,6 +340,9 @@
     </GuidSymbol>
     <GuidSymbol name="VisuallChatGPTStudioTurboIcon" value="{4C9AF432-30B5-44CB-9A6E-3121C6DC7A50}">
       <IDSymbol name="turboIcon" value="1" />
+    </GuidSymbol>
+    <GuidSymbol name="VisuallChatGPTStudioSolutionContextIcon" value="{97050FA7-DEA5-4FBC-AF34-21425E9D807F}">
+      <IDSymbol name="solutionContextIcon" value="1" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

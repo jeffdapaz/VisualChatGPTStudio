@@ -1,12 +1,12 @@
 # Visual chatGPT Studio <img src="https://user-images.githubusercontent.com/63928228/278760982-5a3be81c-0cb0-4e59-98f6-705b371553e5.png" width="3.5%"> 
 
-💬 English | [Chinese](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/README-zh.md)
+🌎 English | [Chinese](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/README-zh.md)
 
 👉 For Visual Studio 2022: [here](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio)
 
 👉 For Visual Studio 2019: [here](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio2019)
 
-## Description 
+## Description 💬
 
 This is an extension that adds chatGPT functionality directly within Visual Studio.
 
@@ -89,6 +89,22 @@ Watch here some examples using the Turbo Chat:
 
 [<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/275615943-a37e30c3-d597-42de-8a38-7d0cdbfe942f.png" width="70%">](https://youtu.be/2NHWWXFMpd0)
 
+## Features by "Visual chatGPT Studio Solution Context" tool window 📌
+
+<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/282463640-4e7c24c6-41d5-4cee-aa36-f363daba6f95.png" width="75%">
+
+Here you can add project items to the context of requests to OpenAI. Ideal for making requests that require knowledge of other points of the project.
+
+For example, you can request the creation of a method in the current document that consumes another method from another class, which was selected through this window.
+
+You can also ask to create unit tests in the open document of a method from another class referenced through the context.
+
+You can also request an analysis that involves a larger context involving several classes. The possibilities are many.
+
+But pay attention. Depending on the amount of code you add to the context, this can increase the tokens consume. And also will can reach the token limit per request sooner depending the model you are using. Set a model with large tokens limit can solve this limitation.
+
+You will find this window in menu View -> Other Windows -> Visual chatGPT Studio Solution Context.
+
 ## Authentication 🔑
 
 To use this tool it is necessary to connect through the OpenAI API or through Azure OpenAI.
@@ -113,7 +129,7 @@ If the question sent is too long (for example, a method with many lines) and/or 
 
 For these cases I advise you to make requests via the tool windows to customize the question in a way that chatGPT does not refuse to answer, or try modify the model options to improve the responses.
 
-## Disclaimer
+## Disclaimer 👋
 
 - As this extension depends on the API provided by OpenAI, there may be some change by them that affects the operation of this extension without prior notice.
 
@@ -129,19 +145,21 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 - If you find any bugs or unexpected behavior, please leave a comment so I can provide a fix.
 
-## Donations
+## Donations 🙏
 
-☕ Buy me a coffee and support me to empower you more. Thank you! 🙏
+☕ Buy me a coffee and support me to empower you more. Thank you! 
 
 [<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/278758680-f5fc9df2-a330-4d6a-ae13-9190b7b8f57b.png" width="20%">](https://www.paypal.com/donate/?hosted_button_id=2Y55G8YYC6Q3E)
 
-## Release Notes
+## Release Notes 📜
 
 ### 2.3.0
 
 - Added the new models gpt-3.5-turbo-1106 and gpt-4-1106-preview (maybe not work with Azure yet). See [here](https://openai.com/blog/new-models-and-developer-products-announced-at-devday) for more details about these new models.
 - Add the new options "Log Request" and "Log Responses". If ON, all requests and/or responses to OpenAI will be logged to the Output window.
 - Commands Options reformulated. Now it's possible set commands by Projects and Solutions.
+- Add the new "Visual chatGPT Studio Solution Context" window, where it is possible to add items from projects to the context of requests to OpenAI.
+- Fixed a bug that was preventing an error message from being displayed in some cases if communication with OpenAI failed. As a result, the execution of the request was not interrupted.
 
 ### 2.2.2
 

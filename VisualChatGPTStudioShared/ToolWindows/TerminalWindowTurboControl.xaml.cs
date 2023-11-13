@@ -1,4 +1,5 @@
 ﻿using Community.VisualStudio.Toolkit;
+using JeffPires.VisualChatGPTStudio.Commands;
 using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils;
 using Microsoft.VisualStudio.Shell;
@@ -6,6 +7,7 @@ using Microsoft.VisualStudio.Text;
 using OpenAI_API.Chat;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -29,6 +31,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         private CancellationTokenSource cancellationTokenSource;
         private DocumentView docView;
         private bool shiftKeyPressed;
+        private bool selectedContextFilesCodeAppended = false;
 
         #endregion Properties
 
@@ -90,6 +93,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
             chatItems.Clear();
             chatList.Items.Refresh();
+
+            selectedContextFilesCodeAppended = false;
         }
 
         /// <summary>
@@ -163,6 +168,17 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
                     return;
                 }
 
+                if (!selectedContextFilesCodeAppended)
+                {
+                    string selectedContextFilesCode = await GetSelectedContextItemsCodeAsync();
+
+                    if (!string.IsNullOrWhiteSpace(selectedContextFilesCode))
+                    {
+                        chat.AppendSystemMessage(selectedContextFilesCode);
+                        selectedContextFilesCodeAppended = true;
+                    }
+                }
+
                 if (commandType == CommandType.Code)
                 {
                     docView = await VS.Documents.GetActiveDocumentViewAsync();
@@ -177,7 +193,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
                     originalCode = TextFormat.RemoveCharactersFromText(originalCode, options.CharactersToRemoveFromRequests.Split(','));
 
                     chat.AppendSystemMessage(options.TurboChatCodeCommand);
-                    chat.AppendUserInput(originalCode);
+                    chat.AppendUserInput(originalCode);                    
                 }
 
                 chatItems.Add(new ChatTurboItem(AuthorEnum.Me, txtRequest.Text, true, 0));
@@ -268,6 +284,24 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             btnRequestCode.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
             btnRequestSend.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
             btnCancel.Visibility = !enable ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        /// <summary>
+        /// Asynchronously gets the code of the selected context items.
+        /// </summary>  
+        /// <returns>The code of the selected context items as a string.</returns>
+        private static async Task<string> GetSelectedContextItemsCodeAsync()
+        {
+            StringBuilder result = new();
+
+            List<string> selectedContextFilesCode = await TerminalWindowSolutionContextCommand.Instance.GetSelectedContextItemsCodeAsync();
+
+            foreach (string code in selectedContextFilesCode)
+            {
+                result.AppendLine(code);
+            }
+
+            return result.ToString();
         }
 
         #endregion Methods                            

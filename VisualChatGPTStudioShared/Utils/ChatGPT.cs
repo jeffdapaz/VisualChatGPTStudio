@@ -1,8 +1,11 @@
-﻿using JeffPires.VisualChatGPTStudio.Options;
+﻿using JeffPires.VisualChatGPTStudio.Commands;
+using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils.Http;
 using OpenAI_API;
 using OpenAI_API.Chat;
 using System;
+using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -31,11 +34,23 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         {
             Conversation chat = CreateConversationForCompletions(options, systemMessage, userInput, stopSequences);
 
+            string selectedContextFilesCode = await GetSelectedContextItemsCodeAsync();
+
+            if (!string.IsNullOrWhiteSpace(selectedContextFilesCode))
+            {
+                chat.AppendSystemMessage(selectedContextFilesCode);
+            }
+
             Task<string> task = chat.GetResponseFromChatbotAsync();
 
-            await Task.WhenAny(task, Task.Delay(timeout, cancellationToken));
+            await Task.WhenAny(task, Task.Delay(timeout, cancellationToken)).ConfigureAwait(false);
 
-            cancellationToken.ThrowIfCancellationRequested();
+            if (task.IsFaulted)
+            {
+                throw task.Exception.InnerException ?? task.Exception;
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();            
 
             return await task;
         }
@@ -54,9 +69,21 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         {
             Conversation chat = CreateConversationForCompletions(options, systemMessage, userInput, stopSequences);
 
+            string selectedContextFilesCode = await GetSelectedContextItemsCodeAsync();
+
+            if (!string.IsNullOrWhiteSpace(selectedContextFilesCode))
+            {
+                chat.AppendSystemMessage(selectedContextFilesCode);
+            }
+
             Task task = chat.StreamResponseFromChatbotAsync(resultHandler);
 
-            await Task.WhenAny(task, Task.Delay(timeout, cancellationToken));
+            await Task.WhenAny(task, Task.Delay(timeout, cancellationToken)).ConfigureAwait(false);
+
+            if (task.IsFaulted)
+            {
+                throw task.Exception.InnerException ?? task.Exception;
+            }
 
             cancellationToken.ThrowIfCancellationRequested();
         }
@@ -209,6 +236,24 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             {
                 apiForAzureTurboChat.Auth.ApiKey = options.ApiKey;
             }
+        }
+
+        /// <summary>
+        /// Asynchronously gets the code of the selected context items.
+        /// </summary>  
+        /// <returns>The code of the selected context items as a string.</returns>
+        private static async Task<string> GetSelectedContextItemsCodeAsync()
+        {
+            StringBuilder result = new();
+
+            List<string> selectedContextFilesCode = await TerminalWindowSolutionContextCommand.Instance.GetSelectedContextItemsCodeAsync();
+
+            foreach (string code in selectedContextFilesCode)
+            {
+                result.AppendLine(code);
+            }
+
+            return result.ToString();
         }
     }
 

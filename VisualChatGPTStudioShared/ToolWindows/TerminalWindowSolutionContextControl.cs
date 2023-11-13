@@ -17,7 +17,7 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
         /// <summary>
         /// Initializes a new instance of the TerminalWindowSolutionContextControl class.
         /// </summary>
-        public TerminalWindowSolutionContextControl()        {            ThreadHelper.ThrowIfNotOnUIThread();            this.InitializeComponent();
+        public TerminalWindowSolutionContextControl()        {            this.InitializeComponent();
 
             validProjectTypes = new()
             {
@@ -47,7 +47,8 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
                 ".vb",
                 ".xml",
                 ".xaml"
-            };            
+            };
+
             invalidProjectItems = new()
             {
                 ".png",
@@ -61,7 +62,7 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
                 ".user",
                 ".vsixmanifest",
                 ".pdb"
-            };            _ = PopulateTreeViewAsync();        }
+            };        }
 
         #endregion Constructors
         #region Event Handlers
@@ -128,7 +129,7 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
         /// <returns>The configured TreeViewItem.</returns>
         private TreeViewItem SetupTreeViewItem(string name)        {            TreeViewItem itemNode = new();            StackPanel stackPanel = new()
             {
-                Orientation = Orientation.Horizontal                
+                Orientation = Orientation.Horizontal
             };            Image iconImage = new()
             {
                 Source = GetFileIcon(name),

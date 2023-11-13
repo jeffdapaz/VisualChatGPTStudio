@@ -10,6 +10,7 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
         private DTE dte;        private SolidColorBrush foreGroundColor;
         private readonly List<string> validProjectTypes;
         private readonly List<string> validProjectItems;
+        private readonly List<string> invalidProjectItems;
 
         #endregion Properties
         #region Constructors
@@ -46,6 +47,20 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
                 ".vb",
                 ".xml",
                 ".xaml"
+            };            
+            invalidProjectItems = new()
+            {
+                ".png",
+                ".bmp",
+                ".exe",
+                ".dll",
+                ".suo",
+                ".vsct",
+                ".vssscc",
+                ".vspscc",
+                ".user",
+                ".vsixmanifest",
+                ".pdb"
             };            _ = PopulateTreeViewAsync();        }
 
         #endregion Constructors
@@ -64,10 +79,10 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
         /// <summary>
         /// Populates the TreeView asynchronously with the solution and project items.
         /// </summary>
-        private async System.Threading.Tasks.Task PopulateTreeViewAsync()        {            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();            dte ??= await VS.GetServiceAsync<DTE, DTE>();            Solution solution = dte.Solution;            string solutionName = Path.GetFileName(solution.FullName);            if (string.IsNullOrWhiteSpace(solutionName))            {                return;            }            TreeViewItem solutionNode;            if (treeView.Items.Count > 0)            {                treeView.Items.Clear();            }            solutionNode = SetupTreeViewItem(solutionName);            treeView.Items.Add(solutionNode);            foreach (Project project in solution.Projects)            {                if (string.IsNullOrWhiteSpace(project?.FileName))
+        private async System.Threading.Tasks.Task PopulateTreeViewAsync()        {            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();            dte ??= await VS.GetServiceAsync<DTE, DTE>();            Solution solution = dte.Solution;            string solutionName = Path.GetFileName(solution.FullName);            if (string.IsNullOrWhiteSpace(solutionName))            {                return;            }            TreeViewItem solutionNode;            if (treeView.Items.Count > 0)            {                treeView.Items.Clear();            }            solutionNode = SetupTreeViewItem(solutionName);            treeView.Items.Add(solutionNode);            foreach (Project project in solution.Projects)            {                if (string.IsNullOrWhiteSpace(project?.Name))
                 {
                     continue;
-                }                TreeViewItem projectNode = SetupTreeViewItem(Path.GetFileName(project.FileName));                solutionNode.Items.Add(projectNode);                PopulateProjectItems(project.ProjectItems, projectNode);            }        }
+                }                TreeViewItem projectNode = SetupTreeViewItem(project.Name);                solutionNode.Items.Add(projectNode);                PopulateProjectItems(project.ProjectItems, projectNode);            }        }
 
         /// <summary>
         /// Populates the project items in a tree view.
@@ -76,13 +91,19 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
         /// <param name="parentNode">The parent node in the tree view.</param>
         private void PopulateProjectItems(ProjectItems items, TreeViewItem parentNode)        {            if (items == null)            {                return;            }            ThreadHelper.ThrowIfNotOnUIThread();
 
-            foreach (ProjectItem item in items)            {                if (!validProjectItems.Any(i => item.Name.EndsWith(i)) &&
+            foreach (ProjectItem item in items)            {                if (!item.Kind.Equals(Constants.vsProjectItemKindSolutionItems) &&
+                    !item.Kind.Equals(Constants.vsProjectItemKindPhysicalFile) &&
                     !item.Kind.Equals(Constants.vsProjectItemKindPhysicalFolder) &&
                     !item.Kind.Equals(Constants.vsProjectItemKindVirtualFolder))
                 {
                     continue;
                 }                if ((item.Kind.Equals(Constants.vsProjectItemKindPhysicalFolder) || item.Kind.Equals(Constants.vsProjectItemKindVirtualFolder)) &&
-                    !CanAddProjectFolder(item.ProjectItems))
+                    (item.ProjectItems == null || item.ProjectItems.Count == 0))
+                {
+                    continue;
+                }
+
+                if (invalidProjectItems.Any(i => item.Name.EndsWith(i)))
                 {
                     continue;
                 }                TreeViewItem itemNode = SetupTreeViewItem(item.Name);
@@ -90,36 +111,8 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
                 parentNode.Items.Add(itemNode);
 
                 PopulateProjectItems(item.ProjectItems, itemNode);
+                PopulateProjectItems(item.SubProject?.ProjectItems, itemNode);
             }        }
-
-        /// <summary>
-        /// Checks if a project folder can be added.
-        /// </summary>
-        /// <param name="folderItems">The project items in the folder.</param>
-        /// <returns>True if a project folder can be added, false otherwise.</returns>
-        private bool CanAddProjectFolder(ProjectItems folderItems)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            if (folderItems == null || folderItems.Count == 0)
-            {
-                return false;
-            }
-
-            foreach (ProjectItem folderItem in folderItems)
-            {
-                if (validProjectItems.Any(i => folderItem.Name.EndsWith(i)))
-                {
-                    return true;
-                }
-                else if (folderItem.Kind.Equals(Constants.vsProjectItemKindPhysicalFolder) || folderItem.Kind.Equals(Constants.vsProjectItemKindVirtualFolder))
-                {
-                    return CanAddProjectFolder(folderItem.ProjectItems);
-                }
-            }
-
-            return false;
-        }
 
         /// <summary>
         /// Recursively checks or unchecks all child items of a TreeViewItem based on the provided isChecked value.
@@ -135,7 +128,7 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
         /// <returns>The configured TreeViewItem.</returns>
         private TreeViewItem SetupTreeViewItem(string name)        {            TreeViewItem itemNode = new();            StackPanel stackPanel = new()
             {
-                Orientation = Orientation.Horizontal
+                Orientation = Orientation.Horizontal                
             };            Image iconImage = new()
             {
                 Source = GetFileIcon(name),

@@ -179,6 +179,11 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
+            if (projectItems == null)
+            {
+                return null;
+            }
+
             foreach (ProjectItem projectItem in projectItems)
             {
                 if (projectItem.Name.Equals(itemName, StringComparison.OrdinalIgnoreCase))
@@ -186,14 +191,16 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                     return projectItem;
                 }
 
-                if (projectItem.ProjectItems != null && projectItem.ProjectItems.Count > 0)
-                {
-                    ProjectItem subItem = FindProjectItemByName(projectItem.ProjectItems, itemName);
+                ProjectItem subItem = FindProjectItemByName(projectItem.ProjectItems, itemName);
 
-                    if (subItem != null)
-                    {
-                        return subItem;
-                    }
+                if (subItem == null)
+                {
+                    subItem = FindProjectItemByName(projectItem.SubProject?.ProjectItems, itemName);
+                }
+
+                if (subItem != null)
+                {
+                    return subItem;
                 }
             }
 

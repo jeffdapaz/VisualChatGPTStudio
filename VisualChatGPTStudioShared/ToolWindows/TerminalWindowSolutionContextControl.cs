@@ -192,7 +192,10 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
         /// <returns>
         /// A list of strings containing the names of the selected files.
         /// </returns>
-        public List<string> GetSelectedFilesName()        {            return GetSelectedFilesName((TreeViewItem)treeView.Items.GetItemAt(0));        }
+        public List<string> GetSelectedFilesName()        {            if (treeView.Items.Count == 0)
+            {
+                return new List<string>();
+            }            return GetSelectedFilesName((TreeViewItem)treeView.Items.GetItemAt(0));        }
 
         /// <summary>
         /// Retrieves the names of selected files from a TreeViewItem.

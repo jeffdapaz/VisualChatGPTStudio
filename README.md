@@ -156,9 +156,9 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 ### 2.3.0
 
 - Added the new models gpt-3.5-turbo-1106 and gpt-4-1106-preview (maybe not work with Azure yet). See [here](https://openai.com/blog/new-models-and-developer-products-announced-at-devday) for more details about these new models.
-- Add the new options "Log Request" and "Log Responses". If ON, all requests and/or responses to OpenAI will be logged to the Output window.
+- Added the new options "Log Request" and "Log Responses". If ON, all requests and/or responses to OpenAI will be logged to the Output window.
 - Commands Options reformulated. Now it's possible set commands by Projects and Solutions.
-- Add the new "Visual chatGPT Studio Solution Context" window, where it is possible to add items from projects to the context of requests to OpenAI.
+- Added the new "Visual chatGPT Studio Solution Context" window, where it is possible to add items from projects to the context of requests to OpenAI.
 - Fixed a bug that was preventing an error message from being displayed in some cases if communication with OpenAI failed. As a result, the execution of the request was not interrupted.
 
 ### 2.2.2

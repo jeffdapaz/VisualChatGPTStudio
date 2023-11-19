@@ -13,6 +13,20 @@
              Name="MyToolWindow"
              xmlns:uc="clr-namespace:JeffPires.VisualChatGPTStudio.ToolWindows.Turbo">
     <TabControl Name="tabChats" Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}">
+        <TabControl.Template>
+            <ControlTemplate TargetType="{x:Type TabControl}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                        <TabPanel x:Name="HeaderPanel" IsItemsHost="True" Margin="0,4,0,0"/>
+                    </ScrollViewer>
+                    <ContentPresenter x:Name="PART_SelectedContentHost" Margin="4" ContentSource="SelectedContent" Grid.Row="1"/>
+                </Grid>
+            </ControlTemplate>
+        </TabControl.Template>
         <TabItem Header="Chats">
             <Grid>
                 <Grid.RowDefinitions>

@@ -37,13 +37,17 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\Commands\OptionCommands.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindowSolutionContext.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindow.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindowSolutionContextControl.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindowControl.xaml.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\SolutionContext\TerminalWindowSolutionContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindow\TerminalWindow.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\SolutionContext\TerminalWindowSolutionContextControl.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindow\TerminalWindowControl.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindowHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindowTurbo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindowTurboControl.xaml.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ChatItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\TerminalWindowTurbo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ucChatItem.xaml.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ucChatHeader.xaml.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ucChat.xaml.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\TerminalWindowTurboControl.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ChatGPT.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ChatTurboItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Constants.cs" />
@@ -61,17 +65,33 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindowSolutionContextControl.xaml">
+    <Page Include="$(MSBuildThisFileDirectory)ToolWindows\SolutionContext\TerminalWindowSolutionContextControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindowControl.xaml">
+    <Page Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindow\TerminalWindowControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindowTurboControl.xaml">
+    <Page Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ucChatItem.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ucChatHeader.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ucChat.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\TerminalWindowTurboControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)ToolWindows\SolutionContext\" />
+    <Folder Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindow\" />
   </ItemGroup>
 </Project>

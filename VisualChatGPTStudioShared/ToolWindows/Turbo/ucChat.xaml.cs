@@ -15,34 +15,53 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using MessageBox = System.Windows.MessageBox;
 
-namespace JeffPires.VisualChatGPTStudio.ToolWindows
+namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 {
     /// <summary>
     /// Interaction logic for TerminalWindowTurboControl.
     /// </summary>
-    public partial class TerminalWindowTurboControl : UserControl
+    public partial class ucChat : UserControl
     {
         #region Properties
 
-        private OptionPageGridGeneral options;
-        private Package package;
+        public ucChatHeader ChatHeader { get; private set; }
+
+        private readonly TerminalWindowTurboControl parentControl;
+        private readonly OptionPageGridGeneral options;
+        private readonly Package package;        
         private Conversation chat;
-        private List<ChatTurboItem> chatItems;
+        private readonly List<ChatTurboItem> chatTurboItems;
         private CancellationTokenSource cancellationTokenSource;
         private DocumentView docView;
         private bool shiftKeyPressed;
         private bool selectedContextFilesCodeAppended = false;
+        private bool firstMessage = true;
 
         #endregion Properties
 
         #region Constructors
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TerminalWindowTurboControl"/> class.
+        /// Initializes a new instance of the ucChat class.
         /// </summary>
-        public TerminalWindowTurboControl()
+        /// <param name="parentControl">The parent TerminalWindowTurboControl.</param>
+        /// <param name="options">The OptionPageGridGeneral options.</param>
+        /// <param name="package">The Package.</param>
+        /// <param name="ucChatHeader">The ucChatHeader.</param>
+        public ucChat(TerminalWindowTurboControl parentControl, OptionPageGridGeneral options, Package package, ucChatHeader ucChatHeader)
         {
             this.InitializeComponent();
+
+            this.parentControl = parentControl;
+            this.options = options;
+            this.package = package;
+            this.ChatHeader = ucChatHeader;
+
+            chat = ChatGPT.CreateConversation(options, options.TurboChatBehavior);
+
+            chatTurboItems = new();
+
+            chatList.ItemsSource = chatTurboItems;
         }
 
         #endregion Constructors
@@ -91,10 +110,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
             chat = ChatGPT.CreateConversation(options, options.TurboChatBehavior);
 
-            chatItems.Clear();
+            chatTurboItems.Clear();
             chatList.Items.Refresh();
 
             selectedContextFilesCodeAppended = false;
+            firstMessage = true;
         }
 
         /// <summary>
@@ -108,7 +128,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
             int index = (int)button.Tag;
 
-            TerminalWindowHelper.Copy(button, chatItems[index].Document.Text);
+            TerminalWindowHelper.Copy(button, chatTurboItems[index].Document.Text);
         }
 
         /// <summary>
@@ -124,24 +144,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
         #endregion Event Handlers
 
-        #region Methods
-
-        /// <summary>
-        /// Starts the control with the given options and package.
-        /// </summary>
-        /// <param name="options">The options.</param>
-        /// <param name="package">The package.</param>
-        public void StartControl(OptionPageGridGeneral options, Package package)
-        {
-            this.options = options;
-            this.package = package;
-
-            chat = ChatGPT.CreateConversation(options, options.TurboChatBehavior);
-
-            chatItems = new();
-
-            chatList.ItemsSource = chatItems;
-        }
+        #region Methods        
 
         /// <summary>
         /// Sends a request asynchronously based on the command type.
@@ -193,10 +196,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
                     originalCode = TextFormat.RemoveCharactersFromText(originalCode, options.CharactersToRemoveFromRequests.Split(','));
 
                     chat.AppendSystemMessage(options.TurboChatCodeCommand);
-                    chat.AppendUserInput(originalCode);                    
+                    chat.AppendUserInput(originalCode);
                 }
 
-                chatItems.Add(new ChatTurboItem(AuthorEnum.Me, txtRequest.Text, true, 0));
+                chatTurboItems.Add(new ChatTurboItem(AuthorEnum.Me, txtRequest.Text, true, 0));
 
                 string request = options.MinifyRequests ? TextFormat.MinifyText(txtRequest.Text) : txtRequest.Text;
 
@@ -228,7 +231,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
                     }
                     else
                     {
-                        chatItems.Add(new ChatTurboItem(author, segments[i].Content, i == 0, chatItems.Count));
+                        chatTurboItems.Add(new ChatTurboItem(author, segments[i].Content, i == 0, chatTurboItems.Count));
                     }
                 }
 
@@ -237,6 +240,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
                 scrollViewer.ScrollToEnd();
 
                 EnableDisableButtons(true);
+
+                if (firstMessage)
+                {
+                    await UpdateHeaderAsync();
+                }
             }
             catch (OperationCanceledException)
             {
@@ -304,15 +312,33 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             return result.ToString();
         }
 
-        #endregion Methods                            
-    }
+        /// <summary>
+        /// Updates the header of the chat.
+        /// </summary>
+        private async System.Threading.Tasks.Task UpdateHeaderAsync()
+        {
+            string request = "Create a title for this chat with max three words based on user message. Be original and creative to avoid repetition. Answer only with the same idiom from the user message. Only answer with max three words.";
 
-    /// <summary>
-    /// Represents the different types of commands that can be used.
-    /// </summary>
-    enum CommandType
-    {
-        Code = 0,
-        Request = 1
+            chat.AppendUserInput(request);
+
+            string response = await SendRequestAsync();
+
+            string[] words = response.Split(' ');
+
+            if (words.Length > 2)
+            {
+                response = string.Concat(words[0], " ", words[1]);
+            }
+
+            response = response.Trim().TrimEnd('.');
+
+            ChatHeader.UpdateChatName(response);
+
+            parentControl.NotifyNewChatCreated(ChatHeader, response);
+
+            firstMessage = false;
+        }
+
+        #endregion Methods                            
     }
 }

@@ -1,4 +1,4 @@
-﻿using JeffPires.VisualChatGPTStudio.ToolWindows;
+﻿using JeffPires.VisualChatGPTStudio.ToolWindows.Turbo;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.ComponentModel.Design;

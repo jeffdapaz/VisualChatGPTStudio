@@ -186,6 +186,12 @@
     <Resource Include="..\Resources\FileTypes\vs.png">
       <Link>Resources\FileTypes\vs.png</Link>
     </Resource>
+    <Resource Include="..\Resources\edit_color.png">
+      <Link>Resources\edit_color.png</Link>
+    </Resource>
+    <Resource Include="..\Resources\garbage_color.png">
+      <Link>Resources\garbage_color.png</Link>
+    </Resource>
     <Content Include="Icon2019.png">
       <IncludeInVSIX>true</IncludeInVSIX>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

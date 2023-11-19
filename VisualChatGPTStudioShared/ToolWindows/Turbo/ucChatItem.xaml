@@ -1,0 +1,32 @@
+﻿<UserControl x:Class="JeffPires.VisualChatGPTStudio.ToolWindows.Turbo.ucChatItem"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity" 
+             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"   
+             xmlns:utils="clr-namespace:JeffPires.VisualChatGPTStudio.Utils"             
+             mc:Ignorable="d"             
+             Name="MyToolWindow">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Image Grid.Column="0" Height="20" Width="20" Name="imgDelete" MouseDown="imgDelete_Click" Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/garbage_color.png" />
+        <Image Grid.Column="2" Height="20" Width="20" Name="imgEdit" MouseDown="imgEdit_Click" Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/edit_color.png" />
+        <TextBlock Grid.Column="4" Name="lblName" FontWeight="Bold" FontSize="16" Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
+        <TextBox 
+            Grid.Column="4" 
+            Name="txtName" 
+            Visibility="Collapsed" 
+            MinWidth="200px" 
+            PreviewKeyDown="txtName_PreviewKeyDown" 
+            LostFocus="TxtName_LostFocus" 
+            LostKeyboardFocus="TxtName_LostFocus"
+            FontSize="16" />
+    </Grid>
+</UserControl>

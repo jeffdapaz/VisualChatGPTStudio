@@ -2,7 +2,7 @@
 using Microsoft.VisualStudio.Shell;
 using System.Runtime.InteropServices;
 
-namespace JeffPires.VisualChatGPTStudio.ToolWindows
+namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 {
     /// <summary>
     /// This class implements the tool window exposed by this package and hosts a user control.

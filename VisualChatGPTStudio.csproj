@@ -161,6 +161,8 @@
     <Resource Include="Resources\FileTypes\xml.png" />
     <Resource Include="Resources\FileTypes\sln.png" />
     <Resource Include="Resources\FileTypes\vs.png" />
+    <Resource Include="Resources\edit_color.png" />
+    <Resource Include="Resources\garbage_color.png" />
     <Content Include="Resources\Icon.png">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>

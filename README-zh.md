@@ -1,124 +1,182 @@
-# Visual chatGPT Studio  
+# Visual chatGPT Studio <img src="https://user-images.githubusercontent.com/63928228/278760982-5a3be81c-0cb0-4e59-98f6-705b371553e5.png" width="3.5%"> 
 
-[English ](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/README.md)| Chinese
+🌎 English(https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/README.md) | Chinese
 
-- 适用于Visual Studio 2022的版本:[点这里](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio)  
-- 适用于Visual Studio 2019的版本:[点这里](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio2019)
+👉 适用于 Visual Studio 2022 的插件在 [这里](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio)。
 
-⚠ 注意!!! 自从版本 2.0.0 起，我们有一个重大变化。
+👉 适用于 Visual Studio 2019 的插件在 [这里](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio2019)。
 
-由于 OpenAI 停止支持完成模型（更多信息请参见[这里](https://openai.com/blog/gpt-4-api-general-availability)），此扩展不再提供对这些模型的支持。
+## 描述 💬
 
-从现在开始，所有对 OpenAI 的请求将使用聊天模型进行，目前使用的是 GPT-3.5-TURBO、GPT-3.5-TURBO-16K 和 GPT-4。
+这是一个在 Visual Studio 中直接增加了 ChatGPT 功能的扩展。
 
-### 这可能会对你产生什么影响？
+您可以通过文本编辑器直接向 ChatGPT 咨询，也可以通过新的特定工具窗口进行操作。
 
-- 由于模型不同，响应的行为也可能不同，特别是如果您自定义了命令。如果响应开始与预期不符，则有必要通过选项调整命令或请求参数。
+在这里观看一些示例：
 
-- Azure 用户：在 2.0.0 版本之前，您必须创建两个资源才能正确使用此扩展，一个资源用于 Completion Models，另一个用于 Chat Models。现在不需要了，只需创建一个使用聊天模型的资源即可。因此，Azure 用户需要通过 "选项 "调整 Azure 参数。
+[<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/275614252-5f824ba6-df13-45e3-928e-086609fe1bcd.png" width="70%">](https://youtu.be/eU5hEh6e5Ow)
 
-- 如果按上述步骤操作后仍有问题，请给我留言，以便我进行调整或修复。
+## 代码编辑器上的功能 👩‍💻
 
-## 描述
+在文本编辑器中选择一个方法，右键单击，您将看到这些新的 ChatGPT 命令：
 
-这是一个在Visual Studio内直接添加 chatGPT 功能的扩展。
+![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/2.1.0/1697062741546/image__2.png)
 
-你可以通过文本编辑器或者一个新的特定的工具窗口直接和 chatGPT 对话 
+- **Complete（完成）：** 开始编写一个方法，选择它并请求完成。
+- **Add Tests（添加测试）：** 为所选方法创建单元测试。
+- **Find Bugs（查找错误）：** 查找所选代码中的错误。
+- **Optimize（优化）：** 优化所选代码。
+- **Optimize（差异视图）：** 优化所选代码，但是，与结果写入代码编辑器不同，将会打开一个新窗口，您可以在其中比较 ChatGPT 优化的代码版本与原始代码的区别。
+- **Explain（解释）：** 对所选代码进行解释。
+- **Add Comments（添加注释）：** 为所选代码添加注释。
+- **Add Summary（添加摘要）：** 为 C# 方法添加摘要。
+- **Add Summary For Entire Class（为整个类添加摘要）：** 为整个 C# 类添加摘要（适用于方法、属性、枚举、接口、类等）。无需选择代码，只需运行命令即可开始流程。
+- **Ask Anything（问任何问题）：** 在代码编辑器中写下问题，等待答案。
+- **Translate（翻译）：** 使用翻译版本替换所选文本。在选项窗口中编辑命令，如果要将其翻译成英语以外的其他语言。
+- **Custom Before（自定义前置）：** 通过选项创建一个自定义命令，将响应插入到所选代码之前。
+- **Custom After（自定义后置）：** 通过选项创建一个自定义命令，将响应插入到所选代码之后。
+- **Custom Replace（自定义替换）：** 通过选项创建一个自定义命令，用响应替换所选文本。
+- **Cancel（取消）：** 取消接收/等待任何命令请求。
 
-[使用示例](https://www.youtube.com/watch?v=h_wUl_IjWRU)https://www.youtube.com/watch?v=h_wUl_IjWRU
+如果您希望响应写入工具窗口而不是代码编辑器，请按住 SHIFT 键并选择命令（快捷方式不起作用）。
 
-## 文本编辑器中的功能
+## 编辑命令 📐
 
-选择一个方法并在文本编辑器上右键单击,你会看到这些新的 chatGPT 命令:
+预定义的命令可以根据需要进行编辑，以满足您当前工作项目的需求。
 
-![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/1.12.0/1692396281064/image__3.png)
+还可以针对解决方案或项目定义特定的命令。如果您没有在具有特定命令的项目中工作，将使用默认命令。
 
-- **Complete：** 开始编写一个方法，选中它并要求完成。
-- **Add Tests：** 为选定的方法创建单元测试。
-- **Find Bugs：** 找出选定代码中的错误。
-- **Optimize：** 优化选定的代码。
-- **Optimize (Diff View)** 优化选定的代码，但不是将结果写入代码编辑器，而是会打开一个新窗口，在该窗口中可以将原始代码与 ChatGPT 优化版本进行比较。
-- **Explain：** 对选定的代码编写解释。
-- **Add Comments：** 为选定的代码添加注释。
-- **Add Summary：** 为 C# 方法添加摘要。
-- **Add Summary For Entire Class：** 为整个 C# 类添加摘要（适用于方法、属性、枚举、接口、类等）。无需选择代码，只需运行命令以启动该过程。
-- **Ask Anything：** 在代码编辑器中编写一个问题，然后等待答案。
-- **Translate：** 用翻译后的版本替换选定的文本。在选项窗口中编辑命令，如果想要将其翻译成英语以外的其他语言。
-- **Custom Before：** 通过选项创建一个自定义命令，在选定的代码之前插入响应。
-- **Custom After：** 通过选项创建一个自定义命令，在选定的代码之后插入响应。
-- **Custom Replace：** 通过选项创建一个自定义命令，用响应替换选定的文本。
+以下是一些示例：
 
-如果你希望响应写入工具窗口而不是代码编辑器,请按住 SHIFT 键并选择命令(快捷键不起作用)。
+- **定义特定的框架或语言：** 例如，您可以为一个项目使用 MSTests 创建特定的命令，而为另一个项目使用 XUnit。
+- **使用其他语言：** 例如，如果您在使用与您母语不同的另一种语言的项目中工作，您可以为您的语言设置命令，并为其他项目设置另一种语言的命令。
+- **等等**。
 
-如果你想要 chatGPT 以另一种语言回复和/或由于某些原因要自定义命令,你可以通过选项编辑默认命令:
+<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/281889918-f6bae902-077b-4688-84ca-d661a9336866.png" width="100%">
 
-![image](https://user-images.githubusercontent.com/63928228/226494626-d422a843-2512-4dee-a177-045f39c0b6d3.png)
+## "Visual ChatGPT Studio" 工具窗口的功能 🛠
 
-例如，将 "Explain "命令的 "Explain "提示改成 "Expllicar en español"（或直接改成 "Expllicar"），OpenAI API 就会以西班牙语编写注释，而不是使用默认的英语命令。
-
-## “Visual chatGPT Studio”工具窗口中的功能
-
-在此工具窗口中,你可以向 chatGPT 提出问题并直接在其中接收答案。
-
-此窗口中的交互使用此扩展的选项中定义的参数(以及代码编辑器中的命令): 
+在这个工具窗口中，您可以向 ChatGPT 提问，并直接在其中收到答案。
 
 ![image](https://user-images.githubusercontent.com/63928228/225486306-d29b1ec3-2ccd-4d74-8153-806a84abe5ea.png)
 
-你可以在菜单查看->其他窗口-> Visual chatGPT Studio 中找到此窗口。
+您还可以通过按住 SHIFT 键执行某些命令，将命令响应重定向到该窗口，以避免在不希望编辑代码时编辑它。
 
-## “Visual chatGPT Studio Turbo”工具窗口中的功能
+您可以在菜单 "View -> Other Windows -> Visual ChatGPT Studio" 中找到这个窗口。
 
-在这个窗口编辑器中,你可以像在 chatGPT 网页端一样直接与 chatGPT 进行交互:
+## "Visual ChatGPT Studio Turbo" 工具窗口的功能 🚀
 
-与前一个窗口不同,在这个窗口中,AI“记住”了整个对话,甚至可以通过选项参数化一个人格:
+在这个窗口的编辑器中，您可以直接与 ChatGPT 进行交互，就像您在 ChatGPT 门户中一样：
 
-![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio/1.7.1/1679515374543/image__11.png)
+与之前的窗口不同，在这个窗口中，AI “记住”了整个对话：
 
-![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio/1.7.3/1679698833202/image__14.png)
+![image](https://github.com/jeffdapaz/VisualChatGPTStudio/assets/63928228/ff47bf5c-8324-46ba-a039-173c172337e0)
 
-你可以在菜单查看->其他窗口-> Visual chatGPT Studio Turbo 中找到此窗口。  
+您还可以通过“发送代码”按钮与已打开的代码编辑器进行交互。使用此按钮，OpenAI API 会了解已打开编辑器中的所有代码，并且您可以直接向您的代码请求互动，例如：
 
-## 认证
+- 在特定行添加新的方法，或者在两个现有方法之间添加；
+- 更改现有方法以添加新的参数；
+- 询问该类是否存在任何 bug；
+- 等等。
 
-使用此工具需要通过 OpenAI API 或 Azure OpenAI 进行连接。
+但要注意，因为这会将打开文件的整个代码发送到 API，这可能会增加令牌的消耗。而且，根据您使用的模型，可能会更快地达到每个请求的令牌限制。设置一个具有更大令牌限制的模型可以解决这个限制。
 
-### 通过 OpenAI  
+通过执行这个命令，您还可以按住 SHIFT 键，然后点击 "发送代码" 按钮，这样代码将直接写入聊天窗口，而不是代码编辑器中，以便在应用到已打开的代码编辑器之前保留原始代码和/或分析响应。
 
-你需要创建一个 OpenAI API 密钥并进行设置。
+您可以在菜单中找到这个窗口：View（视图） -> Other Windows（其他窗口） -> Visual chatGPT Studio Turbo（视觉 chatGPT Studio Turbo）。
 
-你可以在此处创建: [https://beta.openai.com/account/api-keys](https://beta.openai.com/account/api-keys)
+请看这里一些使用 Turbo Chat 的示例：
+
+[<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/275615943-a37e30c3-d597-42de-8a38-7d0cdbfe942f.png" width="70%">](https://youtu.be/2NHWWXFMpd0)
+
+## "Visual chatGPT Studio Solution Context" 工具窗口的特性 📌
+
+<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/282463640-4e7c24c6-41d5-4cee-aa36-f363daba6f95.png" width="75%">
+
+在这里，您可以将项目项添加到请求 OpenAI 的上下文中。非常适合进行需要了解项目其他部分的请求。
+
+例如，您可以请求在当前文档中创建一个方法，该方法消耗另一个通过此窗口选择的另一个类中的方法。
+
+您还可以请求在打开的文档中为通过上下文引用的另一个类的方法创建单元测试。
+
+您还可以请求涉及较大上下文的分析，涉及多个类。可能性很多。
+
+但请注意，根据您添加到上下文中的代码量，这可能会增加令牌的消耗。而且，根据您使用的模型，可能更快地达到每个请求的令牌限制。设置一个具有较大令牌限制的模型可以解决这个限制。
+
+您可以在菜单中找到这个窗口：View（视图） -> Other Windows（其他窗口） -> Visual chatGPT Studio Solution Context（视觉 chatGPT Studio 解决方案上下文）。
+
+## 认证 🔑
+
+要使用这个工具，需要通过 OpenAI API 或 Azure OpenAI 进行连接。
+
+### 通过 OpenAI
+
+您需要创建并设置一个 OpenAI API 密钥。
+
+您可以在这里进行操作：[https://beta.openai.com/account/api-keys](https://beta.openai.com/account/api-keys)
 
 ### 通过 Azure
 
-详情请见[https://learn.microsoft.com/azure/cognitive-services/openai/overview](https://learn.microsoft.com/azure/cognitive-services/openai/overview).
+查看更多详情：[https://learn.microsoft.com/azure/cognitive-services/openai/overview](https://learn.microsoft.com/azure/cognitive-services/openai/overview)。
 
-请阅读 [this](https://github.com/jeffdapaz/VisualChatGPTStudio/issues/31) 了解更多信息。
+请阅读 [此链接](https://github.com/jeffdapaz/VisualChatGPTStudio/issues/31) 获取更多信息。
 
-## 已知问题
+## 已知问题 ⚠
 
-遗憾的是，OpenAI 提供的与 chatGPT 交互的应用程序接口对问题和给定答案的大小有限制。
+遗憾的是，OpenAI 提供的与 chatGPT 交互的 API 存在一个问题，即问题加答案的长度限制。
 
-如果发送的问题太长(例如,有许多行的方法)和/或生成的响应太长,API 可能会截断响应或者根本不响应。
+如果发送的问题太长（例如，一个有很多行的方法）和/或生成的响应太长，API 可能会截断响应甚至根本不做出响应。
 
-对于这些情况,我建议你通过工具窗口提出请求,以便以 chatGPT 不会拒绝回答的方式自定义问题,或者尝试修改模型选项以改善响应。
+对于这些情况，建议您通过工具窗口进行请求，以便以一种 chatGPT 不会拒绝回答的方式自定义问题，或者尝试修改模型选项以改善响应。
 
-## 免责声明
+## 免责声明 👋
 
-- 由于此扩展依赖于OpenAI提供的API，他们可能会在没有事先通知的情况下进行一些更改，从而影响到此扩展的运行。
+- 由于此扩展依赖于 OpenAI 提供的 API，可能会出现一些更改而影响此扩展的运行，而无需事先通知。
 
-- 由于此扩展依赖于OpenAI提供的API，生成的回复可能不会符合预期。
+- 由于此扩展依赖于 OpenAI 提供的 API，生成的响应可能不符合预期。
 
-- 响应的速度和可用性直接取决于 OpenAI 提供的 API 接口。
+- 响应的速度和可用性直接取决于 OpenAI 提供的 API。
 
-- 如果您使用的是 OpenAI 服务而不是 Azure，并收到类似 "429 - 您超出了当前配额，请检查您的计划和账单详情 "的消息，请检查 OpenAI 使用页面，看看是否仍有配额，例如：
+- 如果您使用的是 OpenAI 服务而不是 Azure，并收到类似 "429 - 您超出了当前配额，请检查您的计划和账单详情。" 的消息，请检查 OpenAI 使用情况页面，查看您是否仍有配额，例如：
 
-![image](https://user-images.githubusercontent.com/63928228/242688025-47ec893e-401f-4edb-92a0-127a47a952fe.png)
+<img src="https://user-images.githubusercontent.com/63928228/242688025-47ec893e-401f-4edb-92a0-127a47a952fe.png" width="60%">
 
-您可以在此处检查您的配额:[https://platform.openai.com/account/usage](https://platform.openai.com/account/usage)
+您可以在此处检查您的配额：[https://platform.openai.com/account/usage](https://platform.openai.com/account/usage)
 
-- 如果您发现任何错误或异常行为,请提交 issue 来方便我进行修复。
+- 如果发现任何错误或意外行为，请留下评论，以便我提供修复。
 
-## 发行说明
+## 捐赠 🙏
+
+☕ 请给我买杯咖啡，支持我为您提供更多帮助。谢谢！
+
+[<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/278758680-f5fc9df2-a330-4d6a-ae13-9190b7b8f57b.png" width="20%">](https://www.paypal.com/donate/?hosted_button_id=2Y55G8YYC6Q3E)
+
+## 发行说明 📜
+
+### 2.3.0
+
+- 添加了新的模型 gpt-3.5-turbo-1106 和 gpt-4-1106-preview（可能尚未与 Azure 兼容）。有关这些新模型的更多详情，请参阅[这里](https://openai.com/blog/new-models-and-developer-products-announced-at-devday)。
+- 添加了新选项 "Log Request" 和 "Log Responses"。如果打开，所有发送到 OpenAI 的请求和/或响应将被记录到输出窗口。
+- 重新制定了命令选项。现在可以按项目和解决方案设置命令。
+- 添加了新的 "Visual chatGPT Studio Solution Context" 窗口，可以在其中将项目中的项目添加到发送到 OpenAI 的请求的上下文中。
+- 修复了一个 bug，在某些情况下未能显示错误消息，导致与 OpenAI 通信失败。结果，请求的执行没有中断。
+
+### 2.2.2
+
+- 添加了在执行 "Send Code" 命令时按住 SHIFT 键将代码写入 Turbo Chat 窗口而不是代码编辑器的可能性。
+- 将选项中的 Turbo Chat Code Command 从 "将用户要求的更改应用于代码 "更改为 "将用户要求的更改应用于代码，但重写未更改的原始代码"，以获得更好的性能。
+
+### 2.2.1
+
+- 对请求添加了超时。
+
+### 2.2.0
+
+- 在 Turbo Chat 窗口中添加了 "Send Code" 命令。
+
+### 2.1.0
+
+- 添加了 "Cancel" 命令以停止接收/等待请求。
 
 ### 2.0.0
 

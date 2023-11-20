@@ -1,6 +1,6 @@
 # Visual chatGPT Studio <img src="https://user-images.githubusercontent.com/63928228/278760982-5a3be81c-0cb0-4e59-98f6-705b371553e5.png" width="3.5%"> 
 
-🌎 English(https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/README.md) | Chinese
+🌎 [English](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/README.md) | Chinese
 
 👉 适用于 Visual Studio 2022 的插件在 [这里](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio)。
 

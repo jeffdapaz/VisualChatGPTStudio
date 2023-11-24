@@ -42,14 +42,17 @@
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\SolutionContext\TerminalWindowSolutionContextControl.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindow\TerminalWindowControl.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindowHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ChatItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ChatEntity.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ChatUserControlsItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ChatMessageSegment.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\TerminalWindowTurbo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ucChatItem.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ucChatHeader.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ucChat.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\TerminalWindowTurboControl.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ChatGPT.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\ChatTurboItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\ChatRepository.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ChatListControlItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Constants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\EnumHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\HighlightingDefinitionConverter.cs" />
@@ -57,7 +60,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Http\HttpClientCustom.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Http\RequestCaptureHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\TextFormat.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\TurboChatHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)VisuallChatGPTStudioPackage.cs" />
   </ItemGroup>
   <ItemGroup>

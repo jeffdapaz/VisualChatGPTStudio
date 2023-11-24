@@ -1,10 +1,12 @@
 ﻿using JeffPires.VisualChatGPTStudio.Options;
+using JeffPires.VisualChatGPTStudio.Utils;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using VisualChatGPTStudioShared.ToolWindows.Turbo;
 
 namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 {
@@ -17,7 +19,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
         private OptionPageGridGeneral options;
         private Package package;
-        private readonly List<ChatItem> chats;
+        private readonly List<ChatUserControlsItem> chatUserControlsItems;
 
         #endregion Properties
 
@@ -30,7 +32,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             this.InitializeComponent();
 
-            chats = new();
+            ChatRepository.CreateDataBase();
+
+            chatUserControlsItems = new();
         }
 
         #endregion Constructors
@@ -44,7 +48,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             ucChatHeader ucChatHeader = new(this, "New Chat");
 
-            ucChat ucChat = new(this, options, package, ucChatHeader);
+            ucChat ucChat = new(this, options, package, ucChatHeader, new());
 
             TabItem newChatTab = new() { Header = ucChatHeader, Content = ucChat };
 
@@ -52,7 +56,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             tabChats.SelectedItem = newChatTab;
 
-            chats.Add(new() { Id = Guid.NewGuid().ToString(), Header = ucChatHeader, TabItem = newChatTab, Name = string.Empty });
+            chatUserControlsItems.Add(new() { Chat = new() { Id = Guid.NewGuid().ToString(), Name = string.Empty }, Header = ucChatHeader, TabItem = newChatTab });
         }
 
         /// <summary>
@@ -65,15 +69,15 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 return;
             }
 
-            TabItem tabItem = chats.First(c => c.ListItem == listItem).TabItem;
+            ChatUserControlsItem chatItem = chatUserControlsItems.First(c => c.ListItem == listItem);
 
-            if (tabChats.Items.Contains(tabItem))
+            if (chatItem.TabItem != null && tabChats.Items.Contains(chatItem.TabItem))
             {
-                tabChats.SelectedItem = tabItem;
+                tabChats.SelectedItem = chatItem.TabItem;
             }
             else
             {
-                tabChats.Items.Add(tabItem); 
+                OpenTab(chatItem);
             }
         }
 
@@ -90,11 +94,35 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             this.options = options;
             this.package = package;
+
+            List<ChatEntity> chats = ChatRepository.GetChats();
+
+            foreach (ChatEntity chat in chats.OrderByDescending(c => c.Date))
+            {
+                ucChatItem ucChatItem = new(this, chat.Name);
+
+                ChatUserControlsItem chatItem = new()
+                {
+                    Chat = chat,
+                    Header = new ucChatHeader(this, chat.Name),
+                    ListItem = ucChatItem
+                };
+
+                lvChats.Items.Add(ucChatItem);
+
+                chatUserControlsItems.Add(chatItem);
+            }
         }
 
-        public void NotifyNewChatCreated(ucChatHeader header, string chatName)
+        /// <summary>
+        /// Notifies that a new chat has been created with the given chat header and chat name.
+        /// </summary>
+        /// <param name="header">The chat header.</param>
+        /// <param name="chatName">The chat name.</param>
+        /// <param name="firstMessages">The chat first messages.</param>
+        public void NotifyNewChatCreated(ucChatHeader header, string chatName, List<MessageEntity> firstMessages)
         {
-            int sameNameQtd = chats.Count(c => c.Name.StartsWith(chatName));
+            int sameNameQtd = chatUserControlsItems.Count(c => c.Chat.Name.StartsWith(chatName));
 
             if (sameNameQtd > 0)
             {
@@ -103,12 +131,32 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             ucChatItem chatItem = new(this, chatName);
 
-            lvChats.Items.Add(chatItem);
+            lvChats.Items.Insert(0, chatItem);
 
-            ChatItem chat = chats.First(c => c.Header == header);
+            ChatUserControlsItem chatUserControlItem = chatUserControlsItems.First(c => c.Header == header);
 
-            chat.Name = chatName;
-            chat.ListItem = chatItem;
+            chatUserControlItem.Chat.Name = chatName;
+            chatUserControlItem.Chat.Date = DateTime.Now;
+            chatUserControlItem.Chat.Messages = firstMessages.OrderBy(m => m.Order).ToList();
+            chatUserControlItem.ListItem = chatItem;
+            chatUserControlItem.OpenedBefore = true;
+
+            ChatRepository.AddChat(chatUserControlItem.Chat);
+        }
+
+        /// <summary>
+        /// Notifies that new chat messages have been added to the chat.
+        /// </summary>
+        /// <param name="header">The chat header.</param>
+        /// <param name="messages">The list of new messages.</param>
+        public void NotifyNewChatMessagesAdded(ucChatHeader header, List<MessageEntity> messages)
+        {
+            ChatUserControlsItem chatUserControlItem = chatUserControlsItems.First(c => c.Header == header);
+
+            chatUserControlItem.Chat.Date = DateTime.Now;
+            chatUserControlItem.Chat.Messages = messages.OrderBy(m => m.Order).ToList();
+
+            ChatRepository.UpdateChat(chatUserControlItem.Chat);
         }
 
         /// <summary>
@@ -117,37 +165,69 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// <param name="chatHeader">The ucChatHeader of the tab to be closed.</param>
         public void CloseTab(ucChatHeader chatHeader)
         {
-            ChatItem chatItem = chats.First(c => c.Header == chatHeader);
+            ChatUserControlsItem chatItem = chatUserControlsItems.First(c => c.Header == chatHeader);
 
             tabChats.Items.Remove(chatItem.TabItem);
         }
 
+        /// <summary>
+        /// Deletes a chat item from the chat list and repository.
+        /// </summary>
+        /// <param name="ucChatItem">The chat item to be deleted.</param>
         public void DeleteChat(ucChatItem ucChatItem)
         {
-            ChatItem chatItem = chats.First(c => c.ListItem == ucChatItem);
+            ChatUserControlsItem chatItem = chatUserControlsItems.First(c => c.ListItem == ucChatItem);
 
             lvChats.Items.Remove(chatItem.ListItem);
 
             tabChats.Items.Remove(chatItem.TabItem);
 
-            chats.Remove(chatItem);
+            chatUserControlsItems.Remove(chatItem);
+
+            ChatRepository.DeleteChat(chatItem.Chat.Id);
         }
 
         public bool SetChatNewName(ucChatItem ucChatItem, string newName)
         {
-            int sameNameQtd = chats.Count(c => c.Name.StartsWith(newName));
+            int sameNameQtd = chatUserControlsItems.Count(c => c.Chat.Name.StartsWith(newName));
 
             if (sameNameQtd > 0)
             {
                 return false;
             }
 
-            ChatItem chatItem = chats.First(c => c.ListItem == ucChatItem);
+            ChatUserControlsItem chatItem = chatUserControlsItems.First(c => c.ListItem == ucChatItem);
 
-            chatItem.Name = newName;    
+            chatItem.Chat.Name = newName;
             chatItem.Header.UpdateChatName(newName);
 
+            ChatRepository.UpdateChatName(chatItem.Chat.Id, chatItem.Chat.Name);
+
             return true;
+        }
+
+        /// <summary>
+        /// Opens a new tab for the specified chat item. If the chat item has not been opened before, it creates a new header, retrieves the chat messages from the repository, creates a new chat user control, and sets the tab item's header and content.
+        /// </summary>
+        /// <param name="chatItem">The chat item to open a tab for.</param>
+        private void OpenTab(ChatUserControlsItem chatItem)
+        {
+            if (!chatItem.OpenedBefore)
+            {
+                chatItem.Header = new(this, chatItem.Chat.Name);
+
+                chatItem.Chat.Messages = ChatRepository.GetMessages(chatItem.Chat.Id);
+
+                ucChat ucChat = new(this, options, package, chatItem.Header, chatItem.Chat.Messages);
+
+                chatItem.TabItem = new() { Header = chatItem.Header, Content = ucChat };
+
+                chatItem.OpenedBefore = true;
+            }
+
+            tabChats.Items.Add(chatItem.TabItem);
+
+            tabChats.SelectedItem = chatItem.TabItem;
         }
 
         #endregion Methods                            

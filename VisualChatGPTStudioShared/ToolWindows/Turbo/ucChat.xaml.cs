@@ -7,12 +7,15 @@ using Microsoft.VisualStudio.Text;
 using OpenAI_API.Chat;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using VisualChatGPTStudioShared.ToolWindows.Turbo;
 using MessageBox = System.Windows.MessageBox;
 
 namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
@@ -28,9 +31,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
         private readonly TerminalWindowTurboControl parentControl;
         private readonly OptionPageGridGeneral options;
-        private readonly Package package;        
-        private Conversation chat;
-        private readonly List<ChatTurboItem> chatTurboItems;
+        private readonly Package package;
+        private readonly List<MessageEntity> messages;
+        private readonly Conversation chat;
+        private readonly List<ChatListControlItem> chatListControlItems;
         private CancellationTokenSource cancellationTokenSource;
         private DocumentView docView;
         private bool shiftKeyPressed;
@@ -46,9 +50,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         /// <param name="parentControl">The parent TerminalWindowTurboControl.</param>
         /// <param name="options">The OptionPageGridGeneral options.</param>
-        /// <param name="package">The Package.</param>
-        /// <param name="ucChatHeader">The ucChatHeader.</param>
-        public ucChat(TerminalWindowTurboControl parentControl, OptionPageGridGeneral options, Package package, ucChatHeader ucChatHeader)
+        /// <param name="package">The Package package.</param>
+        /// <param name="ucChatHeader">The ucChatHeader control.</param>
+        /// <param name="messages">The list of MessageEntity messages.</param>
+        public ucChat(TerminalWindowTurboControl parentControl, OptionPageGridGeneral options, Package package, ucChatHeader ucChatHeader, List<MessageEntity> messages)
         {
             this.InitializeComponent();
 
@@ -56,12 +61,32 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             this.options = options;
             this.package = package;
             this.ChatHeader = ucChatHeader;
+            this.messages = messages;
+
+            StringBuilder segments;
 
             chat = ChatGPT.CreateConversation(options, options.TurboChatBehavior);
 
-            chatTurboItems = new();
+            chatListControlItems = new();
 
-            chatList.ItemsSource = chatTurboItems;
+            foreach (MessageEntity message in messages.OrderBy(m => m.Order))
+            {
+                firstMessage = false;
+                segments = new();
+
+                message.Segments = message.Segments.OrderBy(s => s.SegmentOrderStart).ToList();
+
+                for (int i = 0; i < message.Segments.Count; i++)
+                {
+                    chatListControlItems.Add(new ChatListControlItem(message.Segments[i].Author, message.Segments[i].Content, i == 0, chatListControlItems.Count));
+
+                    segments.AppendLine(message.Segments[i].Content);
+                }
+
+                chat.AppendUserInput(segments.ToString());
+            }
+
+            chatList.ItemsSource = chatListControlItems;
         }
 
         #endregion Constructors
@@ -95,29 +120,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         }
 
         /// <summary>
-        /// Handles the click event for the Clear button, which clears the conversation.
-        /// </summary>
-        /// <param name="sender">The object that raised the event.</param>
-        /// <param name="e">The event arguments.</param>
-        private void btnClear_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBoxResult result = MessageBox.Show("Clear the conversation?", Constants.EXTENSION_NAME, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
-
-            if (result == MessageBoxResult.No)
-            {
-                return;
-            }
-
-            chat = ChatGPT.CreateConversation(options, options.TurboChatBehavior);
-
-            chatTurboItems.Clear();
-            chatList.Items.Refresh();
-
-            selectedContextFilesCodeAppended = false;
-            firstMessage = true;
-        }
-
-        /// <summary>
         /// Copies the text of the chat item at the given index to the clipboard.
         /// </summary>
         /// <param name="sender">The button that was clicked.</param>
@@ -128,7 +130,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             int index = (int)button.Tag;
 
-            TerminalWindowHelper.Copy(button, chatTurboItems[index].Document.Text);
+            TerminalWindowHelper.Copy(button, chatListControlItems[index].Document.Text);
         }
 
         /// <summary>
@@ -199,7 +201,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     chat.AppendUserInput(originalCode);
                 }
 
-                chatTurboItems.Add(new ChatTurboItem(AuthorEnum.Me, txtRequest.Text, true, 0));
+                chatListControlItems.Add(new ChatListControlItem(AuthorEnum.Me, txtRequest.Text, true, 0));
 
                 string request = options.MinifyRequests ? TextFormat.MinifyText(txtRequest.Text) : txtRequest.Text;
 
@@ -217,21 +219,21 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 string response = await SendRequestAsync();
 
-                List<ChatTurboResponseSegment> segments = TurboChatHelper.GetChatTurboResponseSegments(response);
+                AddMessageSegments(new() { new() { Author = AuthorEnum.Me, Content = request } });
 
-                AuthorEnum author;
+                List<ChatMessageSegment> segments = GetChatTurboResponseSegments(response);
+
+                AddMessageSegments(segments);
 
                 for (int i = 0; i < segments.Count; i++)
                 {
-                    author = segments[i].IsCode ? AuthorEnum.ChatGPTCode : AuthorEnum.ChatGPT;
-
-                    if (author == AuthorEnum.ChatGPTCode && commandType == CommandType.Code && !shiftKeyPressed)
+                    if (segments[i].Author == AuthorEnum.ChatGPTCode && commandType == CommandType.Code && !shiftKeyPressed)
                     {
                         docView.TextView.TextBuffer.Replace(new Span(0, docView.TextView.TextBuffer.CurrentSnapshot.Length), segments[i].Content);
                     }
                     else
                     {
-                        chatTurboItems.Add(new ChatTurboItem(author, segments[i].Content, i == 0, chatTurboItems.Count));
+                        chatListControlItems.Add(new ChatListControlItem(segments[i].Author, segments[i].Content, i == 0, chatListControlItems.Count));
                     }
                 }
 
@@ -244,6 +246,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 if (firstMessage)
                 {
                     await UpdateHeaderAsync();
+                }
+                else
+                {
+                    parentControl.NotifyNewChatMessagesAdded(ChatHeader, messages);
                 }
             }
             catch (OperationCanceledException)
@@ -283,12 +289,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             grdProgress.Visibility = enable ? Visibility.Collapsed : Visibility.Visible;
 
-            btnClear.IsEnabled = enable;
             btnRequestCode.IsEnabled = enable;
             btnRequestSend.IsEnabled = enable;
             btnCancel.IsEnabled = !enable;
 
-            btnClear.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
             btnRequestCode.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
             btnRequestSend.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
             btnCancel.Visibility = !enable ? Visibility.Visible : Visibility.Collapsed;
@@ -313,30 +317,117 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         }
 
         /// <summary>
+        /// Adds a list of chat message segments to the existing messages list.
+        /// </summary>
+        /// <param name="segments">The list of chat message segments to be added.</param>
+        private void AddMessageSegments(List<ChatMessageSegment> segments)
+        {
+            int order = messages.Count + 1;
+
+            messages.Add(new() { Order = order, Segments = segments });
+        }
+
+        /// <summary>
         /// Updates the header of the chat.
         /// </summary>
         private async System.Threading.Tasks.Task UpdateHeaderAsync()
         {
-            string request = "Create a title for this chat with max three words based on user message. Be original and creative to avoid repetition. Answer only with the same idiom from the user message. Only answer with max three words.";
+            string request = "Give a title based on my first message. The title needs to be in the same language as my first message. The title can only have three words in total.";
 
             chat.AppendUserInput(request);
 
-            string response = await SendRequestAsync();
+            string chatName = await SendRequestAsync();
 
-            string[] words = response.Split(' ');
+            chatName = TextFormat.RemoveCharactersFromText(chatName, "\r\n", "\n", "\r");
 
-            if (words.Length > 2)
+            string[] words = chatName.Split(' ');
+
+            if (words.Length > 3)
             {
-                response = string.Concat(words[0], " ", words[1]);
+                chatName = string.Concat(words[0], " ", words[1]);
             }
 
-            response = response.Trim().TrimEnd('.');
+            chatName = chatName.Trim().TrimEnd('.');
 
-            ChatHeader.UpdateChatName(response);
+            ChatHeader.UpdateChatName(chatName);
 
-            parentControl.NotifyNewChatCreated(ChatHeader, response);
+            parentControl.NotifyNewChatCreated(ChatHeader, chatName, messages);
 
             firstMessage = false;
+        }
+
+        /// <summary>
+        /// Retrieves the segments of a chat turbo response by splitting the response using a specified divider.
+        /// </summary>
+        /// <param name="response">The chat turbo response.</param>
+        /// <returns>A list of ChatTurboResponseSegment objects representing the segments of the response.</returns>
+        private List<ChatMessageSegment> GetChatTurboResponseSegments(string response)
+        {
+            const string DIVIDER = "```";
+
+            Regex regex = new($@"({DIVIDER}([\s\S]*?){DIVIDER})");
+
+            MatchCollection matches = regex.Matches(response);
+
+            List<ChatMessageSegment> substrings = new();
+
+            //Get all substrings from the separation with the character ```
+            string[] allSubstrings = response.Split(new string[] { DIVIDER }, StringSplitOptions.None);
+
+            int indexFirstLine;
+
+            // Identify the initial and final position of each substring that appears between the characters ```
+            foreach (Match match in matches)
+            {
+                int start = match.Index;
+                int end = start + match.Length;
+
+                indexFirstLine = match.Value.IndexOf('\n');
+
+                substrings.Add(new ChatMessageSegment
+                {
+                    Author = AuthorEnum.ChatGPTCode,
+                    Content = Environment.NewLine + match.Value.Substring(indexFirstLine + 1).Replace(DIVIDER, string.Empty) + Environment.NewLine,
+                    SegmentOrderStart = start,
+                    SegmentOrderEnd = end
+                });
+            }
+
+            bool matched;
+
+            // Identify the initial and final position of each substring that does not appear between special characters ``` 
+            for (int i = 0; i < allSubstrings.Length; i++)
+            {
+                matched = false;
+
+                foreach (Match match in matches)
+                {
+                    if (match.Value.Contains(allSubstrings[i]))
+                    {
+                        matched = true;
+                        break;
+                    }
+                }
+
+                if (matched)
+                {
+                    continue;
+                }
+
+                int start = response.IndexOf(allSubstrings[i]);
+                int end = start + allSubstrings[i].Length;
+
+                substrings.Add(new ChatMessageSegment
+                {
+                    Author = AuthorEnum.ChatGPT,
+                    Content = allSubstrings[i].Trim(),
+                    SegmentOrderStart = start,
+                    SegmentOrderEnd = end
+                });
+            }
+
+            // Order the list of substrings by their starting position.
+            return substrings.OrderBy(s => s.SegmentOrderStart).ToList();
         }
 
         #endregion Methods                            

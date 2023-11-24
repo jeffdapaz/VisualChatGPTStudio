@@ -83,6 +83,10 @@ But pay attention. Because that will send the entire code from opened file to AP
 
 By executing this command, you can also hold down the SHIFT key when press the "Send Code" button so that the code will be write directly in the chat window instead of the code editor, in case you want to preserve the original code and/or analyze the response before applying it to the opened code editor.
 
+You will also be able to keep multiple chats open at the same time in different tabs. And each chat is kept in history, allowing you to continue the conversation even if Visual Studio is closed:
+
+<img src="" width="75%">
+
 You will find this window in menu View -> Other Windows -> Visual chatGPT Studio Turbo.
 
 Watch here some examples using the Turbo Chat:
@@ -156,6 +160,7 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 ### 2.4.0
 
 - Added tabs to the Turbo Chat.
+- Added Chats history.
 
 ### 2.3.0
 

@@ -16,8 +16,8 @@
             <ColumnDefinition Width="10" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <Image Grid.Column="0" Height="20" Width="20" Name="imgDelete" MouseDown="imgDelete_Click" Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/garbage_color.png" />
-        <Image Grid.Column="2" Height="20" Width="20" Name="imgEdit" MouseDown="imgEdit_Click" Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/edit_color.png" />
+        <Image Grid.Column="0" Height="20" Width="20" Name="imgDelete" MouseDown="imgDelete_Click" ToolTip="Delete the Chat" Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/garbage_color.png" />
+        <Image Grid.Column="2" Height="20" Width="20" Name="imgEdit" MouseDown="imgEdit_Click" ToolTip="Edit the Chat Name" Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/edit_color.png" />
         <TextBlock Grid.Column="4" Name="lblName" FontWeight="Bold" FontSize="16" Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
         <TextBox 
             Grid.Column="4" 

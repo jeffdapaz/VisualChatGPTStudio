@@ -35,7 +35,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="15"/>
-            <RowDefinition Height="Auto" MinHeight="100"/>
+            <RowDefinition Height="Auto" MinHeight="65"/>
         </Grid.RowDefinitions>
         <Grid Name="grdChat" Grid.Row="0">
             <Grid.RowDefinitions>
@@ -108,9 +108,6 @@
                 </avalonEdit:TextEditor.ContextMenu>
             </avalonEdit:TextEditor>
             <StackPanel Grid.Column="3" VerticalAlignment="Bottom">
-                <Button  Height="30" Width="30" Name="btnClear" ToolTip="Clear the conversation" Click="btnClear_Click" Margin="0,0,0,5">
-                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/garbage.png" Width="20" Height="20"/>
-                </Button>
                 <Button Height="30" Width="30" Name="btnRequestCode" ToolTip="Send Code (Ctrl+Alt+Enter)" Command="{StaticResource sendCode}" Margin="0,0,0,5">
                     <Button.Content>
                         <TextBlock FontWeight="Bold" FontSize="16">{...}</TextBlock>

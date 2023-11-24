@@ -1,20 +1,15 @@
 ﻿using ICSharpCode.AvalonEdit.Document;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio;
+using JeffPires.VisualChatGPTStudio.Utils;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using Microsoft.VisualStudio.Shell;
-using System.Windows.Interop;
-using System;
 
-namespace JeffPires.VisualChatGPTStudio.Utils
+namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 {
     /// <summary>
-    /// Represents a ChatTurboItem object which contains information about a chat item.
+    /// Represents an item on the ucChat ListControl.
     /// </summary>
-    public class ChatTurboItem
+    public class ChatListControlItem
     {
         public string ImageSource { get; private set; }
 
@@ -39,7 +34,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <param name="message">Message content.</param>
         /// <param name="firstSegment">Indicates if the message is the first segment of the conversation.</param>
         /// <param name="index">Index of the message.</param>
-        public ChatTurboItem(AuthorEnum author, string message, bool firstSegment, int index)
+        public ChatListControlItem(AuthorEnum author, string message, bool firstSegment, int index)
         {
             Document = new TextDocument(message);
 

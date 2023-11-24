@@ -24,7 +24,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <param name="text">The text from which to remove the characters.</param>
         /// <param name="charsToRemove">The characters to remove from the text.</param>
         /// <returns>The text with the specified characters removed.</returns>
-        public static string RemoveCharactersFromText(string text, string[] charsToRemove)
+        public static string RemoveCharactersFromText(string text, params string[] charsToRemove)
         {
             foreach (string character in charsToRemove)
             {

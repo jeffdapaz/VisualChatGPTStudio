@@ -74,8 +74,6 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             OleMenuCommandService commandService = await package.GetServiceAsync((typeof(IMenuCommandService))) as OleMenuCommandService;
             Instance = new TerminalWindowTurboCommand(package, commandService);
-
-            await InitializeToolWindowAsync(package);
         }
 
         /// <summary>

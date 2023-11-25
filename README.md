@@ -161,6 +161,7 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 - Added tabs to the Turbo Chat.
 - Added Chats history.
+- Fixed a behavior that cause the opening of all the extension Tool Windows when opened one of them.
 
 ### 2.3.0
 

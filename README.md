@@ -85,7 +85,7 @@ By executing this command, you can also hold down the SHIFT key when press the "
 
 You will also be able to keep multiple chats open at the same time in different tabs. And each chat is kept in history, allowing you to continue the conversation even if Visual Studio is closed:
 
-<img src="" width="75%">
+<img src="https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/2.4.0/1700946186856/image__8.png" width="60%">
 
 You will find this window in menu View -> Other Windows -> Visual chatGPT Studio Turbo.
 

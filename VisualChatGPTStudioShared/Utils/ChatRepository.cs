@@ -19,12 +19,17 @@ using System.IO;using System.Text;using System.Windows;using VisualChatGPTStu
         /// </summary>
         public static void CreateDataBase()        {            try
             {
-                string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Constants.EXTENSION_NAME);
+                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Constants.EXTENSION_NAME);
 
-                filePath = Path.Combine(filePath, "VisualChatGptStudio.db");
+                string filePath = Path.Combine(folder, "VisualChatGptStudio.db");
 
                 if (!File.Exists(filePath))
                 {
+                    if (!Directory.Exists(folder))
+                    {
+                        Directory.CreateDirectory(folder);
+                    }
+
                     StreamWriter file = new(filePath, true, Encoding.Default);
 
                     file.Dispose();

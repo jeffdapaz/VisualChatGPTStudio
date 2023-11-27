@@ -157,6 +157,10 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ## Release Notes 📜
 
+### 2.4.1
+
+- Fixed a bug introduced in the last release when trying to use the Turbo Chat Window. The bug is related to the creation of the file to store the chat history.
+
 ### 2.4.0
 
 - Added tabs to the Turbo Chat.

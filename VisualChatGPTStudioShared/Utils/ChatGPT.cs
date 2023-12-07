@@ -50,7 +50,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                 throw task.Exception.InnerException ?? task.Exception;
             }
 
-            cancellationToken.ThrowIfCancellationRequested();            
+            cancellationToken.ThrowIfCancellationRequested();
 
             return await task;
         }
@@ -113,6 +113,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
             chat.AppendSystemMessage(systemMessage);
 
+            chat.AutoTruncateOnContextLengthExceeded = true;
             chat.RequestParameters.Temperature = options.Temperature;
             chat.RequestParameters.MaxTokens = options.MaxTokens;
             chat.RequestParameters.TopP = options.TopP;

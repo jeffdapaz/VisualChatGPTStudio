@@ -133,6 +133,23 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         }
 
         /// <summary>
+        /// Event handler for the btnSwitchWordWrap button click event. Toggles the visibility of the horizontal scroll bar in the txtRequest TextBox.
+        /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event arguments.</param>
+        private void btnSwitchWordWrap_Click(object sender, RoutedEventArgs e)
+        {
+            if (txtResponse.HorizontalScrollBarVisibility == ScrollBarVisibility.Disabled)
+            {
+                txtResponse.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
+            }
+            else
+            {
+                txtResponse.HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled;
+            }
+        }
+
+        /// <summary>
         /// This method changes the syntax highlighting of the textbox based on the language detected in the text.
         /// </summary>
         private void txtRequest_TextChanged(object sender, EventArgs e)

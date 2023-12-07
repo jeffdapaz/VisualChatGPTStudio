@@ -97,10 +97,15 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="5" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="5" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" HorizontalAlignment="Left">Response:</TextBlock>
                 <Button Grid.Column="2" Height="20" Width="20" HorizontalAlignment="Left" Name="btnResponseCopy" Click="btnResponseCopy_Click" ToolTip="Copy">
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/copy.png" Width="15" Height="15"/>
+                </Button>
+                <Button Grid.Column="4" Height="20" Width="20" HorizontalAlignment="Left" Name="btnSwitchWordWrap" Click="btnSwitchWordWrap_Click" ToolTip="Turn ON/OFF Word Wrap">
+                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/wordWrap.png" Width="15" Height="15"/>
                 </Button>
             </Grid>
             <avalonEdit:TextEditor        

@@ -157,6 +157,11 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ## Release Notes 📜
 
+### 2.4.2
+
+- Added the Word Wrap switch button on Tool Window.
+- Added the feature to automatically remove early chat messages from conversation history when the context limit has reached.
+
 ### 2.4.1
 
 - Fixed a bug introduced in the last release when trying to use the Turbo Chat Window. The bug is related to the creation of the file to store the chat history.

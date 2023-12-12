@@ -157,6 +157,11 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ## Release Notes 📜
 
+### 2.4.3
+
+- Added the gpt-4-32k model.
+- Removed the gpt-3.5-turbo-16k model. OpenAI currently points to gpt-3.5-turbo model.
+
 ### 2.4.2
 
 - Added the Word Wrap switch button on Tool Window.

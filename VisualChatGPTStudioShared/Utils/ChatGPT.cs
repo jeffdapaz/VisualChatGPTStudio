@@ -264,13 +264,13 @@ namespace JeffPires.VisualChatGPTStudio.Utils
     public enum ModelLanguageEnum
     {
         [EnumStringValue("gpt-3.5-turbo")]
-        GPT_3_5_Turbo,
-        [EnumStringValue("gpt-3.5-turbo-16k")]
-        GPT_3_5_Turbo_16k,
+        GPT_3_5_Turbo,        
         [EnumStringValue("gpt-3.5-turbo-1106")]
         GPT_3_5_Turbo_1106,
         [EnumStringValue("gpt-4")]
         GPT_4,
+        [EnumStringValue("gpt-4-32k")]
+        GPT_4_32K,
         [EnumStringValue("gpt-4-1106-preview")]
         GPT_4_Turbo
     }

@@ -16,8 +16,8 @@ namespace JeffPires.VisualChatGPTStudio.Utils
     /// </summary>
     static class ChatGPT
     {
-        private static OpenAIAPI api;
-        private static OpenAIAPI apiForAzureTurboChat;
+        private static OpenAIAPI openAiAPI;
+        private static OpenAIAPI azureAPI;
         private static ChatGPTHttpClientFactory chatGPTHttpClient;
         private static readonly TimeSpan timeout = new(0, 0, 120);
 
@@ -98,17 +98,17 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         {
             Conversation chat;
 
-            if (options.Service == OpenAIService.OpenAI || string.IsNullOrWhiteSpace(options.AzureDeploymentId))
+            if (options.Service == OpenAIService.OpenAI)
             {
-                CreateApiHandler(options);
+                CreateOpenAIApiHandler(options);
 
-                chat = api.Chat.CreateConversation();
+                chat = openAiAPI.Chat.CreateConversation();
             }
             else
             {
-                CreateApiHandlerForAzureTurboChat(options);
+                CreateAzureApiHandler(options);
 
-                chat = apiForAzureTurboChat.Chat.CreateConversation();
+                chat = azureAPI.Chat.CreateConversation();
             }
 
             chat.AppendSystemMessage(systemMessage);
@@ -157,12 +157,12 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         }
 
         /// <summary>
-        /// Creates an API handler with the given API key and proxy.
+        /// Creates an OpenAI API handler based on the provided options.
         /// </summary>
-        /// <param name="options">All configurations to create the connection</param>
-        private static void CreateApiHandler(OptionPageGridGeneral options)
+        /// <param name="options">The options to use for creating the OpenAI API handler.</param>
+        private static void CreateOpenAIApiHandler(OptionPageGridGeneral options)
         {
-            if (api == null)
+            if (openAiAPI == null)
             {
                 chatGPTHttpClient = new(options);
 
@@ -171,51 +171,50 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                     chatGPTHttpClient.SetProxy(options.Proxy);
                 }
 
-                if (options.Service == OpenAIService.AzureOpenAI)
+                APIAuthentication auth;
+
+                if (!string.IsNullOrWhiteSpace(options.OpenAIOrganization))
                 {
-                    api = OpenAIAPI.ForAzure(options.AzureResourceName, options.AzureDeploymentId, options.ApiKey);
+                    auth = new(options.ApiKey, options.OpenAIOrganization);
                 }
                 else
                 {
-                    APIAuthentication auth;
-
-                    if (!string.IsNullOrWhiteSpace(options.OpenAIOrganization))
-                    {
-                        auth = new(options.ApiKey, options.OpenAIOrganization);
-                    }
-                    else
-                    {
-                        auth = new(options.ApiKey);
-                    }
-
-                    api = new(auth);
-
-                    if (!string.IsNullOrWhiteSpace(options.BaseAPI))
-                    {
-                        api.ApiUrlFormat = options.BaseAPI + "/{0}/{1}";
-                    }
+                    auth = new(options.ApiKey);
                 }
 
-                api.HttpClientFactory = chatGPTHttpClient;
+                openAiAPI = new(auth);
+
+                if (!string.IsNullOrWhiteSpace(options.BaseAPI))
+                {
+                    openAiAPI.ApiUrlFormat = options.BaseAPI + "/{0}/{1}";
+                }
+
+                openAiAPI.HttpClientFactory = chatGPTHttpClient;
             }
-            else if ((options.Service == OpenAIService.AzureOpenAI && !api.ApiUrlFormat.ToUpper().Contains("AZURE")) || (options.Service == OpenAIService.OpenAI && api.ApiUrlFormat.ToUpper().Contains("AZURE")))
+            else if ((chatGPTHttpClient.Proxy ?? string.Empty) != (options.Proxy ?? string.Empty) || (!string.IsNullOrWhiteSpace(options.BaseAPI) && !openAiAPI.ApiUrlFormat.StartsWith(options.BaseAPI)))
             {
-                api = null;
-                CreateApiHandler(options);
+                openAiAPI = null;
+                CreateOpenAIApiHandler(options);
             }
-            else if (api.Auth.ApiKey != options.ApiKey)
+
+            if (openAiAPI.Auth.ApiKey != options.ApiKey)
             {
-                api.Auth.ApiKey = options.ApiKey;
+                openAiAPI.Auth.ApiKey = options.ApiKey;
+            }
+
+            if ((openAiAPI.Auth.OpenAIOrganization ?? string.Empty) != (options.OpenAIOrganization ?? string.Empty))
+            {
+                openAiAPI.Auth.OpenAIOrganization = options.OpenAIOrganization;
             }
         }
 
         /// <summary>
-        /// Creates an API handler for Azure TurboChat using the provided options.
+        /// Creates an Azure API handler based on the provided options. 
         /// </summary>
-        /// <param name="options">The options to use for creating the API handler.</param>
-        private static void CreateApiHandlerForAzureTurboChat(OptionPageGridGeneral options)
+        /// <param name="options">The options to use for creating/updating the Azure API handler.</param>
+        private static void CreateAzureApiHandler(OptionPageGridGeneral options)
         {
-            if (apiForAzureTurboChat == null)
+            if (azureAPI == null)
             {
                 chatGPTHttpClient = new(options);
 
@@ -224,18 +223,24 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                     chatGPTHttpClient.SetProxy(options.Proxy);
                 }
 
-                apiForAzureTurboChat = OpenAIAPI.ForAzure(options.AzureResourceName, options.AzureDeploymentId, options.ApiKey);
+                azureAPI = OpenAIAPI.ForAzure(options.AzureResourceName, options.AzureDeploymentId, options.ApiKey);
 
-                apiForAzureTurboChat.HttpClientFactory = chatGPTHttpClient;
-
-                if (!string.IsNullOrWhiteSpace(options.AzureApiVersion))
-                {
-                    apiForAzureTurboChat.ApiVersion = options.AzureApiVersion;
-                }
+                azureAPI.HttpClientFactory = chatGPTHttpClient;
             }
-            else if (apiForAzureTurboChat.Auth.ApiKey != options.ApiKey)
+            else if ((chatGPTHttpClient.Proxy ?? string.Empty) != (options.Proxy ?? string.Empty) || !azureAPI.ApiUrlFormat.Contains(options.AzureResourceName) || !azureAPI.ApiUrlFormat.Contains(options.AzureDeploymentId))
             {
-                apiForAzureTurboChat.Auth.ApiKey = options.ApiKey;
+                azureAPI = null;
+                CreateAzureApiHandler(options);
+            }
+
+            if (azureAPI.Auth.ApiKey != options.ApiKey)
+            {
+                azureAPI.Auth.ApiKey = options.ApiKey;
+            }
+
+            if ((azureAPI.ApiVersion ?? string.Empty) != (options.AzureApiVersion ?? string.Empty))
+            {
+                azureAPI.ApiVersion = options.AzureApiVersion;
             }
         }
 
@@ -264,7 +269,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
     public enum ModelLanguageEnum
     {
         [EnumStringValue("gpt-3.5-turbo")]
-        GPT_3_5_Turbo,        
+        GPT_3_5_Turbo,
         [EnumStringValue("gpt-3.5-turbo-1106")]
         GPT_3_5_Turbo_1106,
         [EnumStringValue("gpt-4")]

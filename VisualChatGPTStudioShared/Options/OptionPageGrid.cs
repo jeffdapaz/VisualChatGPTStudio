@@ -53,7 +53,7 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DisplayName("Log Requests")]
         [Description("If true, all requests to OpenAI will be logged to the Output window.")]
         [DefaultValue(false)]
-        public bool LogRequests  { get; set; } = false;
+        public bool LogRequests { get; set; } = false;
 
         [Category("General")]
         [DisplayName("Log Responses")]
@@ -63,14 +63,7 @@ namespace JeffPires.VisualChatGPTStudio.Options
 
         #endregion General
 
-        #region Model Parameters
-
-        [Category("Model Parameters")]
-        [DisplayName("Model Language")]
-        [Description("See \"https://platform.openai.com/docs/models/overview\" for more details.")]
-        [DefaultValue(ModelLanguageEnum.GPT_3_5_Turbo)]
-        [TypeConverter(typeof(EnumConverter))]
-        public ModelLanguageEnum Model { get; set; } = ModelLanguageEnum.GPT_3_5_Turbo;
+        #region Model Parameters        
 
         [Category("Model Parameters")]
         [DisplayName("Max Tokens")]
@@ -117,37 +110,44 @@ namespace JeffPires.VisualChatGPTStudio.Options
         #region Azure
 
         [Category("Azure")]
-        [DisplayName("Azure OpenAI Resource Name")]
-        [Description("Set Azure OpenAI resource name.")]
+        [DisplayName("Resource Name")]
+        [Description("The Azure OpenAI resource name.")]
         [DefaultValue("")]
         public string AzureResourceName { get; set; } = string.Empty;
 
         [Category("Azure")]
-        [DisplayName("Azure Deployment ID")]
-        [Description("Set Azure OpenAI deployment id.")]
+        [DisplayName("Deployment Name")]
+        [Description("Set Azure OpenAI deployment name.")]
         [DefaultValue("")]
         public string AzureDeploymentId { get; set; } = string.Empty;
 
         [Category("Azure")]
-        [DisplayName("Azure API Version")]
-        [Description("Set the Azure OpenAI API version used on the deployment with the GPT-3.5-Turbo or GPT-4 model.")]
-        [DefaultValue("")]
-        public string AzureApiVersion { get; set; } = string.Empty;
+        [DisplayName("API Version")]
+        [Description("Set the Azure OpenAI API version. You can check the available versions here: https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#completions")]
+        [DefaultValue("2023-05-15")]
+        public string AzureApiVersion { get; set; } = "2023-05-15";
 
         #endregion Azure
 
         #region OpenAI
 
         [Category("OpenAI")]
-        [DisplayName("OpenAI Organization")]
-        [Description("Set the OpenAI Organization.")]
+        [DisplayName("Organization")]
+        [Description("Set the OpenAI Organization. (Optional)")]
         public string OpenAIOrganization { get; set; }
 
         [Category("OpenAI")]
         [DisplayName("Base API")]
-        [Description("Change the connection to the OpenAI Base API. Format(https://api.openai.com)")]
+        [Description("Change the API connection URL if you wish to do so for some reason. Example: https://myurl.openai.com")]
         [DefaultValue("")]
         public string BaseAPI { get; set; } = string.Empty;
+
+        [Category("OpenAI")]
+        [DisplayName("Model Language")]
+        [Description("See \"https://platform.openai.com/docs/models/overview\" for more details.")]
+        [DefaultValue(ModelLanguageEnum.GPT_3_5_Turbo)]
+        [TypeConverter(typeof(EnumConverter))]
+        public ModelLanguageEnum Model { get; set; } = ModelLanguageEnum.GPT_3_5_Turbo;
 
         #endregion OpenAI
 

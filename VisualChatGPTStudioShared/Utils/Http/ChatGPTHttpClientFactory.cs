@@ -14,8 +14,9 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Http
     {
         private readonly Dictionary<string, HttpClientCustom> httpClients = new();
         private static readonly object objLock = new();
-        private string m_proxy;
         private readonly OptionPageGridGeneral options;
+
+        public string Proxy { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the ChatGPTHttpClientFactory class.
@@ -39,7 +40,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Http
                 {
                     if (!httpClients.TryGetValue(name, out client))
                     {
-                        client = CreateHttpClient(CreateMessageHandler(m_proxy));
+                        client = CreateHttpClient(CreateMessageHandler());
                         httpClients.Add(name, client);
                     }
                 }
@@ -60,9 +61,10 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Http
         /// <param name="proxy">The proxy to set.</param>
         public void SetProxy(string proxy)
         {
-            if (proxy != m_proxy)
+            if (proxy != Proxy)
             {
-                m_proxy = proxy;
+                Proxy = proxy;
+
                 KeyValuePair<string, HttpClientCustom>[] list = httpClients.ToArray();
 
                 foreach (KeyValuePair<string, HttpClientCustom> item in list)
@@ -92,9 +94,8 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Http
         /// <summary>
         /// Creates an HttpMessageHandler with the specified proxy settings.
         /// </summary>
-        /// <param name="proxy">The proxy settings to use.</param>
         /// <returns>An HttpMessageHandler with the specified proxy settings.</returns>
-        protected HttpMessageHandler CreateMessageHandler(string proxy = null)
+        protected HttpMessageHandler CreateMessageHandler()
         {
             HttpClientHandler handler;
 
@@ -114,9 +115,9 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Http
             handler.MaxConnectionsPerServer = 256;
             handler.SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls11 | System.Security.Authentication.SslProtocols.Tls;
 
-            if (!string.IsNullOrEmpty(proxy))
+            if (!string.IsNullOrWhiteSpace(Proxy))
             {
-                handler.Proxy = new WebProxy(new Uri(proxy));
+                handler.Proxy = new WebProxy(new Uri(Proxy));
             }
 
             return handler;

@@ -115,15 +115,39 @@ To use this tool it is necessary to connect through the OpenAI API or through Az
 
 ### By OpenAI
 
-You need create and set an OpenAI API Key.
+1 - Create an account on OpenAI: https://platform.openai.com
 
-You can do this here: [https://beta.openai.com/account/api-keys](https://beta.openai.com/account/api-keys)
+2 - Generate a new key: https://platform.openai.com/api-keys
+
+3 - Copy and past the key on options and set the "OpenAI Service" parameter as "OpenAI": 
+
+<img src="https://github.com/jeffdapaz/VisualChatGPTStudio/assets/63928228/09a93cc9-c35d-4fee-b3a1-05f2dd0212f1" width="75%">
+
+4 - Optionally, you can overwrite the default URL if you want to connect via a custom API using the "Base API" parameter.
 
 ### By Azure
 
-See for more details: [https://learn.microsoft.com/azure/cognitive-services/openai/overview](https://learn.microsoft.com/azure/cognitive-services/openai/overview).
+1 - First, you need have access to Azure OpenAI Service. You can see more details [here](https://learn.microsoft.com/en-us/legal/cognitive-services/openai/limited-access?context=%2Fazure%2Fcognitive-services%2Fopenai%2Fcontext%2Fcontext).
 
-Please read [this](https://github.com/jeffdapaz/VisualChatGPTStudio/issues/31) for some more information.
+2 - Create an Azure OpenAI resource, and set the resource name on options. Example:
+
+<img src="https://github.com/jeffdapaz/VisualChatGPTStudio/assets/63928228/8bf9111b-cc4d-46ac-a4f2-094e83922d95" width="60%">
+
+<img src="https://github.com/jeffdapaz/VisualChatGPTStudio/assets/63928228/1e9495a7-d626-4845-af7f-ae6f84139d87" width="75%">
+
+3 - Copy and past the key on options and set the "OpenAI Service" parameter as "AzureOpenAI": 
+
+<img src="https://github.com/jeffdapaz/VisualChatGPTStudio/assets/63928228/2f881df1-a95f-4016-bf39-9cf2e83aef0e" width="75%">
+
+<img src="https://github.com/jeffdapaz/VisualChatGPTStudio/assets/63928228/8b035735-ce8e-4f25-a42e-6a0d14058c98" width="75%">
+
+4 - Create a new deployment through Azure OpenAI Studio, and set the name:
+
+<img src="https://github.com/jeffdapaz/VisualChatGPTStudio/assets/63928228/3914ddf3-e0c5-4edd-9add-dab5aba12aa9" width="40%">
+
+<img src="https://github.com/jeffdapaz/VisualChatGPTStudio/assets/63928228/195539ac-8d0b-4284-bac4-de345464ed08" width="75%">
+
+5 - Set the Azure OpenAI API version. You can check the available versions [here](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#completions).
 
 ## Known Issues ⚠
 
@@ -161,6 +185,8 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 - Added the gpt-4-32k model.
 - Removed the gpt-3.5-turbo-16k model. OpenAI currently points to gpt-3.5-turbo model.
+- Fixed a bug that was causing duplicate requests to the API.
+- Improved verification of changes to connection-related options to apply them in execution mode, avoiding the need to restart Visual Studio to take effect.
 
 ### 2.4.2
 
@@ -372,7 +398,7 @@ You can play with these parameters [here](https://platform.openai.com/playground
 ### 1.2.1
 
 - Improved the "Summary" command. Now most of times the chatGPT will not write again the method/property head.
-- Added a valiation to avoid the chatGPT response be write on wrong line.
+- Added a validation to avoid the chatGPT response be write on wrong line.
 - Other minor fixes.
 
 ### 1.2.0

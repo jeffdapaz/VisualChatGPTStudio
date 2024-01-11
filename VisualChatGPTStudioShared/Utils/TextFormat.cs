@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace JeffPires.VisualChatGPTStudio.Utils
@@ -44,24 +45,47 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <returns>The comment characters for the given file path.</returns>
         public static string GetCommentChars(string filePath)
         {
-            string extension = System.IO.Path.GetExtension(filePath).TrimStart('.');
-
-            if (extension.Equals("cs", StringComparison.InvariantCultureIgnoreCase) || extension.Equals("js", StringComparison.InvariantCultureIgnoreCase))
+            Dictionary<string, string> extensions = new()
             {
-                return "//";
+                { "cs", "//" },
+                { "js", "//" },
+                { "vb", "'" },
+                { "sql", "--" },
+                { "py", "#" },
+                { "java", "//" },
+                { "cpp", "//" },
+                { "php", "//" },
+                { "swift", "//" },
+                { "rb", "#" },
+                { "lua", "--" },
+                { "go", "//" },
+                { "ts", "//" },
+                { "kt", "//" },
+                { "rs", "//" },
+                { "c", "//" },
+                { "html", "<!--" },
+                { "xml", "<!--" },
+                { "yml", "#" },
+                { "ini", ";" },
+                { "md", "<!--" },
+                { "json", "//" },
+                { "txt", "//" },
+                { "bat", "REM" },
+                { "vbs", "'" },
+                { "tex", "%" },
+                { "asm", ";" },
+                { "makefile", "#" },
+                { "dockerfile", "#" },
+            };
+
+            string extension = System.IO.Path.GetExtension(filePath).TrimStart('.').ToLower();
+
+            if (extensions.ContainsKey(extension))
+            {
+                return extensions[extension];
             }
 
-            if (extension.Equals("vb", StringComparison.InvariantCultureIgnoreCase))
-            {
-                return "'";
-            }
-
-            if (extension.Equals("sql", StringComparison.InvariantCultureIgnoreCase))
-            {
-                return "--";
-            }
-
-            return "<!--";
+            return string.Empty;
         }
 
         /// <summary>

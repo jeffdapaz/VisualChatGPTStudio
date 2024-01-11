@@ -26,7 +26,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo{
         /// </summary>
         /// <param name="sender">The object that raised the event.</param>
         /// <param name="e">The MouseEventArgs containing event data.</param>
-        private void imgDelete_Click(object sender, MouseEventArgs e)        {            if (MessageBox.Show($"Delete the chat {lblName.Text}?", Constants.EXTENSION_NAME, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)            {                parentControl.DeleteChat(this);            }        }
+        private void imgDelete_Click(object sender, MouseEventArgs e)        {            if (MessageBox.Show($"Delete the chat \"{lblName.Text}\"?", Constants.EXTENSION_NAME, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)            {                parentControl.DeleteChat(this);            }        }
 
         /// <summary>
         /// Event handler for the click event of the imgEdit control.

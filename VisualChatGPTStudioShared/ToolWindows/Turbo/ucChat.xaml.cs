@@ -332,7 +332,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         private async System.Threading.Tasks.Task UpdateHeaderAsync()
         {
-            string request = "Give a title based on my first message. The title needs to be in the same language as my first message. The title can only have three words in total.";
+            string request = "Give a title based on my first message referencing what I'm saying or asking. The title needs to be in the same language as my first message. The title can only have three words in total. Do not add any type of quotation marks or symbols in the title.";
 
             chat.AppendUserInput(request);
 

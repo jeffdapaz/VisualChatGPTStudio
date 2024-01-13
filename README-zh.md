@@ -87,71 +87,126 @@
 
 请看这里一些使用 Turbo Chat 的示例：
 
+您可以在菜单 "查看"->"其他窗口"->"Visual chatGPT Studio Turbo "中找到该窗口。
+
+在这里观看一些使用 Turbo Chat 的例子：
+
 [<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/275615943-a37e30c3-d597-42de-8a38-7d0cdbfe942f.png" width="70%">](https://youtu.be/2NHWWXFMpd0)
 
 ## "Visual chatGPT Studio Solution Context" 工具窗口的特性 📌
 
 <img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/282463640-4e7c24c6-41d5-4cee-aa36-f363daba6f95.png" width="75%">
 
-在这里，您可以将项目项添加到请求 OpenAI 的上下文中。非常适合进行需要了解项目其他部分的请求。
+在这里，您可以将项目项添加到与 OpenAI 请求上下文相关的工具窗口中。非常适合发出需要了解项目其他点的请求。
 
-例如，您可以请求在当前文档中创建一个方法，该方法消耗另一个通过此窗口选择的另一个类中的方法。
+例如，您可以请求在当前文档中创建一个方法，该方法调用通过此窗口选择的另一个类中的方法。
 
-您还可以请求在打开的文档中为通过上下文引用的另一个类的方法创建单元测试。
+您还可以要求在通过上下文引用的另一个类的打开文档中创建单元测试。
 
-您还可以请求涉及较大上下文的分析，涉及多个类。可能性很多。
+您还可以请求涉及涉及多个类的更大上下文的分析。可能性很多。
 
-但请注意，根据您添加到上下文中的代码量，这可能会增加令牌的消耗。而且，根据您使用的模型，可能更快地达到每个请求的令牌限制。设置一个具有较大令牌限制的模型可以解决这个限制。
+但请注意，根据您添加到上下文的代码量，这可能会增加 tokens 的消耗。而且，根据您使用的模型型号，可能更早达到每个请求的 tokens 上下文数量限制。选择具有较大 tokens 上下文限制的模型可以解决此限制。
 
-您可以在菜单中找到这个窗口：View（视图） -> Other Windows（其他窗口） -> Visual chatGPT Studio Solution Context（视觉 chatGPT Studio 解决方案上下文）。
+您将在菜单 "View" -> "Other Windows" -> "Visual chatGPT Studio Solution Context" 中找到此窗口。
 
 ## 认证 🔑
 
-要使用这个工具，需要通过 OpenAI API 或 Azure OpenAI 进行连接。
+要使用此工具，必须通过 OpenAI API 或 Azure OpenAI 进行连接。
 
-### 通过 OpenAI
+### By OpenAI
 
-您需要创建并设置一个 OpenAI API 密钥。
+1 - 在 OpenAI 上创建一个账户: https://platform.openai.com
 
-您可以在这里进行操作：[https://beta.openai.com/account/api-keys](https://beta.openai.com/account/api-keys)
+2 - 生成一个新 KEY : https://platform.openai.com/api-keys
 
-### 通过 Azure
+3 - 复制并粘贴KEY到选项中，将 "OpenAI 服务" 参数设置为 "OpenAI"：
 
-查看更多详情：[https://learn.microsoft.com/azure/cognitive-services/openai/overview](https://learn.microsoft.com/azure/cognitive-services/openai/overview)。
+<img src="https://github.com/jeffdapaz/VisualChatGPTStudio/assets/63928228/09a93cc9-c35d-4fee-b3a1-05f2dd0212f1" width="75%">
 
-请阅读 [此链接](https://github.com/jeffdapaz/VisualChatGPTStudio/issues/31) 获取更多信息。
+4 - 如果想使用第三方中转API,可以修改 "Base API " 参数，用来覆盖默认的 URL。
+
+### By Azure
+
+1 - 首先，您需要访问 Azure OpenAI 服务。您可以在这里查看更多详细信息。 [here](https://learn.microsoft.com/en-us/legal/cognitive-services/openai/limited-access?context=%2Fazure%2Fcognitive-services%2Fopenai%2Fcontext%2Fcontext).
+
+2 - 创建一个 Azure OpenAI 资源，并在选项中设置资源名称。示例：
+
+<img src="https://github.com/jeffdapaz/VisualChatGPTStudio/assets/63928228/8bf9111b-cc4d-46ac-a4f2-094e83922d95" width="60%">
+
+<img src="https://github.com/jeffdapaz/VisualChatGPTStudio/assets/63928228/1e9495a7-d626-4845-af7f-ae6f84139d87" width="75%">
+
+3 - 复制并粘贴选项上的KEY，将 "OpenAI 服务 "参数设置为 "AzureOpenAI"：
+
+<img src="https://github.com/jeffdapaz/VisualChatGPTStudio/assets/63928228/2f881df1-a95f-4016-bf39-9cf2e83aef0e" width="75%">
+
+<img src="https://github.com/jeffdapaz/VisualChatGPTStudio/assets/63928228/8b035735-ce8e-4f25-a42e-6a0d14058c98" width="75%">
+
+4 - 通过 Azure OpenAI Studio 创建一个新的部署，并设置名称：
+
+<img src="https://github.com/jeffdapaz/VisualChatGPTStudio/assets/63928228/3914ddf3-e0c5-4edd-9add-dab5aba12aa9" width="40%">
+
+<img src="https://github.com/jeffdapaz/VisualChatGPTStudio/assets/63928228/195539ac-8d0b-4284-bac4-de345464ed08" width="75%">
+
+5 - 设置 Azure OpenAI API 版本。您可以检查可用的版本。 [here](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#completions).
 
 ## 已知问题 ⚠
 
-遗憾的是，OpenAI 提供的与 chatGPT 交互的 API 存在一个问题，即问题加答案的长度限制。
+很遗憾，OpenAI提供的用于与chatGPT交互的API对于问题及其给定答案的长度有一定限制。
 
-如果发送的问题太长（例如，一个有很多行的方法）和/或生成的响应太长，API 可能会截断响应甚至根本不做出响应。
+如果发送的问题太长（例如，一个包含许多行的方法），和/或生成的响应太长，API可能会截断响应，甚至可能完全不回应。
 
-对于这些情况，建议您通过工具窗口进行请求，以便以一种 chatGPT 不会拒绝回答的方式自定义问题，或者尝试修改模型选项以改善响应。
+针对这些情况，我建议您通过工具窗口进行请求，以定制问题的方式，使chatGPT不会拒绝回答，或尝试修改模型选项以改善响应。
 
 ## 免责声明 👋
 
-- 由于此扩展依赖于 OpenAI 提供的 API，可能会出现一些更改而影响此扩展的运行，而无需事先通知。
+由于此扩展依赖于由OpenAI提供的API，可能会有一些由于他们的更改而影响此扩展操作的情况，恕不另行通知。
 
-- 由于此扩展依赖于 OpenAI 提供的 API，生成的响应可能不符合预期。
+由于此扩展依赖于由OpenAI提供的API，可能会生成一些与预期不符的响应。
 
-- 响应的速度和可用性直接取决于 OpenAI 提供的 API。
+响应的速度和可用性直接取决于OpenAI提供的API。
 
-- 如果您使用的是 OpenAI 服务而不是 Azure，并收到类似 "429 - 您超出了当前配额，请检查您的计划和账单详情。" 的消息，请检查 OpenAI 使用情况页面，查看您是否仍有配额，例如：
+如果您使用的是OpenAI服务而非Azure，并收到类似于 "429 - 您已超出当前配额，请检查您的计划和计费详情" 的消息，请检查OpenAI使用页面，看看您是否仍然有配额，例如：
 
 <img src="https://user-images.githubusercontent.com/63928228/242688025-47ec893e-401f-4edb-92a0-127a47a952fe.png" width="60%">
 
-您可以在此处检查您的配额：[https://platform.openai.com/account/usage](https://platform.openai.com/account/usage)
+您可以在此处检查您的配额使用情况: [https://platform.openai.com/account/usage](https://platform.openai.com/account/usage)
 
 - 如果发现任何错误或意外行为，请留下评论，以便我提供修复。
 
 ## 捐赠 🙏
 
-☕ 请给我买杯咖啡，支持我为您提供更多帮助。谢谢！
+☕ 请我喝杯咖啡，支持我为您提供更多帮助。谢谢！
 
 [<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/278758680-f5fc9df2-a330-4d6a-ae13-9190b7b8f57b.png" width="20%">](https://www.paypal.com/donate/?hosted_button_id=2Y55G8YYC6Q3E)
 
-## 发行说明 📜
+## 发布说明 📜
+
+### 2.4.4
+
+- 在某些写有代码编辑器中的注释的命令中添加注释字符方面进行了小的改进。
+- 在聊天标题的自动创建方面进行了小的改进。
+
+### 2.4.3
+
+- 添加了 gpt-4-32k 模型。
+- 移除了 gpt-3.5-turbo-16k 模型。OpenAI 目前指向 gpt-3.5-turbo 模型。
+- 修复了导致对 API 发送重复请求的错误。
+- 改进了对与连接相关选项的更改的验证，以在执行模式中应用这些更改，避免需要重新启动 Visual Studio 以生效。
+
+### 2.4.2
+
+- 在工具窗口上添加了换行开关按钮。
+- 添加了在上下文限制达到时自动从聊天历史中删除早期聊天消息的功能。
+
+### 2.4.1
+
+- 修复了在上次发布中尝试使用 Turbo 聊天窗口时引入的错误。该错误与创建存储聊天历史的文件有关。
+
+### 2.4.0
+
+- 在 Turbo 聊天中添加了选项卡。
+- 添加了聊天历史记录。
+- 修复了打开其中一个扩展工具窗口时导致打开所有扩展工具窗口的行为。
 
 ### 2.3.0
 

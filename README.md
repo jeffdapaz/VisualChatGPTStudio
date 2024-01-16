@@ -181,6 +181,11 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ## Release Notes 📜
 
+### 2.4.5
+
+- Fixed the compatibility with the Visual Studio ARM edition.
+- Small improvement in the automatic creation of titles for chats.
+
 ### 2.4.4
 
 - Small improvements in adding comment characters to some commands that write comments in the code editor.

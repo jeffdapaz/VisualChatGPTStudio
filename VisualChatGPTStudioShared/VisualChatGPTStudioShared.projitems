@@ -41,7 +41,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindow\TerminalWindow.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\SolutionContext\TerminalWindowSolutionContextControl.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindow\TerminalWindowControl.xaml.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindowHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindowHelper.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ChatEntity.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ChatUserControlsItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ChatMessageSegment.cs" />
@@ -53,6 +55,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ChatGPT.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ChatRepository.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ChatListControlItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandImage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Constants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\EnumHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\HighlightingDefinitionConverter.cs" />

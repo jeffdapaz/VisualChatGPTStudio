@@ -126,6 +126,7 @@
     <Content Include="icons8-chatgpt-512.png">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Resource Include="Resources\sendCode.png" />
     <Resource Include="Resources\wordWrap.png" />
     <Resource Include="Resources\information.png" />
     <Resource Include="Resources\solutionContext.png" />
@@ -167,6 +168,7 @@
     <Resource Include="Resources\FileTypes\vs.png" />
     <Resource Include="Resources\edit_color.png" />
     <Resource Include="Resources\garbage_color.png" />
+    <Resource Include="Resources\close.png" />
     <Content Include="Resources\Icon.png">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>

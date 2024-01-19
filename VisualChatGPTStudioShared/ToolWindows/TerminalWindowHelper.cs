@@ -11,18 +11,17 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
     public static class TerminalWindowHelper
     {
         /// <summary>
-        /// Copies the given text to the clipboard and changes the button image and tooltip.
+        /// Copies the given text to the clipboard and updates the given image to show a checkmark and tooltip indicating the text has been copied. After 2 seconds, the image is updated back to its original state.
         /// </summary>
-        /// <param name="button">The button to change.</param>
-        /// <param name="text">The text to copy.</param>
-        public static void Copy(Button button, string text)
+        /// <param name="image">The image to update.</param>
+        /// <param name="text">The text to copy to the clipboard.</param>
+        public static void Copy(Image image, string text)
         {
             Clipboard.SetText(text);
 
-            Image img = new() { Source = new BitmapImage(new Uri("pack://application:,,,/VisualChatGPTStudio;component/Resources/check.png")) };
-
-            button.Content = img;
-            button.ToolTip = "Copied!";
+            image.Source = new BitmapImage(new Uri("pack://application:,,,/VisualChatGPTStudio;component/Resources/check.png"));
+            image.ToolTip = "Copied!";
+            image.IsEnabled = false;
 
             System.Timers.Timer timer = new(2000) { Enabled = true };
 
@@ -30,10 +29,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             {
                 Application.Current.Dispatcher.Invoke(new Action(() =>
                 {
-                    img = new() { Source = new BitmapImage(new Uri("pack://application:,,,/VisualChatGPTStudio;component/Resources/copy.png")) };
-
-                    button.Content = img;
-                    button.ToolTip = "Copy code";
+                    image.Source = new BitmapImage(new Uri("pack://application:,,,/VisualChatGPTStudio;component/Resources/copy.png"));
+                    image.ToolTip = "Copy code";
+                    image.IsEnabled = true;
                 }));
 
                 timer.Enabled = false;

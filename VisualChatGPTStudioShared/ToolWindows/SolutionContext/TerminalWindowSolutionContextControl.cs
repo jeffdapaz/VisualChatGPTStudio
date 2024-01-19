@@ -133,8 +133,8 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
             };            Image iconImage = new()
             {
                 Source = GetFileIcon(name),
-                Width = 15,
-                Height = 15
+                Width = 20,
+                Height = 20
             };
 
             stackPanel.Children.Add(iconImage);            CheckBox checkBox = new()            {                Content = name,                IsChecked = false,                Foreground = foreGroundColor,                FontSize = 15,                Margin = new Thickness(5, 5, 0, 0)            };            stackPanel.Children.Add(checkBox);

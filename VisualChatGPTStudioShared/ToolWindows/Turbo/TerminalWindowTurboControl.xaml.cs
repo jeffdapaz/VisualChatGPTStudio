@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using VisualChatGPTStudioShared.ToolWindows.Turbo;
 
 namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
@@ -79,6 +80,28 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             {
                 OpenTab(chatItem);
             }
+        }
+
+        /// <summary>
+        /// Event handler for previewing mouse wheel scrolling on a ScrollViewer control.
+        /// Scrolls the content of the ScrollViewer horizontally based on the direction of the mouse wheel.
+        /// </summary>
+        /// <param name="sender">The ScrollViewer control that raised the event.</param>
+        /// <param name="e">The MouseWheelEventArgs containing information about the mouse wheel scrolling.</param>
+        private void ScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            ScrollViewer scrollViewer = sender as ScrollViewer;
+
+            if (e.Delta < 0)
+            {
+                scrollViewer.LineRight();
+            }
+            else
+            {
+                scrollViewer.LineLeft();
+            }
+
+            e.Handled = true;
         }
 
         #endregion Event Handlers

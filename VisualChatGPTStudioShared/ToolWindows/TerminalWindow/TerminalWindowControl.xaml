@@ -4,14 +4,23 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:utils="clr-namespace:VisualChatGPTStudioShared.Utils"
              Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
              Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300"
-             Name="MyToolWindow">
+             Name="MyToolWindow">    
     <UserControl.Resources>
         <RoutedUICommand x:Key="sendCommand" Text="Text" />
-        <RoutedUICommand x:Key="cancelCommand" Text="Text" />
+        <RoutedUICommand x:Key="cancelCommand" Text="Text" /> 
+        <Style x:Key="ImageHandCursorStyle" TargetType="{x:Type Image}">
+            <Setter Property="Cursor" Value="Arrow"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Cursor" Value="Hand"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </UserControl.Resources>
 
     <UserControl.CommandBindings>
@@ -41,31 +50,60 @@
             </Grid.ColumnDefinitions>
             <Grid Grid.Row="0" Name="grdRequestCommands">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />   
+                    <ColumnDefinition Width="20" />
                     <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="5" />
+                    <ColumnDefinition Width="10" />
                     <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="5" />
+                    <ColumnDefinition Width="10" />
                     <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="5" />
+                    <ColumnDefinition Width="10" />
                     <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="5" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="5" />
+                    <ColumnDefinition Width="10" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" HorizontalAlignment="Left">Ask:</TextBlock>
-                <Button Grid.Column="2" Height="20" Width="20" HorizontalAlignment="Left" Name="btnRequestSend" ToolTip="Send (Ctrl+Enter)" Command="{StaticResource sendCommand}">
-                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/send.png" Width="15" Height="15"/>
-                </Button>
-                <Button Grid.Column="4" Height="20" Width="20" HorizontalAlignment="Left" Name="btnCancel" ToolTip="Cancel (Alt+Z)" Command="{StaticResource cancelCommand}" IsEnabled="False">
-                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/cancel.png" Width="15" Height="15"/>
-                </Button>
-                <Button Grid.Column="6" Height="20" Width="20" HorizontalAlignment="Left" Name="btnRequestPast" Click="btnRequestPast_Click" ToolTip="Paste">
-                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/paste.png" Width="15" Height="15"/>
-                </Button>
-                <Button Grid.Column="8" Height="20" Width="20" HorizontalAlignment="Left" Name="btnRequestClear" Click="btnRequestClear_Click" ToolTip="Clear">
-                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/clear.png" Width="15" Height="15"/>
-                </Button>                
+                <TextBlock Grid.Column="0" HorizontalAlignment="Left" FontWeight="Bold" FontSize="14">Ask</TextBlock>
+                <utils:CommandImage 
+                    Grid.Column="2" 
+                    Height="20" 
+                    Width="20" 
+                    HorizontalAlignment="Left" 
+                    x:Name="btnRequestSend" 
+                    ToolTip="Send (Ctrl+Enter)" 
+                    Command="{StaticResource sendCommand}" 
+                    Style="{StaticResource ImageHandCursorStyle}"
+                    Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/send.png"/>
+                <utils:CommandImage  
+                    Grid.Column="4" 
+                    Height="20" 
+                    Width="20" 
+                    HorizontalAlignment="Left" 
+                    x:Name="btnCancel" 
+                    ToolTip="Cancel (Alt+Z)" 
+                    Command="{StaticResource cancelCommand}" 
+                    Style="{StaticResource ImageHandCursorStyle}"
+                    IsEnabled="False" 
+                    Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/cancel.png"/>
+                <Image 
+                    Grid.Column="6" 
+                    Height="20" 
+                    Width="20" 
+                    HorizontalAlignment="Left" 
+                    Name="btnRequestPast" 
+                    MouseDown="btnRequestPast_Click" 
+                    ToolTip="Paste" 
+                    Style="{StaticResource ImageHandCursorStyle}"
+                    Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/paste.png"/>
+                <Image 
+                    Grid.Column="8" 
+                    Height="20" 
+                    Width="20" 
+                    HorizontalAlignment="Left" 
+                    Name="btnRequestClear" 
+                    MouseDown="btnRequestClear_Click" 
+                    ToolTip="Clear" 
+                    Style="{StaticResource ImageHandCursorStyle}"
+                    Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/clear.png"/>
                 <Grid Name="grdProgress" Grid.Column="10" Visibility="Collapsed">
                     <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="True" />
                     <TextBlock Text="Waiting chatGPT response" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Black" />
@@ -74,7 +112,7 @@
             <avalonEdit:TextEditor        
                 xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit" 
                 Name="txtRequest" TextChanged="txtRequest_TextChanged" BorderBrush="DarkGray" BorderThickness="1"
-                Grid.Row="2" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" ShowLineNumbers="True">
+                Grid.Row="2" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" ShowLineNumbers="True" Background="#F5F5F5">
                 <avalonEdit:TextEditor.ContextMenu>
                     <ContextMenu>
                         <MenuItem Command="Paste" />
@@ -82,7 +120,7 @@
                 </avalonEdit:TextEditor.ContextMenu>
             </avalonEdit:TextEditor>
         </Grid>
-        <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Background="Blue" Margin="0,5,0,5" />
+        <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Background="#FF007ACC" Margin="0,5,0,5" />
         <Grid Grid.Row="2" Name="grdResponse">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -95,23 +133,37 @@
             <Grid Grid.Row="0" Name="grdResponseCommands">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="5" />
+                    <ColumnDefinition Width="20" />
                     <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="5" />
+                    <ColumnDefinition Width="10" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" HorizontalAlignment="Left">Response:</TextBlock>
-                <Button Grid.Column="2" Height="20" Width="20" HorizontalAlignment="Left" Name="btnResponseCopy" Click="btnResponseCopy_Click" ToolTip="Copy">
-                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/copy.png" Width="15" Height="15"/>
-                </Button>
-                <Button Grid.Column="4" Height="20" Width="20" HorizontalAlignment="Left" Name="btnSwitchWordWrap" Click="btnSwitchWordWrap_Click" ToolTip="Turn ON/OFF Word Wrap">
-                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/wordWrap.png" Width="15" Height="15"/>
-                </Button>
+                <TextBlock Grid.Column="0" HorizontalAlignment="Left" FontWeight="Bold" FontSize="14">Response</TextBlock>
+                <Image 
+                    Grid.Column="2" 
+                    Height="20" 
+                    Width="20" 
+                    HorizontalAlignment="Left" 
+                    Name="btnResponseCopy" 
+                    MouseDown="btnResponseCopy_Click" 
+                    ToolTip="Copy" 
+                    Style="{StaticResource ImageHandCursorStyle}"
+                    Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/copy.png"/>
+                <Image 
+                    Grid.Column="4" 
+                    Height="20" 
+                    Width="20" 
+                    HorizontalAlignment="Left" 
+                    Name="btnSwitchWordWrap" 
+                    MouseDown="btnSwitchWordWrap_Click" 
+                    ToolTip="Turn ON/OFF Word Wrap" 
+                    Style="{StaticResource ImageHandCursorStyle}"
+                    Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/wordWrap.png"/>
             </Grid>
             <avalonEdit:TextEditor        
                 xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
                 Name="txtResponse" IsReadOnly="True" BorderBrush="DarkGray" BorderThickness="1"
-                Grid.Row="2" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" ShowLineNumbers="True">
+                Grid.Row="2" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" ShowLineNumbers="True" Background="#F5F5F5">
                 <avalonEdit:TextEditor.ContextMenu>
                     <ContextMenu>
                         <MenuItem Command="Copy" />

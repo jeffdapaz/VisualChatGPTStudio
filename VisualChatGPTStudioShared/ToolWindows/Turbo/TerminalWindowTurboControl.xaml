@@ -12,23 +12,59 @@
              d:DesignHeight="300" d:DesignWidth="300"
              Name="MyToolWindow"
              xmlns:uc="clr-namespace:JeffPires.VisualChatGPTStudio.ToolWindows.Turbo">
+
+    <UserControl.Resources>
+        <Storyboard x:Key="FadeIn">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.5"/>
+        </Storyboard>
+    </UserControl.Resources>
+
     <TabControl Name="tabChats" Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}">
+        <TabControl.Resources>
+            <Style TargetType="{x:Type TabItem}">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type TabItem}">
+                            <Border Name="Border" BorderThickness="1,1,1,0" BorderBrush="Gray" Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}">
+                                <ContentPresenter x:Name="ContentSite" VerticalAlignment="Center" HorizontalAlignment="Center" ContentSource="Header" Margin="10,2"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="Border" Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"/>
+                                    <Setter TargetName="Border" Property="BorderThickness" Value="1,1,1,0"/>
+                                    <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource {x:Static vsshell:VsBrushes.HighlightKey}}"/>
+                                    <Setter TargetName="Border" Property="Height" Value="23"/>
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="false">
+                                    <Setter TargetName="Border" Property="Height" Value="20"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </TabControl.Resources>
         <TabControl.Template>
             <ControlTemplate TargetType="{x:Type TabControl}">
-                <Grid>
+                <Grid>                    
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition/>
                     </Grid.RowDefinitions>
-                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel">
                         <TabPanel x:Name="HeaderPanel" IsItemsHost="True" Margin="0,4,0,0"/>
                     </ScrollViewer>
                     <ContentPresenter x:Name="PART_SelectedContentHost" Margin="4" ContentSource="SelectedContent" Grid.Row="1"/>
                 </Grid>
             </ControlTemplate>
         </TabControl.Template>
-        <TabItem Header="Chats">
-            <Grid>
+        <TabItem Header="Chats" Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}">
+            <Grid Opacity="0">
+                <Grid.Triggers>
+                    <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                        <BeginStoryboard Storyboard="{StaticResource FadeIn}"/>
+                    </EventTrigger>
+                </Grid.Triggers>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="5"/>
                     <RowDefinition Height="25"/>

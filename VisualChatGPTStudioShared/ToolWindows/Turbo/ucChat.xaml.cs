@@ -1,4 +1,5 @@
 ﻿using Community.VisualStudio.Toolkit;
+using ICSharpCode.AvalonEdit;
 using JeffPires.VisualChatGPTStudio.Commands;
 using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils;
@@ -78,7 +79,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 for (int i = 0; i < message.Segments.Count; i++)
                 {
-                    chatListControlItems.Add(new ChatListControlItem(message.Segments[i].Author, message.Segments[i].Content, i == 0, chatListControlItems.Count));
+                    chatListControlItems.Add(new ChatListControlItem(message.Segments[i].Author, message.Segments[i].Content, i == 0, i == message.Segments.Count - 1, chatListControlItems.Count));
 
                     segments.AppendLine(message.Segments[i].Content);
                 }
@@ -126,7 +127,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// <param name="e">The event arguments.</param>
         private void btnCopy_Click(object sender, RoutedEventArgs e)
         {
-            Button button = (Button)sender;
+            Image button = (Image)sender;
 
             int index = (int)button.Tag;
 
@@ -140,7 +141,19 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// <param name="e">The mouse wheel event arguments.</param>
         private void TextEditor_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - e.Delta);
+            TextEditor editor = (TextEditor)sender;
+
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+            {
+                ScrollViewer scrollViewerEditor = editor.Template.FindName("PART_ScrollViewer", editor) as ScrollViewer;
+
+                scrollViewerEditor.ScrollToHorizontalOffset(scrollViewerEditor.HorizontalOffset - e.Delta);
+            }
+            else
+            {
+                scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - e.Delta);
+            }
+
             e.Handled = true;
         }
 
@@ -201,7 +214,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     chat.AppendUserInput(originalCode);
                 }
 
-                chatListControlItems.Add(new ChatListControlItem(AuthorEnum.Me, txtRequest.Text, true, 0));
+                chatListControlItems.Add(new ChatListControlItem(AuthorEnum.Me, txtRequest.Text, true, true, 0));
 
                 string request = options.MinifyRequests ? TextFormat.MinifyText(txtRequest.Text) : txtRequest.Text;
 
@@ -233,7 +246,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     }
                     else
                     {
-                        chatListControlItems.Add(new ChatListControlItem(segments[i].Author, segments[i].Content, i == 0, chatListControlItems.Count));
+                        chatListControlItems.Add(new ChatListControlItem(segments[i].Author, segments[i].Content, i == 0, i == segments.Count - 1, chatListControlItems.Count));
                     }
                 }
 
@@ -332,13 +345,13 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         private async System.Threading.Tasks.Task UpdateHeaderAsync()
         {
-            string request = "Give a title based on my first message referenced what I'm talking about. The title needs to be in the same language as my first message. The title can only have three words in total. Do not add any type of quotation marks or symbols in the title.";
+            string request = "Please suggest a concise and relevant title for my first message based on its context, using up to three words and in the same language as my first message.";
 
             chat.AppendUserInput(request);
 
             string chatName = await SendRequestAsync();
 
-            chatName = TextFormat.RemoveCharactersFromText(chatName, "\r\n", "\n", "\r");
+            chatName = TextFormat.RemoveCharactersFromText(chatName, "\r\n", "\n", "\r", ".", ",", ":", ";", "'", "\"");
 
             string[] words = chatName.Split(' ');
 
@@ -346,8 +359,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             {
                 chatName = string.Concat(words[0], " ", words[1]);
             }
-
-            chatName = chatName.Trim().TrimEnd('.');
 
             ChatHeader.UpdateChatName(chatName);
 

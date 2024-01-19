@@ -11,23 +11,29 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="5" />
+            <ColumnDefinition Width="10" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <TextBlock Grid.Column="0" Name="lblHeader" />
-        <Button Grid.Column="2" Height="15" Width="15" Name="btnClose" ToolTip="Close Tab" Click="btnClose_Click">
-            <Button.Content>
-                <TextBlock FontWeight="Bold" FontSize="10" Foreground="Red">X</TextBlock>
-            </Button.Content>
-            <Button.Style>
-                <Style TargetType="Button">
+        <TextBlock Grid.Column="0" Name="lblHeader" Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
+        <Image 
+            Grid.Column="2" 
+            Height="10" 
+            Width="10" 
+            HorizontalAlignment="Left" 
+            Name="btnClose" 
+            MouseDown="btnClose_Click" 
+            ToolTip="Close Tab" 
+            Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/close.png">
+            <Image.Style>
+                <Style TargetType="{x:Type Image}">
+                    <Setter Property="Cursor" Value="Arrow"/>
                     <Style.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Cursor" Value="Hand" />
+                            <Setter Property="Cursor" Value="Hand"/>
                         </Trigger>
                     </Style.Triggers>
                 </Style>
-            </Button.Style>
-        </Button>
+            </Image.Style>
+        </Image>
     </Grid>  
 </UserControl>

@@ -198,6 +198,12 @@
     <Resource Include="..\Resources\wordWrap.png">
       <Link>Resources\wordWrap.png</Link>
     </Resource>
+    <Resource Include="..\Resources\sendCode.png">
+      <Link>Resources\sendCode.png</Link>
+    </Resource>
+    <Resource Include="..\Resources\close.png">
+      <Link>Resources\close.png</Link>
+    </Resource>
     <Content Include="Icon2019.png">
       <IncludeInVSIX>true</IncludeInVSIX>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

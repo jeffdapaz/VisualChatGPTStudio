@@ -181,6 +181,11 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ## Release Notes 📜
 
+### 2.5.0
+
+- Update appearance and user interface.
+- Small improvement in the automatic creation of titles for chats.
+
 ### 2.4.5
 
 - Fixed the compatibility with the Visual Studio ARM edition.

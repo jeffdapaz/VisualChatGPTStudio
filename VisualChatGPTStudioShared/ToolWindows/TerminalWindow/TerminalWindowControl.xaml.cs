@@ -129,7 +129,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         /// <param name="e">Event arguments.</param>
         private void btnResponseCopy_Click(object sender, RoutedEventArgs e)
         {
-            TerminalWindowHelper.Copy((Button)sender, txtResponse.Text);
+            TerminalWindowHelper.Copy((Image)sender, txtResponse.Text);
         }
 
         /// <summary>

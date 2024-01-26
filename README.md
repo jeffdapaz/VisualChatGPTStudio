@@ -181,6 +181,11 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ## Release Notes 📜
 
+### 2.5.1
+
+- Change so that the GPT_4_Turbo model always automatically points to the latest version made available by OpenAI. Currently, the latest version is gpt-4-0125-preview (see more details [here](https://openai.com/blog/new-embedding-models-and-api-updates)).
+- Update the Cancel command icon.
+
 ### 2.5.0
 
 - Update appearance and user interface.

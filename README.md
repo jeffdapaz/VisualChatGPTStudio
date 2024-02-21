@@ -181,6 +181,12 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ## Release Notes 📜
 
+### 2.5.2
+
+- Added logging writing in case of exceptions in the Visual Studio Output window.
+- Small adjustment to the spacing of chat items.
+- A fix was made to the requests made to the APIs, where the content was not in accordance with the OpenAI standard. This could cause errors.
+
 ### 2.5.1
 
 - Change so that the GPT_4_Turbo model always automatically points to the latest version made available by OpenAI. Currently, the latest version is gpt-4-0125-preview (see more details [here](https://openai.com/blog/new-embedding-models-and-api-updates)).

@@ -271,6 +271,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
             catch (Exception ex)
             {
+                Logger.Log(ex);
+
                 EnableDisableButtons(true);
 
                 MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);

@@ -34,6 +34,8 @@ using System;using System.Collections.Generic;using System.IO;using System.Wi
             }
             catch (Exception ex)
             {
+                Logger.Log(ex);
+
                 MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }

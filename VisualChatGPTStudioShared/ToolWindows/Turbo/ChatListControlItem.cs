@@ -51,7 +51,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 ImageSource = "pack://application:,,,/VisualChatGPTStudio;component/Resources/vs.png";
                 BackgroundColor = new SolidColorBrush(Color.FromRgb(153, 187, 255));
                 Syntax = string.Empty;
-                Margins = index == 0 ? new Thickness(0, 0, 0, 25) : new Thickness(0, 25, 0, 25);
+                Margins = new Thickness(0, 0, 0, 25);
                 ButtonCopyVisibility = Visibility.Collapsed;
                 ShowHorizontalScrollBar = ScrollBarVisibility.Disabled;
                 TextVisibility = Visibility.Visible;
@@ -64,7 +64,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 ImageSource = firstSegment ? "pack://application:,,,/VisualChatGPTStudio;component/Resources/chatGPT.png" : string.Empty;
                 BackgroundColor = new SolidColorBrush(Color.FromRgb(194, 194, 214));
                 Syntax = string.Empty;
-                Margins = lastSegment ? new Thickness(0, -2.5, 0, 0) : new Thickness(0, -2.5, 0, -2.5);
+                Margins = lastSegment ? new Thickness(0, -2.5, 0, 25) : new Thickness(0, -2.5, 0, -2.5);
                 ButtonCopyVisibility = Visibility.Collapsed;
                 ShowHorizontalScrollBar = ScrollBarVisibility.Disabled;
                 TextVisibility = Visibility.Visible;

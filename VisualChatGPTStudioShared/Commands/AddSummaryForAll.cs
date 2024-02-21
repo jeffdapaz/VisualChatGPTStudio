@@ -122,6 +122,8 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                 if (ex is not OperationCanceledException)
                 {
+                    Logger.Log(ex);
+
                     await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, ex.Message, Microsoft.VisualStudio.Shell.Interop.OLEMSGICON.OLEMSGICON_WARNING, Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
                 }
             }

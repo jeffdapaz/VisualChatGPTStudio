@@ -82,6 +82,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             }
             catch (Exception ex)
             {
+                Logger.Log(ex);
+
                 EnableDisableButtons(true, false);
 
                 MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -246,6 +248,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             }
             catch (Exception ex)
             {
+                Logger.Log(ex);
+
                 await VS.StatusBar.ShowProgressAsync(ex.Message, 2, 2);
 
                 EnableDisableButtons(true, false);

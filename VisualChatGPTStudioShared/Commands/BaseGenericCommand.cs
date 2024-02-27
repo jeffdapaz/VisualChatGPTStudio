@@ -1,11 +1,15 @@
-﻿using Community.VisualStudio.Toolkit;using JeffPires.VisualChatGPTStudio.Utils;using Microsoft.VisualStudio.Shell;using Microsoft.VisualStudio.Text;using System;using System.Threading;
+﻿using Community.VisualStudio.Toolkit;using JeffPires.VisualChatGPTStudio.ToolWindows.Turbo;
+using JeffPires.VisualChatGPTStudio.Utils;using Microsoft.VisualStudio.Shell;using Microsoft.VisualStudio.Text;using System;using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
 using System.Windows.Input;using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;using Span = Microsoft.VisualStudio.Text.Span;namespace JeffPires.VisualChatGPTStudio.Commands{
     /// <summary>
     /// Base abstract class for generic commands
     /// </summary>
     /// <typeparam name="TCommand">The type of the command.</typeparam>
     /// <seealso cref="BaseCommand&lt;&gt;" />
-    internal abstract class BaseGenericCommand<TCommand> : BaseCommand<TCommand> where TCommand : class, new()    {        protected DocumentView docView;        private string selectedText;        private int position;        private int positionStart;        private int positionEnd;        private bool firstIteration;        private bool responseStarted;
+    internal abstract class BaseGenericCommand<TCommand> : BaseCommand<TCommand> where TCommand : class, new()    {        protected const string PROVIDE_ONLY_CODE_INSTRUCTION = ". Please, only provide the code without additional comments or text.";        protected DocumentView docView;        private string selectedText;        private int position;        private int positionStart;        private int positionEnd;        private bool firstIteration;        private bool responseStarted;
 
         /// <summary>
         /// Gets the type of command.
@@ -54,7 +58,8 @@ using System.Windows.Input;using Constants = JeffPires.VisualChatGPTStudio.Util
                         //Erase current code
                         _ = docView.TextBuffer?.Replace(new Span(position, docView.TextView.Selection.StreamSelectionSpan.GetText().Length), String.Empty);                    }                    else if (commandType == CommandType.InsertBefore)                    {                        position = positionStart;                        InsertANewLine(false);                    }                    else                    {                        position = positionEnd;                        InsertANewLine(true);                    }                    if (typeof(TCommand) == typeof(Explain) || typeof(TCommand) == typeof(FindBugs))                    {                        AddCommentChars();                    }                    firstIteration = false;                }                if (OptionsGeneral.SingleResponse)                {                    result = RemoveBlankLinesFromResult(result);                }                else if (!responseStarted && (result.Equals("\n") || result.Equals("\r") || result.Equals(Environment.NewLine)))                {
                     //Do nothing when API send only break lines on response begin
-                    return;                }                responseStarted = true;                if (typeof(TCommand) == typeof(AddSummary) && (result.Contains("{") || result.Contains("}")))                {                    return;                }                if (typeof(TCommand) == typeof(Explain) || typeof(TCommand) == typeof(FindBugs))                {                    result = FormatResultToAddCommentsCharForEachLine(result);                }                docView.TextBuffer?.Insert(position, result);                position += result.Length;
+                    return;                }                responseStarted = true;                if (typeof(TCommand) == typeof(AddSummary) && (result.Contains("{") || result.Contains("}")))                {                    return;                }                else if (typeof(TCommand) == typeof(Explain) || typeof(TCommand) == typeof(FindBugs))                {                    result = FormatResultToAddCommentsCharForEachLine(result);                }
+                else if (typeof(TCommand) == typeof(AddTests) || typeof(TCommand) == typeof(Complete) || typeof(TCommand) == typeof(Optimize))                {                    result = FormatResultForCodeCommands(result);                }                docView.TextBuffer?.Insert(position, result);                position += result.Length;
             }            catch (Exception ex)            {                Logger.Log(ex);            }        }
 
         /// <summary>
@@ -97,7 +102,44 @@ using System.Windows.Input;using Constants = JeffPires.VisualChatGPTStudio.Util
                 }
             }
 
-            return result;        }    }
+            return result;        }
+
+        /// <summary>
+        /// Formats the result for code commands by extracting the code segments avoiding show additional comments.
+        /// </summary>
+        /// <param name="result">The result.</param>
+        /// <returns>The formatted result for code commands.</returns>
+        private string FormatResultForCodeCommands(string result)
+        {
+            if (!OptionsGeneral.SingleResponse)
+            {
+                if (result.StartsWith("`"))
+                {
+                    return string.Empty;
+                }
+
+                return result;
+            }
+
+            List<ChatMessageSegment> segments = TextFormat.GetChatTurboResponseSegments(result);
+
+            if (!segments.Any(s => s.Author == AuthorEnum.ChatGPTCode))
+            {
+                return result;
+            }
+
+            StringBuilder content = new();
+
+            foreach (ChatMessageSegment segment in segments)
+            {
+                if (segment.Author == AuthorEnum.ChatGPTCode)
+                {
+                    content.AppendLine(segment.Content);
+                }
+            }
+
+            return content.ToString();
+        }    }
 
     /// <summary>
     /// Enum to represent the different types of commands that can be used.

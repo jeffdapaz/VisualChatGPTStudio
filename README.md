@@ -181,6 +181,10 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ## Release Notes 📜
 
+### 2.5.3
+
+- Improvements for the Add Tests, Complete and Optimize commands result. In most cases will only write the code from OpenAI responses, ignoring any additional comments that could come with the OpenAI response. Work better when "Single Response" option is on.
+
 ### 2.5.2
 
 - Added logging writing in case of exceptions in the Visual Studio Output window.

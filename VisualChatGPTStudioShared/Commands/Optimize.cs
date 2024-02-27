@@ -14,7 +14,7 @@ namespace JeffPires.VisualChatGPTStudio
 
         protected override string GetCommand(string selectedText)
         {
-            return OptionsCommands.GetCommandAsync(CommandsType.Optimize).Result;
+            return OptionsCommands.GetCommandAsync(CommandsType.Optimize).Result + PROVIDE_ONLY_CODE_INSTRUCTION;
         }
     }
 }

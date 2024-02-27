@@ -1,5 +1,7 @@
-﻿using System;
+﻿using JeffPires.VisualChatGPTStudio.ToolWindows.Turbo;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace JeffPires.VisualChatGPTStudio.Utils
@@ -104,22 +106,22 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
             if (extension.Equals("cs", StringComparison.InvariantCultureIgnoreCase))
             {
-                language = "for C#";
+                language = "For C#";
             }
             else if (extension.Equals("vb", StringComparison.InvariantCultureIgnoreCase))
             {
-                language = "for Visual Basic";
+                language = "For Visual Basic";
             }
             else if (extension.Equals("sql", StringComparison.InvariantCultureIgnoreCase))
             {
-                language = "for SQL Server";
+                language = "For SQL Server";
             }
             else if (extension.Equals("js", StringComparison.InvariantCultureIgnoreCase))
             {
-                language = "for Java Script";
+                language = "For Java Script";
             }
 
-            return $"{command} {language}: ";
+            return $"{command} {language}.";
         }
 
         /// <summary>
@@ -215,6 +217,80 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             }
 
             return string.Empty;
+        }
+
+        /// <summary>
+        /// Retrieves the segments of a chat turbo response by splitting the response using a specified divider.
+        /// </summary>
+        /// <param name="response">The chat turbo response.</param>
+        /// <returns>A list of ChatTurboResponseSegment objects representing the segments of the response.</returns>
+        public static List<ChatMessageSegment> GetChatTurboResponseSegments(string response)
+        {
+            const string DIVIDER = "```";
+
+            Regex regex = new($@"({DIVIDER}([\s\S]*?){DIVIDER})");
+
+            MatchCollection matches = regex.Matches(response);
+
+            List<ChatMessageSegment> substrings = new();
+
+            //Get all substrings from the separation with the character ```
+            string[] allSubstrings = response.Split(new string[] { DIVIDER }, StringSplitOptions.None);
+
+            int indexFirstLine;
+
+            // Identify the initial and final position of each substring that appears between the characters ```
+            foreach (Match match in matches)
+            {
+                int start = match.Index;
+                int end = start + match.Length;
+
+                indexFirstLine = match.Value.IndexOf('\n');
+
+                substrings.Add(new ChatMessageSegment
+                {
+                    Author = AuthorEnum.ChatGPTCode,
+                    Content = Environment.NewLine + match.Value.Substring(indexFirstLine + 1).Replace(DIVIDER, string.Empty) + Environment.NewLine,
+                    SegmentOrderStart = start,
+                    SegmentOrderEnd = end
+                });
+            }
+
+            bool matched;
+
+            // Identify the initial and final position of each substring that does not appear between special characters ``` 
+            for (int i = 0; i < allSubstrings.Length; i++)
+            {
+                matched = false;
+
+                foreach (Match match in matches)
+                {
+                    if (match.Value.Contains(allSubstrings[i]))
+                    {
+                        matched = true;
+                        break;
+                    }
+                }
+
+                if (matched)
+                {
+                    continue;
+                }
+
+                int start = response.IndexOf(allSubstrings[i]);
+                int end = start + allSubstrings[i].Length;
+
+                substrings.Add(new ChatMessageSegment
+                {
+                    Author = AuthorEnum.ChatGPT,
+                    Content = allSubstrings[i].Trim(),
+                    SegmentOrderStart = start,
+                    SegmentOrderEnd = end
+                });
+            }
+
+            // Order the list of substrings by their starting position.
+            return substrings.OrderBy(s => s.SegmentOrderStart).ToList();
         }
     }
 }

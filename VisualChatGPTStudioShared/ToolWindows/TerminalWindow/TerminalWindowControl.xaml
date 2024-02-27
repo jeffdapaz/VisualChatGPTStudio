@@ -60,6 +60,8 @@
                     <ColumnDefinition Width="10" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="10" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="10" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" HorizontalAlignment="Left" FontWeight="Bold" FontSize="14">Ask</TextBlock>
@@ -73,8 +75,18 @@
                     Command="{StaticResource sendCommand}" 
                     Style="{StaticResource ImageHandCursorStyle}"
                     Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/send.png"/>
-                <utils:CommandImage  
+                <Image 
                     Grid.Column="4" 
+                    Height="20" 
+                    Width="20" 
+                    HorizontalAlignment="Left" 
+                    x:Name="btnGenerateGitComment" 
+                    ToolTip="Generate Git Changes Comment" 
+                    MouseDown="btnGenerateGitComment_Click" 
+                    Style="{StaticResource ImageHandCursorStyle}"
+                    Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/git.png"/>
+                <utils:CommandImage  
+                    Grid.Column="6" 
                     Height="20" 
                     Width="20" 
                     HorizontalAlignment="Left" 
@@ -85,7 +97,7 @@
                     IsEnabled="False" 
                     Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/cancel.png"/>
                 <Image 
-                    Grid.Column="6" 
+                    Grid.Column="8" 
                     Height="20" 
                     Width="20" 
                     HorizontalAlignment="Left" 
@@ -95,7 +107,7 @@
                     Style="{StaticResource ImageHandCursorStyle}"
                     Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/paste.png"/>
                 <Image 
-                    Grid.Column="8" 
+                    Grid.Column="10" 
                     Height="20" 
                     Width="20" 
                     HorizontalAlignment="Left" 
@@ -104,7 +116,7 @@
                     ToolTip="Clear" 
                     Style="{StaticResource ImageHandCursorStyle}"
                     Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/clear.png"/>
-                <Grid Name="grdProgress" Grid.Column="10" Visibility="Collapsed">
+                <Grid Name="grdProgress" Grid.Column="12" Visibility="Collapsed">
                     <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="True" />
                     <TextBlock Text="Waiting chatGPT response" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Black" />
                 </Grid>

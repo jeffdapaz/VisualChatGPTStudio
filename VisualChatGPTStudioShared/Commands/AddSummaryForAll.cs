@@ -195,6 +195,8 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             summary = await RequestAsync(code);
 
+            summary = TextFormat.RemoveCodeTagsFromOpenAIResponses(true, summary);
+
             if (string.IsNullOrWhiteSpace(summary))
             {
                 return editedCode;

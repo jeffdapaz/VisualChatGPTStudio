@@ -7,6 +7,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using VisualChatGPTStudioShared.Utils;
 using Clipboard = System.Windows.Clipboard;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 using MessageBox = System.Windows.MessageBox;
@@ -26,6 +27,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         private bool firstIteration;
         private bool responseStarted;
         private CancellationTokenSource cancellationTokenSource;
+        private bool removeCodeTagsFromOpenAIResponses;
 
         #endregion Properties
 
@@ -74,6 +76,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 cancellationTokenSource = new CancellationTokenSource();
 
+                removeCodeTagsFromOpenAIResponses = false;
+
                 await ChatGPT.GetResponseAsync(options, string.Empty, txtRequest.Text, options.StopSequences.Split(','), ResultHandler, cancellationTokenSource.Token);
             }
             catch (OperationCanceledException)
@@ -87,6 +91,55 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
                 EnableDisableButtons(true, false);
 
                 MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        /// <summary>
+        /// Handles the click event of the Generate Git Comment button. It generates a Git comment based on the current changes using ChatGPT.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The event data.</param>
+        private async void btnGenerateGitComment_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                EnableDisableButtons(false, true);
+
+                string changes = GitChangesComment.GetCurrentChanges();
+
+                if (string.IsNullOrWhiteSpace(changes))
+                {
+                    MessageBox.Show("No changes found.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    return;
+                }
+
+                txtRequest.Text = string.Concat(options.GenerateGitCommentCommand, Environment.NewLine, Environment.NewLine, changes);
+                txtResponse.Text = string.Empty;
+
+                cancellationTokenSource = new CancellationTokenSource();
+
+                removeCodeTagsFromOpenAIResponses = true;
+
+                await ChatGPT.GetResponseAsync(options, options.GenerateGitCommentCommand, changes, options.StopSequences.Split(','), ResultHandler, cancellationTokenSource.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                //Do nothing
+            }
+            catch (ArgumentNullException)
+            {
+                MessageBox.Show("Git repository not found.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+
+                MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            finally
+            {
+                EnableDisableButtons(true, false);
             }
         }
 
@@ -203,6 +256,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
             responseStarted = true;
 
+            if (removeCodeTagsFromOpenAIResponses)
+            {
+                result = TextFormat.RemoveCodeTagsFromOpenAIResponses(options.SingleResponse, result);
+            }
+
             txtResponse.AppendText(result);
 
             txtResponse.SyntaxHighlighting = ICSharpCode.AvalonEdit.Highlighting.HighlightingManager.Instance.GetDefinition(TextFormat.DetectCodeLanguage(txtResponse.Text));
@@ -215,11 +273,14 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         /// </summary>
         /// <param name="command">The command to be sent.</param>
         /// <param name="selectedText">The selected text to be sent.</param>
-        public async System.Threading.Tasks.Task RequestToWindowAsync(string command, string selectedText)
+        /// <param name="removeCodeTagsFromOpenAIResponses">Indicates if the code tags from OpenAI responses need to be removed from the result.</param>
+        public async System.Threading.Tasks.Task RequestToWindowAsync(string command, string selectedText, bool removeCodeTagsFromOpenAIResponses)
         {
             try
             {
                 firstIteration = true;
+
+                this.removeCodeTagsFromOpenAIResponses = removeCodeTagsFromOpenAIResponses;
 
                 await VS.StatusBar.ShowProgressAsync("Requesting chatGPT", 1, 2);
 

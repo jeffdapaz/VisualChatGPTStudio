@@ -58,6 +58,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandImage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Constants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\EnumHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\GitChangesComment.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\HighlightingDefinitionConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Http\ChatGPTHttpClientFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Http\HttpClientCustom.cs" />

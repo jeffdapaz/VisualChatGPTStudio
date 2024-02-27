@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace JeffPires.VisualChatGPTStudio.Utils
@@ -291,6 +292,44 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
             // Order the list of substrings by their starting position.
             return substrings.OrderBy(s => s.SegmentOrderStart).ToList();
+        }
+
+        /// <summary>
+        /// Removes code tags from OpenAI responses.
+        /// </summary>
+        /// <param name="singleResponse">Indicates if the response is a single response or part of a multi-response.</param>
+        /// <param name="response">The original response from OpenAI.</param>
+        /// <returns>A string with code tags removed or modified based on the input conditions.</returns>
+        public static string RemoveCodeTagsFromOpenAIResponses(bool singleResponse, string response)
+        {
+            if (!singleResponse)
+            {
+                if (response.StartsWith("`"))
+                {
+                    return string.Empty;
+                }
+
+                return response;
+            }
+
+            List<ChatMessageSegment> segments = GetChatTurboResponseSegments(response);
+
+            if (!segments.Any(s => s.Author == AuthorEnum.ChatGPTCode))
+            {
+                return response;
+            }
+
+            StringBuilder result = new();
+
+            foreach (ChatMessageSegment segment in segments)
+            {
+                if (segment.Author == AuthorEnum.ChatGPTCode)
+                {
+                    result.AppendLine(segment.Content);
+                }
+            }
+
+            return result.ToString();
         }
     }
 }

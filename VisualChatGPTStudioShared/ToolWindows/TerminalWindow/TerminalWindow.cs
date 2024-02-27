@@ -47,9 +47,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         /// </summary>
         /// <param name="command">The command to send to the ChatGPT window.</param>
         /// <param name="selectedText">The selected text to be sent.</param>
-        public async System.Threading.Tasks.Task RequestToWindowAsync(string command, string selectedText)
+        /// <param name="removeCodeTagsFromOpenAIResponses">Indicates if the code tags from OpenAI responses need to be removed from the result.</param>
+        public async System.Threading.Tasks.Task RequestToWindowAsync(string command, string selectedText, bool removeCodeTagsFromOpenAIResponses)
         {
-            await ((TerminalWindowControl)this.Content).RequestToWindowAsync(command, selectedText);
+            await ((TerminalWindowControl)this.Content).RequestToWindowAsync(command, selectedText, removeCodeTagsFromOpenAIResponses);
         }
     }
 }

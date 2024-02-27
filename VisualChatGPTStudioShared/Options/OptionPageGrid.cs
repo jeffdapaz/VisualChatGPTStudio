@@ -61,6 +61,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DefaultValue(false)]
         public bool LogResponses { get; set; } = false;
 
+        [Category("General")]
+        [DisplayName("Generate Git Changes Comment Command")]
+        [Description("Command to request to OpenAI generates a comment based on current repository git changes.")]
+        [DefaultValue("Based on the changes, write a concise comment for I can use in readme file and/or git changes push comment. Write each change in a new line. Use Markdown format.")]
+        public string GenerateGitCommentCommand { get; set; } = "Based on the changes, write a concise comment for I can use in readme file and/or git changes push comment. Write each change in a new line. Use Markdown format.";
+
         #endregion General
 
         #region Model Parameters        

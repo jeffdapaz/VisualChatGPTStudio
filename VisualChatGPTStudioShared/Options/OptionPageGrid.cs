@@ -27,7 +27,7 @@ namespace JeffPires.VisualChatGPTStudio.Options
 
         [Category("General")]
         [DisplayName("Single Response")]
-        [Description("If true, the entire response will be displayed at once (less undo history but longer waiting time).")]
+        [Description("If true, the entire response will be displayed at once (less undo history but longer waiting time). The commands Add Summary, Add Tests, Complete and Optimize will only works as \"Single Response\".")]
         [DefaultValue(false)]
         public bool SingleResponse { get; set; } = false;
 

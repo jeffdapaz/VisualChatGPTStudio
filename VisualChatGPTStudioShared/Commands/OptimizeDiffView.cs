@@ -49,7 +49,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                 string result = await ChatGPT.GetResponseAsync(OptionsGeneral, command, selectedText, OptionsGeneral.StopSequences?.Split(','), CancellationTokenSource.Token);
 
-                result = RemoveBlankLinesFromResult(result.ToString());
+                result = TextFormat.RemoveBlankLinesFromResult(result.ToString());
 
                 await ShowDiffViewAsync(docView.FilePath, selectedText, result);
 

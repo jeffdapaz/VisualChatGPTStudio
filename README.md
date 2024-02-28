@@ -184,7 +184,7 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 ### 2.6.0
 
 - Added the new "Generate Git Changes Comment" Command on the Visual chatGPT Studio Tool Window.
-- Improvements for the Add Summary, Add Tests, Complete and Optimize commands result. In most cases will only write the code from OpenAI responses, ignoring any additional comments that could come with the OpenAI response. Work better when "Single Response" option is on.
+- Improvements for the Add Summary, Add Tests, Complete and Optimize commands result. In most cases will only write the code from OpenAI responses, ignoring any additional comments that could come with the OpenAI response. To make this possible, unfortunately I had to disable the ability to write responses via stream for these commands, so now they will work as "Single Response" regardless of the option selected via Options.
 
 ### 2.5.2
 

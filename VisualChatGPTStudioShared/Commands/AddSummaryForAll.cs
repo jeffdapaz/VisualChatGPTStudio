@@ -195,14 +195,14 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             summary = await RequestAsync(code);
 
-            summary = TextFormat.RemoveCodeTagsFromOpenAIResponses(true, summary);
+            summary = TextFormat.RemoveCodeTagsFromOpenAIResponses(summary);
 
             if (string.IsNullOrWhiteSpace(summary))
             {
                 return editedCode;
             }
 
-            return editedCode.Replace(code, summary + Environment.NewLine + code);
+            return editedCode.Replace(code, summary.TrimEnd('\n', '\r') + Environment.NewLine + code);
         }
 
         /// <summary>
@@ -218,14 +218,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             string result = await ChatGPT.GetResponseAsync(OptionsGeneral, command, code, new string[] { "public", "private", "internal" }, CancellationTokenSource.Token);
 
-            result = RemoveBlankLinesFromResult(result);
-
-            if (result.Contains("{") || result.Contains("}"))
-            {
-                return string.Empty;
-            }
-
-            return result;
+            return TextFormat.RemoveBlankLinesFromResult(result);
         }
 
         /// <summary>
@@ -265,7 +258,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                 }
             }
 
-            return RemoveBlankLinesFromResult(string.Join("\r", newLines));
+            return TextFormat.RemoveBlankLinesFromResult(string.Join("\r", newLines));
         }
     }
 }

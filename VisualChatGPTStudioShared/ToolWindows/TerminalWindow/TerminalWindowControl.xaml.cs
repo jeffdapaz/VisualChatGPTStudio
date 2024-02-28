@@ -78,7 +78,16 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 removeCodeTagsFromOpenAIResponses = false;
 
-                await ChatGPT.GetResponseAsync(options, string.Empty, txtRequest.Text, options.StopSequences.Split(','), ResultHandler, cancellationTokenSource.Token);
+                if (options.SingleResponse)
+                {
+                    string result = await ChatGPT.GetResponseAsync(options, string.Empty, txtRequest.Text, options.StopSequences.Split(','), cancellationTokenSource.Token);
+
+                    ResultHandler(TextFormat.RemoveBlankLinesFromResult(result));
+                }
+                else
+                {
+                    await ChatGPT.GetResponseAsync(options, string.Empty, txtRequest.Text, options.StopSequences.Split(','), ResultHandler, cancellationTokenSource.Token);
+                }
             }
             catch (OperationCanceledException)
             {
@@ -121,7 +130,16 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 removeCodeTagsFromOpenAIResponses = true;
 
-                await ChatGPT.GetResponseAsync(options, options.GenerateGitCommentCommand, changes, options.StopSequences.Split(','), ResultHandler, cancellationTokenSource.Token);
+                if (options.SingleResponse)
+                {
+                    string comment = await ChatGPT.GetResponseAsync(options, options.GenerateGitCommentCommand, changes, options.StopSequences.Split(','), cancellationTokenSource.Token);
+
+                    ResultHandler(TextFormat.RemoveBlankLinesFromResult(comment));
+                }
+                else
+                {
+                    await ChatGPT.GetResponseAsync(options, options.GenerateGitCommentCommand, changes, options.StopSequences.Split(','), ResultHandler, cancellationTokenSource.Token);
+                }
             }
             catch (OperationCanceledException)
             {
@@ -258,7 +276,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
             if (removeCodeTagsFromOpenAIResponses)
             {
-                result = TextFormat.RemoveCodeTagsFromOpenAIResponses(options.SingleResponse, result);
+                result = TextFormat.RemoveCodeTagsFromOpenAIResponses(result);
             }
 
             txtResponse.AppendText(result);
@@ -292,11 +310,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 cancellationTokenSource = new CancellationTokenSource();
 
-                if (options.SingleResponse)
+                if (options.SingleResponse || removeCodeTagsFromOpenAIResponses)
                 {
                     string result = await ChatGPT.GetResponseAsync(options, command, selectedText, options.StopSequences.Split(','), cancellationTokenSource.Token);
 
-                    ResultHandler(result);
+                    ResultHandler(TextFormat.RemoveBlankLinesFromResult(result));
                 }
                 else
                 {

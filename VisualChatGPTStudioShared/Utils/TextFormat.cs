@@ -251,7 +251,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                 substrings.Add(new ChatMessageSegment
                 {
                     Author = AuthorEnum.ChatGPTCode,
-                    Content = Environment.NewLine + match.Value.Substring(indexFirstLine + 1).Replace(DIVIDER, string.Empty) + Environment.NewLine,
+                    Content = match.Value.Substring(indexFirstLine + 1).Replace(DIVIDER, string.Empty),
                     SegmentOrderStart = start,
                     SegmentOrderEnd = end
                 });
@@ -297,26 +297,15 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <summary>
         /// Removes code tags from OpenAI responses.
         /// </summary>
-        /// <param name="singleResponse">Indicates if the response is a single response or part of a multi-response.</param>
         /// <param name="response">The original response from OpenAI.</param>
         /// <returns>A string with code tags removed or modified based on the input conditions.</returns>
-        public static string RemoveCodeTagsFromOpenAIResponses(bool singleResponse, string response)
+        public static string RemoveCodeTagsFromOpenAIResponses(string response)
         {
-            if (!singleResponse)
-            {
-                if (response.StartsWith("`"))
-                {
-                    return string.Empty;
-                }
-
-                return response;
-            }
-
             List<ChatMessageSegment> segments = GetChatTurboResponseSegments(response);
 
             if (!segments.Any(s => s.Author == AuthorEnum.ChatGPTCode))
             {
-                return response;
+                return RemoveLinesStartingWithCodeTags(response);
             }
 
             StringBuilder result = new();
@@ -330,6 +319,42 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             }
 
             return result.ToString();
+        }
+
+        /// <summary>
+        /// Removes all leading blank lines from a given string and trims trailing new lines and carriage returns.
+        /// </summary>
+        /// <param name="result">The string from which blank lines should be removed.</param>
+        /// <returns>The modified string with no leading blank lines and trimmed trailing new lines and carriage returns.</returns>
+        public static string RemoveBlankLinesFromResult(string result)
+        {
+            while (result.StartsWith("\r\n") || result.StartsWith("\n") || result.StartsWith("\r"))
+            {
+                if (result.StartsWith("\r\n"))
+                {
+                    result = result.Substring(4);
+                }
+                else
+                {
+                    result = result.Substring(2);
+                }
+            }
+
+            return result.TrimEnd('\n', '\r');
+        }
+
+        /// <summary>
+        /// Removes lines from a given text that start with code tags
+        /// </summary>
+        /// <param name="text">Original text</param>
+        /// <returns>Text without the code tags</returns>
+        private static string RemoveLinesStartingWithCodeTags(string text)
+        {
+            string[] lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+
+            IEnumerable<string> filteredLines = lines.Where(line => !line.StartsWith("```"));
+
+            return string.Join(Environment.NewLine, filteredLines);
         }
     }
 }

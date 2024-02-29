@@ -5,7 +5,7 @@ using System.Windows.Input;using Constants = JeffPires.VisualChatGPTStudio.Util
     /// </summary>
     /// <typeparam name="TCommand">The type of the command.</typeparam>
     /// <seealso cref="BaseCommand&lt;&gt;" />
-    internal abstract class BaseGenericCommand<TCommand> : BaseCommand<TCommand> where TCommand : class, new()    {        protected const string PROVIDE_ONLY_CODE_INSTRUCTION = ". Please, only provide the code without additional comments or text.";        protected DocumentView docView;        private string selectedText;        private int position;        private int positionStart;        private int positionEnd;        private bool firstIteration;        private bool responseStarted;
+    internal abstract class BaseGenericCommand<TCommand> : BaseCommand<TCommand> where TCommand : class, new()    {        protected DocumentView docView;        private string selectedText;        private int position;        private int positionStart;        private int positionEnd;        private bool firstIteration;        private bool responseStarted;
 
         /// <summary>
         /// Gets the type of command.
@@ -56,7 +56,7 @@ using System.Windows.Input;using Constants = JeffPires.VisualChatGPTStudio.Util
                         _ = docView.TextBuffer?.Replace(new Span(position, docView.TextView.Selection.StreamSelectionSpan.GetText().Length), String.Empty);                    }                    else if (commandType == CommandType.InsertBefore)                    {                        position = positionStart;                        InsertANewLine(false);                    }                    else                    {                        position = positionEnd;                        InsertANewLine(true);                    }                    if (typeof(TCommand) == typeof(Explain) || typeof(TCommand) == typeof(FindBugs))                    {                        AddCommentChars();                    }                    firstIteration = false;                }                if (OptionsGeneral.SingleResponse)                {                    result = TextFormat.RemoveBlankLinesFromResult(result);                }                else if (!responseStarted && (result.Equals("\n") || result.Equals("\r") || result.Equals(Environment.NewLine)))                {
                     //Do nothing when API send only break lines on response begin
                     return;                }                responseStarted = true;                if (typeof(TCommand) == typeof(Explain) || typeof(TCommand) == typeof(FindBugs))                {                    result = FormatResultToAddCommentsCharForEachLine(result);                }
-                else if (IsCodeCommand())                {                    result = TextFormat.RemoveCodeTagsFromOpenAIResponses(result);                    result = TextFormat.RemoveBlankLinesFromResult(result);
+                else if (IsCodeCommand())                {                    result = TextFormat.RemoveCodeTagsFromOpenAIResponses(result);
                 }                docView.TextBuffer?.Insert(position, result);                position += result.Length;
             }            catch (Exception ex)            {                Logger.Log(ex);            }        }
 

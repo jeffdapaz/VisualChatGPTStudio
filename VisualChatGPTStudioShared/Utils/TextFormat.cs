@@ -1,4 +1,5 @@
 ﻿using JeffPires.VisualChatGPTStudio.ToolWindows.Turbo;
+using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -251,7 +252,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                 substrings.Add(new ChatMessageSegment
                 {
                     Author = AuthorEnum.ChatGPTCode,
-                    Content = match.Value.Substring(indexFirstLine + 1).Replace(DIVIDER, string.Empty),
+                    Content = RemoveBlankLinesFromResult(match.Value.Substring(indexFirstLine + 1).Replace(DIVIDER, string.Empty)),
                     SegmentOrderStart = start,
                     SegmentOrderEnd = end
                 });
@@ -284,7 +285,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                 substrings.Add(new ChatMessageSegment
                 {
                     Author = AuthorEnum.ChatGPT,
-                    Content = allSubstrings[i].Trim(),
+                    Content = RemoveBlankLinesFromResult(allSubstrings[i]),
                     SegmentOrderStart = start,
                     SegmentOrderEnd = end
                 });
@@ -318,29 +319,17 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                 }
             }
 
-            return result.ToString();
+            return RemoveBlankLinesFromResult(result.ToString());
         }
 
         /// <summary>
-        /// Removes all leading blank lines from a given string and trims trailing new lines and carriage returns.
+        /// Removes blank lines from the given string result.
         /// </summary>
         /// <param name="result">The string from which blank lines should be removed.</param>
-        /// <returns>The modified string with no leading blank lines and trimmed trailing new lines and carriage returns.</returns>
+        /// <returns>A string with blank lines removed.</returns>
         public static string RemoveBlankLinesFromResult(string result)
         {
-            while (result.StartsWith("\r\n") || result.StartsWith("\n") || result.StartsWith("\r"))
-            {
-                if (result.StartsWith("\r\n"))
-                {
-                    result = result.Substring(4);
-                }
-                else
-                {
-                    result = result.Substring(2);
-                }
-            }
-
-            return result.TrimEnd('\n', '\r');
+            return result.TrimPrefix("\r\n").TrimPrefix("\n\n").TrimPrefix("\n").TrimPrefix("\r").TrimSuffix("\r\n").TrimSuffix("\n\n").TrimSuffix("\n").TrimSuffix("\r");
         }
 
         /// <summary>
@@ -354,7 +343,9 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
             IEnumerable<string> filteredLines = lines.Where(line => !line.StartsWith("```"));
 
-            return string.Join(Environment.NewLine, filteredLines);
+            string result = string.Join(Environment.NewLine, filteredLines);
+
+            return RemoveBlankLinesFromResult(result);
         }
     }
 }

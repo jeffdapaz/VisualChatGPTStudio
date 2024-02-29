@@ -47,9 +47,9 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                 CancellationTokenSource = new CancellationTokenSource();
 
-                string result = await ChatGPT.GetResponseAsync(OptionsGeneral, command, selectedText, OptionsGeneral.StopSequences?.Split(','), CancellationTokenSource.Token);
+                string result = await ChatGPT.GetResponseAsync(OptionsGeneral, command + PROVIDE_ONLY_CODE_INSTRUCTION, selectedText, OptionsGeneral.StopSequences?.Split(','), CancellationTokenSource.Token);
 
-                result = TextFormat.RemoveBlankLinesFromResult(result.ToString());
+                result = TextFormat.RemoveCodeTagsFromOpenAIResponses(result.ToString());
 
                 await ShowDiffViewAsync(docView.FilePath, selectedText, result);
 

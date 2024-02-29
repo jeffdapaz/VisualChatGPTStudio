@@ -202,7 +202,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                 return editedCode;
             }
 
-            return editedCode.Replace(code, summary.TrimEnd('\n', '\r') + Environment.NewLine + code);
+            return editedCode.Replace(code, summary + Environment.NewLine + code);
         }
 
         /// <summary>

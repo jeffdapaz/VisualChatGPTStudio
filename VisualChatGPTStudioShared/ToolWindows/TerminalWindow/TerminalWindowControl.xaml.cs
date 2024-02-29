@@ -82,7 +82,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
                 {
                     string result = await ChatGPT.GetResponseAsync(options, string.Empty, txtRequest.Text, options.StopSequences.Split(','), cancellationTokenSource.Token);
 
-                    ResultHandler(TextFormat.RemoveBlankLinesFromResult(result));
+                    ResultHandler(result);
                 }
                 else
                 {
@@ -130,16 +130,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 removeCodeTagsFromOpenAIResponses = true;
 
-                if (options.SingleResponse)
-                {
-                    string comment = await ChatGPT.GetResponseAsync(options, options.GenerateGitCommentCommand, changes, options.StopSequences.Split(','), cancellationTokenSource.Token);
+                string comment = await ChatGPT.GetResponseAsync(options, options.GenerateGitCommentCommand, changes, options.StopSequences.Split(','), cancellationTokenSource.Token);
 
-                    ResultHandler(TextFormat.RemoveBlankLinesFromResult(comment));
-                }
-                else
-                {
-                    await ChatGPT.GetResponseAsync(options, options.GenerateGitCommentCommand, changes, options.StopSequences.Split(','), ResultHandler, cancellationTokenSource.Token);
-                }
+                ResultHandler(comment);
             }
             catch (OperationCanceledException)
             {
@@ -266,7 +259,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
                 responseStarted = false;
             }
 
-            if (!responseStarted && (result.Equals("\n") || result.Equals("\r") || result.Equals(Environment.NewLine)))
+            if (!options.SingleResponse && !responseStarted && (result.Equals("\n") || result.Equals("\r") || result.Equals(Environment.NewLine)))
             {
                 //Do nothing when API send only break lines on response begin
                 return;
@@ -277,6 +270,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             if (removeCodeTagsFromOpenAIResponses)
             {
                 result = TextFormat.RemoveCodeTagsFromOpenAIResponses(result);
+            }
+            else if (options.SingleResponse)
+            {
+                result = TextFormat.RemoveBlankLinesFromResult(result);
             }
 
             txtResponse.AppendText(result);
@@ -314,7 +311,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
                 {
                     string result = await ChatGPT.GetResponseAsync(options, command, selectedText, options.StopSequences.Split(','), cancellationTokenSource.Token);
 
-                    ResultHandler(TextFormat.RemoveBlankLinesFromResult(result));
+                    ResultHandler(result);
                 }
                 else
                 {

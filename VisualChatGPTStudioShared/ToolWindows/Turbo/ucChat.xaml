@@ -138,7 +138,7 @@
                                     ShowLineNumbers="False" 
                                     Document="{Binding Document}" 
                                     Background="{Binding BackgroundColor}" 
-                                    Padding="5"
+                                    Padding="5,5,20,5"
                                     SyntaxHighlighting="{Binding Syntax, Converter={StaticResource HighlightingDefinitionConverter}}" 
                                     IsReadOnly="True" 
                                     PreviewMouseWheel="TextEditor_PreviewMouseWheel" 

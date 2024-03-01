@@ -58,9 +58,17 @@ Some examples that you can do:
 
 In this tool window you can ask questions to chatGPT and receive answers directly in it.
 
-![image](https://user-images.githubusercontent.com/63928228/225486306-d29b1ec3-2ccd-4d74-8153-806a84abe5ea.png)
+![https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/2.6.0/1709307485035/image__6.png](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/2.6.0/1709307485035/image__6.png)
 
-This window can also used to redirect the commands responses to it holding the SHIFT key while execute some command, to avoid edit the code when you do not want.
+This window can also be used to redirect the responses of commands executed in the code editor to it, holding the SHIFT key while executing a command, this way you can avoid editing the code when you don't want to, or when you want to validate the result before inserting it in the project.
+
+In this window it will also be possible to create a git push comments based on pending changes by clicking on this button:
+
+![https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/2.6.0/1709307485035/image__9.png](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/2.6.0/1709307485035/image__9.png)
+
+No more wasting time thinking about what you are going to write for your changes!
+
+Through the "Generate Git Changes Comment Command" option of this extension, you can edit the request command. Ideal if you want comments to be created in a language other than English, and/or if you want the comment to follow some other specific format, etc.
 
 You will find this window in menu View -> Other Windows -> Visual chatGPT Studio.
 
@@ -178,6 +186,15 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 ☕ Buy me a coffee and support me to empower you more. Thank you! 
 
 [<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/278758680-f5fc9df2-a330-4d6a-ae13-9190b7b8f57b.png" width="20%">](https://www.paypal.com/donate/?hosted_button_id=2Y55G8YYC6Q3E)
+
+## Dependencies ⚙
+
+- [AvalonEdit](https://github.com/icsharpcode/AvalonEdit)
+- [LibGit2Sharp](https://github.com/libgit2/libgit2sharp)
+- [OpenAI-API-dotnet](https://github.com/OkGoDoIt/OpenAI-API-dotnet)
+- [sqlite-net-pcl](https://github.com/praeclarum/sqlite-net)
+- [VsixLogger](https://github.com/madskristensen/VsixLogger)
+- [Community.VisualStudio.Toolkit.17](https://github.com/VsixCommunity/Community.VisualStudio.Toolkit)
 
 ## Release Notes 📜
 

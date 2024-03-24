@@ -23,6 +23,7 @@ namespace JeffPires.VisualChatGPTStudio
     [ProvideToolWindow(typeof(TerminalWindow))]
     [ProvideToolWindow(typeof(TerminalWindowTurbo))]
     [ProvideToolWindow(typeof(TerminalWindowSolutionContext))]
+    [ProvideToolWindow(typeof(TerminalWindowCodeReview))]
     public sealed class VisuallChatGPTStudioPackage : ToolkitPackage
     {
         /// <summary>
@@ -63,6 +64,7 @@ namespace JeffPires.VisualChatGPTStudio
             await TerminalWindowCommand.InitializeAsync(this);
             await TerminalWindowTurboCommand.InitializeAsync(this);
             await TerminalWindowSolutionContextCommand.InitializeAsync(this);
+            await TerminalWindowCodeReviewCommand.InitializeAsync(this);
         }
     }
 }

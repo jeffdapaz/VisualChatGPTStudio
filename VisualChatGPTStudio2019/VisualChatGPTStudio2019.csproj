@@ -233,6 +233,9 @@
     <Resource Include="..\Resources\git.png">
       <Link>Resources\git.png</Link>
     </Resource>
+    <Resource Include="..\Resources\codeReview.png">
+      <Link>Resources\codeReview.png</Link>
+    </Resource>
     <Content Include="Icon2019.png">
       <IncludeInVSIX>true</IncludeInVSIX>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

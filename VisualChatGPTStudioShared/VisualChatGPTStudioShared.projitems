@@ -25,6 +25,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Commands\FindBugs.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\Optimize.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\OptimizeDiffView.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\TerminalWindowCodeReviewCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\TerminalWindowSolutionContextCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\TerminalWindowCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\TerminalWindowTurboCommand.cs" />
@@ -37,6 +38,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\Commands\OptionCommands.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\CodeReview\TerminalWindowCodeReview.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\CodeReview\TerminalWindowCodeReviewControl.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\SolutionContext\TerminalWindowSolutionContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindow\TerminalWindow.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\SolutionContext\TerminalWindowSolutionContextControl.cs" />
@@ -68,6 +71,10 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="$(MSBuildThisFileDirectory)Options\Commands\OptionCommandsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="$(MSBuildThisFileDirectory)ToolWindows\CodeReview\TerminalWindowCodeReviewControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -144,6 +144,13 @@
           <ButtonText>Visual chatGPT Studio Solution Context</ButtonText>
         </Strings>
       </Button>
+      <Button guid="guidVisuallChatGPTStudioPackageCmdSet" id="cmdidTerminalWindowCodeReviewCommand" priority="0x0100" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
+        <Icon guid="VisuallChatGPTStudioCodeReviewIcon" id="codeReviewIcon" />
+        <Strings>
+          <ButtonText>Visual chatGPT Studio Code Review</ButtonText>
+        </Strings>
+      </Button>
     </Buttons>
 
     <Bitmaps>
@@ -165,6 +172,7 @@
       <Bitmap guid="VisuallChatGPTStudioChatGPTIcon" href="Resources\bot.png" usedList="chatGPTIcon"/>
       <Bitmap guid="VisuallChatGPTStudioTurboIcon" href="Resources\turbo.png" usedList="turboIcon"/>
       <Bitmap guid="VisuallChatGPTStudioSolutionContextIcon" href="Resources\solutionContext.png" usedList="solutionContextIcon"/>
+      <Bitmap guid="VisuallChatGPTStudioCodeReviewIcon" href="Resources\codeReview.png" usedList="codeReviewIcon"/>
     </Bitmaps>
   </Commands>
 
@@ -288,6 +296,7 @@
       <IDSymbol value="256" name="cmdidTerminalWindowCommand" />
       <IDSymbol value="257" name="cmdidTerminalWindowTurboCommand" />
       <IDSymbol value="258" name="cmdidTerminalWindowSolutionContextCommand" />
+      <IDSymbol value="259" name="cmdidTerminalWindowCodeReviewCommand" />
     </GuidSymbol>
 
     <GuidSymbol name="VisuallChatGPTStudioCompleteIcon" value="{C12A8ED0-FBE5-4815-A3FB-2CB73AB06EEA}">
@@ -343,6 +352,9 @@
     </GuidSymbol>
     <GuidSymbol name="VisuallChatGPTStudioSolutionContextIcon" value="{97050FA7-DEA5-4FBC-AF34-21425E9D807F}">
       <IDSymbol name="solutionContextIcon" value="1" />
+    </GuidSymbol>
+    <GuidSymbol name="VisuallChatGPTStudioCodeReviewIcon" value="{62CBC0F1-8649-4458-9B6F-68BBF0A746D9}">
+      <IDSymbol name="codeReviewIcon" value="1" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

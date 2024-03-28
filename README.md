@@ -6,22 +6,6 @@
 
 👉 For Visual Studio 2019: [here](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio2019)
 
-## Table of Contents
-1. [**Description**](#description-)
-2. [**Features on code editor**: Commands that can be executed directly in the code editor](#features-on-code-editor-)
-3. [**Edit the Commands**: Customize commands to your needs](#edit-the-commands-)
-4. [**Features by "Visual chatGPT Studio" tool window**: Window to quickly execute commands and made requests](#features-by-visual-chatgpt-studio-tool-window-)
-5. [**Automatically create comments for your changes**](#Automatically-create-comments-for-your-changes-)
-6. [**Features by "Visual chatGPT Studio Turbo" tool window**: Keep conversations with AI like chatGPT](#features-by-visual-chatgpt-studio-turbo-tool-window-)
-7. [**Features by "Visual chatGPT Studio Solution Context" tool window**: Make requests to the AI indicating other parts of the project](#features-by-visual-chatgpt-studio-solution-context-tool-window-)
-8. [**Features by "Visual chatGPT Studio Code Review" tool window**: Request an automated Code Review of your changes](#features-by-visual-chatgpt-studio-code-review-tool-window-)
-9. [**Authentication**](#authentication-)
-10. [**Known Issues**](#known-issues-)
-11. [**Disclaimer**](#disclaimer-)
-12. [**Donations**](#donations-)
-13. [**Dependencies**](#dependencies-)
-14. [**Release Notes**](#release-notes-)
-
 ## Description 💬
 
 This is an extension that adds chatGPT functionality directly within Visual Studio.
@@ -135,9 +119,11 @@ But pay attention. Depending on the amount of code you add to the context, this 
 
 You will find this window in menu View -> Other Windows -> Visual chatGPT Studio Solution Context.
 
-## Features by "Visual chatGPT Studio Code Review" tool window 📌
+## Features by "Visual chatGPT Studio Code Review" tool window 🔍
 
 The Code Review Tool Window feature is designed to enhance the development workflow by automatically generating code reviews based on Git Changes in a project. This innovative functionality aims to identify potential gaps and areas for improvement before a pull request is initiated, ensuring higher code quality and facilitating a smoother review process.
+
+<img src="https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/2.7.0/1711660202615/image__5.png" width="75%">
 
 ### How It Works
 

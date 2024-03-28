@@ -114,7 +114,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             {
                 EnableDisableButtons(false, true);
 
-                string changes = GitChangesComment.GetCurrentChanges();
+                string changes = GitChanges.GetCurrentChanges();
 
                 if (string.IsNullOrWhiteSpace(changes))
                 {

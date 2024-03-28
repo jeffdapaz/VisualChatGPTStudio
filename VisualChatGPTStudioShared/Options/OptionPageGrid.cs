@@ -67,6 +67,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DefaultValue("Based on the changes, write a concise comment for I can use in readme file and/or git changes push comment. Write each change in a new line. Use Markdown format.")]
         public string GenerateGitCommentCommand { get; set; } = "Based on the changes, write a concise comment for I can use in readme file and/or git changes push comment. Write each change in a new line. Use Markdown format.";
 
+        [Category("General")]
+        [DisplayName("Code Review Command")]
+        [Description("Command to request to OpenAI generates a Code Review on current repository git changes.")]
+        [DefaultValue("Make a code view of the following changes and indicate if there is anything that can or should be modified taking into account the following points: performance, readable and well-structured code, use of known patterns, security, potential bugs that must be eliminated, etc. If there is no recommendation for a point, ignore it, otherwise, say what is wrong and provide suggestions, including code examples. Be very concise and direct in your response, provide the code review in a very summarized manner.")]
+        public string CodeReviewCommand { get; set; } = "Make a code view of the following changes and indicate if there is anything that can or should be modified taking into account the following points: performance, readable and well-structured code, use of known patterns, security, potential bugs that must be eliminated, etc. If there is no recommendation for a point, ignore it, otherwise, say what is wrong and provide suggestions, including code examples. Be very concise and direct in your response, provide the code review in a very summarized manner.";
+
         #endregion General
 
         #region Model Parameters        

@@ -6,7 +6,7 @@
         <Description xml:space="preserve">Add chatGPT functionalities directly on Visual Studio.</Description>
         <Icon>icons8-chatgpt-512.png</Icon>
         <PreviewImage>Resources\Icon.png</PreviewImage>
-        <Tags>chatGPT, Visual Studio, OpenAI</Tags>
+        <Tags>chatGPT, CoPilot, OpenAI, Visual Studio</Tags>
     </Metadata>
     <Installation>
         <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0, 18.0)">

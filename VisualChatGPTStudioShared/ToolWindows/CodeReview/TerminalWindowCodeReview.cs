@@ -36,10 +36,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         /// Sets the terminal window properties.
         /// </summary>
         /// <param name="options">The options.</param>
-        /// <param name="package">The package.</param>
-        public void SetTerminalWindowProperties(OptionPageGridGeneral options, Package package)
+        public void SetTerminalWindowProperties(OptionPageGridGeneral options)
         {
-            ((TerminalWindowCodeReviewControl)this.Content).StartControl(options, package);
+            ((TerminalWindowCodeReviewControl)this.Content).StartControl(options);
         }
     }
 }

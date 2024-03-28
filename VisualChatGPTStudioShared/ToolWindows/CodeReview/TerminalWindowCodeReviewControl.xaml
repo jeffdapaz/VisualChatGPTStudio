@@ -91,6 +91,7 @@
                                 Markdown="{Binding CodeReview}" 
                                 Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
                                 Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
+                                MarkdownStyleName="Sasabune"
                                 Margin="10,10,10,10"
                                 Padding="5"
                                 BorderBrush="Gray"

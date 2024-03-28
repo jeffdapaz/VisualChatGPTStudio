@@ -6,6 +6,22 @@
 
 👉 For Visual Studio 2019: [here](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.VisualChatGPTStudio2019)
 
+## Table of Contents
+1. [**Description**](#description-)
+2. [**Features on code editor**: Commands that can be executed directly in the code editor](#features-on-code-editor-)
+3. [**Edit the Commands**: Customize commands to your needs](#edit-the-commands-)
+4. [**Features by "Visual chatGPT Studio" tool window**: Window to quickly execute commands and made requests](#features-by-visual-chatgpt-studio-tool-window-)
+5. [**Automatically create comments for your changes**](#Automatically-create-comments-for-your-changes-)
+6. [**Features by "Visual chatGPT Studio Turbo" tool window**: Keep conversations with AI like chatGPT](#features-by-visual-chatgpt-studio-turbo-tool-window-)
+7. [**Features by "Visual chatGPT Studio Solution Context" tool window**: Make requests to the AI indicating other parts of the project](#features-by-visual-chatgpt-studio-solution-context-tool-window-)
+8. [**Features by "Visual chatGPT Studio Code Review" tool window**: Request an automated Code Review of your changes](#features-by-visual-chatgpt-studio-code-review-tool-window-)
+9. [**Authentication**](#authentication-)
+10. [**Known Issues**](#known-issues-)
+11. [**Disclaimer**](#disclaimer-)
+12. [**Donations**](#donations-)
+13. [**Dependencies**](#dependencies-)
+14. [**Release Notes**](#release-notes-)
+
 ## Description 💬
 
 This is an extension that adds chatGPT functionality directly within Visual Studio.
@@ -62,6 +78,8 @@ In this tool window you can ask questions to chatGPT and receive answers directl
 
 This window can also be used to redirect the responses of commands executed in the code editor to it, holding the SHIFT key while executing a command, this way you can avoid editing the code when you don't want to, or when you want to validate the result before inserting it in the project.
 
+## Automatically create comments for your changes 📑
+
 In this window it will also be possible to create a git push comments based on pending changes by clicking on this button:
 
 ![https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/2.6.0/1709307485035/image__9.png](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/2.6.0/1709307485035/image__9.png)
@@ -116,6 +134,29 @@ You can also request an analysis that involves a larger context involving severa
 But pay attention. Depending on the amount of code you add to the context, this can increase the tokens consume. And also will can reach the token limit per request sooner depending the model you are using. Set a model with large tokens limit can solve this limitation.
 
 You will find this window in menu View -> Other Windows -> Visual chatGPT Studio Solution Context.
+
+## Features by "Visual chatGPT Studio Code Review" tool window 📌
+
+The Code Review Tool Window feature is designed to enhance the development workflow by automatically generating code reviews based on Git Changes in a project. This innovative functionality aims to identify potential gaps and areas for improvement before a pull request is initiated, ensuring higher code quality and facilitating a smoother review process.
+
+### How It Works
+
+1. **Git Changes Detection:** The feature automatically detects any changes made to the codebase in Git.
+
+2. **Automatic Review Generation:** Upon detecting changes, the system instantly analyzes the modifications using the power of AI. It evaluates the code for potential issues such as syntax errors, code smells, security vulnerabilities, and performance bottlenecks.
+
+3. **Feedback Provision:** The results of the analysis are then compiled into a comprehensive code review report. This report includes detailed feedback on each identified issue, suggestions for improvements, and best practice recommendations. 
+
+4. **Integration with Development Tools:** The feature seamlessly integrates with the Visual Studio, ensuring that the code review process is a natural part of the development workflow. 
+
+5. **Edit the command:** Through the extension options, it is possible to edit the command that requests the Code Review for customization purposes.
+
+### Benefits
+
+- **Early Detection of Issues:** By identifying potential problems early in the development cycle, developers can address issues before they escalate, saving time and effort.
+- **Improved Code Quality:** The automatic reviews encourage adherence to coding standards and best practices, leading to cleaner, more maintainable code.
+- **Streamlined Review Process:** The feature complements the manual code review process, making it more efficient and focused by allowing reviewers to concentrate on more complex and critical aspects of the code.
+- **Enhanced Collaboration:** It fosters a culture of continuous improvement and learning among the development team, as the automated feedback provides valuable insights and learning opportunities.
 
 ## Authentication 🔑
 
@@ -193,10 +234,15 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 - [LibGit2Sharp](https://github.com/libgit2/libgit2sharp)
 - [OpenAI-API-dotnet](https://github.com/OkGoDoIt/OpenAI-API-dotnet)
 - [sqlite-net-pcl](https://github.com/praeclarum/sqlite-net)
+- [MdXaml](https://github.com/whistyun/MdXaml)
 - [VsixLogger](https://github.com/madskristensen/VsixLogger)
 - [Community.VisualStudio.Toolkit.17](https://github.com/VsixCommunity/Community.VisualStudio.Toolkit)
 
 ## Release Notes 📜
+
+### 2.7.0
+
+- Added the new "Code Review" functionality.
 
 ### 2.6.0
 

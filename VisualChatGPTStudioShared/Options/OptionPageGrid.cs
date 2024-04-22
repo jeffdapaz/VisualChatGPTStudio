@@ -161,6 +161,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [TypeConverter(typeof(EnumConverter))]
         public ModelLanguageEnum Model { get; set; } = ModelLanguageEnum.GPT_3_5_Turbo;
 
+        [Category("OpenAI")]
+        [DisplayName("Model Language Override")]
+        [Description("Specify a custom model name for custom API's. Overrides Model Language is not null.")]
+        [DefaultValue("")]
+        public string CustomModel { get; set; } = "";
+
         #endregion OpenAI
 
         #region Turbo Chat

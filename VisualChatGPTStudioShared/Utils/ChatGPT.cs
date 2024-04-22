@@ -120,7 +120,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             chat.RequestParameters.FrequencyPenalty = options.FrequencyPenalty;
             chat.RequestParameters.PresencePenalty = options.PresencePenalty;
 
-            chat.Model = options.Model.GetStringValue();
+            chat.Model = string.IsNullOrEmpty(options.CustomModel) ? options.Model.GetStringValue() : options.CustomModel;
 
             return chat;
         }

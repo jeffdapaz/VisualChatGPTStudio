@@ -163,7 +163,7 @@ namespace JeffPires.VisualChatGPTStudio.Options
 
         [Category("OpenAI")]
         [DisplayName("Model Language Override")]
-        [Description("Specify a custom model name for custom API's. Overrides Model Language is not null.")]
+        [Description("Specify a custom model name for custom API's. Overrides Model Language if not empty.")]
         [DefaultValue("")]
         public string CustomModel { get; set; } = "";
 

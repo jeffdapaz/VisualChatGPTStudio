@@ -226,6 +226,10 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ## Release Notes 📜
 
+### 2.7.1
+
+- Added the new "Custom Model" option.
+
 ### 2.7.0
 
 - Added the new "Code Review" functionality.

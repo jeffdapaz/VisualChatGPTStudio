@@ -146,7 +146,7 @@ The Code Review Tool Window feature is designed to enhance the development workf
 
 ## Authentication 🔑
 
-To use this tool it is necessary to connect through the OpenAI API or through Azure OpenAI.
+To use this tool it is necessary to connect through the OpenAI API, Azure OpenAI, or any other API that is OpenAI API compatible.
 
 ### By OpenAI
 
@@ -157,8 +157,6 @@ To use this tool it is necessary to connect through the OpenAI API or through Az
 3 - Copy and past the key on options and set the "OpenAI Service" parameter as "OpenAI": 
 
 <img src="https://github.com/jeffdapaz/VisualChatGPTStudio/assets/63928228/09a93cc9-c35d-4fee-b3a1-05f2dd0212f1" width="75%">
-
-4 - Optionally, you can overwrite the default URL if you want to connect via a custom API using the "Base API" parameter.
 
 ### By Azure
 
@@ -183,6 +181,16 @@ To use this tool it is necessary to connect through the OpenAI API or through Az
 <img src="https://github.com/jeffdapaz/VisualChatGPTStudio/assets/63928228/195539ac-8d0b-4284-bac4-de345464ed08" width="75%">
 
 5 - Set the Azure OpenAI API version. You can check the available versions [here](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#completions).
+
+### By Others Customs LLM
+
+Is possible to use a service that is not the OpenAI or Azure API, as long as this service is OpenAI API compatible.
+
+This way, you can use APIs that run locally, such as Meta's llama, or any other private deployment (locally or not).
+
+To do this, simply insert the address of these deployments in the "Base API URL" parameter of the extension.
+
+It's worth mentioning that I haven't tested this possibility for myself, so it's a matter of trial and error, but I've already received feedback from people who have successfully doing this.
 
 ## Known Issues ⚠
 
@@ -225,6 +233,11 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 - [Community.VisualStudio.Toolkit.17](https://github.com/VsixCommunity/Community.VisualStudio.Toolkit)
 
 ## Release Notes 📜
+
+### 2.7.2
+
+- Added the new Model option GPT-4o.
+- Now the GPT-4-Turbo model points to the default version (the latest available). Before, it was using the preview version.
 
 ### 2.7.1
 

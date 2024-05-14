@@ -149,8 +149,8 @@ namespace JeffPires.VisualChatGPTStudio.Options
         public string OpenAIOrganization { get; set; }
 
         [Category("OpenAI")]
-        [DisplayName("Base API")]
-        [Description("Change the API connection URL if you wish to do so for some reason. Example: https://myurl.openai.com")]
+        [DisplayName("Base API URL")]
+        [Description("Change the API connection URL if you wish to do so for some reason, for example use a custom LLM deployment. Example: https://myurl.openai.com")]
         [DefaultValue("")]
         public string BaseAPI { get; set; } = string.Empty;
 

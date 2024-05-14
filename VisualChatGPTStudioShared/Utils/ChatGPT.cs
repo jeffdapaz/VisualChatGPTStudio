@@ -276,8 +276,10 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         GPT_4,
         [EnumStringValue("gpt-4-32k")]
         GPT_4_32K,
-        [EnumStringValue("gpt-4-turbo-preview")]
-        GPT_4_Turbo
+        [EnumStringValue("gpt-4-turbo")]
+        GPT_4_Turbo,
+        [EnumStringValue("gpt-4o")]
+        GPT_4o
     }
 
     /// <summary>

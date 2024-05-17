@@ -61,6 +61,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ChatListControlItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandImage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Constants.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\ConversationOverride.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\DiffView.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\EnumHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\GitChanges.cs" />

@@ -30,7 +30,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// <param name="e">The <see cref="OleMenuCmdEventArgs"/> instance containing the event data.</param>
         protected override async System.Threading.Tasks.Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
-            const string PROGRESS_MESSAGE = "Creating Summaries...";
+            const string PROGRESS_MESSAGE = "Creating Summaries... (Alt+Z To Cancel)";
 
             DocumentView docView = await VS.Documents.GetActiveDocumentViewAsync();
 
@@ -96,18 +96,26 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                 await VS.StatusBar.ShowProgressAsync(PROGRESS_MESSAGE, memberIndex, totalDeclarations);
 
-                foreach (SyntaxNode member in root.DescendantNodes().Where(d => CheckIfMemberTypeIsValid(d)))
+                List<(int insertionPosition, string summary)> insertions = new();
+
+                foreach (SyntaxNode member in root.DescendantNodes().Where(d => CheckIfMemberTypeIsValid(d)).Reverse())
                 {
-                    editedCode = await AddSummaryToClassMemberAsync(tree, member, textBuffer, editedCode);
+                    (int insertionPosition, string summary) summaryInfo = await GenerateSummaryInfoAsync(tree, member, textBuffer);
+
+                    if (summaryInfo.summary != null)
+                    {
+                        insertions.Add(summaryInfo);
+                    }
 
                     memberIndex++;
 
                     await VS.StatusBar.ShowProgressAsync(PROGRESS_MESSAGE, memberIndex, totalDeclarations);
                 }
 
-                docView.TextView.TextBuffer.Replace(new Span(0, code.Length), editedCode);
-
-                await FormatDocumentAsync();
+                foreach ((int insertionPosition, string summary) in insertions)
+                {
+                    textBuffer.Insert(insertionPosition, summary);
+                }
 
                 await VS.StatusBar.ShowProgressAsync("Finished", totalDeclarations, totalDeclarations);
             }
@@ -142,7 +150,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             string startPattern = @"^\s*///\s*<summary\b[^>]*>";
 
-            string[] lines = classCode.Split('\n');
+            string[] lines = TextFormat.SplitTextByLine(classCode);
 
             for (int i = 0; i < lines.Length; i++)
             {
@@ -162,7 +170,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                 if (!insideSummary)
                 {
-                    outputBuilder.Append(lines[i]);
+                    outputBuilder.AppendLine(TextFormat.RemoveBlankLinesFromResult(lines[i]));
                 }
             }
 
@@ -170,23 +178,18 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         }
 
         /// <summary>
-        /// Adds the summary to the class member.
+        /// Asynchronously generates summary information for a given syntax tree node, determining the appropriate insertion position for the summary within a text buffer.
         /// </summary>
-        /// <param name="tree">The tree.</param>
-        /// <param name="classMember">The class member.</param>
-        /// <param name="textBuffer">The text buffer.</param>
-        /// <param name="editedCode">The edited code.</param>
-        /// <returns>The code edited with the summary added.</returns>
-        private async System.Threading.Tasks.Task<string> AddSummaryToClassMemberAsync(SyntaxTree tree, SyntaxNode classMember, ITextBuffer textBuffer, string editedCode)
+        private async Task<(int insertionPosition, string summary)> GenerateSummaryInfoAsync(SyntaxTree tree, SyntaxNode classMember, ITextBuffer textBuffer)
         {
             string code;
             string summary;
 
+            int startLine = tree.GetLineSpan(classMember.Span).StartLinePosition.Line;
+
             if (classMember is ClassDeclarationSyntax || classMember is InterfaceDeclarationSyntax)
             {
-                int line = tree.GetLineSpan(classMember.Span).StartLinePosition.Line;
-
-                code = textBuffer.CurrentSnapshot.GetLineFromLineNumber(line).GetText();
+                code = textBuffer.CurrentSnapshot.GetLineFromLineNumber(startLine).GetText();
             }
             else
             {
@@ -199,10 +202,18 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             if (string.IsNullOrWhiteSpace(summary))
             {
-                return editedCode;
+                return (0, null);
             }
 
-            return editedCode.Replace(code, summary + Environment.NewLine + code);
+            ITextSnapshotLine line = textBuffer.CurrentSnapshot.GetLineFromLineNumber(startLine);
+
+            string leadingWhitespace = line.GetText().Substring(0, line.GetText().IndexOf(line.GetText().TrimStart()[0]));
+
+            int insertionPosition = line.Start.Position;
+
+            summary = ApplySummaryLeadingWhitespace(summary, leadingWhitespace);
+
+            return (insertionPosition, summary);
         }
 
         /// <summary>
@@ -218,7 +229,28 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             string result = await ChatGPT.GetResponseAsync(OptionsGeneral, command, code, new string[] { "public", "private", "internal" }, CancellationTokenSource.Token);
 
+            //If the response contains the code, leave only the summary
+            result = result.Replace(code, string.Empty);
+
             return TextFormat.RemoveBlankLinesFromResult(result);
+        }
+
+        /// <summary>
+        /// Applies leading whitespace to each line of a given summary text.
+        /// </summary>
+        /// <param name="summary">The summary text to format.</param>
+        /// <param name="leadingWhitespace">The leading whitespace to apply to each line of the summary.</param>
+        /// <returns>A formatted summary with leading whitespace applied to each line.</returns>
+        private string ApplySummaryLeadingWhitespace(string summary, string leadingWhitespace)
+        {
+            StringBuilder formattedSummary = new();
+
+            foreach (string line in TextFormat.SplitTextByLine(summary))
+            {
+                formattedSummary.AppendLine($"{leadingWhitespace}{line}");
+            }
+
+            return formattedSummary.ToString();
         }
 
         /// <summary>
@@ -246,7 +278,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// <returns>The code with region tags removed.</returns>
         private string RemoveRegionTagsFromCode(string code)
         {
-            string[] lines = code.Split('\r');
+            string[] lines = TextFormat.SplitTextByLine(code);
 
             List<string> newLines = new();
 

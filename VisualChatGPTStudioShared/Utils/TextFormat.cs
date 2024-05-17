@@ -333,13 +333,25 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         }
 
         /// <summary>
+        /// Splits a given text into an array of strings, each representing a line. The method supports different line endings: "\r\n" (Windows), "\r" (old Mac), and "\n" (Unix/Linux).
+        /// </summary>
+        /// <param name="text">The text to be split into lines.</param>
+        /// <returns>
+        /// An array of strings, where each string is a line from the input text.
+        /// </returns>
+        public static string[] SplitTextByLine(string text)
+        {
+            return text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+        }
+
+        /// <summary>
         /// Removes lines from a given text that start with code tags
         /// </summary>
         /// <param name="text">Original text</param>
         /// <returns>Text without the code tags</returns>
         private static string RemoveLinesStartingWithCodeTags(string text)
         {
-            string[] lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            string[] lines = SplitTextByLine(text);
 
             IEnumerable<string> filteredLines = lines.Where(line => !line.StartsWith("```"));
 

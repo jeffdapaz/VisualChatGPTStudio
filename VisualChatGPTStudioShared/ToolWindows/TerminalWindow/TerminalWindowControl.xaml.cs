@@ -80,13 +80,13 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 if (options.SingleResponse)
                 {
-                    string result = await ChatGPT.GetResponseAsync(options, string.Empty, txtRequest.Text, options.StopSequences.Split(','), cancellationTokenSource.Token);
+                    string result = await ChatGPT.GetResponseAsync(options, options.ToolWindowSystemMessage, txtRequest.Text, options.StopSequences.Split(','), cancellationTokenSource.Token);
 
                     ResultHandler(result);
                 }
                 else
                 {
-                    await ChatGPT.GetResponseAsync(options, string.Empty, txtRequest.Text, options.StopSequences.Split(','), ResultHandler, cancellationTokenSource.Token);
+                    await ChatGPT.GetResponseAsync(options, options.ToolWindowSystemMessage, txtRequest.Text, options.StopSequences.Split(','), ResultHandler, cancellationTokenSource.Token);
                 }
             }
             catch (OperationCanceledException)
@@ -253,7 +253,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             {
                 EnableDisableButtons(true, true);
 
-                await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_RECEIVING_CHATGPT, 2, 2);
+                await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_WAITING_CHATGPT, 2, 2);
 
                 firstIteration = false;
                 responseStarted = false;

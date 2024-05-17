@@ -5,7 +5,6 @@ using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
-using OpenAI_API.Chat;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,7 +32,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private readonly OptionPageGridGeneral options;
         private readonly Package package;
         private readonly List<MessageEntity> messages;
-        private readonly Conversation chat;
+        private readonly ConversationOverride chat;
         private readonly List<ChatListControlItem> chatListControlItems;
         private CancellationTokenSource cancellationTokenSource;
         private DocumentView docView;

@@ -50,7 +50,7 @@ using System.Windows.Input;using Constants = JeffPires.VisualChatGPTStudio.Util
         private void ResultHandler(string result)        {            try            {                if (CancellationTokenSource.IsCancellationRequested)
                 {
                     return;
-                }                if (firstIteration)                {                    _ = VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_RECEIVING_CHATGPT, 2, 2);                    CommandType commandType = GetCommandType(selectedText);                    if (commandType == CommandType.Replace)                    {                        position = positionStart;
+                }                if (firstIteration)                {                    _ = VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_WAITING_CHATGPT, 2, 2);                    CommandType commandType = GetCommandType(selectedText);                    if (commandType == CommandType.Replace)                    {                        position = positionStart;
 
                         //Erase current code
                         _ = docView.TextBuffer?.Replace(new Span(position, docView.TextView.Selection.StreamSelectionSpan.GetText().Length), String.Empty);                    }                    else if (commandType == CommandType.InsertBefore)                    {                        position = positionStart;                        InsertANewLine(false);                    }                    else                    {                        position = positionEnd;                        InsertANewLine(true);                    }                    if (typeof(TCommand) == typeof(Explain) || typeof(TCommand) == typeof(FindBugs))                    {                        AddCommentChars();                    }                    firstIteration = false;                }                if (OptionsGeneral.SingleResponse)                {                    result = TextFormat.RemoveBlankLinesFromResult(result);                }                else if (!responseStarted && (result.Equals("\n") || result.Equals("\r") || result.Equals(Environment.NewLine)))                {
@@ -83,7 +83,7 @@ using System.Windows.Input;using Constants = JeffPires.VisualChatGPTStudio.Util
         /// <returns>
         /// The formatted result.
         /// </returns>
-        private string FormatResultToAddCommentsCharForEachLine(string result)        {            string commentChars = TextFormat.GetCommentChars(docView.FilePath);            string[] lines = result.Split(new[] { "\n", "\r", "\r\n" }, StringSplitOptions.None);
+        private string FormatResultToAddCommentsCharForEachLine(string result)        {            string commentChars = TextFormat.GetCommentChars(docView.FilePath);            string[] lines = TextFormat.SplitTextByLine(result);
 
             result = string.Empty;
 

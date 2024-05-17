@@ -54,7 +54,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                 await DiffView.ShowDiffViewAsync(docView.FilePath, selectedText, result);
 
-                await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_RECEIVING_CHATGPT, 2, 2);
+                await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_WAITING_CHATGPT, 2, 2);
             }
             catch (Exception ex)
             {

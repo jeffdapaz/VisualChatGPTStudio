@@ -32,7 +32,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <returns>The response from the chatbot.</returns>
         public static async Task<string> GetResponseAsync(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences, CancellationToken cancellationToken)
         {
-            Conversation chat = CreateConversationForCompletions(options, systemMessage, userInput, stopSequences);
+            ConversationOverride chat = CreateConversationForCompletions(options, systemMessage, userInput, stopSequences);
 
             string selectedContextFilesCode = await GetSelectedContextItemsCodeAsync();
 
@@ -67,7 +67,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <returns>A task representing the asynchronous operation.</returns>
         public static async Task GetResponseAsync(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences, Action<string> resultHandler, CancellationToken cancellationToken)
         {
-            Conversation chat = CreateConversationForCompletions(options, systemMessage, userInput, stopSequences);
+            ConversationOverride chat = CreateConversationForCompletions(options, systemMessage, userInput, stopSequences);
 
             string selectedContextFilesCode = await GetSelectedContextItemsCodeAsync();
 
@@ -94,21 +94,21 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <param name="options">The options to use for the conversation.</param>
         /// <param name="systemMessage">The system message to append to the conversation.</param>
         /// <returns>The created conversation.</returns>
-        public static Conversation CreateConversation(OptionPageGridGeneral options, string systemMessage)
+        public static ConversationOverride CreateConversation(OptionPageGridGeneral options, string systemMessage)
         {
-            Conversation chat;
+            ConversationOverride chat;
 
             if (options.Service == OpenAIService.OpenAI)
             {
                 CreateOpenAIApiHandler(options);
 
-                chat = openAiAPI.Chat.CreateConversation();
+                chat = new ConversationOverride((ChatEndpoint)openAiAPI.Chat);
             }
             else
             {
                 CreateAzureApiHandler(options);
 
-                chat = azureAPI.Chat.CreateConversation();
+                chat = new ConversationOverride((ChatEndpoint)azureAPI.Chat);
             }
 
             chat.AppendSystemMessage(systemMessage);
@@ -135,9 +135,9 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <returns>
         /// The created conversation.
         /// </returns>
-        private static Conversation CreateConversationForCompletions(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences)
+        private static ConversationOverride CreateConversationForCompletions(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences)
         {
-            Conversation chat = CreateConversation(options, systemMessage);
+            ConversationOverride chat = CreateConversation(options, systemMessage);
 
             if (options.MinifyRequests)
             {
@@ -191,7 +191,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
                 openAiAPI.HttpClientFactory = chatGPTHttpClient;
             }
-            else if ((chatGPTHttpClient.Proxy ?? string.Empty) != (options.Proxy ?? string.Empty) || (!string.IsNullOrWhiteSpace(options.BaseAPI) && !openAiAPI.ApiUrlFormat.StartsWith(options.BaseAPI)))
+            else if (IsOptionsParametersModified(options))
             {
                 openAiAPI = null;
                 CreateOpenAIApiHandler(options);
@@ -206,6 +206,47 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             {
                 openAiAPI.Auth.OpenAIOrganization = options.OpenAIOrganization;
             }
+        }
+
+        /// <summary>
+        /// Checks if the options parameters have been modified.
+        /// </summary>
+        /// <param name="options">The options page containing general settings.</param>
+        /// <returns>
+        /// True if settings have been modified; otherwise, false.
+        /// </returns>
+        private static bool IsOptionsParametersModified(OptionPageGridGeneral options)
+        {
+            return IsProxyModified(options) || IsBaseApiModified(options);
+        }
+
+        /// <summary>
+        /// Checks if the proxy setting has been modified in the options.
+        /// </summary>
+        /// <param name="options">The general options page grid containing the proxy settings.</param>
+        /// <returns>
+        /// True if the proxy setting has been modified; otherwise, false.
+        /// </returns>
+        private static bool IsProxyModified(OptionPageGridGeneral options)
+        {
+            return (chatGPTHttpClient.Proxy ?? string.Empty) != (options.Proxy ?? string.Empty);
+        }
+
+        /// <summary>
+        /// Checks if the base API URL has been modified from the default value.
+        /// </summary>
+        /// <param name="options">The general options containing the base API URL to check against.</param>
+        /// <returns>
+        /// True if the base API URL has been modified; otherwise, false.
+        /// </returns>
+        private static bool IsBaseApiModified(OptionPageGridGeneral options)
+        {
+            if (string.IsNullOrWhiteSpace(options.BaseAPI))
+            {
+                return openAiAPI.ApiUrlFormat != "https://api.openai.com/{0}/{1}";
+            }
+
+            return openAiAPI.ApiUrlFormat != options.BaseAPI + "/{0}/{1}";
         }
 
         /// <summary>

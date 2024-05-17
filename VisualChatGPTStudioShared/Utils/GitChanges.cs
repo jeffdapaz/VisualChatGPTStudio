@@ -1,4 +1,5 @@
-﻿using Community.VisualStudio.Toolkit;using EnvDTE;using LibGit2Sharp;using Microsoft.VisualStudio.Shell;using System;using System.Text;namespace VisualChatGPTStudioShared.Utils{
+﻿using Community.VisualStudio.Toolkit;using EnvDTE;using JeffPires.VisualChatGPTStudio.Utils;
+using LibGit2Sharp;using Microsoft.VisualStudio.Shell;using System;using System.Text;namespace VisualChatGPTStudioShared.Utils{
     /// <summary>
     /// Provides functionality to Git changes.
     /// </summary>
@@ -29,8 +30,7 @@
             originalCode = string.Empty;
             alteredCode = string.Empty;
 
-            //Split the input text into lines
-            string[] lines = gitChanges.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            string[] lines = TextFormat.SplitTextByLine(gitChanges);
 
             foreach (string line in lines)
             {

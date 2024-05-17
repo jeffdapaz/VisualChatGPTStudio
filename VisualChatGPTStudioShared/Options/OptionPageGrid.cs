@@ -73,6 +73,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DefaultValue("Make a code view of the following changes and indicate if there is anything that can or should be modified taking into account the following points: performance, readable and well-structured code, use of known patterns, security, potential bugs that must be eliminated, etc. If there is no recommendation for a point, ignore it, otherwise, say what is wrong and provide suggestions, including code examples. Be very concise and direct in your response, provide the code review in a very summarized manner.")]
         public string CodeReviewCommand { get; set; } = "Make a code view of the following changes and indicate if there is anything that can or should be modified taking into account the following points: performance, readable and well-structured code, use of known patterns, security, potential bugs that must be eliminated, etc. If there is no recommendation for a point, ignore it, otherwise, say what is wrong and provide suggestions, including code examples. Be very concise and direct in your response, provide the code review in a very summarized manner.";
 
+        [Category("General")]
+        [DisplayName("Tool Window System Message")]
+        [Description("Set the System Message for requests made through the Tool Window (optional).")]
+        [DefaultValue("")]
+        public string ToolWindowSystemMessage { get; set; } = string.Empty;
+
         #endregion General
 
         #region Model Parameters        
@@ -173,7 +179,7 @@ namespace JeffPires.VisualChatGPTStudio.Options
 
         [Category("Turbo Chat")]
         [DisplayName("Turbo Chat Behavior")]
-        [Description("Set the behavior of the assistant.")]
+        [Description("Set the behavior of the assistant. (API System Message)")]
         [DefaultValue("You are a programmer assistant called Visual chatGPT Studio, and your role is help developers and resolve programmer problems.")]
         public string TurboChatBehavior { get; set; } = "You are a programmer assistant called Visual chatGPT Studio, and your role is help developers and resolve programmer problems.";
 

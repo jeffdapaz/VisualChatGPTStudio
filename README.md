@@ -54,7 +54,7 @@ Some examples that you can do:
 
 <img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/281889918-f6bae902-077b-4688-84ca-d661a9336866.png" width="100%">
 
-## Features by "Visual chatGPT Studio" tool window 🛠
+## Features by `Visual chatGPT Studio` tool window 🛠
 
 In this tool window you can ask questions to chatGPT and receive answers directly in it.
 
@@ -70,11 +70,11 @@ In this window it will also be possible to create a git push comments based on p
 
 No more wasting time thinking about what you are going to write for your changes!
 
-Through the "Generate Git Changes Comment Command" option of this extension, you can edit the request command. Ideal if you want comments to be created in a language other than English, and/or if you want the comment to follow some other specific format, etc.
+Through the `Generate Git Changes Comment Command` option of this extension, you can edit the request command. Ideal if you want comments to be created in a language other than English, and/or if you want the comment to follow some other specific format, etc.
 
 You will find this window in menu View -> Other Windows -> Visual chatGPT Studio.
 
-## Features by "Visual chatGPT Studio Turbo" tool window 🚀
+## Features by `Visual chatGPT Studio Turbo` tool window 🚀
 
 In this window editor you can interact directly with chatGPT as if you were in the chatGPT portal itself:
 
@@ -82,7 +82,7 @@ Unlike the previous window, in this one the AI "remembers" the entire conversati
 
 ![image](https://github.com/jeffdapaz/VisualChatGPTStudio/assets/63928228/ff47bf5c-8324-46ba-a039-173c172337e0)
 
-You can also interact with the opened code editor through the "Send Code" button. Using this button the OpenAI API becomes aware of all the code in the opened editor, and you can request interactions directly to your code, for example:
+You can also interact with the opened code editor through the `Send Code` button. Using this button the OpenAI API becomes aware of all the code in the opened editor, and you can request interactions directly to your code, for example:
 
 - Ask to add new method on specific line, or between two existing methods;
 - Change a existing method to add a new parameter;
@@ -91,7 +91,7 @@ You can also interact with the opened code editor through the "Send Code" button
 
 But pay attention. Because that will send the entire code from opened file to API, this can increase the tokens consume. And also will can reach the token limit per request sooner depending the model you are using. Set a model with large tokens limit can solve this limitation.
 
-By executing this command, you can also hold down the SHIFT key when press the "Send Code" button so that the code will be write directly in the chat window instead of the code editor, in case you want to preserve the original code and/or analyze the response before applying it to the opened code editor.
+By executing this command, you can also hold down the SHIFT key when press the `Send Code` button so that the code will be write directly in the chat window instead of the code editor, in case you want to preserve the original code and/or analyze the response before applying it to the opened code editor.
 
 You will also be able to keep multiple chats open at the same time in different tabs. And each chat is kept in history, allowing you to continue the conversation even if Visual Studio is closed:
 
@@ -103,7 +103,7 @@ Watch here some examples using the Turbo Chat:
 
 [<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/275615943-a37e30c3-d597-42de-8a38-7d0cdbfe942f.png" width="70%">](https://youtu.be/2NHWWXFMpd0)
 
-## Features by "Visual chatGPT Studio Solution Context" tool window 📌
+## Features by `Visual chatGPT Studio Solution Context` tool window 📌
 
 <img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/282463640-4e7c24c6-41d5-4cee-aa36-f363daba6f95.png" width="75%">
 
@@ -119,7 +119,7 @@ But pay attention. Depending on the amount of code you add to the context, this 
 
 You will find this window in menu View -> Other Windows -> Visual chatGPT Studio Solution Context.
 
-## Features by "Visual chatGPT Studio Code Review" tool window 🔍
+## Features by `Visual chatGPT Studio Code Review` tool window 🔍
 
 The Code Review Tool Window feature is designed to enhance the development workflow by automatically generating code reviews based on Git Changes in a project. This innovative functionality aims to identify potential gaps and areas for improvement before a pull request is initiated, ensuring higher code quality and facilitating a smoother review process.
 
@@ -154,7 +154,7 @@ To use this tool it is necessary to connect through the OpenAI API, Azure OpenAI
 
 2 - Generate a new key: https://platform.openai.com/api-keys
 
-3 - Copy and past the key on options and set the "OpenAI Service" parameter as "OpenAI": 
+3 - Copy and past the key on options and set the `OpenAI Service` parameter as `OpenAI`: 
 
 <img src="https://github.com/jeffdapaz/VisualChatGPTStudio/assets/63928228/09a93cc9-c35d-4fee-b3a1-05f2dd0212f1" width="75%">
 
@@ -168,7 +168,7 @@ To use this tool it is necessary to connect through the OpenAI API, Azure OpenAI
 
 <img src="https://github.com/jeffdapaz/VisualChatGPTStudio/assets/63928228/1e9495a7-d626-4845-af7f-ae6f84139d87" width="75%">
 
-3 - Copy and past the key on options and set the "OpenAI Service" parameter as "AzureOpenAI": 
+3 - Copy and past the key on options and set the `OpenAI Service` parameter as `AzureOpenAI`: 
 
 <img src="https://github.com/jeffdapaz/VisualChatGPTStudio/assets/63928228/2f881df1-a95f-4016-bf39-9cf2e83aef0e" width="75%">
 
@@ -188,7 +188,7 @@ Is possible to use a service that is not the OpenAI or Azure API, as long as thi
 
 This way, you can use APIs that run locally, such as Meta's llama, or any other private deployment (locally or not).
 
-To do this, simply insert the address of these deployments in the "Base API URL" parameter of the extension.
+To do this, simply insert the address of these deployments in the `Base API URL` parameter of the extension.
 
 It's worth mentioning that I haven't tested this possibility for myself, so it's a matter of trial and error, but I've already received feedback from people who have successfully doing this.
 
@@ -208,7 +208,7 @@ For these cases I advise you to make requests via the tool windows to customize 
 
 - The speed and availability of responses directly depend on the API provided by OpenAI.
 
-- If you are using OpenAI service instead Azure and receive a message like "429 - You exceeded your current quota, please check your plan and billing details.", check OpenAI Usage page and see if you still have quota, example:
+- If you are using OpenAI service instead Azure and receive a message like `429 - You exceeded your current quota, please check your plan and billing details.`, check OpenAI Usage page and see if you still have quota, example:
 
 <img src="https://user-images.githubusercontent.com/63928228/242688025-47ec893e-401f-4edb-92a0-127a47a952fe.png" width="60%">
 
@@ -234,6 +234,13 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ## Release Notes 📜
 
+### 2.8.0
+
+- Added the new option `Tool Window System Message` in the Extension's Options to possibility customizing the System Message for the `Tool Window` chat requests.
+- Fixed a bug that made all requests be made twice, that causing increase wait time from responses and consume unnecessary tokens.
+- Fixed a bug related to the `Base API URL` option, which could not take effect if changed.
+- Improved the `Add Summary For Entire Class` command to avoid bad formatting.
+
 ### 2.7.2
 
 - Added the new Model option GPT-4o.
@@ -241,15 +248,15 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ### 2.7.1
 
-- Added the new "Custom Model" option.
+- Added the new `Custom Model` option.
 
 ### 2.7.0
 
-- Added the new "Code Review" functionality.
+- Added the new `Code Review` functionality.
 
 ### 2.6.0
 
-- Added the new "Generate Git Changes Comment" Command on the Visual chatGPT Studio Tool Window.
+- Added the new `Generate Git Changes Comment` Command on the Visual chatGPT Studio Tool Window.
 - Improvements for the Add Summary, Add Tests, Complete and Optimize commands result. In most cases will only write the code from OpenAI responses, ignoring any additional comments that could come with the OpenAI response. To make this possible, unfortunately I had to disable the ability to write responses via stream for these commands, so now they will work as "Single Response" regardless of the option selected via Options.
 - Other minor improvements.
 

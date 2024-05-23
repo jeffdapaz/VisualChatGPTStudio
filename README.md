@@ -234,6 +234,10 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ## Release Notes 📜
 
+### 2.8.1
+
+- Updated `Ask Anything` command to send `Tool Window System Message` as System Message.
+
 ### 2.8.0
 
 - Added the new option `Tool Window System Message` in the Extension's Options to possibility customizing the System Message for the `Tool Window` chat requests.

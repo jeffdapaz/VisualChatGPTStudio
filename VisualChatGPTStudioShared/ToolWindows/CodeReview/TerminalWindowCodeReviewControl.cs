@@ -153,15 +153,22 @@ using UserControl = System.Windows.Controls.UserControl;namespace JeffPires.Vi
                 }
                 else if (item.FileCount > 0)
                 {
-                    for (short i = 1; i <= item.FileCount; i++)
+                    try
                     {
-                        string filePath = item.FileNames[i];
-
-                        if (filePath.Replace('\\', '/').EndsWith(partialPath, StringComparison.OrdinalIgnoreCase))
+                        for (short i = 1; i <= item.FileCount; i++)
                         {
-                            return filePath;
+                            string filePath = item.FileNames[i];
+
+                            if (filePath.Replace('\\', '/').EndsWith(partialPath, StringComparison.OrdinalIgnoreCase))
+                            {
+                                return filePath;
+                            }
                         }
                     }
+                    catch (Exception)
+                    {
+                        continue;                           
+                    }                    
                 }
             }
 

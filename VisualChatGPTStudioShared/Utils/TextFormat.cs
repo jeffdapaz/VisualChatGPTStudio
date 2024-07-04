@@ -323,6 +323,18 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         }
 
         /// <summary>
+        /// Normalizes the line breaks in the given text to the environment's newline format.
+        /// </summary>
+        /// <param name="text">The input string containing various types of line breaks.</param>
+        /// <returns>
+        /// A string with all line breaks replaced by the environment's newline format.
+        /// </returns>
+        public static string NormalizeLineBreaks(string text)
+        {
+            return Regex.Replace(text, @"\r\n|\r|\n", Environment.NewLine);
+        }
+
+        /// <summary>
         /// Removes blank lines from the given string result.
         /// </summary>
         /// <param name="result">The string from which blank lines should be removed.</param>

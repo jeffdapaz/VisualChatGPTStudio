@@ -237,6 +237,9 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 ### 2.8.1
 
 - Updated `Ask Anything` command to send `Tool Window System Message` as System Message.
+- Some fixes to avoid errors when doing Code Review.
+- Now on Code Review the progress bar shows the real progress.
+- Now the API responses lines breaks in code editor is normalized to avoid mixing line breaks patterns. 
 
 ### 2.8.0
 

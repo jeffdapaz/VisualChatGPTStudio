@@ -20,6 +20,9 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+        <Storyboard x:Key="FadeInOut">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.2" To="1" Duration="0:0:1" AutoReverse="True" RepeatBehavior="Forever"/>
+        </Storyboard>
     </UserControl.Resources>
     
     <Grid>
@@ -53,8 +56,8 @@
         <Button Name="btnCollapseAll" Click="btnCollapseAll_Click" Grid.Row="1" Grid.Column="7" ToolTip="Collapse All">
             <TextBlock FontWeight="Bold" FontSize="12">Collapse All</TextBlock>
         </Button>
-        <Grid Name="grdProgress" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="8" Visibility="Collapsed" Height="25px" VerticalAlignment="Top">
-            <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="True" />
+        <Grid Name="grdProgress" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="8" Visibility="Collapsed" Height="25px" VerticalAlignment="Top">            
+            <ProgressBar x:Name="prgBar" Minimum ="0" IsIndeterminate="false" />
             <TextBlock Text="Reviewing the Changes" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Black" />
         </Grid>
         <ScrollViewer Grid.Row="3"  Grid.ColumnSpan="9" x:Name="scrollViewer" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">

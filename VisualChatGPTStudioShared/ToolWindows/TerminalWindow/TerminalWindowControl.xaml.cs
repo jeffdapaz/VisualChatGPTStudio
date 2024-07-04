@@ -339,8 +339,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         /// </summary>
         /// <param name="enableSendButton">A boolean value indicating whether to enable or disable the send button.</param>
         /// <param name="enableCancelButton">A boolean value indicating whether to enable or disable the cancel button.</param>
-        private void EnableDisableButtons(bool enableSendButton, bool enableCancelButton)
+        private async void EnableDisableButtons(bool enableSendButton, bool enableCancelButton)
         {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
             grdProgress.Visibility = enableSendButton ? Visibility.Collapsed : Visibility.Visible;
 
             btnRequestSend.IsEnabled = enableSendButton;

@@ -239,7 +239,8 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 - Updated `Ask Anything` command to send `Tool Window System Message` as System Message.
 - Some fixes to avoid errors when doing Code Review.
 - Now on Code Review the progress bar shows the real progress.
-- Now the API responses lines breaks in code editor is normalized to avoid mixing line breaks patterns. 
+- Now the API responses lines breaks in code editor will be normalized to avoid mixing line breaks patterns. 
+- Fixed the command "Generate Git Changes Comment" to ensure consider only pending changes.
 
 ### 2.8.0
 

@@ -29,8 +29,8 @@ namespace VisualChatGPTStudioShared.Utils
 
             using (Repository repo = new(repositoryPath))
             {
-                //Capture the differences between the HEAD and the working directory
-                Patch changes = repo.Diff.Compare<Patch>(repo.Head.Tip.Tree, DiffTargets.WorkingDirectory);
+                // Capture the differences between the index (staging area) and the working directory
+                Patch changes = repo.Diff.Compare<Patch>(repo.Head.Tip.Tree, DiffTargets.Index | DiffTargets.WorkingDirectory);
 
                 foreach (PatchEntryChanges change in changes)
                 {
@@ -60,8 +60,8 @@ namespace VisualChatGPTStudioShared.Utils
 
             using (Repository repo = new(repositoryPath))
             {
-                //Capture the differences between the HEAD and the working directory
-                return repo.Diff.Compare<Patch>(repo.Head.Tip.Tree, DiffTargets.WorkingDirectory);
+                // Capture the differences between the index (staging area) and the working directory
+                return repo.Diff.Compare<Patch>(repo.Head.Tip.Tree, DiffTargets.Index | DiffTargets.WorkingDirectory);
             }
         }
 

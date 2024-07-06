@@ -1,6 +1,5 @@
 ﻿using Community.VisualStudio.Toolkit;
 using EnvDTE;
-using EnvDTE80;
 using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils;
 using LibGit2Sharp;
@@ -8,7 +7,6 @@ using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -181,9 +179,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                DTE2 dte2 = (DTE2)Marshal.GetActiveObject("VisualStudio.DTE");
-                dte2.MainWindow.Activate();
-                EnvDTE.Window w = dte2.ItemOperations.OpenFile(e.Uri.OriginalString, EnvDTE.Constants.vsViewKindCode);
+                DTE dte = await VS.GetServiceAsync<DTE, DTE>();
+
+                dte.MainWindow.Activate();
+
+                EnvDTE.Window w = dte.ItemOperations.OpenFile(e.Uri.OriginalString, EnvDTE.Constants.vsViewKindCode);
 
                 e.Handled = true;
             }

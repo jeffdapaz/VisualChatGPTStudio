@@ -70,6 +70,7 @@
     </Content>
     <None Include="README-zh.md" />
     <None Include="README.md" />
+    <None Include="ReleaseNotes.md" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
       <Generator>VsixManifestGenerator</Generator>

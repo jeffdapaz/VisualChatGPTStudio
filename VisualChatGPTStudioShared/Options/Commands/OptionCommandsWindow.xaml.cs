@@ -34,7 +34,14 @@ using System;using System.Collections.Generic;using System.Linq;using System.
         /// <summary>
         /// Removes the selected command from the grid.
         /// </summary>
-        private void RemoveCommand_Click(object sender, RoutedEventArgs e)        {            if (grdCommands.SelectedItem == null)            {                MessageBox.Show("Please, select a line to be removed.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);                return;            }            if (commands.Count == 1)            {                MessageBox.Show("Must have at least one commands line.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);                return;            }            if (MessageBox.Show("Remove the line?", Constants.EXTENSION_NAME, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No)            {                return;            }            commands.Remove(grdCommands.SelectedItem as Commands);            grdCommands.Items.Refresh();        }
+        private void RemoveCommand_Click(object sender, RoutedEventArgs e)        {            Commands selectCommands = grdCommands.SelectedItem as Commands;            if (selectCommands == null)            {                MessageBox.Show("Please, select a line to be removed.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);                return;            }                        if (commands.Count == 1)            {                MessageBox.Show("Must have at least one commands line.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);                return;            }
+
+            if (string.IsNullOrWhiteSpace(selectCommands.ProjectName))
+            {
+                MessageBox.Show("Remove the default commands are not allowed.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);                return;
+            }
+
+            if (MessageBox.Show("Remove the line?", Constants.EXTENSION_NAME, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No)            {                return;            }            commands.Remove(selectCommands);            grdCommands.Items.Refresh();        }
 
         /// <summary>
         /// Event handler for the AddCommand button click event. Adds a new Commands object to the commands collection and refreshes the grid view.

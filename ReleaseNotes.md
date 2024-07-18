@@ -3,6 +3,7 @@
 ### 2.8.2
 
 - Added validation to prevent removal of default commands.
+- Added support for the new gpt-4o-mini model.
 
 ### 2.8.1
 

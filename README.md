@@ -22,7 +22,7 @@ The newly introduced Copilot functionality enhances your coding experience by pr
 
 When you start writing code, simply press the Enter key to receive contextual suggestions that can help you complete your code more efficiently. Confirm the suggestion pressing the TAB key.
 
-![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio/3.0/1723673493469/Copilot.gif)
+![image](https://github.com/user-attachments/assets/fc898671-b480-4c6d-9115-8c6abc5f5820)
 
 You can disable the Copilot Functionality through the options if you desire.
 

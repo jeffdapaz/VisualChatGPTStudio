@@ -7,6 +7,7 @@
              xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"   
              xmlns:utils="clr-namespace:JeffPires.VisualChatGPTStudio.Utils"             
              xmlns:utils_shared="clr-namespace:VisualChatGPTStudioShared.Utils"
+             xmlns:mdxam="clr-namespace:MdXaml;assembly=MdXaml"
              Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
              Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
              mc:Ignorable="d"
@@ -17,14 +18,19 @@
         <RoutedUICommand x:Key="sendCommand" Text="Text" />
         <RoutedUICommand x:Key="cancelCommand" Text="Text" />
         <utils:HighlightingDefinitionConverter x:Key="HighlightingDefinitionConverter" />
-        <Style x:Key="ImageHandCursorStyle" TargetType="{x:Type Image}">
-            <Setter Property="Cursor" Value="Arrow"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Cursor" Value="Hand"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <ContentPresenter />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>        
         <Storyboard x:Key="FadeIn">
             <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.5"/>
         </Storyboard>
@@ -40,7 +46,7 @@
         <KeyBinding Key="Enter" Modifiers="Ctrl+Alt" Command="{StaticResource sendCode}" />
         <KeyBinding Key="Enter" Modifiers="Ctrl+Alt+Shift" Command="{StaticResource sendCode}" />
         <KeyBinding Key="Enter" Modifiers="Ctrl" Command="{StaticResource sendCommand}" />
-        <KeyBinding Key="Z" Modifiers="Alt" Command="{StaticResource cancelCommand}" />
+        <KeyBinding Key="Q" Modifiers="Alt" Command="{StaticResource cancelCommand}" />
     </UserControl.InputBindings>
 
     <Grid Name="grdRoot" Margin="5">
@@ -50,9 +56,9 @@
             </EventTrigger>
         </Grid.Triggers>
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="*" MinHeight="65"/>
             <RowDefinition Height="15"/>
-            <RowDefinition Height="Auto" MinHeight="65"/>
+            <RowDefinition Height="Auto" MinHeight="65" x:Name="rowRequest" />
         </Grid.RowDefinitions>
         <Grid Name="grdChat" Grid.Row="0">
             <Grid.RowDefinitions>
@@ -66,94 +72,32 @@
                         <DataTemplate>
                             <Grid>
                                 <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="5"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="15"/>
                                 </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="5" />
-                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="5" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="5" />
                                 </Grid.ColumnDefinitions>
-                                <Image 
-                                    Grid.Row="1" 
+                                <Border 
+                                    Grid.Row="2" 
                                     Grid.Column="1" 
-                                    Source="{Binding ImageSource}" 
-                                    Width="36" 
-                                    Height="36" 
-                                    VerticalAlignment="Top"
-                                    Margin="{Binding Margins}" />
-                                <Image 
-                                    Grid.Row="1" 
-                                    Grid.Column="3" 
-                                    Panel.ZIndex="1" 
-                                    Height="15" 
-                                    Width="15" 
-                                    Margin="0,0,3,0"
-                                    HorizontalAlignment="Right" 
-                                    Tag="{Binding Index}"
-                                    VerticalAlignment="Top" 
-                                    Name="btnCopy" 
-                                    MouseDown="btnCopy_Click" 
-                                    ToolTip="Copy code" 
-                                    Visibility="{Binding ButtonCopyVisibility}" 
-                                    Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/copy.png">
-                                    <Image.Style>
-                                        <Style TargetType="{x:Type Image}">
-                                            <Setter Property="Cursor" Value="Arrow"/>
-                                            <Style.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="Cursor" Value="Hand"/>
-                                                </Trigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Image.Style>
-                                </Image>
-                                <TextBox
-                                    VerticalScrollBarVisibility="Disabled"
-                                    Grid.Row="1" 
-                                    Grid.Column="3" 
-                                    Text="{Binding Text}"
-                                    Background="{Binding BackgroundColor}" 
-                                    Padding="5"
-                                    IsReadOnly="True" 
-                                    Margin="{Binding Margins}" 
-                                    FontFamily="Cascadia Mono"
-                                    Visibility="{Binding TextVisibility}"
-                                    BorderThickness="0"
-                                    TextWrapping="Wrap">
-                                    <TextBox.Resources>
-                                        <Style TargetType="{x:Type Border}">
-                                            <Setter Property="CornerRadius" Value="{Binding CornerRadius}"/>
-                                        </Style>
-                                    </TextBox.Resources>
-                                </TextBox>
-                                <avalonEdit:TextEditor         
-                                    xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit" 
-                                    VerticalScrollBarVisibility="Disabled" 
-                                    HorizontalScrollBarVisibility="{Binding ShowHorizontalScrollBar}"
-                                    Grid.Row="1" 
-                                    Grid.Column="3" 
-                                    ShowLineNumbers="False" 
-                                    Document="{Binding Document}" 
-                                    Background="{Binding BackgroundColor}" 
-                                    Padding="5,5,20,5"
-                                    SyntaxHighlighting="{Binding Syntax, Converter={StaticResource HighlightingDefinitionConverter}}" 
-                                    IsReadOnly="True" 
-                                    PreviewMouseWheel="TextEditor_PreviewMouseWheel" 
-                                    Margin="{Binding Margins}" 
-                                    Panel.ZIndex="0"
-                                    Visibility="{Binding CodeVisibility}">   
-                                    <avalonEdit:TextEditor.ContextMenu>
-                                        <ContextMenu>
-                                            <MenuItem Command="Copy" />
-                                        </ContextMenu>
-                                    </avalonEdit:TextEditor.ContextMenu>
-                                    <avalonEdit:TextEditor.FontFamily>
-                                        <FontFamily>Cascadia Mono</FontFamily>
-                                    </avalonEdit:TextEditor.FontFamily>
-                                </avalonEdit:TextEditor>
+                                    Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
+                                    BorderBrush="Gray"
+                                    BorderThickness="1"
+                                    CornerRadius="10">
+                                    <mdxam:MarkdownScrollViewer 
+                                        Markdown="{Binding Text}" 
+                                        Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
+                                        Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
+                                        MarkdownStyleName="Sasabune"
+                                        Padding="5"
+                                        VerticalScrollBarVisibility="Disabled"
+                                        PreviewMouseWheel="txtChat_PreviewMouseWheel"/>
+                                </Border>
                             </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -175,8 +119,10 @@
             </Grid.ColumnDefinitions>
             <avalonEdit:TextEditor        
                 xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit" BorderBrush="DarkGray" BorderThickness="1"
-                Name="txtRequest" Grid.Column="1" 
-                HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" ShowLineNumbers="false" Background="#F5F5F5">
+                Name="txtRequest" Grid.Column="1" FontSize="14"
+                HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" ShowLineNumbers="false"                 
+                Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
+                Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}">
                 <avalonEdit:TextEditor.ContextMenu>
                     <ContextMenu>
                         <MenuItem Command="Paste" />
@@ -184,35 +130,35 @@
                 </avalonEdit:TextEditor.ContextMenu>
             </avalonEdit:TextEditor>
             <StackPanel Grid.Column="3" VerticalAlignment="Bottom">
-                <utils_shared:CommandImage   
+                <Button 
                     Height="25" 
                     Width="25" 
                     x:Name="btnRequestCode" 
                     ToolTip="Send Code (Ctrl+Alt+Enter)" 
-                    Command="{StaticResource sendCode}" 
-                    Style="{StaticResource ImageHandCursorStyle}"
-                    Margin="0,0,0,11"
-                    Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/sendCode.png"/>
-                <utils_shared:CommandImage   
+                    Click="SendCode" 
+                    Margin="0,0,0,11">
+                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/sendCode.png"/>
+                </Button>
+                <Button 
                     Height="25" 
                     Width="25" 
                     x:Name="btnRequestSend" 
                     ToolTip="Send (Ctrl+Enter)" 
-                    Command="{StaticResource sendCommand}" 
-                    Style="{StaticResource ImageHandCursorStyle}"
-                    Margin="0,0,0,2"
-                    Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/send.png"/>
-                <utils_shared:CommandImage  
+                    Click="SendRequest" 
+                    Margin="0,0,0,2">
+                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/send.png"/>
+                </Button>
+                <Button 
                     Height="25" 
                     Width="25" 
                     x:Name="btnCancel" 
-                    ToolTip="Cancel (Alt+Z)" 
-                    Command="{StaticResource cancelCommand}" 
-                    Style="{StaticResource ImageHandCursorStyle}"
+                    ToolTip="Cancel (Alt+Q)" 
+                    Click="CancelRequest" 
                     Visibility="Collapsed" 
                     IsEnabled="False" 
-                    Margin="0,0,0,2"
-                    Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/cancel.png"/>
+                    Margin="0,0,0,2">
+                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/cancel.png"/>
+                </Button>
             </StackPanel>
         </Grid>
     </Grid>

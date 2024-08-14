@@ -16,6 +16,16 @@ Watch here some examples:
 
 [<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/275614252-5f824ba6-df13-45e3-928e-086609fe1bcd.png" width="70%">](https://youtu.be/eU5hEh6e5Ow)
 
+## Copilot Functionality 🤖
+
+The newly introduced Copilot functionality enhances your coding experience by providing intelligent code suggestions as you type. 
+
+When you start writing code, simply press the Enter key to receive contextual suggestions that can help you complete your code more efficiently. Confirm the suggestion pressing the TAB key.
+
+![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio/3.0/1723673493469/Copilot.gif)
+
+You can disable the Copilot Functionality through the options if you desire.
+
 ## Features on code editor 👩‍💻
 
 Select a method and right click on text editor and you see these new chatGPT commands:
@@ -234,18 +244,15 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ## Release Notes 📜
 
+### 3.0
+
+- Added the Copilot functionality (only for Visual Studio 2022).
+- Now the gpt-4o-mini model is the default model for OpenAI API.
+- Many improvements and fixes on Turbo Chat window.
+
 ### 2.8.2
 
 - Added validation to prevent removal of default commands.
 - Added support for the new gpt-4o-mini model.
-
-### 2.8.1
-
-- Updated `Ask Anything` command to send `Tool Window System Message` as System Message.
-- Some fixes to avoid errors when doing Code Review.
-- Now on Code Review the progress bar shows the real progress.
-- Fixed the Code Review item hyper link.
-- Now the API responses lines breaks in code editor will be normalized to avoid mixing line breaks patterns. 
-- Fixed the command "Generate Git Changes Comment" to ensure consider only pending changes.
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

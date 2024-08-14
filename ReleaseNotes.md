@@ -1,5 +1,11 @@
 ﻿## Release Notes 📜
 
+### 3.0
+
+- Added the Copilot functionality (only for Visual Studio 2022).
+- Now the gpt-4o-mini model is the default model for OpenAI API.
+- Many improvements and fixes on Turbo Chat window.
+
 ### 2.8.2
 
 - Added validation to prevent removal of default commands.

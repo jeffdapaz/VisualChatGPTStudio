@@ -7,7 +7,6 @@ using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -200,14 +199,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         /// <param name="e">A MouseWheelEventArgs that contains the event data.</param>
         private void txtCodeReview_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (e.Delta < 0)
-            {
-                scrollViewer.LineDown();
-            }
-            else
-            {
-                scrollViewer.LineUp();
-            }
+            scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - e.Delta);
 
             e.Handled = true;
         }
@@ -256,7 +248,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
             CodeReviewItem result = new()
             {
-                CodeReview = ReplaceCSharpCodeTag(codeReview),
+                CodeReview = TextFormat.AdjustCodeLanguage(codeReview),
                 FileName = System.IO.Path.GetFileName(change.Path),
                 FilePath = GetFullPathFromPartial(change.Path),
                 OriginalCode = originalCode,
@@ -264,16 +256,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             };
 
             return result;
-        }
-
-        /// <summary>
-        /// Replaces variant C# code block tags with a standardized tag for consistency.
-        /// </summary>
-        /// <param name="code">The code review content.</param>
-        /// <returns>The modified code review content with standardized code block tags.</returns>
-        private static string ReplaceCSharpCodeTag(string code)
-        {
-            return Regex.Replace(code, "```(c#|csharp)", "```c", RegexOptions.IgnoreCase);
         }
 
         /// <summary>

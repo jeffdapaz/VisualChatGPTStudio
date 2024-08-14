@@ -1,4 +1,5 @@
 ﻿using Community.VisualStudio.Toolkit;
+using EnvDTE;
 using JeffPires.VisualChatGPTStudio.Commands;
 using JeffPires.VisualChatGPTStudio.Options.Commands;
 
@@ -14,7 +15,7 @@ namespace JeffPires.VisualChatGPTStudio
 
         protected override string GetCommand(string selectedText)
         {
-            return OptionsCommands.GetCommandAsync(CommandsType.AddTests).Result + PROVIDE_ONLY_CODE_INSTRUCTION;
+            return OptionsCommands.GetCommandAsync(CommandsType.AddTests).Result + Utils.Constants.PROVIDE_ONLY_CODE_INSTRUCTION;
         }
     }
 }

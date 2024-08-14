@@ -13,6 +13,8 @@ namespace JeffPires.VisualChatGPTStudio.Utils
     /// </summary>
     internal static class TextFormat
     {
+        private const string CODE_DIVIDER = "```";
+
         /// <summary>
         /// Removes all whitespace and break lines from a given string.
         /// </summary>
@@ -123,7 +125,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                 language = "For Java Script";
             }
 
-            return $"{command} {language}.";
+            return $"{command} {language}, and do not repeat the same code that I send in your response.";
         }
 
         /// <summary>
@@ -222,26 +224,47 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         }
 
         /// <summary>
+        /// Adjusts the code language identifier within a given code string by replacing specific language markers with standardized ones.
+        /// </summary>
+        /// <param name="code">The input code string containing language markers to be adjusted.</param>
+        /// <returns>
+        /// A string with the adjusted language markers.
+        /// </returns>
+        public static string AdjustCodeLanguage(string code)
+        {
+            string pattern = $"{CODE_DIVIDER}(csharp|c#|javascript)";
+
+            return Regex.Replace(code, pattern, match =>
+            {
+                return match.Value switch
+                {
+                    var m when m.EndsWith("csharp", StringComparison.OrdinalIgnoreCase) => $"{CODE_DIVIDER}C",
+                    var m when m.EndsWith("c#", StringComparison.OrdinalIgnoreCase) => $"{CODE_DIVIDER}C",
+                    var m when m.EndsWith("javascript", StringComparison.OrdinalIgnoreCase) => $"{CODE_DIVIDER}java",
+                    _ => match.Value
+                };
+            }, RegexOptions.IgnoreCase);
+        }
+
+        /// <summary>
         /// Retrieves the segments of a chat turbo response by splitting the response using a specified divider.
         /// </summary>
         /// <param name="response">The chat turbo response.</param>
         /// <returns>A list of ChatTurboResponseSegment objects representing the segments of the response.</returns>
         public static List<ChatMessageSegment> GetChatTurboResponseSegments(string response)
         {
-            const string DIVIDER = "```";
-
-            Regex regex = new($@"({DIVIDER}([\s\S]*?){DIVIDER})");
+            Regex regex = new($@"({CODE_DIVIDER}([\s\S]*?){CODE_DIVIDER})");
 
             MatchCollection matches = regex.Matches(response);
 
-            List<ChatMessageSegment> substrings = new();
+            List<ChatMessageSegment> substrings = [];
 
-            //Get all substrings from the separation with the character ```
-            string[] allSubstrings = response.Split(new string[] { DIVIDER }, StringSplitOptions.None);
+            //Get all substrings from the separation with the character 
+            string[] allSubstrings = response.Split(new string[] { CODE_DIVIDER }, StringSplitOptions.None);
 
             int indexFirstLine;
 
-            // Identify the initial and final position of each substring that appears between the characters ```
+            // Identify the initial and final position of each substring that appears between the characters 
             foreach (Match match in matches)
             {
                 int start = match.Index;
@@ -249,10 +272,14 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
                 indexFirstLine = match.Value.IndexOf('\n');
 
+                // Remove the language identifier (e.g., "csharp") if it exists
+                string codeContent = match.Value.Substring(indexFirstLine + 1);
+                codeContent = RemoveLanguageIdentifier(codeContent).Replace(CODE_DIVIDER, string.Empty);
+
                 substrings.Add(new ChatMessageSegment
                 {
                     Author = AuthorEnum.ChatGPTCode,
-                    Content = RemoveBlankLinesFromResult(match.Value.Substring(indexFirstLine + 1).Replace(DIVIDER, string.Empty)),
+                    Content = RemoveBlankLinesFromResult(codeContent),
                     SegmentOrderStart = start,
                     SegmentOrderEnd = end
                 });
@@ -260,7 +287,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
             bool matched;
 
-            // Identify the initial and final position of each substring that does not appear between special characters ``` 
+            // Identify the initial and final position of each substring that does not appear between special characters 
             for (int i = 0; i < allSubstrings.Length; i++)
             {
                 matched = false;
@@ -296,6 +323,19 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         }
 
         /// <summary>
+        /// Removes the language identifier from the code content if it exists.
+        /// </summary>
+        /// <param name="codeContent">The code content with a potential language identifier.</param>
+        /// <returns>The code content without the language identifier.</returns>
+        private static string RemoveLanguageIdentifier(string codeContent)
+        {
+            // Regex to match common language identifiers (e.g., "csharp", "javascript", etc.)
+            Regex languageIdentifierRegex = new(@"```[^\s]+");
+
+            return languageIdentifierRegex.Replace(codeContent, string.Empty).TrimStart();
+        }
+
+        /// <summary>
         /// Removes code tags from OpenAI responses.
         /// </summary>
         /// <param name="response">The original response from OpenAI.</param>
@@ -306,7 +346,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
             if (!segments.Any(s => s.Author == AuthorEnum.ChatGPTCode))
             {
-                return RemoveLinesStartingWithCodeTags(response);
+                return NormalizeLineBreaks(RemoveLinesStartingWithCodeTags(response));
             }
 
             StringBuilder result = new();
@@ -319,7 +359,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                 }
             }
 
-            return RemoveBlankLinesFromResult(result.ToString());
+            return NormalizeLineBreaks(RemoveBlankLinesFromResult(result.ToString()));
         }
 
         /// <summary>

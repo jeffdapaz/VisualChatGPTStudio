@@ -30,7 +30,7 @@
 
     <UserControl.InputBindings>
         <KeyBinding Key="Enter" Modifiers="Ctrl" Command="{StaticResource sendCommand}" />
-        <KeyBinding Key="Z" Modifiers="Alt" Command="{StaticResource cancelCommand}" />
+        <KeyBinding Key="Q" Modifiers="Alt" Command="{StaticResource cancelCommand}" />
     </UserControl.InputBindings>
 
     <Grid Name="grdRoot" Margin="5">
@@ -91,7 +91,7 @@
                     Width="20" 
                     HorizontalAlignment="Left" 
                     x:Name="btnCancel" 
-                    ToolTip="Cancel (Alt+Z)" 
+                    ToolTip="Cancel (Alt+Q)" 
                     Command="{StaticResource cancelCommand}" 
                     Style="{StaticResource ImageHandCursorStyle}"
                     IsEnabled="False" 

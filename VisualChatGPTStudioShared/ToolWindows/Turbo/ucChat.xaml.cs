@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using VisualChatGPTStudioShared.ToolWindows.Turbo;
 using MessageBox = System.Windows.MessageBox;
 
@@ -62,6 +63,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             this.ChatHeader = ucChatHeader;
             this.messages = messages;
 
+            rowRequest.MaxHeight = parentControl.ActualHeight - 200;
+            txtRequest.MaxHeight = rowRequest.MaxHeight - 10;
+
             StringBuilder segments;
 
             chat = ChatGPT.CreateConversation(options, options.TurboChatBehavior);
@@ -77,10 +81,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 for (int i = 0; i < message.Segments.Count; i++)
                 {
-                    chatListControlItems.Add(new ChatListControlItem(message.Segments[i].Author, message.Segments[i].Content, i == 0, i == message.Segments.Count - 1, chatListControlItems.Count));
-
                     segments.AppendLine(message.Segments[i].Content);
                 }
+
+                chatListControlItems.Add(new ChatListControlItem(message.Segments[0].Author, segments.ToString()));
 
                 chat.AppendUserInput(segments.ToString());
             }
@@ -95,7 +99,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// <summary>
         /// Handles the Click event of the btnRequestCode control.
         /// </summary>
-        public async void SendCode(Object sender, ExecutedRoutedEventArgs e)
+        public async void SendCode(object sender, RoutedEventArgs e)
         {
             await RequestAsync(CommandType.Code);
         }
@@ -103,7 +107,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// <summary>
         /// Handles the Click event of the btnRequestSend control.
         /// </summary>
-        public async void SendRequest(Object sender, ExecutedRoutedEventArgs e)
+        public async void SendRequest(object sender, RoutedEventArgs e)
         {
             await RequestAsync(CommandType.Request);
         }
@@ -111,7 +115,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// <summary>
         /// Cancels the request.
         /// </summary>
-        public async void CancelRequest(Object sender, ExecutedRoutedEventArgs e)
+        public async void CancelRequest(object sender, RoutedEventArgs e)
         {
             EnableDisableButtons(true);
 
@@ -119,33 +123,28 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         }
 
         /// <summary>
-        /// Copies the text of the chat item at the given index to the clipboard.
+        /// Handles the PreviewMouseWheel event for the txtChat control, scrolling the associated ScrollViewer based on the mouse wheel delta.
         /// </summary>
-        /// <param name="sender">The button that was clicked.</param>
-        /// <param name="e">The event arguments.</param>
-        private void btnCopy_Click(object sender, RoutedEventArgs e)
+        private void txtChat_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            Image button = (Image)sender;
-
-            int index = (int)button.Tag;
-
-            TerminalWindowHelper.Copy(button, chatListControlItems[index].Document.Text);
-        }
-
-        /// <summary>
-        /// Handles the mouse wheel event for the text editor by scrolling the view.
-        /// </summary>
-        /// <param name="sender">The object that raised the event.</param>
-        /// <param name="e">The mouse wheel event arguments.</param>
-        private void TextEditor_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            TextEditor editor = (TextEditor)sender;
-
             if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
             {
-                ScrollViewer scrollViewerEditor = editor.Template.FindName("PART_ScrollViewer", editor) as ScrollViewer;
+                MdXaml.MarkdownScrollViewer mdXaml = (MdXaml.MarkdownScrollViewer)sender;
 
-                scrollViewerEditor.ScrollToHorizontalOffset(scrollViewerEditor.HorizontalOffset - e.Delta);
+                List<TextEditor> textEditors = FindMarkDownCodeTextEditors(mdXaml);
+
+                if (textEditors != null)
+                {
+                    foreach (TextEditor textEditor in textEditors)
+                    {
+                        ScrollViewer scrollViewerEditor = textEditor.Template.FindName("PART_ScrollViewer", textEditor) as ScrollViewer;
+
+                        if (scrollViewerEditor != null)
+                        {
+                            scrollViewerEditor.ScrollToHorizontalOffset(scrollViewerEditor.HorizontalOffset - e.Delta);
+                        }
+                    }
+                }
             }
             else
             {
@@ -212,7 +211,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     chat.AppendUserInput(originalCode);
                 }
 
-                chatListControlItems.Add(new ChatListControlItem(AuthorEnum.Me, txtRequest.Text, true, true, 0));
+                chatListControlItems.Add(new ChatListControlItem(AuthorEnum.Me, txtRequest.Text));
 
                 string request = options.MinifyRequests ? TextFormat.MinifyText(txtRequest.Text) : txtRequest.Text;
 
@@ -230,22 +229,28 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 string response = await SendRequestAsync();
 
-                AddMessageSegments(new() { new() { Author = AuthorEnum.Me, Content = request } });
+                messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.Me, Content = request }] });
 
-                List<ChatMessageSegment> segments = TextFormat.GetChatTurboResponseSegments(response);
-
-                AddMessageSegments(segments);
-
-                for (int i = 0; i < segments.Count; i++)
+                if (commandType == CommandType.Code && !shiftKeyPressed)
                 {
-                    if (segments[i].Author == AuthorEnum.ChatGPTCode && commandType == CommandType.Code && !shiftKeyPressed)
+                    List<ChatMessageSegment> segments = TextFormat.GetChatTurboResponseSegments(response);
+
+                    for (int i = 0; i < segments.Count; i++)
                     {
-                        docView.TextView.TextBuffer.Replace(new Span(0, docView.TextView.TextBuffer.CurrentSnapshot.Length), segments[i].Content);
+                        if (segments[i].Author == AuthorEnum.ChatGPTCode)
+                        {
+                            docView.TextView.TextBuffer.Replace(new Span(0, docView.TextView.TextBuffer.CurrentSnapshot.Length), segments[i].Content);
+                        }
+                        else
+                        {
+                            chatListControlItems.Add(new ChatListControlItem(segments[i].Author, segments[i].Content));
+                        }
                     }
-                    else
-                    {
-                        chatListControlItems.Add(new ChatListControlItem(segments[i].Author, segments[i].Content, i == 0, i == segments.Count - 1, chatListControlItems.Count));
-                    }
+                }
+                else
+                {
+                    messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.ChatGPT, Content = response }] });
+                    chatListControlItems.Add(new ChatListControlItem(AuthorEnum.ChatGPT, response));
                 }
 
                 chatList.Items.Refresh();
@@ -330,17 +335,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         }
 
         /// <summary>
-        /// Adds a list of chat message segments to the existing messages list.
-        /// </summary>
-        /// <param name="segments">The list of chat message segments to be added.</param>
-        private void AddMessageSegments(List<ChatMessageSegment> segments)
-        {
-            int order = messages.Count + 1;
-
-            messages.Add(new() { Order = order, Segments = segments });
-        }
-
-        /// <summary>
         /// Updates the header of the chat.
         /// </summary>
         private async System.Threading.Tasks.Task UpdateHeaderAsync()
@@ -365,6 +359,43 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             parentControl.NotifyNewChatCreated(ChatHeader, chatName, messages);
 
             firstMessage = false;
+        }
+
+        /// <summary>
+        /// Recursively searches for all TextEditor controls within the visual tree of a given DependencyObject.
+        /// </summary>
+        /// <param name="parent">The parent DependencyObject to start the search from.</param>
+        /// <returns>
+        /// A list of all found TextEditor controls.
+        /// </returns>
+        public static List<TextEditor> FindMarkDownCodeTextEditors(DependencyObject parent)
+        {
+            List<TextEditor> foundChildren = new();
+
+            if (parent == null)
+            {
+                return foundChildren;
+            }
+
+            int childrenCount = VisualTreeHelper.GetChildrenCount(parent);
+
+            for (int i = 0; i < childrenCount; i++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(parent, i);
+
+                TextEditor childType = child as TextEditor;
+
+                if (childType == null)
+                {
+                    foundChildren.AddRange(FindMarkDownCodeTextEditors(child));
+                }
+                else
+                {
+                    foundChildren.Add(childType);
+                }
+            }
+
+            return foundChildren;
         }
 
         #endregion Methods                            

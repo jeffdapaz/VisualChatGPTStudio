@@ -163,9 +163,9 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Category("OpenAI")]
         [DisplayName("Model Language")]
         [Description("See \"https://platform.openai.com/docs/models/overview\" for more details.")]
-        [DefaultValue(ModelLanguageEnum.GPT_3_5_Turbo)]
+        [DefaultValue(ModelLanguageEnum.GPT_4o_Mini)]
         [TypeConverter(typeof(EnumConverter))]
-        public ModelLanguageEnum Model { get; set; } = ModelLanguageEnum.GPT_3_5_Turbo;
+        public ModelLanguageEnum Model { get; set; } = ModelLanguageEnum.GPT_4o_Mini;
 
         [Category("OpenAI")]
         [DisplayName("Model Language Override")]
@@ -190,5 +190,25 @@ namespace JeffPires.VisualChatGPTStudio.Options
         public string TurboChatCodeCommand { get; set; } = "Apply the change requested by the user to the code, but rewrite the original code that was not changed";
 
         #endregion Turbo Chat
+
+        #region Copilot
+
+#if COPILOT_ENABLED
+
+        [Category("Copilot")]
+        [DisplayName("Copilot Enabled")]
+        [Description("If true, the Copilot functionality will be enabled.")]
+        [DefaultValue(true)]
+        public bool CopilotEnabled { get; set; } = true;
+
+        [Category("Copilot")]
+        [DisplayName("Copilot Command")]
+        [Description("Command to request to OpenAI generates suggestions to apply to the code.")]
+        [DefaultValue("Please complete.")]
+        public string CopilotCommand { get; set; } = "Please complete.";
+
+#endif
+
+        #endregion Copilot
     }
 }

@@ -20,7 +20,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                 return string.Empty;
             }
 
-            return TextFormat.FormatForCompleteCommand(OptionsCommands.GetCommandAsync(CommandsType.Complete).Result + PROVIDE_ONLY_CODE_INSTRUCTION, docView.FilePath);
+            return TextFormat.FormatForCompleteCommand(OptionsCommands.GetCommandAsync(CommandsType.Complete).Result + Utils.Constants.PROVIDE_ONLY_CODE_INSTRUCTION, docView.FilePath);
         }
     }
 }

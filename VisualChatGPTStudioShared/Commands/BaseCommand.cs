@@ -16,8 +16,6 @@ namespace JeffPires.VisualChatGPTStudio.Commands
     /// <typeparam name="TCommand">The type of the command.</typeparam>
     internal abstract class BaseCommand<TCommand> : Community.VisualStudio.Toolkit.BaseCommand<TCommand> where TCommand : class, new()
     {
-        protected const string PROVIDE_ONLY_CODE_INSTRUCTION = ". Please, only provide the code without additional comments or text.";
-
         /// <summary>
         /// Gets or sets the cancellation token source.
         /// </summary>

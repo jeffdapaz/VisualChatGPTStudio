@@ -30,7 +30,7 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
-        </Style>        
+        </Style>
         <Storyboard x:Key="FadeIn">
             <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.5"/>
         </Storyboard>
@@ -82,6 +82,13 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="5" />
                                 </Grid.ColumnDefinitions>
+                                <Image 
+                                    Grid.Row="0" 
+                                    Grid.Column="1" 
+                                    Source="{Binding ImageSource}" 
+                                    Width="36" 
+                                    Height="36" 
+                                    HorizontalAlignment="Left"/>
                                 <Border 
                                     Grid.Row="2" 
                                     Grid.Column="1" 

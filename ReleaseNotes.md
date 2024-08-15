@@ -1,5 +1,9 @@
 ﻿## Release Notes 📜
 
+### 3.0.1
+
+- The icons in Turbo Chat that were removed incorrectly have been restored.
+
 ### 3.0
 
 - Added the Copilot functionality (only for Visual Studio 2022).

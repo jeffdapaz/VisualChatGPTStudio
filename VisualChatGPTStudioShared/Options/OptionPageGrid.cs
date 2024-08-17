@@ -86,36 +86,27 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Category("Model Parameters")]
         [DisplayName("Max Tokens")]
         [Description("See \"https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them\" for more details.")]
-        [DefaultValue(2048)]
-        public int MaxTokens { get; set; } = 2048;
+        public int? MaxTokens { get; set; }
 
         [Category("Model Parameters")]
         [DisplayName("Temperature")]
         [Description("What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 for ones with a well-defined answer.")]
-        [DefaultValue(0)]
-        [TypeConverter(typeof(DoubleConverter))]
-        public double Temperature { get; set; } = 0;
+        public double? Temperature { get; set; }
 
         [Category("Model Parameters")]
         [DisplayName("Presence Penalty")]
         [Description("The scale of the penalty applied if a token is already present at all. Should generally be between 0 and 1, although negative numbers are allowed to encourage token reuse.")]
-        [DefaultValue(0)]
-        [TypeConverter(typeof(DoubleConverter))]
-        public double PresencePenalty { get; set; } = 0;
+        public double? PresencePenalty { get; set; }
 
         [Category("Model Parameters")]
         [DisplayName("Frequency Penalty")]
         [Description("The scale of the penalty for how often a token is used. Should generally be between 0 and 1, although negative numbers are allowed to encourage token reuse.")]
-        [DefaultValue(0)]
-        [TypeConverter(typeof(DoubleConverter))]
-        public double FrequencyPenalty { get; set; } = 0;
+        public double? FrequencyPenalty { get; set; }
 
         [Category("Model Parameters")]
         [DisplayName("top p")]
         [Description("An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.")]
-        [DefaultValue(0)]
-        [TypeConverter(typeof(DoubleConverter))]
-        public double TopP { get; set; } = 0;
+        public double? TopP { get; set; }
 
         [Category("Model Parameters")]
         [DisplayName("Stop Sequences")]

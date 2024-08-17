@@ -1,5 +1,9 @@
 ﻿## Release Notes 📜
 
+### 3.0.2
+
+- Now the Model parameters are optional.
+
 ### 3.0.1
 
 - The icons in Turbo Chat that were removed incorrectly have been restored.

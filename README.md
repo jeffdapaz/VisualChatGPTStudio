@@ -244,14 +244,12 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ## Release Notes 📜
 
+### 3.0.2
+
+- Now the Model parameters are optional.
+
 ### 3.0.1
 
 - The icons in Turbo Chat that were removed incorrectly have been restored.
-
-### 3.0
-
-- Added the Copilot functionality (only for Visual Studio 2022).
-- Now the gpt-4o-mini model is the default model for OpenAI API.
-- Many improvements and fixes on Turbo Chat window.
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

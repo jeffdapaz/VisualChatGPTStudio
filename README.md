@@ -154,6 +154,12 @@ The Code Review Tool Window feature is designed to enhance the development workf
 - **Streamlined Review Process:** The feature complements the manual code review process, making it more efficient and focused by allowing reviewers to concentrate on more complex and critical aspects of the code.
 - **Enhanced Collaboration:** It fosters a culture of continuous improvement and learning among the development team, as the automated feedback provides valuable insights and learning opportunities.
 
+## Also Check Out 🔗
+
+### Backlog chatGPT Assistant <img src="https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/backlogchatgptassistant/1.0.0/1725050136867/Microsoft.VisualStudio.Services.Icons.Default" width="5%"> 
+
+If you find Visual chatGPT Studio helpful, you might also be interested in my other extension, [Backlog chatGPT Assistant](https://marketplace.visualstudio.com/items?itemName=jefferson-pires.BacklogChatGPTAssistant). This powerful tool leverages AI to create and manage backlog items on Azure Devops directly within Visual Studio. Whether you're working with pre-selected work items, user instructions, or content from DOCX and PDF files, this extension simplifies and accelerates the process of generating new backlog items.
+
 ## Authentication 🔑
 
 To use this tool it is necessary to connect through the OpenAI API, Azure OpenAI, or any other API that is OpenAI API compatible.
@@ -202,21 +208,20 @@ To do this, simply insert the address of these deployments in the `Base API URL`
 
 It's worth mentioning that I haven't tested this possibility for myself, so it's a matter of trial and error, but I've already received feedback from people who have successfully doing this.
 
-## Known Issues ⚠
+## Known Issues 🐛
 
-Unfortunately, the API that OpenAI makes available for interacting with chatGPT has a limitation on the size of the question plus the given answer.
-
-If the question sent is too long (for example, a method with many lines) and/or the generated response is too long, the API may cut the response or even not respond at all.
-
-For these cases I advise you to make requests via the tool windows to customize the question in a way that chatGPT does not refuse to answer, or try modify the model options to improve the responses.
+- **Issue 1:** Occasional delays in AI response times.
+- **Issue 2:** AI can hallucinate in its responses, generating invalid content.
+- **Issue 3:** If the request sent is too long and/or the generated response is too long, the API may cut the response or even not respond at all.
+- **Workaround:** Retry the request changing the model parameters and/or the command.
 
 ## Disclaimer 👋
 
-- As this extension depends on the API provided by OpenAI, there may be some change by them that affects the operation of this extension without prior notice.
+- As this extension depends on the API provided by OpenAI or Azure, there may be some change by them that affects the operation of this extension without prior notice.
 
-- As this extension depends on the API provided by OpenAI, there may be generated responses that not be what the expected.
+- As this extension depends on the API provided by OpenAI or Azure, there may be generated responses that not be what the expected.
 
-- The speed and availability of responses directly depend on the API provided by OpenAI.
+- The speed and availability of responses directly depend on the API.
 
 - If you are using OpenAI service instead Azure and receive a message like `429 - You exceeded your current quota, please check your plan and billing details.`, check OpenAI Usage page and see if you still have quota, example:
 
@@ -228,7 +233,7 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ## Donations 🙏
 
-☕ Buy me a coffee and support me to empower you more. Thank you! 
+☕️ If you find this extension useful and want to support its development, consider [buying me a coffee](https://www.paypal.com/donate/?hosted_button_id=2Y55G8YYC6Q3E). Your support is greatly appreciated!
 
 [<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/278758680-f5fc9df2-a330-4d6a-ae13-9190b7b8f57b.png" width="20%">](https://www.paypal.com/donate/?hosted_button_id=2Y55G8YYC6Q3E)
 

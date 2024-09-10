@@ -1,5 +1,10 @@
 ﻿## Release Notes 📜
 
+### 3.0.3
+
+- The copilot functionality that wasn't working has been fixed.
+- The behavior that caused the scroll to move automatically when clicking with the mouse to select text has been removed from the Turbo Chat window.
+
 ### 3.0.2
 
 - Now the Model parameters are optional.

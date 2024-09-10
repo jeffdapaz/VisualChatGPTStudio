@@ -4,7 +4,6 @@ using JeffPires.VisualChatGPTStudio.Commands;
 using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -70,7 +69,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             chat = ChatGPT.CreateConversation(options, options.TurboChatBehavior);
 
-            chatListControlItems = new();
+            chatListControlItems = [];
 
             foreach (MessageEntity message in messages.OrderBy(m => m.Order))
             {
@@ -152,6 +151,22 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
 
             e.Handled = true;
+        }
+
+        /// <summary>
+        /// To avoid the behavior that caused the scroll to move automatically when clicking with the mouse to select text
+        /// </summary>
+        private void txtChat_GotFocus(object sender, RoutedEventArgs e)
+        {
+            double currentOffset = scrollViewer.VerticalOffset;
+
+            scrollViewer.Opacity = 0.5;
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                scrollViewer.ScrollToVerticalOffset(currentOffset);
+                scrollViewer.Opacity = 1;
+            }), System.Windows.Threading.DispatcherPriority.Background);
         }
 
         #endregion Event Handlers
@@ -239,7 +254,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     {
                         if (segments[i].Author == AuthorEnum.ChatGPTCode)
                         {
-                            docView.TextView.TextBuffer.Replace(new Span(0, docView.TextView.TextBuffer.CurrentSnapshot.Length), segments[i].Content);
+                            docView.TextView.TextBuffer.Replace(new Microsoft.VisualStudio.Text.Span(0, docView.TextView.TextBuffer.CurrentSnapshot.Length), segments[i].Content);
                         }
                         else
                         {
@@ -370,7 +385,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </returns>
         public static List<TextEditor> FindMarkDownCodeTextEditors(DependencyObject parent)
         {
-            List<TextEditor> foundChildren = new();
+            List<TextEditor> foundChildren = [];
 
             if (parent == null)
             {

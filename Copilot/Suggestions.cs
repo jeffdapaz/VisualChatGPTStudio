@@ -87,17 +87,13 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
 
             ProposalCollection proposalCollection = Proposals.CollectionFromText(autocompleteText, textView, position);
 
-            int num = 0;
-
             object obj = Activator.CreateInstance(generateResultType, proposalCollection, null);
 
             object obj2 = inlineCompletionSuggestion.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic).First().Invoke(
             [
-                new VirtualSnapshotPoint(textView.TextSnapshot, position),
-                    null,
-                    obj,
-                    inlineCompletionsInstance,
-                    num
+                obj,
+                inlineCompletionsInstance,
+                0
             ]);
 
             object value2 = suggestionManagerType.GetValue(inlineCompletionsInstance);

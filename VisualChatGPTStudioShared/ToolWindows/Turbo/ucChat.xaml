@@ -103,6 +103,7 @@
                                         MarkdownStyleName="Sasabune"
                                         Padding="5"
                                         VerticalScrollBarVisibility="Disabled"
+                                        GotFocus="txtChat_GotFocus"
                                         PreviewMouseWheel="txtChat_PreviewMouseWheel"/>
                                 </Border>
                             </Grid>

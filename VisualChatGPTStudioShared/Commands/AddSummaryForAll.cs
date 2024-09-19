@@ -14,6 +14,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 
 namespace JeffPires.VisualChatGPTStudio.Commands
@@ -40,14 +41,14 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             try
             {
-                if (!await ValidateAPIKeyAsync())
+                if (!ValidateAPIKey())
                 {
                     return;
                 }
 
                 if (!System.IO.Path.GetExtension(docView.FilePath).TrimStart('.').Equals("cs", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, "This command is for C# code only.", buttons: Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
+                    System.Windows.Forms.MessageBox.Show("This command is for C# code only.", Constants.EXTENSION_NAME);
 
                     return;
                 }
@@ -56,7 +57,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                 if (string.IsNullOrWhiteSpace(command))
                 {
-                    await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, string.Format(Constants.MESSAGE_SET_COMMAND, nameof(AddSummary)), buttons: Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
+                    System.Windows.Forms.MessageBox.Show(string.Format(Constants.MESSAGE_SET_COMMAND, nameof(AddSummary)), Constants.EXTENSION_NAME);
 
                     return;
                 }
@@ -85,7 +86,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                 if (totalDeclarations == 0)
                 {
-                    await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, "Without declaration(s) to add summary.", buttons: Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
+                    System.Windows.Forms.MessageBox.Show("Without declaration(s) to add summary.", Constants.EXTENSION_NAME);
 
                     return;
                 }
@@ -96,7 +97,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                 await VS.StatusBar.ShowProgressAsync(PROGRESS_MESSAGE, memberIndex, totalDeclarations);
 
-                List<(int insertionPosition, string summary)> insertions = new();
+                List<(int insertionPosition, string summary)> insertions = [];
 
                 foreach (SyntaxNode member in root.DescendantNodes().Where(d => CheckIfMemberTypeIsValid(d)).Reverse())
                 {
@@ -132,7 +133,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                 {
                     Logger.Log(ex);
 
-                    await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, ex.Message, Microsoft.VisualStudio.Shell.Interop.OLEMSGICON.OLEMSGICON_WARNING, Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
+                    System.Windows.Forms.MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
         }
@@ -280,7 +281,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         {
             string[] lines = TextFormat.SplitTextByLine(code);
 
-            List<string> newLines = new();
+            List<string> newLines = [];
 
             foreach (string line in lines)
             {

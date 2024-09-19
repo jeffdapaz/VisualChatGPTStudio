@@ -35,7 +35,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             ChatRepository.CreateDataBase();
 
-            chatUserControlsItems = new();
+            chatUserControlsItems = [];
         }
 
         #endregion Constructors
@@ -49,7 +49,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             ucChatHeader ucChatHeader = new(this, "New Chat");
 
-            ucChat ucChat = new(this, options, package, ucChatHeader, new());
+            ucChat ucChat = new(this, options, package, ucChatHeader, []);
 
             TabItem newChatTab = new() { Header = ucChatHeader, Content = ucChat };
 
@@ -63,7 +63,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// <summary>
         /// Event handler for the double click on a chat item in the ListView.
         /// </summary>
-        private void lvChats_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void lvChats_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (lvChats.SelectedItem is not ucChatItem listItem)
             {

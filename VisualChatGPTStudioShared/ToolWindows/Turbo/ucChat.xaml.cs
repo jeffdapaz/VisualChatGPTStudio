@@ -89,6 +89,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
 
             chatList.ItemsSource = chatListControlItems;
+
+            scrollViewer.ScrollToEnd();
         }
 
         #endregion Constructors

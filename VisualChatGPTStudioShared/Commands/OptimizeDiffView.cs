@@ -4,6 +4,7 @@ using JeffPires.VisualChatGPTStudio.Utils;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.Threading;
+using System.Windows.Forms;
 using VisualChatGPTStudioShared.Utils;
 
 namespace JeffPires.VisualChatGPTStudio.Commands
@@ -21,7 +22,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         {
             try
             {
-                if (!await ValidateAPIKeyAsync())
+                if (!ValidateAPIKey())
                 {
                     return;
                 }
@@ -30,7 +31,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                 if (string.IsNullOrWhiteSpace(command))
                 {
-                    await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, string.Format(Constants.MESSAGE_SET_COMMAND, nameof(Optimize)), buttons: Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
+                    System.Windows.MessageBox.Show(string.Format(Constants.MESSAGE_SET_COMMAND, nameof(Optimize)), Constants.EXTENSION_NAME);
 
                     return;
                 }
@@ -39,7 +40,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                 string selectedText = docView.TextView.Selection.StreamSelectionSpan.GetText();
 
-                if (!await ValidateCodeSelectedAsync(selectedText))
+                if (!ValidateCodeSelected(selectedText))
                 {
                     return;
                 }
@@ -64,7 +65,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                 {
                     Logger.Log(ex);
 
-                    await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, ex.Message, Microsoft.VisualStudio.Shell.Interop.OLEMSGICON.OLEMSGICON_WARNING, Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
+                    System.Windows.Forms.MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
         }

@@ -115,6 +115,9 @@
     <PackageReference Include="Community.VisualStudio.Toolkit.17" Version="17.0.522" ExcludeAssets="Runtime">
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="envdte">
+      <Version>17.11.40262</Version>
+    </PackageReference>
     <PackageReference Include="LibGit2Sharp">
       <Version>0.29.0</Version>
     </PackageReference>

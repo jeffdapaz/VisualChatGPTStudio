@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using System;
 using System.Threading;
+using System.Windows.Forms;
 using System.Windows.Input;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 using Span = Microsoft.VisualStudio.Text.Span;
@@ -46,7 +47,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         {
             try
             {
-                if (!await ValidateAPIKeyAsync())
+                if (!ValidateAPIKey())
                 {
                     return;
                 }
@@ -69,7 +70,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                 selectedText = docView.TextView.Selection.StreamSelectionSpan.GetText();
 
-                if (!await ValidateCodeSelectedAsync(selectedText))
+                if (!ValidateCodeSelected(selectedText))
                 {
                     return;
                 }
@@ -84,7 +85,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                 {
                     Logger.Log(ex);
 
-                    await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, ex.Message, Microsoft.VisualStudio.Shell.Interop.OLEMSGICON.OLEMSGICON_WARNING, Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
+                    System.Windows.Forms.MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
         }
@@ -99,7 +100,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             if (typeof(TCommand) != typeof(AskAnything) && string.IsNullOrWhiteSpace(command))
             {
-                await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, string.Format(Constants.MESSAGE_SET_COMMAND, typeof(TCommand).Name), buttons: Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
+                System.Windows.Forms.MessageBox.Show(string.Format(Constants.MESSAGE_SET_COMMAND, typeof(TCommand).Name), Constants.EXTENSION_NAME);
 
                 return;
             }

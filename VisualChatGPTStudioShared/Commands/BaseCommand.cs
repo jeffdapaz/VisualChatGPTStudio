@@ -5,7 +5,6 @@ using JeffPires.VisualChatGPTStudio.Options.Commands;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 
 namespace JeffPires.VisualChatGPTStudio.Commands
@@ -68,11 +67,11 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// <returns>
         /// Returns true if the API key is valid, false otherwise.
         /// </returns>
-        protected async Task<bool> ValidateAPIKeyAsync()
+        protected bool ValidateAPIKey()
         {
             if (string.IsNullOrWhiteSpace(OptionsGeneral.ApiKey))
             {
-                await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, Constants.MESSAGE_SET_API_KEY, buttons: Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
+                System.Windows.Forms.MessageBox.Show(Constants.MESSAGE_SET_API_KEY, Constants.EXTENSION_NAME);
 
                 Package.ShowOptionPage(typeof(OptionPageGridGeneral));
 
@@ -87,11 +86,11 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// </summary>
         /// <param name="selectedCode">The selected code.</param>
         /// <returns>True if the code is valid, false otherwise.</returns>
-        protected async Task<bool> ValidateCodeSelectedAsync(string selectedCode)
+        protected bool ValidateCodeSelected(string selectedCode)
         {
             if (string.IsNullOrWhiteSpace(selectedCode))
             {
-                await VS.MessageBox.ShowAsync(Constants.EXTENSION_NAME, "Please select the code.", buttons: Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK);
+                System.Windows.Forms.MessageBox.Show("Please select the code.", Constants.EXTENSION_NAME);
 
                 return false;
             }

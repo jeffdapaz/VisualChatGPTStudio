@@ -1,5 +1,9 @@
 ﻿## Release Notes 📜
 
+### 3.0.4
+
+- Bug fixes and adjusts.
+
 ### 3.0.3
 
 - The copilot functionality that wasn't working has been fixed.

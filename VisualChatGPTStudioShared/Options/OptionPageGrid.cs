@@ -19,6 +19,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         public string ApiKey { get; set; }
 
         [Category("General")]
+        [DisplayName("Use VisualStudio Identity")]
+        [Description("Only available for Azure Open AI Service. If true, use your Microsoft Account to authenticate to the Azure Open AI Service.")]
+        [DefaultValue(false)]
+        public bool UseVisualStudioIdentity { get; set; }
+
+        [Category("General")]
         [DisplayName("OpenAI Service")]
         [Description("Select how to connect: OpenAI API or Azure OpenAI.")]
         [DefaultValue(OpenAIService.OpenAI)]

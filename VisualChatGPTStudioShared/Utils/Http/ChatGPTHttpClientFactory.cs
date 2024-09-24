@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Security;
 
 namespace JeffPires.VisualChatGPTStudio.Utils.Http
 {
@@ -97,23 +98,23 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Http
         /// <returns>An HttpMessageHandler with the specified proxy settings.</returns>
         protected HttpMessageHandler CreateMessageHandler()
         {
-            HttpClientHandler handler;
-
-            if (options.LogRequests || options.LogResponses)
+            HttpClientHandler handler = new RequestCaptureHandler(options.LogRequests, options.LogResponses, options.UseVisualStudioIdentity)
             {
-                handler = new RequestCaptureHandler(options.LogRequests, options.LogResponses);
-            }
-            else
-            {
-                handler = new HttpClientHandler();
-            }
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                UseCookies = true,
+                AllowAutoRedirect = true,
+                ServerCertificateCustomValidationCallback = (sender, certificate, chain, sslPolicyErrors) => {
+                    if (sslPolicyErrors == SslPolicyErrors.None)
+                    {
+                        return true;
+                    }
 
-            handler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-            handler.UseCookies = true;
-            handler.AllowAutoRedirect = true;
-            handler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;
-            handler.MaxConnectionsPerServer = 256;
-            handler.SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls11 | System.Security.Authentication.SslProtocols.Tls;
+                    // Do not allow this client to communicate with unauthenticated servers.
+                    return false;
+                },
+                MaxConnectionsPerServer = 256,
+                SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls11 | System.Security.Authentication.SslProtocols.Tls
+            };
 
             if (!string.IsNullOrWhiteSpace(Proxy))
             {

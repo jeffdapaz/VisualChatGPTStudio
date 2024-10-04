@@ -264,7 +264,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                     chatGPTHttpClient.SetProxy(options.Proxy);
                 }
 
-                azureAPI = OpenAIAPI.ForAzure(options.AzureResourceName, options.AzureDeploymentId, options.UseVisualStudioIdentity ? "unused" : options.ApiKey);
+                azureAPI = OpenAIAPI.ForAzure(options.AzureResourceName, options.AzureDeploymentId, options.ApiKey);
 
                 azureAPI.HttpClientFactory = chatGPTHttpClient;
             }
@@ -274,7 +274,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                 CreateAzureApiHandler(options);
             }
 
-            if (!options.UseVisualStudioIdentity && azureAPI.Auth.ApiKey != options.ApiKey)
+            if (azureAPI.Auth.ApiKey != options.ApiKey)
             {
                 azureAPI.Auth.ApiKey = options.ApiKey;
             }

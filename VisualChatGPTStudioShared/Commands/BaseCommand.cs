@@ -69,7 +69,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// </returns>
         protected bool ValidateAPIKey()
         {
-            if (OptionsGeneral.UseVisualStudioIdentity)
+            if (OptionsGeneral.AzureEntraIdAuthentication)
             {
                 return true;
             }

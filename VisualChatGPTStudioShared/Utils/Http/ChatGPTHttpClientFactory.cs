@@ -98,7 +98,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Http
         /// <returns>An HttpMessageHandler with the specified proxy settings.</returns>
         protected HttpMessageHandler CreateMessageHandler()
         {
-            HttpClientHandler handler = new RequestCaptureHandler(options.LogRequests, options.LogResponses, options.UseVisualStudioIdentity)
+            HttpClientHandler handler = new RequestCaptureHandler(options)
             {
                 AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
                 UseCookies = true,

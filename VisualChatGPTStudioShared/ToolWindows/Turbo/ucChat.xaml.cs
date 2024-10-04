@@ -185,7 +185,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             {
                 shiftKeyPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
 
-                if (!options.UseVisualStudioIdentity && string.IsNullOrWhiteSpace(options.ApiKey))
+                if (!options.AzureEntraIdAuthentication && string.IsNullOrWhiteSpace(options.ApiKey))
                 {
                     MessageBox.Show(Constants.MESSAGE_SET_API_KEY, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
 

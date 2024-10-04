@@ -1,5 +1,9 @@
 ﻿## Release Notes 📜
 
+### 3.1.0
+
+- Added the possibility to use your Microsoft Account to authenticate to the Azure Open AI Service through Entra ID.
+
 ### 3.0.4
 
 - Bug fixes and adjusts.

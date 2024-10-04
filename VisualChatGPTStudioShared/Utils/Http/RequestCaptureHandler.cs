@@ -1,7 +1,10 @@
-﻿using Azure.Core;
-using Azure.Identity;
+﻿using JeffPires.VisualChatGPTStudio.Options;
+using Microsoft.Identity.Client;
+using Microsoft.Identity.Client.Extensions.Msal;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,27 +14,9 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Http
     /// <summary>
     /// Represents a custom HTTP client handler that captures the request data.
     /// </summary>
-    public class RequestCaptureHandler : HttpClientHandler
+    /// <param name="options">The app options.</param>
+    public class RequestCaptureHandler(OptionPageGridGeneral options) : HttpClientHandler
     {
-        private readonly bool logRequests;
-        private readonly bool logResponses;
-        private readonly bool useVisualStudioIdentity;
-        private static readonly TokenCredential tokenCredential = new CachedTokenCredential(new VisualStudioCredential());
-        private static readonly string[] scopes = ["https://cognitiveservices.azure.com/.default"];
-
-        /// <summary>
-        /// Initializes a new instance of the RequestCaptureHandler class.
-        /// </summary>
-        /// <param name="logRequests">A boolean value indicating whether requests should be logged.</param>
-        /// <param name="logResponses">A boolean value indicating whether responses should be logged.</param>
-        /// <param name="useVisualStudioIdentity">A boolean value indicating whether authentication should use Managed Identity.</param>
-        public RequestCaptureHandler(bool logRequests, bool logResponses, bool useVisualStudioIdentity)
-        {
-            this.logRequests = logRequests;
-            this.logResponses = logResponses;
-            this.useVisualStudioIdentity = useVisualStudioIdentity;
-        }
-
         /// <summary>
         /// Overrides the SendAsync method to log the request and response information.
         /// </summary>
@@ -40,9 +25,14 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Http
         /// <returns>The HTTP response message.</returns>
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
+            if (options.AzureEntraIdAuthentication)
+            {
+                await LoginAzureApiByEntraIdAsync(request);
+            }
+
             string content;
 
-            if (logRequests)
+            if (options.LogRequests)
             {
                 Logger.Log($"Request URI: {request.RequestUri}");
                 Logger.Log($"Request Method: {request.Method}");
@@ -63,16 +53,9 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Http
                 Logger.Log(new string('_', 100));
             }
 
-            if (useVisualStudioIdentity)
-            {
-                var token = await tokenCredential.GetTokenAsync(new(scopes), cancellationToken);
-
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token.Token);
-            }
-
             HttpResponseMessage response = await base.SendAsync(request, cancellationToken);
 
-            if (response != null && logResponses)
+            if (response != null && options.LogResponses)
             {
                 Logger.Log("Response Headers:");
 
@@ -96,74 +79,55 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Http
             return response;
         }
 
-        public class CachedTokenCredential(TokenCredential wrapped) : TokenCredential
+        /// <summary>
+        /// Logs in to Azure API using Entra ID, handling token acquisition through both cache and interactive login methods.
+        /// </summary>
+        /// <param name="request">The HTTP request message to which the authorization header will be added.</param>
+        private async Task LoginAzureApiByEntraIdAsync(HttpRequestMessage request)
         {
-            private const int TokenExpirationOffset = 5;
-            private AccessToken? token = null;
-            private SemaphoreSlim tokenSemaphore = new(1);
-            private readonly TokenCredential wrapped = wrapped;
-
-            public override async ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken = default)
+            if (string.IsNullOrWhiteSpace(options.AzureEntraIdApplicationId))
             {
-                if (!HasValidToken())
-                {
-                    await RenewTokenAsync(requestContext, cancellationToken);
-                }
-
-                return token.Value!;
+                throw new ArgumentNullException("Application Id", "When choosing to authenticate with Entra ID, you need to define the Application ID.");
             }
 
-            public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken)
+            if (string.IsNullOrWhiteSpace(options.AzureEntraIdTenantId))
             {
-                if (!HasValidToken())
-                {
-                    RenewToken(requestContext, cancellationToken);
-                }
-
-                return token.Value!;
+                throw new ArgumentNullException("Tenant Id", "When choosing to authenticate with Entra ID, you need to define the Tenant ID.");
             }
 
-            private async Task RenewTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
-            {
-                await tokenSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-                try
-                {
-                    if (HasValidToken())
-                    {
-                        return;
-                    }
+            string[] scopes = ["https://cognitiveservices.azure.com/.default"];
 
-                    token = await wrapped.GetTokenAsync(requestContext, cancellationToken).ConfigureAwait(false);
-                }
-                finally
-                {
-                    tokenSemaphore.Release();
-                }
+            IPublicClientApplication app = PublicClientApplicationBuilder.Create(options.AzureEntraIdApplicationId)
+            .WithAuthority(AzureCloudInstance.AzurePublic, options.AzureEntraIdTenantId)
+            .WithRedirectUri("https://login.microsoftonline.com/common/oauth2/nativeclient")
+            .Build();
+
+            //Set up token cache persistence in file
+            StorageCreationProperties storageProperties = new StorageCreationPropertiesBuilder(
+                "msal_cache.dat",                // File name
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Constants.EXTENSION_NAME)) // Path to save
+                .Build();
+
+            MsalCacheHelper cacheHelper = await MsalCacheHelper.CreateAsync(storageProperties);
+
+            cacheHelper.RegisterCache(app.UserTokenCache);
+
+            AuthenticationResult result;
+
+            try
+            {
+                //Try to obtain the user's token from the cache
+                IEnumerable<IAccount> accounts = await app.GetAccountsAsync();
+
+                result = await app.AcquireTokenSilent(scopes, accounts.FirstOrDefault()).ExecuteAsync();
+            }
+            catch (Exception)
+            {
+                //If there is no valid token in cache, request interactive login.
+                result = await app.AcquireTokenInteractive(scopes).ExecuteAsync();
             }
 
-            private void RenewToken(TokenRequestContext requestContext, CancellationToken cancellationToken)
-            {
-                tokenSemaphore.Wait(cancellationToken);
-                try
-                {
-                    if (HasValidToken())
-                    {
-                        return;
-                    }
-
-                    token = wrapped.GetToken(requestContext, cancellationToken);
-                }
-                finally
-                {
-                    tokenSemaphore.Release();
-                }
-            }
-
-            private bool HasValidToken()
-            {
-                return token != null
-                    && token.Value.ExpiresOn > DateTime.UtcNow.AddSeconds(TokenExpirationOffset);
-            }
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", result.AccessToken);
         }
     }
 }

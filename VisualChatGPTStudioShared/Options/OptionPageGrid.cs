@@ -136,13 +136,29 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DefaultValue("2023-05-15")]
         public string AzureApiVersion { get; set; } = "2023-05-15";
 
-        [Category("Azure")]
-        [DisplayName("Use VisualStudio Identity")]
+        #endregion Azure
+
+        #region Azure Entra ID
+
+        [Category("Azure Entra ID")]
+        [DisplayName("Entra ID Authentication")]
         [Description("Only available for Azure Open AI Service. If true, use your Microsoft Account to authenticate to the Azure Open AI Service.")]
         [DefaultValue(false)]
-        public bool UseVisualStudioIdentity { get; set; }
+        public bool AzureEntraIdAuthentication { get; set; } = false;
 
-        #endregion Azure
+        [Category("Azure Entra ID")]
+        [DisplayName("Application Id")]
+        [Description("If you choose to authenticate with Entra ID, you need to provide the OpenAI Application (Client) ID registered in Entra ID.")]
+        [DefaultValue("")]
+        public string AzureEntraIdApplicationId { get; set; } = string.Empty;
+
+        [Category("Azure Entra ID")]
+        [DisplayName("Tenant Id")]
+        [Description("If you choose to authenticate with Entra ID, you need to provide the Tenant ID.")]
+        [DefaultValue("")]
+        public string AzureEntraIdTenantId { get; set; } = string.Empty;
+
+        #endregion Azure Entra ID
 
         #region OpenAI
 

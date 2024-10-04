@@ -174,7 +174,7 @@ To use this tool it is necessary to connect through the OpenAI API, Azure OpenAI
 
 <img src="https://github.com/jeffdapaz/VisualChatGPTStudio/assets/63928228/09a93cc9-c35d-4fee-b3a1-05f2dd0212f1" width="75%">
 
-### By Azure
+### By Azure (API Key Authentication)
 
 1 - First, you need have access to Azure OpenAI Service. You can see more details [here](https://learn.microsoft.com/en-us/legal/cognitive-services/openai/limited-access?context=%2Fazure%2Fcognitive-services%2Fopenai%2Fcontext%2Fcontext).
 
@@ -197,6 +197,20 @@ To use this tool it is necessary to connect through the OpenAI API, Azure OpenAI
 <img src="https://github.com/jeffdapaz/VisualChatGPTStudio/assets/63928228/195539ac-8d0b-4284-bac4-de345464ed08" width="75%">
 
 5 - Set the Azure OpenAI API version. You can check the available versions [here](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#completions).
+
+### By Azure (Entra ID Authentication)
+
+In addition to API Key authentication, you can now authenticate to Azure OpenAI using Microsoft Entra ID. To enable this option:
+
+1 - Ensure your Azure OpenAI deployment is registered in Entra ID, and the user has access permissions.
+
+2 - In the extension settings, set the parameter Entra ID Authentication to true.
+
+3 - Define the Application Id and Tenant Id for your application in the settings.
+
+4 - The first time you run any command, you will be prompted to log in using your Microsoft account.
+
+5 - For more details on setting up Entra ID authentication, refer to the documentation [here](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/managed-identity).
 
 ### By Others Customs LLM
 
@@ -249,13 +263,12 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ## Release Notes 📜
 
+### 3.1.0
+
+- Added the possibility to use your Microsoft Account to authenticate to the Azure Open AI Service through Entra ID.
+
 ### 3.0.4
 
 - Bug fixes and adjusts.
-
-### 3.0.3
-
-- The copilot functionality that wasn't working has been fixed.
-- The behavior that caused the scroll to move automatically when clicking with the mouse to select text has been removed from the Turbo Chat window.
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

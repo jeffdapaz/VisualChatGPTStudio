@@ -136,6 +136,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DefaultValue("2023-05-15")]
         public string AzureApiVersion { get; set; } = "2023-05-15";
 
+        [Category("Azure")]
+        [DisplayName("Use VisualStudio Identity")]
+        [Description("Only available for Azure Open AI Service. If true, use your Microsoft Account to authenticate to the Azure Open AI Service.")]
+        [DefaultValue(false)]
+        public bool UseVisualStudioIdentity { get; set; }
+
         #endregion Azure
 
         #region OpenAI

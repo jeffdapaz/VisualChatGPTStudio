@@ -69,6 +69,11 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// </returns>
         protected bool ValidateAPIKey()
         {
+            if (OptionsGeneral.UseVisualStudioIdentity)
+            {
+                return true;
+            }
+
             if (string.IsNullOrWhiteSpace(OptionsGeneral.ApiKey))
             {
                 System.Windows.Forms.MessageBox.Show(Constants.MESSAGE_SET_API_KEY, Constants.EXTENSION_NAME);

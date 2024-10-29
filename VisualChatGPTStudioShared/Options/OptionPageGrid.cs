@@ -116,6 +116,58 @@ namespace JeffPires.VisualChatGPTStudio.Options
 
         #endregion Model Parameters   
 
+        #region Complition Parameters
+
+        [Category("Complition Parameters")]
+        [DisplayName("Base API URL")]
+        [Description("Change the API connection URL if you wish to do so for some reason, for example use a custom LLM deployment. Example: https://myurl.openai.com. Overrides 'OpenAI. Base API URL' if not empty.")]
+        [DefaultValue("")]
+        public string ComplitionBaseAPI { get; set; } = string.Empty;
+
+        [Category("Complition Parameters")]
+        [DisplayName("API Key")]
+        [Description("Set API Key. For OpenAI API, see \"https://beta.openai.com/account/api-keys\" for more details. Overrides 'General. API Key' if not empty.")]
+        public string ComplitionApiKey { get; set; }
+
+        [Category("Complition Parameters")]
+        [DisplayName("Complition Model Language Override")]
+        [Description("Specify a custom model name for complition requests. Overrides 'OpenAI. Model Language' if not empty.")]
+        [DefaultValue("")]
+        public string ComplitionCustomModel { get; set; } = "";
+
+        [Category("Complition Parameters")]
+        [DisplayName("Max Tokens")]
+        [Description("See \"https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them\" for more details.  Overrides 'Model Parameters. Max Tokens' if not empty.")]
+        public int? ComplitionMaxTokens { get; set; }
+
+        [Category("Complition Parameters")]
+        [DisplayName("Temperature")]
+        [Description("What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 for ones with a well-defined answer. Overrides 'Model Parameters. Temperature' if not empty.")]
+        public double? ComplitionTemperature { get; set; }
+
+        [Category("Complition Parameters")]
+        [DisplayName("Presence Penalty")]
+        [Description("The scale of the penalty applied if a token is already present at all. Should generally be between 0 and 1, although negative numbers are allowed to encourage token reuse. Overrides 'Model Parameters. Presence Penalty' if not empty.")]
+        public double? ComplitionPresencePenalty { get; set; }
+
+        [Category("Complition Parameters")]
+        [DisplayName("Frequency Penalty")]
+        [Description("The scale of the penalty for how often a token is used. Should generally be between 0 and 1, although negative numbers are allowed to encourage token reuse. Overrides 'Model Parameters. Frequency Penalty' if not empty.")]
+        public double? ComplitionFrequencyPenalty { get; set; }
+
+        [Category("Complition Parameters")]
+        [DisplayName("top p")]
+        [Description("An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. Overrides 'Model Parameters. top p' if not empty.")]
+        public double? ComplitionTopP { get; set; }
+
+        [Category("Complition Parameters")]
+        [DisplayName("Stop Sequences")]
+        [Description("Up to 4 sequences where the API will stop generating further tokens. The returned text will not contain the stop sequence. Separate different stop strings by a comma e.g. '},;,stop'. Overrides 'Model Parameters. Stop Sequences' if not empty.")]
+        [DefaultValue("")]
+        public string ComplitionStopSequences { get; set; } = string.Empty;
+
+        #endregion
+
         #region Azure
 
         [Category("Azure")]

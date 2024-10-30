@@ -163,7 +163,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <param name="options">The options to use for the conversation.</param>
         /// <param name="systemMessage">The system message to append to the conversation.</param>
         /// <returns>The created conversation.</returns>
-        public static ICompletionEndpoint CreateComplitionConversation(OptionPageGridGeneral options, string systemMessage, string customModel = null)
+        public static ICompletionEndpoint CreateCompletionConversation(OptionPageGridGeneral options, string systemMessage, string customModel = null)
         {
             ICompletionEndpoint chat;
             if (options.Service == OpenAIService.OpenAI)
@@ -177,19 +177,19 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                 chat = azureAPI.Completions;
             }
 
-            chat.DefaultCompletionRequestArgs.MaxTokens = options.ComplitionMaxTokens.HasValue ? options.ComplitionMaxTokens : options.MaxTokens;
-            chat.DefaultCompletionRequestArgs.Temperature = options.ComplitionTemperature.HasValue ? options.ComplitionTemperature : options.Temperature;
-            chat.DefaultCompletionRequestArgs.TopP = options.ComplitionTopP.HasValue ? options.ComplitionTopP : options.TopP;
-            chat.DefaultCompletionRequestArgs.FrequencyPenalty = options.ComplitionFrequencyPenalty.HasValue ? options.ComplitionFrequencyPenalty : options.FrequencyPenalty;
-            chat.DefaultCompletionRequestArgs.PresencePenalty = options.ComplitionPresencePenalty.HasValue ? options.ComplitionPresencePenalty : options.PresencePenalty;
+            chat.DefaultCompletionRequestArgs.MaxTokens = options.CompletionMaxTokens.HasValue ? options.CompletionMaxTokens : options.MaxTokens;
+            chat.DefaultCompletionRequestArgs.Temperature = options.CompletionTemperature.HasValue ? options.CompletionTemperature : options.Temperature;
+            chat.DefaultCompletionRequestArgs.TopP = options.CompletionTopP.HasValue ? options.CompletionTopP : options.TopP;
+            chat.DefaultCompletionRequestArgs.FrequencyPenalty = options.CompletionFrequencyPenalty.HasValue ? options.CompletionFrequencyPenalty : options.FrequencyPenalty;
+            chat.DefaultCompletionRequestArgs.PresencePenalty = options.CompletionPresencePenalty.HasValue ? options.CompletionPresencePenalty : options.PresencePenalty;
 
             if (!string.IsNullOrEmpty(customModel))
             {
                 chat.DefaultCompletionRequestArgs.Model = customModel;
             }
-            else if (!string.IsNullOrWhiteSpace(options.ComplitionCustomModel))
+            else if (!string.IsNullOrWhiteSpace(options.CompletionCustomModel))
             {
-                chat.DefaultCompletionRequestArgs.Model = options.ComplitionCustomModel;
+                chat.DefaultCompletionRequestArgs.Model = options.CompletionCustomModel;
             }
             else
             {
@@ -245,7 +245,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         private static ICompletionEndpoint CreateCompletionEndpoint(OptionPageGridGeneral options, string systemMessage,
             string userInput, string[] stopSequences, string customModel = null)
         {
-            var chat = CreateComplitionConversation(options, systemMessage, customModel);
+            var chat = CreateCompletionConversation(options, systemMessage, customModel);
 
             if (options.MinifyRequests)
             {

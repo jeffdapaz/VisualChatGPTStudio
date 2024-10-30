@@ -116,38 +116,38 @@ namespace JeffPires.VisualChatGPTStudio.Options
 
         #endregion Model Parameters   
 
-        #region Complition Parameters
+        #region Completion Parameters
 
-        [Category("Complition Parameters")]
-        [DisplayName("Complition Model Language Override")]
-        [Description("Specify a custom model name for complition requests. Overrides 'OpenAI. Model Language' if not empty.")]
+        [Category("Completion Parameters")]
+        [DisplayName("Completion Model Language Override")]
+        [Description("Specify a custom model name for Completion requests. Overrides 'OpenAI. Model Language' if not empty.")]
         [DefaultValue("")]
-        public string ComplitionCustomModel { get; set; } = "";
+        public string CompletionCustomModel { get; set; } = "";
 
-        [Category("Complition Parameters")]
+        [Category("Completion Parameters")]
         [DisplayName("Max Tokens")]
         [Description("See \"https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them\" for more details.  Overrides 'Model Parameters. Max Tokens' if not empty.")]
-        public int? ComplitionMaxTokens { get; set; }
+        public int? CompletionMaxTokens { get; set; }
 
-        [Category("Complition Parameters")]
+        [Category("Completion Parameters")]
         [DisplayName("Temperature")]
         [Description("What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 for ones with a well-defined answer. Overrides 'Model Parameters. Temperature' if not empty.")]
-        public double? ComplitionTemperature { get; set; }
+        public double? CompletionTemperature { get; set; }
 
-        [Category("Complition Parameters")]
+        [Category("Completion Parameters")]
         [DisplayName("Presence Penalty")]
         [Description("The scale of the penalty applied if a token is already present at all. Should generally be between 0 and 1, although negative numbers are allowed to encourage token reuse. Overrides 'Model Parameters. Presence Penalty' if not empty.")]
-        public double? ComplitionPresencePenalty { get; set; }
+        public double? CompletionPresencePenalty { get; set; }
 
-        [Category("Complition Parameters")]
+        [Category("Completion Parameters")]
         [DisplayName("Frequency Penalty")]
         [Description("The scale of the penalty for how often a token is used. Should generally be between 0 and 1, although negative numbers are allowed to encourage token reuse. Overrides 'Model Parameters. Frequency Penalty' if not empty.")]
-        public double? ComplitionFrequencyPenalty { get; set; }
+        public double? CompletionFrequencyPenalty { get; set; }
 
-        [Category("Complition Parameters")]
+        [Category("Completion Parameters")]
         [DisplayName("top p")]
         [Description("An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. Overrides 'Model Parameters. top p' if not empty.")]
-        public double? ComplitionTopP { get; set; }
+        public double? CompletionTopP { get; set; }
 
         #endregion
 

@@ -119,17 +119,6 @@ namespace JeffPires.VisualChatGPTStudio.Options
         #region Complition Parameters
 
         [Category("Complition Parameters")]
-        [DisplayName("Base API URL")]
-        [Description("Change the API connection URL if you wish to do so for some reason, for example use a custom LLM deployment. Example: https://myurl.openai.com. Overrides 'OpenAI. Base API URL' if not empty.")]
-        [DefaultValue("")]
-        public string ComplitionBaseAPI { get; set; } = string.Empty;
-
-        [Category("Complition Parameters")]
-        [DisplayName("API Key")]
-        [Description("Set API Key. For OpenAI API, see \"https://beta.openai.com/account/api-keys\" for more details. Overrides 'General. API Key' if not empty.")]
-        public string ComplitionApiKey { get; set; }
-
-        [Category("Complition Parameters")]
         [DisplayName("Complition Model Language Override")]
         [Description("Specify a custom model name for complition requests. Overrides 'OpenAI. Model Language' if not empty.")]
         [DefaultValue("")]
@@ -159,12 +148,6 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DisplayName("top p")]
         [Description("An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. Overrides 'Model Parameters. top p' if not empty.")]
         public double? ComplitionTopP { get; set; }
-
-        [Category("Complition Parameters")]
-        [DisplayName("Stop Sequences")]
-        [Description("Up to 4 sequences where the API will stop generating further tokens. The returned text will not contain the stop sequence. Separate different stop strings by a comma e.g. '},;,stop'. Overrides 'Model Parameters. Stop Sequences' if not empty.")]
-        [DefaultValue("")]
-        public string ComplitionStopSequences { get; set; } = string.Empty;
 
         #endregion
 

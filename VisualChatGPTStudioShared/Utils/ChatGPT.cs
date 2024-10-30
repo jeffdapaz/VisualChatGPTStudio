@@ -169,27 +169,34 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             if (options.Service == OpenAIService.OpenAI)
             {
                 CreateOpenAIApiHandler(options);
-
                 chat = openAiAPI.Completions;
             }
             else
             {
                 CreateAzureApiHandler(options);
-
                 chat = azureAPI.Completions;
             }
 
-            chat.DefaultCompletionRequestArgs.MaxTokens = options.MaxTokens;
-            chat.DefaultCompletionRequestArgs.Temperature = options.Temperature;
-            chat.DefaultCompletionRequestArgs.TopP = options.TopP;
-            chat.DefaultCompletionRequestArgs.FrequencyPenalty = options.FrequencyPenalty;
-            chat.DefaultCompletionRequestArgs.PresencePenalty = options.PresencePenalty;
+            chat.DefaultCompletionRequestArgs.MaxTokens = options.ComplitionMaxTokens.HasValue ? options.ComplitionMaxTokens : options.MaxTokens;
+            chat.DefaultCompletionRequestArgs.Temperature = options.ComplitionTemperature.HasValue ? options.ComplitionTemperature : options.Temperature;
+            chat.DefaultCompletionRequestArgs.TopP = options.ComplitionTopP.HasValue ? options.ComplitionTopP : options.TopP;
+            chat.DefaultCompletionRequestArgs.FrequencyPenalty = options.ComplitionFrequencyPenalty.HasValue ? options.ComplitionFrequencyPenalty : options.FrequencyPenalty;
+            chat.DefaultCompletionRequestArgs.PresencePenalty = options.ComplitionPresencePenalty.HasValue ? options.ComplitionPresencePenalty : options.PresencePenalty;
 
-            chat.DefaultCompletionRequestArgs.Model = string.IsNullOrEmpty(customModel)
-                ? string.IsNullOrWhiteSpace(options.CustomModel)
+            if (!string.IsNullOrEmpty(customModel))
+            {
+                chat.DefaultCompletionRequestArgs.Model = customModel;
+            }
+            else if (!string.IsNullOrWhiteSpace(options.ComplitionCustomModel))
+            {
+                chat.DefaultCompletionRequestArgs.Model = options.ComplitionCustomModel;
+            }
+            else
+            {
+                chat.DefaultCompletionRequestArgs.Model = string.IsNullOrWhiteSpace(options.CustomModel)
                     ? options.Model.GetStringValue()
-                    : options.CustomModel
-                : customModel;
+                    : options.CustomModel;
+            }
 
             return chat;
         }

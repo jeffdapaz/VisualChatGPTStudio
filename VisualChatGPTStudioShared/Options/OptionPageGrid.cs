@@ -79,6 +79,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DefaultValue("")]
         public string ToolWindowSystemMessage { get; set; } = string.Empty;
 
+        [Category("General")]
+        [DisplayName("Use Completion for Commands")]
+        [Description("If true, all requests to completion-code will use alternative 'Completion' model and API. Configure 'Completion Parameters' section before.")]
+        [DefaultValue(false)]
+        public bool UseCompletion { get; set; } = false;
+
         #endregion General
 
         #region Model Parameters        

@@ -73,9 +73,9 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
                     return;
                 }
 
-                string prediction = string.IsNullOrEmpty(options.CompletionCustomModel)
-                    ? await ChatGPT.GetResponseAsync(options, systemMessage, code, null, cancellationTokenSource.Token)
-                    : await ChatGPT.GetCompletionResponseAsync(options, systemMessage, code, null, cancellationTokenSource.Token, options.CompletionCustomModel);
+                string prediction = options.UseCompletion
+                    ? await ChatGPT.GetCompletionResponseAsync(options, systemMessage, code, null, cancellationTokenSource.Token, options.CompletionCustomModel)
+                    : await ChatGPT.GetResponseAsync(options, systemMessage, code, null, cancellationTokenSource.Token);
 
                 if (cancellationTokenSource.Token.IsCancellationRequested || string.IsNullOrWhiteSpace(prediction))
                 {

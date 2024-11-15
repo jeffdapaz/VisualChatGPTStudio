@@ -263,12 +263,12 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ## Release Notes 📜
 
+### 3.2.0
+
+- Fixed the issue preventing the extension from loading correctly starting from version 17.12.0 of Visual Studio 2022.
+
 ### 3.1.0
 
 - Added the possibility to use your Microsoft Account to authenticate to the Azure Open AI Service through Entra ID.
-
-### 3.0.4
-
-- Bug fixes and adjusts.
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

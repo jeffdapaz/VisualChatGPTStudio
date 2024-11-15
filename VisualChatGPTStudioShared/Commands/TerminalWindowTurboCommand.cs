@@ -2,7 +2,6 @@
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.ComponentModel.Design;
-using System.Threading.Tasks;
 
 namespace JeffPires.VisualChatGPTStudio.Commands
 {
@@ -52,17 +51,6 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         }
 
         /// <summary>
-        /// Gets the service provider from the owner package.
-        /// </summary>
-        private Microsoft.VisualStudio.Shell.IAsyncServiceProvider ServiceProvider
-        {
-            get
-            {
-                return this.package;
-            }
-        }
-
-        /// <summary>
         /// Initializes the singleton instance of the command.
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
@@ -74,8 +62,6 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             OleMenuCommandService commandService = await package.GetServiceAsync((typeof(IMenuCommandService))) as OleMenuCommandService;
             Instance = new TerminalWindowTurboCommand(package, commandService);
-
-            await InitializeToolWindowAsync(package);
         }
 
         /// <summary>
@@ -89,23 +75,6 @@ namespace JeffPires.VisualChatGPTStudio.Commands
             {
                 await package.ShowToolWindowAsync(typeof(TerminalWindowTurbo), 0, true, package.DisposalToken);
             });
-        }
-
-        /// <summary>
-        /// Initializes the ToolWindow with the specified <paramref name="package"/>. 
-        /// </summary>
-        /// <param name="package">The AsyncPackage to be initialized.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        private static async System.Threading.Tasks.Task InitializeToolWindowAsync(AsyncPackage package)
-        {
-            ToolWindowPane window = await package.FindToolWindowAsync(typeof(TerminalWindowTurbo), 0, true, package.DisposalToken);
-
-            if ((null == window) || (null == window.Frame))
-            {
-                throw new NotSupportedException("Cannot create tool window");
-            }
-
-            ((TerminalWindowTurbo)window).SetTerminalWindowProperties(((VisuallChatGPTStudioPackage)package).OptionsGeneral, package);
         }
     }
 }

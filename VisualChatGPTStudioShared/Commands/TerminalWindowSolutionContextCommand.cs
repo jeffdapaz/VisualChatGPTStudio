@@ -31,11 +31,6 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         private readonly AsyncPackage package;
 
         /// <summary>
-        /// This field holds a reference to the TerminalWindow object.
-        /// </summary>
-        private static TerminalWindowSolutionContext window;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="TerminalWindowCommand"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
@@ -72,8 +67,6 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             OleMenuCommandService commandService = await package.GetServiceAsync((typeof(IMenuCommandService))) as OleMenuCommandService;
             Instance = new TerminalWindowSolutionContextCommand(package, commandService);
-
-            await InitializeToolWindowAsync(package);
         }
 
         /// <summary>
@@ -90,21 +83,6 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         }
 
         /// <summary>
-        /// Initializes the ToolWindow with the specified <paramref name="package"/>. 
-        /// </summary>
-        /// <param name="package">The AsyncPackage to be initialized.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        private static async System.Threading.Tasks.Task InitializeToolWindowAsync(AsyncPackage package)
-        {
-            window = await package.FindToolWindowAsync(typeof(TerminalWindowSolutionContext), 0, true, package.DisposalToken) as TerminalWindowSolutionContext;
-
-            if ((null == window) || (null == window.Frame))
-            {
-                throw new NotSupportedException("Cannot create tool window");
-            }
-        }
-
-        /// <summary>
         /// Retrieves the code content of selected context items in the solution.
         /// </summary>
         /// <returns>
@@ -114,7 +92,9 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            List<string> result = new();
+            List<string> result = [];
+
+            TerminalWindowSolutionContext window = await package.FindToolWindowAsync(typeof(TerminalWindowSolutionContext), 0, true, package.DisposalToken) as TerminalWindowSolutionContext;
 
             List<string> selectedFilesName = ((TerminalWindowSolutionContextControl)window.Content).GetSelectedFilesName();
 

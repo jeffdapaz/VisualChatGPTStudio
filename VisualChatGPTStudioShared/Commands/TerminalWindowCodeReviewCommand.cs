@@ -2,7 +2,6 @@
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.ComponentModel.Design;
-using System.Threading.Tasks;
 
 namespace JeffPires.VisualChatGPTStudio.Commands
 {
@@ -25,11 +24,6 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// VS Package that provides this command, not null.
         /// </summary>
         private readonly AsyncPackage package;
-
-        /// <summary>
-        /// This field holds a reference to the TerminalWindow object.
-        /// </summary>
-        private static TerminalWindowCodeReview window;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TerminalWindowCommand"/> class.
@@ -68,8 +62,6 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             OleMenuCommandService commandService = await package.GetServiceAsync((typeof(IMenuCommandService))) as OleMenuCommandService;
             Instance = new TerminalWindowCodeReviewCommand(package, commandService);
-
-            await InitializeToolWindowAsync(package);
         }
 
         /// <summary>
@@ -83,23 +75,6 @@ namespace JeffPires.VisualChatGPTStudio.Commands
             {
                 await package.ShowToolWindowAsync(typeof(TerminalWindowCodeReview), 0, true, package.DisposalToken);
             });
-        }
-
-        /// <summary>
-        /// Initializes the ToolWindow with the specified <paramref name="package"/>. 
-        /// </summary>
-        /// <param name="package">The AsyncPackage to be initialized.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        private static async System.Threading.Tasks.Task InitializeToolWindowAsync(AsyncPackage package)
-        {
-            window = await package.FindToolWindowAsync(typeof(TerminalWindowCodeReview), 0, true, package.DisposalToken) as TerminalWindowCodeReview;
-
-            if ((null == window) || (null == window.Frame))
-            {
-                throw new NotSupportedException("Cannot create tool window");
-            }
-
-            window.SetTerminalWindowProperties(((VisuallChatGPTStudioPackage)package).OptionsGeneral);
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using JeffPires.VisualChatGPTStudio.Options;
-using Microsoft.VisualStudio.Shell;
+﻿using Microsoft.VisualStudio.Shell;
 using System;
 using System.Runtime.InteropServices;
 
@@ -32,13 +31,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             this.Content = new TerminalWindowCodeReviewControl();
         }
 
-        /// <summary>
-        /// Sets the terminal window properties.
-        /// </summary>
-        /// <param name="options">The options.</param>
-        public void SetTerminalWindowProperties(OptionPageGridGeneral options)
+        protected override void OnCreate()
         {
-            ((TerminalWindowCodeReviewControl)this.Content).StartControl(options);
+            base.OnCreate();
+
+            ((TerminalWindowCodeReviewControl)this.Content).StartControl(((VisuallChatGPTStudioPackage)this.Package).OptionsGeneral);
         }
     }
 }

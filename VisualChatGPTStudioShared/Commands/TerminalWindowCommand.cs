@@ -2,7 +2,6 @@
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.ComponentModel.Design;
-using System.Threading.Tasks;
 
 namespace JeffPires.VisualChatGPTStudio.Commands
 {
@@ -29,7 +28,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// <summary>
         /// This field holds a reference to the TerminalWindow object.
         /// </summary>
-        private static TerminalWindow window;
+        private static readonly TerminalWindow window;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TerminalWindowCommand"/> class.
@@ -68,8 +67,6 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             OleMenuCommandService commandService = await package.GetServiceAsync((typeof(IMenuCommandService))) as OleMenuCommandService;
             Instance = new TerminalWindowCommand(package, commandService);
-
-            await InitializeToolWindowAsync(package);
         }
 
         /// <summary>
@@ -99,23 +96,6 @@ namespace JeffPires.VisualChatGPTStudio.Commands
             {
                 await package.ShowToolWindowAsync(typeof(TerminalWindow), 0, true, package.DisposalToken);
             });
-        }
-
-        /// <summary>
-        /// Initializes the ToolWindow with the specified <paramref name="package"/>. 
-        /// </summary>
-        /// <param name="package">The AsyncPackage to be initialized.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        private static async System.Threading.Tasks.Task InitializeToolWindowAsync(AsyncPackage package)
-        {
-            window = await package.FindToolWindowAsync(typeof(TerminalWindow), 0, true, package.DisposalToken) as TerminalWindow;
-
-            if ((null == window) || (null == window.Frame))
-            {
-                throw new NotSupportedException("Cannot create tool window");
-            }
-
-            window.SetTerminalWindowProperties(((VisuallChatGPTStudioPackage)package).OptionsGeneral, package);
         }
     }
 }

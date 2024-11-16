@@ -222,6 +222,19 @@ To do this, simply insert the address of these deployments in the `Base API URL`
 
 It's worth mentioning that I haven't tested this possibility for myself, so it's a matter of trial and error, but I've already received feedback from people who have successfully doing this.
 
+## Use Completion API for Commands 🧠
+
+This feature introduces the ability to utilize the Completion API for handling command requests within the code editor. When enabled, all requests for code completion will use the Completion model and API instead of the Chat API. This feature is particularly useful for scenarios where specific tuning of parameters for completions is better.
+
+Note: This functionality does not support Azure OpenAI API.
+
+How to Enable the Feature:
+
+- Open the Options for the extension within Visual Studio.
+- Navigate to the General category.
+- Locate the Use Completion API for Commands setting and set it to True.
+- Configuring Completion Parameters
+
 ## Known Issues 🐛
 
 - **Issue 1:** Occasional delays in AI response times.
@@ -243,7 +256,7 @@ It's worth mentioning that I haven't tested this possibility for myself, so it's
 
 You can check your quota here: [https://platform.openai.com/account/usage](https://platform.openai.com/account/usage)
 
-- If you find any bugs or unexpected behavior, please leave a comment so I can provide a fix.
+- If you find any bugs or unexpected behavior, try first updating Visual Studio to its latest version. If not resolved, please, leave a comment or open an issue on Github so I can provide a fix.
 
 ## Donations 🙏
 
@@ -265,7 +278,10 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ### 3.2.0
 
+- Added the possibility to use completion API instead of Chat API. Thanks [karburator](https://github.com/karburator) for the collaboration.
 - Fixed the issue preventing the extension from loading correctly starting from version 17.12.0 of Visual Studio 2022.
+- Fixed the 'Stream was not readable' bug.
+- Fixed an issue where an empty value was sent in the Stop Sequences parameter when it was not defined in the extension options. This caused some models to not respond correctly.
 
 ### 3.1.0
 

@@ -80,13 +80,13 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 if (options.SingleResponse)
                 {
-                    string result = await ChatGPT.GetResponseAsync(options, options.ToolWindowSystemMessage, txtRequest.Text, options.StopSequences.Split(','), cancellationTokenSource.Token);
+                    string result = await ChatGPT.GetResponseAsync(options, options.ToolWindowSystemMessage, txtRequest.Text, options.StopSequences.Split([','], StringSplitOptions.RemoveEmptyEntries), cancellationTokenSource.Token);
 
                     ResultHandler(result);
                 }
                 else
                 {
-                    await ChatGPT.GetResponseAsync(options, options.ToolWindowSystemMessage, txtRequest.Text, options.StopSequences.Split(','), ResultHandler, cancellationTokenSource.Token);
+                    await ChatGPT.GetResponseAsync(options, options.ToolWindowSystemMessage, txtRequest.Text, options.StopSequences.Split([','], StringSplitOptions.RemoveEmptyEntries), ResultHandler, cancellationTokenSource.Token);
                 }
             }
             catch (OperationCanceledException)
@@ -130,7 +130,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 removeCodeTagsFromOpenAIResponses = true;
 
-                string comment = await ChatGPT.GetResponseAsync(options, options.GenerateGitCommentCommand, changes, options.StopSequences.Split(','), cancellationTokenSource.Token);
+                string comment = await ChatGPT.GetResponseAsync(options, options.GenerateGitCommentCommand, changes, options.StopSequences.Split([','], StringSplitOptions.RemoveEmptyEntries), cancellationTokenSource.Token);
 
                 ResultHandler(comment);
             }
@@ -309,13 +309,13 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 if (options.SingleResponse || removeCodeTagsFromOpenAIResponses)
                 {
-                    string result = await ChatGPT.GetResponseAsync(options, command, selectedText, options.StopSequences.Split(','), cancellationTokenSource.Token);
+                    string result = await ChatGPT.GetResponseAsync(options, command, selectedText, options.StopSequences.Split([','], StringSplitOptions.RemoveEmptyEntries), cancellationTokenSource.Token);
 
                     ResultHandler(result);
                 }
                 else
                 {
-                    await ChatGPT.GetResponseAsync(options, command, selectedText, options.StopSequences.Split(','), ResultHandler, cancellationTokenSource.Token);
+                    await ChatGPT.GetResponseAsync(options, command, selectedText, options.StopSequences.Split([','], StringSplitOptions.RemoveEmptyEntries), ResultHandler, cancellationTokenSource.Token);
                 }
             }
             catch (OperationCanceledException)

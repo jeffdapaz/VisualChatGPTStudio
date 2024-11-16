@@ -114,7 +114,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_WAITING_CHATGPT, 1, 2);
 
-            string[] stopSequences = OptionsGeneral.StopSequences.Split(',');
+            string[] stopSequences = OptionsGeneral.StopSequences.Split([','], StringSplitOptions.RemoveEmptyEntries);
 
             if (typeof(TCommand) == typeof(AddSummary))
             {
@@ -123,15 +123,26 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             CancellationTokenSource = new CancellationTokenSource();
 
-            if (OptionsGeneral.SingleResponse || IsCodeCommand())
+            string result;
+
+            if (OptionsGeneral.UseCompletion && OptionsGeneral.Service == OpenAIService.OpenAI)
             {
-                string result = await ChatGPT.GetResponseAsync(OptionsGeneral, command, selectedText, stopSequences, CancellationTokenSource.Token);
+                result = await ChatGPT.GetCompletionResponseAsync(OptionsGeneral, command, selectedText, stopSequences, CancellationTokenSource.Token);
 
                 ResultHandler(result);
             }
             else
             {
-                await ChatGPT.GetResponseAsync(OptionsGeneral, command, selectedText, stopSequences, ResultHandler, CancellationTokenSource.Token);
+                if (OptionsGeneral.SingleResponse || IsCodeCommand())
+                {
+                    result = await ChatGPT.GetResponseAsync(OptionsGeneral, command, selectedText, stopSequences, CancellationTokenSource.Token);
+
+                    ResultHandler(result);
+                }
+                else
+                {
+                    await ChatGPT.GetResponseAsync(OptionsGeneral, command, selectedText, stopSequences, ResultHandler, CancellationTokenSource.Token);
+                }
             }
 
             await FormatDocumentAsync();

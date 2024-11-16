@@ -3,6 +3,7 @@ using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils.Http;
 using OpenAI_API;
 using OpenAI_API.Chat;
+using OpenAI_API.Completions;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -20,6 +21,49 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         private static OpenAIAPI azureAPI;
         private static ChatGPTHttpClientFactory chatGPTHttpClient;
         private static readonly TimeSpan timeout = new(0, 0, 120);
+
+        /// <summary>
+        /// Asynchronously gets a comletion response.
+        /// </summary>
+        /// <param name="options">The options for the chatbot.</param>
+        /// <param name="systemMessage">The system message to send to the chatbot.</param>
+        /// <param name="userInput">The user input to send to the chatbot.</param>
+        /// <param name="stopSequences">The stop sequences to use for ending the conversation.</param>
+        /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
+        /// <returns>The response from the chatbot.</returns>
+        public static async Task<string> GetCompletionResponseAsync(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences, CancellationToken cancellationToken)
+        {
+            ICompletionEndpoint endpoint = CreateCompletionConversation(options);
+
+            if (options.MinifyRequests)
+            {
+                userInput = TextFormat.MinifyText(userInput);
+            }
+
+            userInput = TextFormat.RemoveCharactersFromText(userInput, options.CharactersToRemoveFromRequests.Split(','));
+
+            if (stopSequences != null && stopSequences.Length > 0)
+            {
+                endpoint.DefaultCompletionRequestArgs.MultipleStopSequences = stopSequences;
+            }
+
+            StringBuilder promptBuilder = new(systemMessage);
+            promptBuilder.AppendLine();
+            promptBuilder.AppendLine(userInput);
+
+            Task<string> task = endpoint.GetCompletion(promptBuilder.ToString());
+
+            await Task.WhenAny(task, Task.Delay(timeout, cancellationToken)).ConfigureAwait(false);
+
+            if (task.IsFaulted)
+            {
+                throw task.Exception.InnerException ?? task.Exception;
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return await task;
+        }
 
         /// <summary>
         /// Asynchronously gets a response from a chatbot.
@@ -121,6 +165,39 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             chat.RequestParameters.PresencePenalty = options.PresencePenalty;
 
             chat.Model = string.IsNullOrWhiteSpace(options.CustomModel) ? options.Model.GetStringValue() : options.CustomModel;
+
+            return chat;
+        }
+
+        /// <summary>
+        /// Creates a completion conversation with the specified options and system message.
+        /// </summary>
+        /// <param name="options">The options to use for the conversation.</param>
+        /// <returns>The created conversation.</returns>
+        public static ICompletionEndpoint CreateCompletionConversation(OptionPageGridGeneral options)
+        {
+            CreateOpenAIApiHandler(options);
+
+            ICompletionEndpoint chat = openAiAPI.Completions;
+
+            chat.DefaultCompletionRequestArgs.MaxTokens = options.CompletionMaxTokens ?? options.MaxTokens;
+            chat.DefaultCompletionRequestArgs.Temperature = options.CompletionTemperature ?? options.Temperature;
+            chat.DefaultCompletionRequestArgs.TopP = options.CompletionTopP ?? options.TopP;
+            chat.DefaultCompletionRequestArgs.FrequencyPenalty = options.CompletionFrequencyPenalty ?? options.FrequencyPenalty;
+            chat.DefaultCompletionRequestArgs.PresencePenalty = options.CompletionPresencePenalty ?? options.PresencePenalty;
+
+            if (!string.IsNullOrWhiteSpace(options.CompletionCustomModel))
+            {
+                chat.DefaultCompletionRequestArgs.Model = options.CompletionCustomModel;
+            }
+            else if (!string.IsNullOrWhiteSpace(options.CustomModel))
+            {
+                chat.DefaultCompletionRequestArgs.Model = options.CustomModel;
+            }
+            else
+            {
+                chat.DefaultCompletionRequestArgs.Model = options.Model.GetStringValue();
+            }
 
             return chat;
         }

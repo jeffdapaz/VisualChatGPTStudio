@@ -30,6 +30,10 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Http
                 await LoginAzureApiByEntraIdAsync(request);
             }
 
+            request.Headers.Remove("User-Agent");
+
+            request.Headers.Add("User-Agent", Constants.EXTENSION_NAME_UNDERLINED);
+
             string content;
 
             if (options.LogRequests)

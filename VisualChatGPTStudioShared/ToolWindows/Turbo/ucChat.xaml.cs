@@ -54,6 +54,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// <param name="messages">The list of MessageEntity messages.</param>
         public ucChat(TerminalWindowTurboControl parentControl, OptionPageGridGeneral options, Package package, ucChatHeader ucChatHeader, List<MessageEntity> messages)
         {
+            //It is necessary for the MdXaml library load successfully
+            MdXaml.MarkdownScrollViewer _ = new();
+
             this.InitializeComponent();
 
             this.parentControl = parentControl;

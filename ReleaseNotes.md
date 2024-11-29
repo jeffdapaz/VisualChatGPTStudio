@@ -1,5 +1,9 @@
 ﻿## Release Notes 📜
 
+### 3.2.1
+
+- Fixed the execution of commands by holding the SHIFT key to send the responses to the Tool Window (the "Please, open the tool window first" error).
+
 ### 3.2.0
 
 - Added the possibility to use completion API instead of Chat API. Thanks [karburator](https://github.com/karburator) for the collaboration.

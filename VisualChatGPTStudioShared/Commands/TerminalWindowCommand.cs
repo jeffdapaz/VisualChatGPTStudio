@@ -1,5 +1,6 @@
 ﻿using JeffPires.VisualChatGPTStudio.ToolWindows;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.ComponentModel.Design;
 
@@ -18,17 +19,12 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// <summary>
         /// Command menu group (command set GUID).
         /// </summary>
-        public static readonly Guid CommandSet = new Guid("8b0b1a54-4655-4dae-8984-022f82a739f2");
+        public static readonly Guid CommandSet = new("8b0b1a54-4655-4dae-8984-022f82a739f2");
 
         /// <summary>
         /// VS Package that provides this command, not null.
         /// </summary>
         private readonly AsyncPackage package;
-
-        /// <summary>
-        /// This field holds a reference to the TerminalWindow object.
-        /// </summary>
-        private static readonly TerminalWindow window;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TerminalWindowCommand"/> class.
@@ -41,8 +37,8 @@ namespace JeffPires.VisualChatGPTStudio.Commands
             this.package = package ?? throw new ArgumentNullException(nameof(package));
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
 
-            CommandID menuCommandID = new CommandID(CommandSet, CommandId);
-            MenuCommand menuItem = new MenuCommand(this.Execute, menuCommandID);
+            CommandID menuCommandID = new(CommandSet, CommandId);
+            MenuCommand menuItem = new(this.Execute, menuCommandID);
             commandService.AddCommand(menuItem);
         }
 
@@ -77,6 +73,8 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// <param name="removeCodeTagsFromOpenAIResponses">Indicates if the code tags from OpenAI responses need to be removed from the result.</param>
         public async System.Threading.Tasks.Task RequestToWindowAsync(string command, string selectedText, bool removeCodeTagsFromOpenAIResponses)
         {
+            TerminalWindow window = await package.ShowToolWindowAsync(typeof(TerminalWindow), 0, true, package.DisposalToken) as TerminalWindow;
+
             if (window == null)
             {
                 throw new Exception("Please, open the tool window first.");

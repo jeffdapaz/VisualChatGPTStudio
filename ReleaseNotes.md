@@ -1,5 +1,9 @@
 ﻿## Release Notes 📜
 
+### 3.2.2
+
+- Limited to version 17.12.0 or above for Visual Studio 2022 due compatibility.
+
 ### 3.2.1
 
 - Fixed the execution of commands by holding the SHIFT key to send the responses to the Tool Window (the "Please, open the tool window first" error).

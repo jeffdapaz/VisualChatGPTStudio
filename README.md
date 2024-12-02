@@ -276,15 +276,12 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ## Release Notes 📜
 
+### 3.2.2
+
+- Limited to version 17.12.0 or above for Visual Studio 2022 due compatibility.
+
 ### 3.2.1
 
 - Fixed the execution of commands by holding the SHIFT key to send the responses to the Tool Window (the "Please, open the tool window first" error).
-
-### 3.2.0
-
-- Added the possibility to use completion API instead of Chat API. Thanks [karburator](https://github.com/karburator) for the collaboration.
-- Fixed the issue preventing the extension from loading correctly starting from version 17.12.0 of Visual Studio 2022.
-- Fixed the 'Stream was not readable' bug.
-- Fixed an issue where an empty value was sent in the Stop Sequences parameter when it was not defined in the extension options. This caused some models to not respond correctly.
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

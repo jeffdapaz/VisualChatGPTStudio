@@ -1,5 +1,9 @@
 ﻿## Release Notes 📜
 
+### 3.2.3
+
+- Adjustment to prevent Markdown tags from being added to the code editor when using the "Add Comments" command.
+
 ### 3.2.2
 
 - Limited to version 17.12.0 or above for Visual Studio 2022 due compatibility.

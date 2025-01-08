@@ -293,7 +293,13 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// </summary>
         private bool IsCodeCommand()
         {
-            return typeof(TCommand) == typeof(AddSummary) || typeof(TCommand) == typeof(AddTests) || typeof(TCommand) == typeof(Complete) || typeof(TCommand) == typeof(Optimize);
+            Type commandType = typeof(TCommand);
+
+            return commandType == typeof(AddSummary) ||
+                   commandType == typeof(AddTests) ||
+                   commandType == typeof(Complete) ||
+                   commandType == typeof(Optimize) ||
+                   commandType == typeof(AddComments);
         }
     }
 

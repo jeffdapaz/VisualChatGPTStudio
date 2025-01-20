@@ -1,12 +1,16 @@
 ﻿using Community.VisualStudio.Toolkit;
+using ICSharpCode.AvalonEdit;
 using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils;
+using JeffPires.VisualChatGPTStudio.Utils.CodeCompletion;
 using Microsoft.VisualStudio.Shell;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using VisualChatGPTStudioShared.Utils;
 using Clipboard = System.Windows.Clipboard;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
@@ -28,6 +32,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         private bool responseStarted;
         private CancellationTokenSource cancellationTokenSource;
         private bool removeCodeTagsFromOpenAIResponses;
+        private CompletionManager completionManager;
 
         #endregion Properties
 
@@ -38,12 +43,71 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         /// </summary>
         public TerminalWindowControl()
         {
+            //It is necessary for the MdXaml library load successfully
+            MdXaml.MarkdownScrollViewer _ = new();
+
             this.InitializeComponent();
+
+            txtRequest.TextArea.TextEntering += txtRequest_TextEntering;
+            txtRequest.TextArea.TextEntered += txtRequest_TextEntered;
         }
 
         #endregion Constructors
 
         #region Event Handlers
+
+        /// <summary>
+        /// Handles the text entered event for the request text box, 
+        /// passing the entered text to the CompletionManager for processing.
+        /// </summary>
+        /// <param name="sender">The source of the event, typically the text box.</param>
+        /// <param name="e">The event data containing the text that was entered.</param>
+        private async void txtRequest_TextEntered(object sender, TextCompositionEventArgs e)
+        {
+            await completionManager.HandleTextEnteredAsync(e);
+        }
+
+        /// <summary>
+        /// Handles the text entering event for the request text box, delegating the processing to the CompletionManager.
+        /// </summary>
+        /// <param name="sender">The source of the event, typically the text box.</param>
+        /// <param name="e">The event data containing information about the text composition.</param>
+        private void txtRequest_TextEntering(object sender, TextCompositionEventArgs e)
+        {
+            completionManager.HandleTextEntering(e);
+        }
+
+        /// <summary>
+        /// Handles the PreviewMouseWheel event for the txtResponse control, scrolling the associated ScrollViewer based on the mouse wheel delta.
+        /// </summary>
+        private void txtResponse_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+            {
+                MdXaml.MarkdownScrollViewer mdXaml = (MdXaml.MarkdownScrollViewer)sender;
+
+                List<TextEditor> textEditors = FindMarkDownCodeTextEditors(mdXaml);
+
+                if (textEditors != null)
+                {
+                    foreach (TextEditor textEditor in textEditors)
+                    {
+                        ScrollViewer scrollViewerEditor = textEditor.Template.FindName("PART_ScrollViewer", textEditor) as ScrollViewer;
+
+                        if (scrollViewerEditor != null)
+                        {
+                            scrollViewerEditor.ScrollToHorizontalOffset(scrollViewerEditor.HorizontalOffset - e.Delta);
+                        }
+                    }
+                }
+
+                e.Handled = true;
+            }
+            else
+            {
+                e.Handled = false;
+            }
+        }
 
         /// <summary>
         /// Handles the Click event of the btnRequestSend control.
@@ -72,22 +136,17 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 EnableDisableButtons(false, true);
 
-                txtResponse.Text = string.Empty;
+                txtResponse.Markdown = string.Empty;
 
                 cancellationTokenSource = new CancellationTokenSource();
 
                 removeCodeTagsFromOpenAIResponses = false;
 
-                if (options.SingleResponse)
-                {
-                    string result = await ChatGPT.GetResponseAsync(options, options.ToolWindowSystemMessage, txtRequest.Text, options.StopSequences.Split([','], StringSplitOptions.RemoveEmptyEntries), cancellationTokenSource.Token);
+                string request = await completionManager.ReplaceReferencesAsync(txtRequest.Text);
 
-                    ResultHandler(result);
-                }
-                else
-                {
-                    await ChatGPT.GetResponseAsync(options, options.ToolWindowSystemMessage, txtRequest.Text, options.StopSequences.Split([','], StringSplitOptions.RemoveEmptyEntries), ResultHandler, cancellationTokenSource.Token);
-                }
+                string result = await ChatGPT.GetResponseAsync(options, options.ToolWindowSystemMessage, request, options.StopSequences.Split([','], StringSplitOptions.RemoveEmptyEntries), cancellationTokenSource.Token);
+
+                ResultHandler(result);
             }
             catch (OperationCanceledException)
             {
@@ -124,7 +183,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
                 }
 
                 txtRequest.Text = string.Concat(options.GenerateGitCommentCommand, Environment.NewLine, Environment.NewLine, changes);
-                txtResponse.Text = string.Empty;
+                txtResponse.Markdown = string.Empty;
 
                 cancellationTokenSource = new CancellationTokenSource();
 
@@ -195,32 +254,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         /// <param name="e">Event arguments.</param>
         private void btnResponseCopy_Click(object sender, RoutedEventArgs e)
         {
-            TerminalWindowHelper.Copy((Image)sender, txtResponse.Text);
-        }
-
-        /// <summary>
-        /// Event handler for the btnSwitchWordWrap button click event. Toggles the visibility of the horizontal scroll bar in the txtRequest TextBox.
-        /// </summary>
-        /// <param name="sender">The object that raised the event.</param>
-        /// <param name="e">The event arguments.</param>
-        private void btnSwitchWordWrap_Click(object sender, RoutedEventArgs e)
-        {
-            if (txtResponse.HorizontalScrollBarVisibility == ScrollBarVisibility.Disabled)
-            {
-                txtResponse.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
-            }
-            else
-            {
-                txtResponse.HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled;
-            }
-        }
-
-        /// <summary>
-        /// This method changes the syntax highlighting of the textbox based on the language detected in the text.
-        /// </summary>
-        private void txtRequest_TextChanged(object sender, EventArgs e)
-        {
-            txtRequest.SyntaxHighlighting = ICSharpCode.AvalonEdit.Highlighting.HighlightingManager.Instance.GetDefinition(TextFormat.DetectCodeLanguage(txtRequest.Text));
+            TerminalWindowHelper.Copy((Image)sender, txtResponse.Markdown);
         }
 
         #endregion Event Handlers
@@ -236,6 +270,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         {
             this.options = options;
             this.package = package;
+
+            completionManager = new CompletionManager(package, txtRequest);
         }
 
         /// <summary>
@@ -276,11 +312,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
                 result = TextFormat.RemoveBlankLinesFromResult(result);
             }
 
-            txtResponse.AppendText(result);
-
-            txtResponse.SyntaxHighlighting = ICSharpCode.AvalonEdit.Highlighting.HighlightingManager.Instance.GetDefinition(TextFormat.DetectCodeLanguage(txtResponse.Text));
-
-            txtResponse.ScrollToEnd();
+            txtResponse.Markdown = TextFormat.AdjustCodeLanguage(result);
         }
 
         /// <summary>
@@ -288,22 +320,21 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         /// </summary>
         /// <param name="command">The command to be sent.</param>
         /// <param name="selectedText">The selected text to be sent.</param>
-        /// <param name="removeCodeTagsFromOpenAIResponses">Indicates if the code tags from OpenAI responses need to be removed from the result.</param>
-        public async System.Threading.Tasks.Task RequestToWindowAsync(string command, string selectedText, bool removeCodeTagsFromOpenAIResponses)
+        public async System.Threading.Tasks.Task RequestToWindowAsync(string command, string selectedText)
         {
             try
             {
                 firstIteration = true;
 
-                this.removeCodeTagsFromOpenAIResponses = removeCodeTagsFromOpenAIResponses;
+                this.removeCodeTagsFromOpenAIResponses = false;
 
-                await VS.StatusBar.ShowProgressAsync("Requesting chatGPT", 1, 2);
+                await VS.StatusBar.ShowProgressAsync("Requesting API", 1, 2);
 
                 EnableDisableButtons(false, true);
 
                 txtRequest.Text = command + Environment.NewLine + Environment.NewLine + selectedText;
 
-                txtResponse.Text = string.Empty;
+                txtResponse.Markdown = string.Empty;
 
                 cancellationTokenSource = new CancellationTokenSource();
 
@@ -349,6 +380,43 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             btnCancel.IsEnabled = enableCancelButton;
         }
 
+
+        /// <summary>
+        /// Recursively searches for all TextEditor controls within the visual tree of a given DependencyObject.
+        /// </summary>
+        /// <param name="parent">The parent DependencyObject to start the search from.</param>
+        /// <returns>
+        /// A list of all found TextEditor controls.
+        /// </returns>
+        public static List<TextEditor> FindMarkDownCodeTextEditors(DependencyObject parent)
+        {
+            List<TextEditor> foundChildren = [];
+
+            if (parent == null)
+            {
+                return foundChildren;
+            }
+
+            int childrenCount = VisualTreeHelper.GetChildrenCount(parent);
+
+            for (int i = 0; i < childrenCount; i++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(parent, i);
+
+                TextEditor childType = child as TextEditor;
+
+                if (childType == null)
+                {
+                    foundChildren.AddRange(FindMarkDownCodeTextEditors(child));
+                }
+                else
+                {
+                    foundChildren.Add(childType);
+                }
+            }
+
+            return foundChildren;
+        }
         #endregion Methods        
     }
 }

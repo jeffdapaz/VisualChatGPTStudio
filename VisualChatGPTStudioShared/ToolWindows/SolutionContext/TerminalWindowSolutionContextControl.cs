@@ -19,8 +19,8 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
         /// </summary>
         public TerminalWindowSolutionContextControl()        {            this.InitializeComponent();
 
-            validProjectTypes = new()
-            {
+            validProjectTypes =
+            [
                 ".csproj",
                 ".vbproj",
                 ".vcxproj",
@@ -31,10 +31,10 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
                 ".wixproj",
                 ".njsproj",
                 ".shproj"
-            };
+            ];
 
-            validProjectItems = new()
-            {
+            validProjectItems =
+            [
                 ".config",
                 ".cs",
                 ".css",
@@ -47,10 +47,10 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
                 ".vb",
                 ".xml",
                 ".xaml"
-            };
+            ];
 
-            invalidProjectItems = new()
-            {
+            invalidProjectItems =
+            [
                 ".png",
                 ".bmp",
                 ".exe",
@@ -62,7 +62,7 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
                 ".user",
                 ".vsixmanifest",
                 ".pdb"
-            };        }
+            ];        }
 
         #endregion Constructors
         #region Event Handlers
@@ -72,7 +72,21 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
         /// Retrieves the current text color from the application resources and sets it as the foreground color for the button. 
         /// Calls the PopulateTreeViewAsync method to populate the tree view asynchronously.
         /// </summary>
-        private void btnRefresh_Click(object sender, RoutedEventArgs e)        {            Color textColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.WindowTextKey]).Color;            foreGroundColor = new SolidColorBrush(textColor);            _ = PopulateTreeViewAsync();        }
+        private void btnRefresh_Click(object sender, RoutedEventArgs e)        {            Color textColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.WindowTextKey]).Color;            foreGroundColor = new SolidColorBrush(textColor);            txtFilter.Text = string.Empty;            _ = PopulateTreeViewAsync();        }
+
+        /// <summary>
+        /// Handles the TextChanged event for the txtFilter control. 
+        /// It retrieves the current text from the filter input, converts it to lowercase, 
+        /// and applies the filter to the items in the tree view.
+        /// </summary>
+        private void txtFilter_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string filterText = txtFilter.Text.ToLower();
+
+            FilterTreeViewItems(treeView.Items, filterText);
+
+            ExpandOrCollapseAllItems(treeView.Items, !string.IsNullOrWhiteSpace(filterText));
+        }
 
         #endregion Event Handlers
         #region Methods
@@ -146,7 +160,7 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
         /// </summary>
         /// <param name="fileName">The name of the file.</param>
         /// <returns>The image source of the file icon.</returns>
-        private ImageSource GetFileIcon(string fileName)
+        public ImageSource GetFileIcon(string fileName)
         {
             BitmapImage imageSource = new();
             string fileExtension = string.Empty;
@@ -194,7 +208,7 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
         /// </returns>
         public List<string> GetSelectedFilesName()        {            if (treeView.Items.Count == 0)
             {
-                return new List<string>();
+                return [];
             }            return GetSelectedFilesName((TreeViewItem)treeView.Items.GetItemAt(0));        }
 
         /// <summary>
@@ -202,7 +216,7 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
         /// </summary>
         /// <param name="root">The root TreeViewItem.</param>
         /// <returns>A list of selected file names.</returns>
-        private List<string> GetSelectedFilesName(TreeViewItem root)        {            List<string> selectedFilesName = new();            foreach (object item in root.Items)            {                if (item is TreeViewItem treeViewItem)                {                    CheckBox checkBox = FindCheckBox(treeViewItem);                    if (checkBox != null && checkBox.IsChecked == true)                    {                        selectedFilesName.Add(checkBox.Content.ToString());                    }                    selectedFilesName.AddRange(GetSelectedFilesName(treeViewItem));                }            }            return selectedFilesName;        }
+        private List<string> GetSelectedFilesName(TreeViewItem root)        {            List<string> selectedFilesName = [];            foreach (object item in root.Items)            {                if (item is TreeViewItem treeViewItem)                {                    CheckBox checkBox = FindCheckBox(treeViewItem);                    if (checkBox != null && checkBox.IsChecked == true)                    {                        selectedFilesName.Add(checkBox.Content.ToString());                    }                    selectedFilesName.AddRange(GetSelectedFilesName(treeViewItem));                }            }            return selectedFilesName;        }
 
         /// <summary>
         /// Finds and returns the CheckBox control within a TreeViewItem.
@@ -215,5 +229,64 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
                 }
             }            foreach (object subItem in item.Items)            {                if (subItem is TreeViewItem subTreeViewItem)                {                    CheckBox subCheckBox = FindCheckBox(subTreeViewItem);                    if (subCheckBox != null)                    {                        return subCheckBox;                    }                }            }            return null;        }
 
-        #endregion Methods     
+        /// <summary>
+        /// Filters the items in a TreeView based on the specified filter text.
+        /// Sets the visibility of each TreeViewItem to either Visible or Collapsed
+        /// depending on whether it matches the filter criteria.
+        /// </summary>
+        /// <param name="items">The collection of TreeViewItems to filter.</param>
+        /// <param name="filterText">The text used to filter the TreeViewItems.</param>
+        private void FilterTreeViewItems(ItemCollection items, string filterText)
+        {
+            foreach (TreeViewItem item in items)
+            {
+                bool isVisible = IsItemVisible(item, filterText);
+                item.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+
+                FilterTreeViewItems(item.Items, filterText);
+            }
+        }
+
+        /// <summary>
+        /// Determines whether a given TreeViewItem is visible based on the specified filter text.
+        /// It checks if the item's CheckBox content contains the filter text, and recursively checks its child items.
+        /// </summary>
+        /// <param name="item">The TreeViewItem to check for visibility.</param>
+        /// <param name="filterText">The text used to filter the visibility of the item.</param>
+        /// <returns>True if the item or any of its child items are visible based on the filter text; otherwise, false.</returns>
+        private bool IsItemVisible(TreeViewItem item, string filterText)
+        {
+            CheckBox checkBox = FindCheckBox(item);
+
+            if (checkBox != null && checkBox.Content.ToString().ToLower().Contains(filterText))
+            {
+                return true;
+            }
+
+            foreach (TreeViewItem child in item.Items)
+            {
+                if (IsItemVisible(child, filterText))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Expands or collapses all items in the specified item collection based on the provided boolean value.
+        /// </summary>
+        /// <param name="items">The collection of items (TreeViewItems) to expand or collapse.</param>
+        /// <param name="isExpanded">A boolean value indicating whether to expand (true) or collapse (false) the items.</param>
+        private void ExpandOrCollapseAllItems(ItemCollection items, bool isExpanded)
+        {
+            foreach (TreeViewItem item in items)
+            {
+                item.IsExpanded = isExpanded;
+                ExpandOrCollapseAllItems(item.Items, isExpanded);
+            }
+        }
+
+        #endregion Methods  
     }}

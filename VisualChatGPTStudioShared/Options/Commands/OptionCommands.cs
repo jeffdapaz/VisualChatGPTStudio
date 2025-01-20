@@ -29,7 +29,19 @@
         /// </summary>
         /// <param name="commandType">The type of command to retrieve.</param>
         /// <returns>The command as a string.</returns>
-        public async Task<string> GetCommandAsync(CommandsType commandType)        {            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();            DocumentView document = await VS.Documents.GetActiveDocumentViewAsync();            DTE dte = await VS.GetServiceAsync<DTE, DTE>();            ProjectItem projectItem = dte.Solution.FindProjectItem(document.FilePath);            string solutionName = string.Empty;            string projectName = string.Empty;            if (projectItem != null)            {                EnvDTE.Project project = projectItem.ContainingProject;                EnvDTE.Solution solution = project.DTE.Solution;                solutionName = Path.GetFileNameWithoutExtension(solution.FullName);                projectName = project.Name;            }            Commands command = commands.FirstOrDefault(c => c.ProjectName == projectName);            if (command == null)            {                command = commands.FirstOrDefault(c => c.ProjectName == solutionName);            }            if (command == null)            {                command = commands.First(c => string.IsNullOrWhiteSpace(c.ProjectName));            }            string prompt = command.GetType().GetProperty(commandType.ToString()).GetValue(command).ToString();            if (string.IsNullOrWhiteSpace(prompt))
+        public async Task<string> GetCommandAsync(CommandsType commandType)        {            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();            string solutionName = string.Empty;            string projectName = string.Empty;            DTE dte = await VS.GetServiceAsync<DTE, DTE>();            DocumentView document = await VS.Documents.GetActiveDocumentViewAsync();            if (document != null)
+            {
+                ProjectItem projectItem = dte.Solution.FindProjectItem(document.FilePath);
+
+                if (projectItem != null)
+                {
+                    EnvDTE.Project project = projectItem.ContainingProject;
+                    EnvDTE.Solution solution = project.DTE.Solution;
+
+                    solutionName = Path.GetFileNameWithoutExtension(solution.FullName);
+                    projectName = project.Name;
+                }
+            }                        Commands command = commands.FirstOrDefault(c => c.ProjectName == projectName);            if (command == null)            {                command = commands.FirstOrDefault(c => c.ProjectName == solutionName);            }            if (command == null)            {                command = commands.First(c => string.IsNullOrWhiteSpace(c.ProjectName));            }            string prompt = command.GetType().GetProperty(commandType.ToString()).GetValue(command).ToString();            if (string.IsNullOrWhiteSpace(prompt))
             {
                 prompt = commands.First(c => string.IsNullOrWhiteSpace(c.ProjectName)).GetType().GetProperty(commandType.ToString()).GetValue(command).ToString();
             }            return prompt;        }

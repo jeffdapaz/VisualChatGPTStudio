@@ -82,6 +82,9 @@
     <None Include="..\README-zh.md">
       <Link>README-zh.md</Link>
     </None>
+    <EmbeddedResource Include="..\Resources\Highlighting.xshd">
+      <Link>Resources\Highlighting.xshd</Link>
+    </EmbeddedResource>
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
       <Generator>VsixManifestGenerator</Generator>

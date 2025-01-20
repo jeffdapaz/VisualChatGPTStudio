@@ -107,7 +107,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
             {
-                await TerminalWindowCommand.Instance.RequestToWindowAsync(command, selectedText, IsCodeCommand());
+                await TerminalWindowCommand.Instance.RequestToWindowAsync(command, selectedText);
 
                 return;
             }

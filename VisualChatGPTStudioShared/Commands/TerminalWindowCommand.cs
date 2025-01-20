@@ -1,6 +1,5 @@
 ﻿using JeffPires.VisualChatGPTStudio.ToolWindows;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.ComponentModel.Design;
 
@@ -70,8 +69,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// </summary>
         /// <param name="command">The command to send to the ChatGPT window.</param>
         /// <param name="selectedText">The selected text to be sent.</param>
-        /// <param name="removeCodeTagsFromOpenAIResponses">Indicates if the code tags from OpenAI responses need to be removed from the result.</param>
-        public async System.Threading.Tasks.Task RequestToWindowAsync(string command, string selectedText, bool removeCodeTagsFromOpenAIResponses)
+        public async System.Threading.Tasks.Task RequestToWindowAsync(string command, string selectedText)
         {
             TerminalWindow window = await package.ShowToolWindowAsync(typeof(TerminalWindow), 0, true, package.DisposalToken) as TerminalWindow;
 
@@ -80,7 +78,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                 throw new Exception("Please, open the tool window first.");
             }
 
-            await window.RequestToWindowAsync(command, selectedText, removeCodeTagsFromOpenAIResponses);
+            await window.RequestToWindowAsync(command, selectedText);
         }
 
         /// <summary>

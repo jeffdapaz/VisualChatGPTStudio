@@ -8,9 +8,9 @@
 
 ## Description 💬
 
-This is an extension that adds chatGPT functionality directly within Visual Studio.
+Visual chatGPT Studio is a powerful extension that integrates advanced AI capabilities directly into Visual Studio, enhancing your coding experience. This extension provides a suite of tools that leverage AI to assist you in various coding tasks. 
 
-You will be able to consult the chatGPT directly through the text editor or through a new specifics tool windows.
+With Visual chatGPT Studio, you can receive intelligent code suggestions, generate unit tests, find bugs, optimize code, and much more—all from within your development environment. The extension allows you to interact with AI in a way that streamlines your workflow, making coding more efficient and enjoyable.
 
 Watch here some examples:
 
@@ -28,7 +28,7 @@ You can disable the Copilot Functionality through the options if you desire.
 
 ## Features on code editor 👩‍💻
 
-Select a method and right click on text editor and you see these new chatGPT commands:
+Select a method and right click on text editor and you see these new commands:
 
 ![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/2.1.0/1697062741546/image__2.png)
 
@@ -36,7 +36,7 @@ Select a method and right click on text editor and you see these new chatGPT com
 - **Add Tests:** Create unit tests for the selected method.
 - **Find Bugs:** Find bugs for the selected code.
 - **Optimize:** Optimize the selected code.
-- **Optimize (Diff View):** Optimize the selected code, however, instead of the result being written in the code editor, a new window will open where you can compare the original code with the version optimized by chatGPT.
+- **Optimize (Diff View):** Optimize the selected code, however, instead of the result being written in the code editor, a new window will open where you can compare the original code with the version optimized by AI.
 - **Explain:** Write an explanation of the selected code.
 - **Add Comments:** Add comments for the selected code.
 - **Add Summary:** Add Summary for C# methods.
@@ -66,7 +66,7 @@ Some examples that you can do:
 
 ## Features by `Visual chatGPT Studio` tool window 🛠
 
-In this tool window you can ask questions to chatGPT and receive answers directly in it.
+In this tool window you can ask questions to the AI and receive answers directly in it.
 
 ![https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/2.6.0/1709307485035/image__6.png](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/2.6.0/1709307485035/image__6.png)
 
@@ -86,7 +86,7 @@ You will find this window in menu View -> Other Windows -> Visual chatGPT Studio
 
 ## Features by `Visual chatGPT Studio Turbo` tool window 🚀
 
-In this window editor you can interact directly with chatGPT as if you were in the chatGPT portal itself:
+In this window editor you can interact directly with the AI as if you were in the chatGPT portal itself:
 
 Unlike the previous window, in this one the AI "remembers" the entire conversation:
 
@@ -112,6 +112,16 @@ You will find this window in menu View -> Other Windows -> Visual chatGPT Studio
 Watch here some examples using the Turbo Chat:
 
 [<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/275615943-a37e30c3-d597-42de-8a38-7d0cdbfe942f.png" width="70%">](https://youtu.be/2NHWWXFMpd0)
+
+## Commands Shortcuts and File/Method References ⌨️
+
+You can reference the pre-defined commands, files and methods directly in the request fields. This means you can easily insert the pre-definied commands, as well file paths or method names into your requests, making it more efficient to work with your code.
+
+To reference predefined commands, access them with the key "/". To reference files or methods, access them with the key "#".
+
+Watch the demonstration of this feature in action:
+
+![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/3.3.0/1737398957558/complete.gif)
 
 ## Features by `Visual chatGPT Studio Solution Context` tool window 📌
 
@@ -276,12 +286,14 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ## Release Notes 📜
 
+### 3.3.0
+
+- Shortcuts have been added for the predefined commands, as well as the ability to reference files and/or methods directly in the request fields.
+- Improvements in the visualization of fields for the Tool Window.
+- Added a filter in the Solution Context window.
+
 ### 3.2.3
 
 - Adjustment to prevent Markdown tags from being added to the code editor when using the "Add Comments" command.
-
-### 3.2.2
-
-- Limited to version 17.12.0 or above for Visual Studio 2022 due compatibility.
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

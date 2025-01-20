@@ -59,7 +59,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ChatGPT.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ChatRepository.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ChatListControlItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\CodeCompletion\CompletionManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandImage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\CodeCompletion\CompletionData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Constants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ConversationOverride.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\DiffView.cs" />

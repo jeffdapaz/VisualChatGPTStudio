@@ -1,8 +1,8 @@
 ﻿using Community.VisualStudio.Toolkit;
-using ICSharpCode.AvalonEdit;
 using JeffPires.VisualChatGPTStudio.Commands;
 using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils;
+using JeffPires.VisualChatGPTStudio.Utils.CodeCompletion;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
@@ -15,7 +15,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using VisualChatGPTStudioShared.ToolWindows.Turbo;
+using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 using MessageBox = System.Windows.MessageBox;
+using TextEditor = ICSharpCode.AvalonEdit.TextEditor;
 
 namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 {
@@ -39,6 +41,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private bool shiftKeyPressed;
         private bool selectedContextFilesCodeAppended = false;
         private bool firstMessage = true;
+        private readonly CompletionManager completionManager;
 
         #endregion Properties
 
@@ -67,6 +70,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             rowRequest.MaxHeight = parentControl.ActualHeight - 200;
             txtRequest.MaxHeight = rowRequest.MaxHeight - 10;
+
+            txtRequest.TextArea.TextEntering += txtRequest_TextEntering;
+            txtRequest.TextArea.TextEntered += txtRequest_TextEntered;
+
+            completionManager = new CompletionManager(package, txtRequest);
 
             StringBuilder segments;
 
@@ -99,6 +107,27 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         #endregion Constructors
 
         #region Event Handlers
+
+        /// <summary>
+        /// Handles the text entered event for the request text box, 
+        /// passing the entered text to the CompletionManager for processing.
+        /// </summary>
+        /// <param name="sender">The source of the event, typically the text box.</param>
+        /// <param name="e">The event data containing the text that was entered.</param>
+        private async void txtRequest_TextEntered(object sender, TextCompositionEventArgs e)
+        {
+            await completionManager.HandleTextEnteredAsync(e);
+        }
+
+        /// <summary>
+        /// Handles the text entering event for the request text box, delegating the processing to the CompletionManager.
+        /// </summary>
+        /// <param name="sender">The source of the event, typically the text box.</param>
+        /// <param name="e">The event data containing information about the text composition.</param>
+        private void txtRequest_TextEntering(object sender, TextCompositionEventArgs e)
+        {
+            completionManager.HandleTextEntering(e);
+        }
 
         /// <summary>
         /// Handles the Click event of the btnRequestCode control.
@@ -233,7 +262,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 chatListControlItems.Add(new ChatListControlItem(AuthorEnum.Me, txtRequest.Text));
 
-                string request = options.MinifyRequests ? TextFormat.MinifyText(txtRequest.Text) : txtRequest.Text;
+                string request = await completionManager.ReplaceReferencesAsync(txtRequest.Text);
+
+                request = options.MinifyRequests ? TextFormat.MinifyText(request) : request;
 
                 request = TextFormat.RemoveCharactersFromText(request, options.CharactersToRemoveFromRequests.Split(','));
 

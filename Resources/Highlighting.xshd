@@ -1,0 +1,10 @@
+<SyntaxDefinition name="Completion" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+    <Color name="command" foreground="Green" background="LightGray" fontWeight="bold" />
+    <Color name="file" foreground="Purple" background="LightGray" fontWeight="bold" />
+    
+    <!-- This is the main ruleset. -->
+    <RuleSet>
+        <Span color="command" begin="/" end=" " />
+        <Span color="file" begin="#" end=" "/>
+    </RuleSet>
+</SyntaxDefinition>

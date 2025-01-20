@@ -1,5 +1,11 @@
 ﻿## Release Notes 📜
 
+### 3.3.0
+
+- Shortcuts have been added for the predefined commands, as well as the ability to reference files and/or methods directly in the request fields.
+- Improvements in the visualization of fields for the Tool Window.
+- Added a filter in the Solution Context window.
+
 ### 3.2.3
 
 - Adjustment to prevent Markdown tags from being added to the code editor when using the "Add Comments" command.

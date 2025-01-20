@@ -5,14 +5,15 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:utils="clr-namespace:VisualChatGPTStudioShared.Utils"
+             xmlns:mdxam="clr-namespace:MdXaml;assembly=MdXaml"
              Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
              Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300"
-             Name="MyToolWindow">    
+             Name="MyToolWindow">
     <UserControl.Resources>
         <RoutedUICommand x:Key="sendCommand" Text="Text" />
-        <RoutedUICommand x:Key="cancelCommand" Text="Text" /> 
+        <RoutedUICommand x:Key="cancelCommand" Text="Text" />
         <Style x:Key="ImageHandCursorStyle" TargetType="{x:Type Image}">
             <Setter Property="Cursor" Value="Arrow"/>
             <Style.Triggers>
@@ -50,7 +51,7 @@
             </Grid.ColumnDefinitions>
             <Grid Grid.Row="0" Name="grdRequestCommands">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />   
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="20" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="10" />
@@ -118,13 +119,20 @@
                     Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/clear.png"/>
                 <Grid Name="grdProgress" Grid.Column="12" Visibility="Collapsed">
                     <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="True" />
-                    <TextBlock Text="Waiting chatGPT response" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Black" />
+                    <TextBlock Text="Waiting API Response" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Black" />
                 </Grid>
             </Grid>
             <avalonEdit:TextEditor        
                 xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit" 
-                Name="txtRequest" TextChanged="txtRequest_TextChanged" BorderBrush="DarkGray" BorderThickness="1"
-                Grid.Row="2" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" ShowLineNumbers="True" Background="#F5F5F5">
+                Name="txtRequest" 
+                BorderBrush="DarkGray" 
+                BorderThickness="1"
+                Grid.Row="2" 
+                ScrollViewer.HorizontalScrollBarVisibility="Auto" 
+                ScrollViewer.VerticalScrollBarVisibility="Auto" 
+                ShowLineNumbers="False" 
+                Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
+                Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}">
                 <avalonEdit:TextEditor.ContextMenu>
                     <ContextMenu>
                         <MenuItem Command="Paste" />
@@ -161,27 +169,17 @@
                     ToolTip="Copy" 
                     Style="{StaticResource ImageHandCursorStyle}"
                     Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/copy.png"/>
-                <Image 
-                    Grid.Column="4" 
-                    Height="20" 
-                    Width="20" 
-                    HorizontalAlignment="Left" 
-                    Name="btnSwitchWordWrap" 
-                    MouseDown="btnSwitchWordWrap_Click" 
-                    ToolTip="Turn ON/OFF Word Wrap" 
-                    Style="{StaticResource ImageHandCursorStyle}"
-                    Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/wordWrap.png"/>
             </Grid>
-            <avalonEdit:TextEditor        
-                xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
-                Name="txtResponse" IsReadOnly="True" BorderBrush="DarkGray" BorderThickness="1"
-                Grid.Row="2" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" ShowLineNumbers="True" Background="#F5F5F5">
-                <avalonEdit:TextEditor.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem Command="Copy" />
-                    </ContextMenu>
-                </avalonEdit:TextEditor.ContextMenu>
-            </avalonEdit:TextEditor>
+            <mdxam:MarkdownScrollViewer 
+                Name="txtResponse"
+                BorderBrush="DarkGray" 
+                BorderThickness="1"
+                Grid.Row="2"
+                VerticalScrollBarVisibility="Auto"
+                Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
+                Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
+                MarkdownStyleName="Sasabune"
+                PreviewMouseWheel="txtResponse_PreviewMouseWheel"/>
         </Grid>
     </Grid>
 </UserControl>

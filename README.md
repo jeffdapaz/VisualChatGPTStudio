@@ -121,7 +121,7 @@ To reference predefined commands, access them with the key "/". To reference fil
 
 Watch the demonstration of this feature in action:
 
-![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/3.3.0/1737398957558/complete.gif)
+![complete](https://github.com/user-attachments/assets/f95ad9bd-ce5a-4299-9593-9e098e47e415)
 
 ## Features by `Visual chatGPT Studio Solution Context` tool window 📌
 

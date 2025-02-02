@@ -186,7 +186,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.API
         /// <returns>True if the context was truncated, false otherwise.</returns>
         private bool TruncateContextWhenExceeded(HttpRequestException ex)
         {
-            if (!ex.Data.Contains("code") || string.IsNullOrWhiteSpace(ex.Data["code"].ToString()) || !ex.Data["code"].Equals("context_length_exceeded"))
+            if (!ex.Data.Contains("code") || string.IsNullOrWhiteSpace(ex.Data["code"]?.ToString()) || !ex.Data["code"].Equals("context_length_exceeded"))
             {
                 throw ex;
             }

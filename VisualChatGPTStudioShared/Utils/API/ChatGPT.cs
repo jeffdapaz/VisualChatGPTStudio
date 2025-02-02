@@ -1,7 +1,6 @@
 ﻿using JeffPires.VisualChatGPTStudio.Commands;
 using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils.Http;
-using Newtonsoft.Json;
 using OpenAI_API;
 using OpenAI_API.Chat;
 using OpenAI_API.Completions;
@@ -417,7 +416,11 @@ namespace JeffPires.VisualChatGPTStudio.Utils.API
         [EnumStringValue("gpt-4o")]
         GPT_4o,
         [EnumStringValue("gpt-4o-mini")]
-        GPT_4o_Mini
+        GPT_4o_Mini,
+        [EnumStringValue("o1")]
+        o1,
+        [EnumStringValue("o3-mini")]
+        o3_mini
     }
 
     /// <summary>

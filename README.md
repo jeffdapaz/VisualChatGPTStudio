@@ -290,7 +290,8 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ### 3.4.0
 
-- Added the possibility to attach images to the requests.
+- Added the possibility to attach images to the requests (not all models accept images).
+- Added to the list of models the o1 and o3-mini models.
 
 ### 3.3.0
 

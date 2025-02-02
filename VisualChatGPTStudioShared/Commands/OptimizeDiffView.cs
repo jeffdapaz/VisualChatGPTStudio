@@ -1,6 +1,7 @@
 ﻿using Community.VisualStudio.Toolkit;
 using JeffPires.VisualChatGPTStudio.Options.Commands;
 using JeffPires.VisualChatGPTStudio.Utils;
+using JeffPires.VisualChatGPTStudio.Utils.API;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.Threading;

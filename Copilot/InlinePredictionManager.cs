@@ -14,6 +14,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
+using JeffPires.VisualChatGPTStudio.Utils.API;
 
 namespace JeffPires.VisualChatGPTStudio.Copilot
 {

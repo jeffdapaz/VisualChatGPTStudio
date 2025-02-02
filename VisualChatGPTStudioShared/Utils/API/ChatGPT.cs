@@ -1,6 +1,7 @@
 ﻿using JeffPires.VisualChatGPTStudio.Commands;
 using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils.Http;
+using Newtonsoft.Json;
 using OpenAI_API;
 using OpenAI_API.Chat;
 using OpenAI_API.Completions;
@@ -10,7 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace JeffPires.VisualChatGPTStudio.Utils
+namespace JeffPires.VisualChatGPTStudio.Utils.API
 {
     /// <summary>
     /// Static class containing methods for interacting with the ChatGPT API.
@@ -21,6 +22,8 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         private static OpenAIAPI azureAPI;
         private static ChatGPTHttpClientFactory chatGPTHttpClient;
         private static readonly TimeSpan timeout = new(0, 0, 120);
+
+        #region Public Methods
 
         /// <summary>
         /// Asynchronously gets a comletion response.
@@ -66,17 +69,18 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         }
 
         /// <summary>
-        /// Asynchronously gets a response from a chatbot.
+        /// Asynchronously retrieves a response from a chatbot based on the provided options, system message, user input, and other parameters.
         /// </summary>
-        /// <param name="options">The options for the chatbot.</param>
-        /// <param name="systemMessage">The system message to send to the chatbot.</param>
-        /// <param name="userInput">The user input to send to the chatbot.</param>
-        /// <param name="stopSequences">The stop sequences to use for ending the conversation.</param>
-        /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
-        /// <returns>The response from the chatbot.</returns>
-        public static async Task<string> GetResponseAsync(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences, CancellationToken cancellationToken)
+        /// <param name="options">The configuration options for the conversation.</param>
+        /// <param name="systemMessage">The initial system message to set the context for the conversation.</param>
+        /// <param name="userInput">The input provided by the user for the chatbot to respond to.</param>
+        /// <param name="stopSequences">An array of sequences that will stop the chatbot's response generation.</param>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+        /// <param name="image">An optional byte array representing an image to be included in the conversation.</param>
+        /// <returns>A task that represents the asynchronous operation, containing the chatbot's response as a string.</returns>
+        public static async Task<string> GetResponseAsync(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences, CancellationToken cancellationToken, byte[] image = null)
         {
-            ConversationOverride chat = CreateConversationForCompletions(options, systemMessage, userInput, stopSequences);
+            ConversationOverride chat = CreateConversationForCompletions(options, systemMessage, userInput, stopSequences, image);
 
             string selectedContextFilesCode = await GetSelectedContextItemsCodeAsync();
 
@@ -202,17 +206,22 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             return chat;
         }
 
+        #endregion Public Methods
+
+        #region Private Methods
+
         /// <summary>
-        /// Creates a conversation for Completions with the given parameters.
+        /// Creates a conversation object for handling completions based on the provided options, system message, user input, and optional image data.
         /// </summary>
-        /// <param name="options">The options.</param>
-        /// <param name="systemMessage">The system message.</param>
-        /// <param name="userInput">The user input.</param>
-        /// <param name="stopSequences">The stop sequences.</param>
+        /// <param name="options">The options that configure the conversation settings.</param>
+        /// <param name="systemMessage">The system message to initialize the conversation.</param>
+        /// <param name="userInput">The input provided by the user for the conversation.</param>
+        /// <param name="stopSequences">An array of stop sequences to control the conversation flow.</param>
+        /// <param name="image">Optional byte array representing an image to be included in the conversation.</param>
         /// <returns>
-        /// The created conversation.
+        /// A <see cref="ConversationOverride"/> object that encapsulates the conversation details.
         /// </returns>
-        private static ConversationOverride CreateConversationForCompletions(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences)
+        private static ConversationOverride CreateConversationForCompletions(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences, byte[] image = null)
         {
             ConversationOverride chat = CreateConversation(options, systemMessage);
 
@@ -224,6 +233,13 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             userInput = TextFormat.RemoveCharactersFromText(userInput, options.CharactersToRemoveFromRequests.Split(','));
 
             chat.AppendUserInput(userInput);
+
+            if (image != null)
+            {
+                List<ChatContentForImage> chatContent = [new(image)];
+
+                chat.AppendUserInput(chatContent);
+            }
 
             if (stopSequences != null && stopSequences.Length > 0)
             {
@@ -379,6 +395,8 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
             return result.ToString();
         }
+
+        #endregion Private Methods
     }
 
     /// <summary>

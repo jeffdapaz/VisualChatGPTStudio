@@ -1,4 +1,4 @@
-﻿using JeffPires.VisualChatGPTStudio.Utils;
+﻿using JeffPires.VisualChatGPTStudio.Utils.API;
 using Microsoft.VisualStudio.Shell;
 using System.ComponentModel;
 using System.Runtime.InteropServices;

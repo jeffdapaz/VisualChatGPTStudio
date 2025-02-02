@@ -44,6 +44,8 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="5"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="5"/>
                 <RowDefinition Height="*" MinHeight="10px"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
@@ -53,6 +55,8 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="10" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="10" />
                     <ColumnDefinition Width="Auto" />
@@ -76,8 +80,18 @@
                     Command="{StaticResource sendCommand}" 
                     Style="{StaticResource ImageHandCursorStyle}"
                     Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/send.png"/>
-                <Image 
+                <Image
                     Grid.Column="4" 
+                    Height="20" 
+                    Width="20" 
+                    HorizontalAlignment="Left" 
+                    x:Name="btnAttachImage" 
+                    ToolTip="Attach an image" 
+                    MouseDown="btnAttachImage_Click" 
+                    Style="{StaticResource ImageHandCursorStyle}"
+                    Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/image.png"/>
+                <Image 
+                    Grid.Column="6" 
                     Height="20" 
                     Width="20" 
                     HorizontalAlignment="Left" 
@@ -87,7 +101,7 @@
                     Style="{StaticResource ImageHandCursorStyle}"
                     Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/git.png"/>
                 <utils:CommandImage  
-                    Grid.Column="6" 
+                    Grid.Column="8" 
                     Height="20" 
                     Width="20" 
                     HorizontalAlignment="Left" 
@@ -98,7 +112,7 @@
                     IsEnabled="False" 
                     Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/cancel.png"/>
                 <Image 
-                    Grid.Column="8" 
+                    Grid.Column="10" 
                     Height="20" 
                     Width="20" 
                     HorizontalAlignment="Left" 
@@ -108,7 +122,7 @@
                     Style="{StaticResource ImageHandCursorStyle}"
                     Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/paste.png"/>
                 <Image 
-                    Grid.Column="10" 
+                    Grid.Column="12" 
                     Height="20" 
                     Width="20" 
                     HorizontalAlignment="Left" 
@@ -117,17 +131,39 @@
                     ToolTip="Clear" 
                     Style="{StaticResource ImageHandCursorStyle}"
                     Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/clear.png"/>
-                <Grid Name="grdProgress" Grid.Column="12" Visibility="Collapsed">
+                <Grid Name="grdProgress" Grid.Column="14" Visibility="Collapsed">
                     <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="True" />
                     <TextBlock Text="Waiting API Response" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Black" />
                 </Grid>
+            </Grid>
+            <Grid Name="grdImage" Grid.Row="2" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="20" />
+                </Grid.ColumnDefinitions>
+                <TextBlock 
+                    Name="txtImage" 
+                    Grid.Column="0"
+                    HorizontalAlignment="Left" 
+                    VerticalAlignment="Center" 
+                    Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}" />
+                <Image 
+                    Grid.Column="2" 
+                    Height="15" 
+                    Width="15" 
+                    HorizontalAlignment="Left" 
+                    Name="btnDeleteImage" 
+                    MouseDown="btnDeleteImage_Click" 
+                    Style="{StaticResource ImageHandCursorStyle}"
+                    Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/close.png"/>
             </Grid>
             <avalonEdit:TextEditor        
                 xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit" 
                 Name="txtRequest" 
                 BorderBrush="DarkGray" 
                 BorderThickness="1"
-                Grid.Row="2" 
+                Grid.Row="4" 
                 ScrollViewer.HorizontalScrollBarVisibility="Auto" 
                 ScrollViewer.VerticalScrollBarVisibility="Auto" 
                 ShowLineNumbers="False" 

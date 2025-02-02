@@ -2,6 +2,7 @@
 using ICSharpCode.AvalonEdit;
 using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils;
+using JeffPires.VisualChatGPTStudio.Utils.API;
 using JeffPires.VisualChatGPTStudio.Utils.CodeCompletion;
 using Microsoft.VisualStudio.Shell;
 using System;
@@ -33,6 +34,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         private CancellationTokenSource cancellationTokenSource;
         private bool removeCodeTagsFromOpenAIResponses;
         private CompletionManager completionManager;
+        private byte[] attachedImage;
 
         #endregion Properties
 
@@ -144,7 +146,13 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 string request = await completionManager.ReplaceReferencesAsync(txtRequest.Text);
 
-                string result = await ChatGPT.GetResponseAsync(options, options.ToolWindowSystemMessage, request, options.StopSequences.Split([','], StringSplitOptions.RemoveEmptyEntries), cancellationTokenSource.Token);
+                string result = await ChatGPT.GetResponseAsync(options,
+                                                               options.ToolWindowSystemMessage,
+                                                               request,
+                                                               options.StopSequences.Split([','],
+                                                               StringSplitOptions.RemoveEmptyEntries),
+                                                               cancellationTokenSource.Token,
+                                                               attachedImage);
 
                 ResultHandler(result);
             }
@@ -160,6 +168,31 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
             }
+        }
+
+        /// <summary>
+        /// Handles the click event of the button to attach an image. 
+        /// Opens a file dialog to select an image file, validates the file extension, 
+        /// and reads the selected image file into a byte array if valid.
+        /// </summary>
+        private async void btnAttachImage_Click(object sender, RoutedEventArgs e)
+        {
+            if (AttachImage.ShowDialog(out attachedImage, out string fileName))
+            {
+                txtImage.Text = fileName;
+                grdImage.Visibility = Visibility.Visible;
+            }
+        }
+
+        /// <summary>
+        /// Handles the click event for the delete image button. 
+        /// Collapses the image grid and clears the attached image reference.
+        /// </summary>
+        private async void btnDeleteImage_Click(object sender, RoutedEventArgs e)
+        {
+            grdImage.Visibility = Visibility.Collapsed;
+
+            attachedImage = null;
         }
 
         /// <summary>
@@ -221,6 +254,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             btnCancel.IsEnabled = false;
 
             cancellationTokenSource.Cancel();
+
+            attachedImage = null;
         }
 
         /// <summary>
@@ -245,6 +280,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         private void btnRequestClear_Click(object sender, RoutedEventArgs e)
         {
             txtRequest.Text = string.Empty;
+
+            attachedImage = null;
+
+            grdImage.Visibility = Visibility.Collapsed;
         }
 
         /// <summary>
@@ -378,8 +417,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
             btnRequestSend.IsEnabled = enableSendButton;
             btnCancel.IsEnabled = enableCancelButton;
-        }
 
+            btnAttachImage.IsEnabled = enableSendButton;
+            btnGenerateGitComment.IsEnabled = enableSendButton;
+        }
 
         /// <summary>
         /// Recursively searches for all TextEditor controls within the visual tree of a given DependencyObject.

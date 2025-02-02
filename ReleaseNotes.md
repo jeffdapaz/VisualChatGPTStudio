@@ -1,5 +1,9 @@
 ﻿## Release Notes 📜
 
+### 3.4.0
+
+- Added the possibility to attach images to the requests.
+
 ### 3.3.0
 
 - Shortcuts have been added for the predefined commands, as well as the ability to reference files and/or methods directly in the request fields.

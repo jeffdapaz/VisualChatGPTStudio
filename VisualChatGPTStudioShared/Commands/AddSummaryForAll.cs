@@ -2,6 +2,7 @@
 using EnvDTE;
 using JeffPires.VisualChatGPTStudio.Options.Commands;
 using JeffPires.VisualChatGPTStudio.Utils;
+using JeffPires.VisualChatGPTStudio.Utils.API;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;

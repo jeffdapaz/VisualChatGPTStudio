@@ -139,6 +139,9 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>13.0.3</Version>
+    </PackageReference>
     <PackageReference Include="OpenAI">
       <Version>1.8.0</Version>
     </PackageReference>
@@ -254,6 +257,9 @@
     </Resource>
     <Resource Include="..\Resources\diffView.png">
       <Link>Resources\diffView.png</Link>
+    </Resource>
+    <Resource Include="..\Resources\image.png">
+      <Link>Resources\image.png</Link>
     </Resource>
     <Content Include="Icon2019.png">
       <IncludeInVSIX>true</IncludeInVSIX>

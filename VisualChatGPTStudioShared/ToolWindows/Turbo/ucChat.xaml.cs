@@ -2,8 +2,10 @@
 using JeffPires.VisualChatGPTStudio.Commands;
 using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils;
+using JeffPires.VisualChatGPTStudio.Utils.API;
 using JeffPires.VisualChatGPTStudio.Utils.CodeCompletion;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,6 +44,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private bool selectedContextFilesCodeAppended = false;
         private bool firstMessage = true;
         private readonly CompletionManager completionManager;
+        private byte[] attachedImage;
+        private string imageName;
 
         #endregion Properties
 
@@ -156,6 +160,35 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         }
 
         /// <summary>
+        /// Handles the click event of the button to attach an image. 
+        /// Opens a file dialog to select an image file, validates the file extension, 
+        /// and reads the selected image file into a byte array if valid.
+        /// </summary>
+        private void btnAttachImage_Click(object sender, RoutedEventArgs e)
+        {
+            if (AttachImage.ShowDialog(out attachedImage, out imageName))
+            {
+                txtImage.Text = imageName;
+
+                txtImage.Visibility = Visibility.Visible;
+                btnDeleteImage.Visibility = Visibility.Visible;
+            }
+        }
+
+        /// <summary>
+        /// Handles the click event for the delete image button. 
+        /// Hides the image display and the attach image button, 
+        /// and clears the attached image reference.
+        /// </summary>
+        private void btnDeleteImage_Click(object sender, RoutedEventArgs e)
+        {
+            txtImage.Visibility = Visibility.Hidden;
+            btnDeleteImage.Visibility = Visibility.Hidden;
+
+            attachedImage = null;
+        }
+
+        /// <summary>
         /// Handles the PreviewMouseWheel event for the txtChat control, scrolling the associated ScrollViewer based on the mouse wheel delta.
         /// </summary>
         private void txtChat_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
@@ -260,7 +293,18 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     chat.AppendUserInput(originalCode);
                 }
 
-                chatListControlItems.Add(new ChatListControlItem(AuthorEnum.Me, txtRequest.Text));
+                string requestToShowOnList = txtRequest.Text;
+
+                if (attachedImage != null)
+                {
+                    requestToShowOnList = "🖼️ " + imageName + Environment.NewLine + Environment.NewLine + requestToShowOnList;
+
+                    List<ChatContentForImage> chatContent = [new(attachedImage)];
+
+                    chat.AppendUserInput(chatContent);
+                }
+
+                chatListControlItems.Add(new ChatListControlItem(AuthorEnum.Me, requestToShowOnList));
 
                 string request = await completionManager.ReplaceReferencesAsync(txtRequest.Text);
 
@@ -280,7 +324,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 string response = await SendRequestAsync();
 
-                messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.Me, Content = request }] });
+                messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.Me, Content = requestToShowOnList }] });
 
                 if (commandType == CommandType.Code && !shiftKeyPressed)
                 {
@@ -290,7 +334,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     {
                         if (segments[i].Author == AuthorEnum.ChatGPTCode)
                         {
-                            docView.TextView.TextBuffer.Replace(new Microsoft.VisualStudio.Text.Span(0, docView.TextView.TextBuffer.CurrentSnapshot.Length), segments[i].Content);
+                            docView.TextView.TextBuffer.Replace(new Span(0, docView.TextView.TextBuffer.CurrentSnapshot.Length), segments[i].Content);
                         }
                         else
                         {
@@ -321,15 +365,22 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
             catch (OperationCanceledException)
             {
-                EnableDisableButtons(true);
+                //catch request cancelation
             }
             catch (Exception ex)
             {
                 Logger.Log(ex);
 
+                MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            finally
+            {
                 EnableDisableButtons(true);
 
-                MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+                txtImage.Visibility = Visibility.Hidden;
+                btnDeleteImage.Visibility = Visibility.Hidden;
+
+                attachedImage = null;
             }
         }
 
@@ -358,10 +409,12 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             grdProgress.Visibility = enable ? Visibility.Collapsed : Visibility.Visible;
 
+            btnAttachImage.IsEnabled = enable;
             btnRequestCode.IsEnabled = enable;
             btnRequestSend.IsEnabled = enable;
             btnCancel.IsEnabled = !enable;
 
+            btnAttachImage.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
             btnRequestCode.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
             btnRequestSend.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
             btnCancel.Visibility = !enable ? Visibility.Visible : Visibility.Collapsed;

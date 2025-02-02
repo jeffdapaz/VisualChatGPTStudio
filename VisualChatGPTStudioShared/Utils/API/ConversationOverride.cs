@@ -7,7 +7,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace JeffPires.VisualChatGPTStudio.Utils
+namespace JeffPires.VisualChatGPTStudio.Utils.API
 {
     /// <summary>
     /// Conversation override class. Necessary to fix the "twice request" bug from the original code. 
@@ -38,6 +38,12 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         #endregion Constructors
 
         #region Methods
+
+        /// <summary>
+        /// Appends user input as a new chat message to the conversation.
+        /// </summary>
+        /// <param name="content">The content of the user input to be appended.</param>
+        public void AppendUserInput(object content) => this.AppendMessage(new ChatMessageOverride(ChatMessageRole.User, content));
 
         /// <summary>
         /// Sends a request to the chatbot endpoint with the current set of messages and request parameters, and returns the response message content.

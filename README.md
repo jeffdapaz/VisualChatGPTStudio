@@ -72,6 +72,8 @@ In this tool window you can ask questions to the AI and receive answers directly
 
 This window can also be used to redirect the responses of commands executed in the code editor to it, holding the SHIFT key while executing a command, this way you can avoid editing the code when you don't want to, or when you want to validate the result before inserting it in the project.
 
+You will also be able to attach images and make requests such as asking for code that implements the same layout as the attached image.
+
 ## Automatically create comments for your changes 📑
 
 In this window it will also be possible to create a git push comments based on pending changes by clicking on this button:
@@ -99,13 +101,13 @@ You can also interact with the opened code editor through the `Send Code` button
 - Ask if the class has any bugs;
 - Etc.
 
-But pay attention. Because that will send the entire code from opened file to API, this can increase the tokens consume. And also will can reach the token limit per request sooner depending the model you are using. Set a model with large tokens limit can solve this limitation.
-
 By executing this command, you can also hold down the SHIFT key when press the `Send Code` button so that the code will be write directly in the chat window instead of the code editor, in case you want to preserve the original code and/or analyze the response before applying it to the opened code editor.
 
 You will also be able to keep multiple chats open at the same time in different tabs. And each chat is kept in history, allowing you to continue the conversation even if Visual Studio is closed:
 
 <img src="https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/2.4.0/1700946186856/image__8.png" width="60%">
+
+As in the 'Tool Window', it is also possible to attach images here and make requests regarding them.
 
 You will find this window in menu View -> Other Windows -> Visual chatGPT Studio Turbo.
 
@@ -286,14 +288,14 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ## Release Notes 📜
 
+### 3.4.0
+
+- Added the possibility to attach images to the requests.
+
 ### 3.3.0
 
 - Shortcuts have been added for the predefined commands, as well as the ability to reference files and/or methods directly in the request fields.
 - Improvements in the visualization of fields for the Tool Window.
 - Added a filter in the Solution Context window.
-
-### 3.2.3
-
-- Adjustment to prevent Markdown tags from being added to the code editor when using the "Add Comments" command.
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

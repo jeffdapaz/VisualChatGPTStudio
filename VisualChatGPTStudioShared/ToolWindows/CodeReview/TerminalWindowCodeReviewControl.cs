@@ -2,6 +2,7 @@
 using EnvDTE;
 using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils;
+using JeffPires.VisualChatGPTStudio.Utils.API;
 using LibGit2Sharp;
 using Microsoft.VisualStudio.Shell;
 using System;

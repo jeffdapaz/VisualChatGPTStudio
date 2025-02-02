@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using System.Windows.Input;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 using Span = Microsoft.VisualStudio.Text.Span;
+using JeffPires.VisualChatGPTStudio.Utils.API;
 
 namespace JeffPires.VisualChatGPTStudio.Commands
 {

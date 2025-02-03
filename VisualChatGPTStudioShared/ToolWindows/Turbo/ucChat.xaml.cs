@@ -45,7 +45,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private bool firstMessage = true;
         private readonly CompletionManager completionManager;
         private byte[] attachedImage;
-        private string imageName;
 
         #endregion Properties
 
@@ -77,6 +76,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             txtRequest.TextArea.TextEntering += txtRequest_TextEntering;
             txtRequest.TextArea.TextEntered += txtRequest_TextEntered;
+            txtRequest.PreviewKeyDown += AttachImage.TextEditor_PreviewKeyDown;
+
+            AttachImage.OnImagePaste += AttachImage_OnImagePaste;
 
             completionManager = new CompletionManager(package, txtRequest);
 
@@ -166,7 +168,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         private void btnAttachImage_Click(object sender, RoutedEventArgs e)
         {
-            if (AttachImage.ShowDialog(out attachedImage, out imageName))
+            if (AttachImage.ShowDialog(out attachedImage, out string imageName))
             {
                 txtImage.Text = imageName;
 
@@ -236,6 +238,21 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }), System.Windows.Threading.DispatcherPriority.Background);
         }
 
+        /// <summary>
+        /// Handles the event when an image is pasted, attaching the image and updating the UI with the file name.
+        /// </summary>
+        /// <param name="attachedImage">The byte array representing the pasted image.</param>
+        /// <param name="fileName">The name of the pasted image file.</param>
+        private void AttachImage_OnImagePaste(byte[] attachedImage, string fileName)
+        {
+            this.attachedImage = attachedImage;
+
+            txtImage.Text = fileName;
+
+            txtImage.Visibility = Visibility.Visible;
+            btnDeleteImage.Visibility = Visibility.Visible;
+        }
+
         #endregion Event Handlers
 
         #region Methods        
@@ -297,7 +314,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 if (attachedImage != null)
                 {
-                    requestToShowOnList = "🖼️ " + imageName + Environment.NewLine + Environment.NewLine + requestToShowOnList;
+                    requestToShowOnList = "🖼️ " + txtImage.Text + Environment.NewLine + Environment.NewLine + requestToShowOnList;
 
                     List<ChatContentForImage> chatContent = [new(attachedImage)];
 

@@ -52,6 +52,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
             txtRequest.TextArea.TextEntering += txtRequest_TextEntering;
             txtRequest.TextArea.TextEntered += txtRequest_TextEntered;
+            txtRequest.PreviewKeyDown += AttachImage.TextEditor_PreviewKeyDown;
+
+            AttachImage.OnImagePaste += AttachImage_OnImagePaste;
         }
 
         #endregion Constructors
@@ -294,6 +297,18 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         private void btnResponseCopy_Click(object sender, RoutedEventArgs e)
         {
             TerminalWindowHelper.Copy((Image)sender, txtResponse.Markdown);
+        }
+
+        /// <summary>
+        /// Handles the event when an image is pasted, attaching the image and updating the UI with the file name.
+        /// </summary>
+        /// <param name="attachedImage">The byte array representing the pasted image.</param>
+        /// <param name="fileName">The name of the pasted image file.</param>
+        private void AttachImage_OnImagePaste(byte[] attachedImage, string fileName)
+        {
+            this.attachedImage = attachedImage;
+            txtImage.Text = fileName;
+            grdImage.Visibility = Visibility.Visible;
         }
 
         #endregion Event Handlers

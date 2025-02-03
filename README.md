@@ -72,7 +72,7 @@ In this tool window you can ask questions to the AI and receive answers directly
 
 This window can also be used to redirect the responses of commands executed in the code editor to it, holding the SHIFT key while executing a command, this way you can avoid editing the code when you don't want to, or when you want to validate the result before inserting it in the project.
 
-You will also be able to attach images and make requests such as asking for code that implements the same layout as the attached image.
+You will also be able to attach images and make requests such as asking for code that implements the same layout as the attached image (not all models accept images).
 
 ## Automatically create comments for your changes 📑
 
@@ -107,7 +107,7 @@ You will also be able to keep multiple chats open at the same time in different 
 
 <img src="https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/2.4.0/1700946186856/image__8.png" width="60%">
 
-As in the 'Tool Window', it is also possible to attach images here and make requests regarding them.
+As in the 'Tool Window', it is also possible to attach images here and make requests regarding them (not all models accept images).
 
 You will find this window in menu View -> Other Windows -> Visual chatGPT Studio Turbo.
 
@@ -292,6 +292,7 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 - Added the possibility to attach images to the requests (not all models accept images).
 - Added to the list of models the o1 and o3-mini models.
+- Improvements in the functionality of referencing files and methods in requests.
 
 ### 3.3.0
 

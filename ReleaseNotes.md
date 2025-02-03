@@ -4,6 +4,7 @@
 
 - Added the possibility to attach images to the requests (not all models accept images).
 - Added to the list of models the o1 and o3-mini models.
+- Improvements in the functionality of referencing files and methods in requests.
 
 ### 3.3.0
 

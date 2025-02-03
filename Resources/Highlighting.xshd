@@ -1,10 +1,23 @@
 <SyntaxDefinition name="Completion" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
-    <Color name="command" foreground="Green" background="LightGray" fontWeight="bold" />
-    <Color name="file" foreground="Purple" background="LightGray" fontWeight="bold" />
-    
-    <!-- This is the main ruleset. -->
-    <RuleSet>
-        <Span color="command" begin="/" end=" " />
-        <Span color="file" begin="#" end=" "/>
-    </RuleSet>
+  <Color name="command" foreground="Green" background="LightGray" fontWeight="bold" />
+  <Color name="file" foreground="Purple" background="LightGray" fontWeight="bold" />
+
+  <!-- This is the main ruleset. -->
+  <RuleSet>
+    <Span color="command" begin="/" end=" " />
+    <Span color="file" begin="#" end=" "/>
+    <Span color="file" begin="#" end="\)"/>
+    <Span color="file" begin="#" end=".config"/>
+    <Span color="file" begin="#" end=".cs"/>
+    <Span color="file" begin="#" end=".css"/>
+    <Span color="file" begin="#" end=".html"/>
+    <Span color="file" begin="#" end=".js"/>
+    <Span color="file" begin="#" end=".json"/>
+    <Span color="file" begin="#" end=".md"/>
+    <Span color="file" begin="#" end=".sql"/>
+    <Span color="file" begin="#" end=".ts"/>
+    <Span color="file" begin="#" end=".vb"/>
+    <Span color="file" begin="#" end=".xml"/>
+    <Span color="file" begin="#" end=".xaml"/>    
+  </RuleSet>
 </SyntaxDefinition>

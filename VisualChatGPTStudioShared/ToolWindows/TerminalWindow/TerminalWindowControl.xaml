@@ -139,8 +139,8 @@
             <Grid Name="grdImage" Grid.Row="2" Visibility="Collapsed">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="20" />
-                    <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="10" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <TextBlock 
                     Name="txtImage" 
@@ -150,8 +150,8 @@
                     Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}" />
                 <Image 
                     Grid.Column="2" 
-                    Height="15" 
-                    Width="15" 
+                    Height="10" 
+                    Width="10" 
                     HorizontalAlignment="Left" 
                     Name="btnDeleteImage" 
                     MouseDown="btnDeleteImage_Click" 

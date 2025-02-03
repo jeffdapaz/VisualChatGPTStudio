@@ -271,22 +271,29 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
 
             foreach (CompletionData completionData in completionDataFilesAndMethods)
             {
-                if (!request.Contains("#" + completionData.Text))
+                if (completionData.CompletionItemType == CompletionItemType.CSharpMethod &&
+                    !request.Contains($"#{completionData.ClassName}.{completionData.MethodName}{completionData.MethodSignature}"))
+                {
+                    continue;
+                }
+                else if (!request.Contains("#" + completionData.Text))
                 {
                     continue;
                 }
 
-                string filePath = completionData.Aux.ToString();
+                string content = string.Empty;
 
-                string content;
-
-                if (string.IsNullOrWhiteSpace(Path.GetExtension(completionData.Text)))
+                switch (completionData.CompletionItemType)
                 {
-                    content = await GetMethodContentAsync(filePath, completionData.Text);
-                }
-                else
-                {
-                    content = File.ReadAllText(filePath);
+                    case CompletionItemType.File:
+                        content = File.ReadAllText(completionData.FilePath);
+                        break;
+                    case CompletionItemType.CSharpClass:
+                        content = await GetClassContentAsync(completionData.FilePath, completionData.ClassName);
+                        break;
+                    case CompletionItemType.CSharpMethod:
+                        content = await GetMethodContentAsync(completionData.FilePath, completionData.ClassName, completionData.MethodName, completionData.MethodParameterTypes);
+                        break;
                 }
 
                 request = request.Replace("#" + completionData.Text, content);
@@ -373,11 +380,13 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
 
                     if (validProjectItems.Any(ext => ext.Equals(fileExtension, StringComparison.OrdinalIgnoreCase)))
                     {
-                        completionDataFilesAndMethods.Add(new CompletionData(string.Concat(projectName, ".", fileName), filePath, GetFileIcon(fileName), filePath));
-
                         if (fileExtension.Equals(".cs"))
                         {
                             await PopulateMethodsForCompletionAsync(item, solutionName, projectName);
+                        }
+                        else
+                        {
+                            completionDataFilesAndMethods.Add(new CompletionData(string.Concat(projectName, ".", fileName), filePath, GetFileIcon(fileName), CompletionItemType.File, filePath, null));
                         }
                     }
                 }
@@ -405,11 +414,17 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            IEnumerable<ClassDeclarationSyntax> classDeclarations = await GetClassDeclarationsAsync(item.FileNames[1]);
+            string filePath = item.FileNames[1];
+
+            IEnumerable<ClassDeclarationSyntax> classDeclarations = await GetClassDeclarationsAsync(filePath);
 
             foreach (ClassDeclarationSyntax classDecl in classDeclarations)
             {
                 string className = classDecl.Identifier.Text;
+
+                string text = $"{projectName}.{className}";
+
+                completionDataFilesAndMethods.Add(new CompletionData(text, filePath, GetFileIcon(item.Name), CompletionItemType.CSharpClass, filePath, className));
 
                 IEnumerable<SyntaxNode> declarations = classDecl.DescendantNodes()
                                                                 .OfType<SyntaxNode>()
@@ -422,13 +437,19 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
 
                 foreach (SyntaxNode declaration in declarations)
                 {
-                    string name = GetSyntaxIdentifier(declaration);
+                    string methodName = GetSyntaxIdentifier(declaration);
 
-                    if (!string.IsNullOrWhiteSpace(name))
+                    if (!string.IsNullOrWhiteSpace(methodName))
                     {
-                        string description = $"{solutionName}.{projectName}.{className}.{name}";
+                        (string signature, List<string> parameterTypes) = GetMethodSignature(declaration);
 
-                        completionDataFilesAndMethods.Add(new CompletionData(name, description, GetFileIcon("method"), item.FileNames[1]));
+                        text = $"{className}.{methodName}";
+
+                        string description = $"{projectName}.{className}.{methodName}{signature}";
+
+                        CompletionData completionData = new(text, description, GetFileIcon("method"), CompletionItemType.CSharpMethod, filePath, className, methodName, parameterTypes, signature);
+
+                        completionDataFilesAndMethods.Add(completionData);
                     }
                 }
             }
@@ -441,9 +462,9 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
         /// <returns>A task that represents the asynchronous operation, containing a collection of class declarations.</returns>
         private static async Task<IEnumerable<ClassDeclarationSyntax>> GetClassDeclarationsAsync(string filePath)
         {
-            Microsoft.CodeAnalysis.SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(File.ReadAllText(filePath));
+            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(File.ReadAllText(filePath));
 
-            Microsoft.CodeAnalysis.SyntaxNode root = await syntaxTree.GetRootAsync();
+            SyntaxNode root = await syntaxTree.GetRootAsync();
 
             return root.DescendantNodes().OfType<ClassDeclarationSyntax>();
         }
@@ -498,24 +519,52 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
         }
 
         /// <summary>
-        /// Asynchronously retrieves the content of a specified method from a given C# file.
-        /// Searches through class declarations in the file to find the method by name.
+        /// Asynchronously retrieves the full content of a specified class from a given file path.
         /// </summary>
-        /// <param name="filePath">The path to the C# file from which to extract the method content.</param>
-        /// <param name="methodName">The name of the method to retrieve.</param>
-        /// <returns>A task that represents the asynchronous operation, containing the full string representation of the method, or an empty string if not found.</returns>
-        private async Task<string> GetMethodContentAsync(string filePath, string methodName)
+        /// <param name="filePath">The path to the file containing the class.</param>
+        /// <param name="className">The name of the class to retrieve.</param>
+        /// <returns>Containing the full string representation of the class.</returns>
+        private async Task<string> GetClassContentAsync(string filePath, string className)
         {
             IEnumerable<ClassDeclarationSyntax> classDeclarations = await GetClassDeclarationsAsync(filePath);
 
-            foreach (ClassDeclarationSyntax classDecl in classDeclarations)
-            {
-                SyntaxNode methodDecl = classDecl.Members.OfType<SyntaxNode>().FirstOrDefault(m => GetSyntaxIdentifier(m).Equals(methodName, StringComparison.OrdinalIgnoreCase));
+            ClassDeclarationSyntax classDeclaration = classDeclarations.First(c => c.Identifier.Text == className);
 
-                if (methodDecl != null)
-                {
-                    return methodDecl.ToFullString();
-                }
+            return classDeclaration.ToFullString();
+        }
+
+        /// <summary>
+        /// Asynchronously retrieves the content of a specified method or constructor from a given class in a file.
+        /// </summary>
+        /// <param name="filePath">The path to the file containing the class.</param>
+        /// <param name="className">The name of the class containing the method or constructor.</param>
+        /// <param name="methodName">The name of the method or constructor whose content is to be retrieved.</param>
+        /// <param name="parameterTypes">The types of the parameters for the method or constructor.</param>
+        /// <returns>Contains the full string representation of the method or constructor if found; otherwise, an empty string.</returns>
+        private async Task<string> GetMethodContentAsync(string filePath, string className, string methodName, List<string> parameterTypes)
+        {
+            IEnumerable<ClassDeclarationSyntax> classDeclarations = await GetClassDeclarationsAsync(filePath);
+
+            ClassDeclarationSyntax classDeclaration = classDeclarations.First(c => c.Identifier.Text == className);
+
+            SyntaxNode methodDecl = classDeclaration.Members.OfType<MethodDeclarationSyntax>()
+                .FirstOrDefault(m => m.Identifier.Text.Equals(methodName, StringComparison.OrdinalIgnoreCase) &&
+                                     m.ParameterList.Parameters.Count == parameterTypes.Count &&
+                                     m.ParameterList.Parameters.Select(p => p.Type.ToString()).SequenceEqual(parameterTypes));
+
+            if (methodDecl != null)
+            {
+                return methodDecl.ToFullString();
+            }
+
+            SyntaxNode constructorDecl = classDeclaration.Members.OfType<ConstructorDeclarationSyntax>()
+                .FirstOrDefault(c => c.Identifier.Text.Equals(methodName, StringComparison.OrdinalIgnoreCase) &&
+                                     c.ParameterList.Parameters.Count == parameterTypes.Count &&
+                                     c.ParameterList.Parameters.Select(p => p.Type.ToString()).SequenceEqual(parameterTypes));
+
+            if (constructorDecl != null)
+            {
+                return constructorDecl.ToFullString();
             }
 
             return string.Empty;
@@ -540,6 +589,33 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
                 EventDeclarationSyntax eventDecl => eventDecl.Identifier.Text,
                 _ => string.Empty
             };
+        }
+
+        /// <summary>
+        /// Retrieves the method or constructor signature and its parameter types from a given syntax node.
+        /// </summary>
+        /// <param name="declaration">The syntax node representing a method or constructor declaration.</param>
+        /// <returns>A tuple containing the method or constructor signature as a string and a list of parameter types as strings.</returns>
+        private (string signature, List<string> parameterTypes) GetMethodSignature(SyntaxNode declaration)
+        {
+            string signature = string.Empty;
+
+            List<string> parameterTypes = [];
+
+            if (declaration is MethodDeclarationSyntax method)
+            {
+                parameterTypes = method.ParameterList.Parameters.Select(p => p.Type.ToString()).ToList();
+
+                signature = $"({string.Join(", ", method.ParameterList.Parameters.Select(p => $"{p.Type} {p.Identifier}"))})";
+            }
+            else if (declaration is ConstructorDeclarationSyntax constructor)
+            {
+                parameterTypes = constructor.ParameterList.Parameters.Select(p => p.Type.ToString()).ToList();
+
+                signature = $"({string.Join(", ", constructor.ParameterList.Parameters.Select(p => $"{p.Type} {p.Identifier}"))})";
+            }
+
+            return (signature, parameterTypes);
         }
 
         #endregion Private Methods

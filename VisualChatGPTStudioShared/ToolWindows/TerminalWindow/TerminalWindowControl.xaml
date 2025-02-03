@@ -164,7 +164,7 @@
                 BorderBrush="DarkGray" 
                 BorderThickness="1"
                 Grid.Row="4" 
-                ScrollViewer.HorizontalScrollBarVisibility="Auto" 
+                WordWrap="True"
                 ScrollViewer.VerticalScrollBarVisibility="Auto" 
                 ShowLineNumbers="False" 
                 Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"

@@ -4,20 +4,7 @@
 
   <!-- This is the main ruleset. -->
   <RuleSet>
-    <Span color="command" begin="/" end=" " />
-    <Span color="file" begin="#" end=" "/>
-    <Span color="file" begin="#" end="\)"/>
-    <Span color="file" begin="#" end=".config"/>
-    <Span color="file" begin="#" end=".cs"/>
-    <Span color="file" begin="#" end=".css"/>
-    <Span color="file" begin="#" end=".html"/>
-    <Span color="file" begin="#" end=".js"/>
-    <Span color="file" begin="#" end=".json"/>
-    <Span color="file" begin="#" end=".md"/>
-    <Span color="file" begin="#" end=".sql"/>
-    <Span color="file" begin="#" end=".ts"/>
-    <Span color="file" begin="#" end=".vb"/>
-    <Span color="file" begin="#" end=".xml"/>
-    <Span color="file" begin="#" end=".xaml"/>    
+    <Span color="command" begin="/" end=" "/>
+    <Span color="file" begin="#" end="(\.config|\.cs|\.css|\.html|\.js|\.json|\.md|\.sql|\.ts|\.vb|\.xml|\.xaml|\)|(?!.*\))\s)" />
   </RuleSet>
 </SyntaxDefinition>

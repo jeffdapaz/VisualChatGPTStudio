@@ -547,24 +547,31 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
 
             ClassDeclarationSyntax classDeclaration = classDeclarations.First(c => c.Identifier.Text == className);
 
-            SyntaxNode methodDecl = classDeclaration.Members.OfType<MethodDeclarationSyntax>()
+            SyntaxNode syntaxNode = classDeclaration.Members.OfType<MethodDeclarationSyntax>()
                 .FirstOrDefault(m => m.Identifier.Text.Equals(methodName, StringComparison.OrdinalIgnoreCase) &&
                                      m.ParameterList.Parameters.Count == parameterTypes.Count &&
                                      m.ParameterList.Parameters.Select(p => p.Type.ToString()).SequenceEqual(parameterTypes));
 
-            if (methodDecl != null)
+            if (syntaxNode != null)
             {
-                return methodDecl.ToFullString();
+                return syntaxNode.ToFullString();
             }
 
-            SyntaxNode constructorDecl = classDeclaration.Members.OfType<ConstructorDeclarationSyntax>()
+            syntaxNode = classDeclaration.Members.OfType<ConstructorDeclarationSyntax>()
                 .FirstOrDefault(c => c.Identifier.Text.Equals(methodName, StringComparison.OrdinalIgnoreCase) &&
                                      c.ParameterList.Parameters.Count == parameterTypes.Count &&
                                      c.ParameterList.Parameters.Select(p => p.Type.ToString()).SequenceEqual(parameterTypes));
 
-            if (constructorDecl != null)
+            if (syntaxNode != null)
             {
-                return constructorDecl.ToFullString();
+                return syntaxNode.ToFullString();
+            }
+
+            syntaxNode = classDeclaration.Members.OfType<SyntaxNode>().FirstOrDefault(m => GetSyntaxIdentifier(m).Equals(methodName, StringComparison.OrdinalIgnoreCase));
+
+            if (syntaxNode != null)
+            {
+                return syntaxNode.ToFullString();
             }
 
             return string.Empty;

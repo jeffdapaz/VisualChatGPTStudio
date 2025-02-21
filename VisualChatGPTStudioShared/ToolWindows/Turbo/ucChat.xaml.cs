@@ -1,4 +1,5 @@
 ﻿using Community.VisualStudio.Toolkit;
+using JeffPires.VisualChatGPTStudio.Agents;
 using JeffPires.VisualChatGPTStudio.Commands;
 using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils;
@@ -158,7 +159,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             EnableDisableButtons(true);
 
-            cancellationTokenSource.Cancel();
+            cancellationTokenSource?.Cancel();
         }
 
         /// <summary>
@@ -188,6 +189,78 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             btnDeleteImage.Visibility = Visibility.Hidden;
 
             attachedImage = null;
+        }
+
+        /// <summary>
+        /// Handles the SQL button click event and populates the connection dropdown.
+        /// </summary>
+        private async void btnSql_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                cbConnection.ItemsSource = SqlServerAgent.GetConnections();
+
+                cbConnection.SelectedIndex = 0;
+
+                grdCommands.Visibility = Visibility.Collapsed;
+                grdSQL.Visibility = Visibility.Visible;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+
+                MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);
+            }
+        }
+
+        private async void btnSqlSend_Click(object sender, RoutedEventArgs e)
+        {
+            string dataBaseSchema;
+
+            try
+            {
+                dataBaseSchema = SqlServerAgent.GetDataBaseSchema(cbConnection.SelectedValue.ToString());
+            }
+            catch (Exception ex)
+            {
+                EnableDisableButtons(true);
+
+                grdSQL.Visibility = Visibility.Collapsed;
+                grdCommands.Visibility = Visibility.Visible;
+
+                Logger.Log(ex);
+
+                MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);
+
+                return;
+            }
+
+            List<FunctionRequest> sqlFunctions = SqlServerAgent.GetSqlFunctions();
+
+            foreach (FunctionRequest function in sqlFunctions)
+            {
+                chat.AppendFunctionCall(function);
+            }
+
+            string request = options.SqlServerAgentCommand + Environment.NewLine + "Database: " + dataBaseSchema + Environment.NewLine;
+
+            string requestToShowOnList = options.SqlServerAgentCommand + Environment.NewLine + Environment.NewLine + ((SqlServerConnectionInfo)cbConnection.SelectedItem).Description;
+
+            await RequestAsync(CommandType.Request, request, requestToShowOnList, false);
+
+            grdSQL.Visibility = Visibility.Collapsed;
+            grdCommands.Visibility = Visibility.Visible;
+        }
+
+        /// <summary>
+        /// Handles the click event for the SQL Cancel button. Cancels the current request and toggles the visibility of the SQL and Commands grids.
+        /// </summary>
+        private async void btnSqlCancel_Click(object sender, RoutedEventArgs e)
+        {
+            CancelRequest(sender, e);
+
+            grdSQL.Visibility = Visibility.Collapsed;
+            grdCommands.Visibility = Visibility.Visible;
         }
 
         /// <summary>
@@ -258,72 +331,80 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         #region Methods        
 
         /// <summary>
-        /// Sends a request asynchronously based on the command type.
+        /// Handles an asynchronous request based on the specified command type. Validates input, appends context or system messages, processes code or image-related requests, and sends the final request.
         /// </summary>
-        /// <param name="commandType">The type of command to execute.</param>
         private async System.Threading.Tasks.Task RequestAsync(CommandType commandType)
+        {
+            shiftKeyPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
+
+            if (!options.AzureEntraIdAuthentication && string.IsNullOrWhiteSpace(options.ApiKey))
+            {
+                MessageBox.Show(Constants.MESSAGE_SET_API_KEY, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                package.ShowOptionPage(typeof(OptionPageGridGeneral));
+
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtRequest.Text))
+            {
+                MessageBox.Show(Constants.MESSAGE_WRITE_REQUEST, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            if (!selectedContextFilesCodeAppended)
+            {
+                string selectedContextFilesCode = await GetSelectedContextItemsCodeAsync();
+
+                if (!string.IsNullOrWhiteSpace(selectedContextFilesCode))
+                {
+                    chat.AppendSystemMessage(selectedContextFilesCode);
+                    selectedContextFilesCodeAppended = true;
+                }
+            }
+
+            if (commandType == CommandType.Code)
+            {
+                docView = await VS.Documents.GetActiveDocumentViewAsync();
+
+                string originalCode = docView.TextView.TextBuffer.CurrentSnapshot.GetText();
+
+                if (options.MinifyRequests)
+                {
+                    originalCode = TextFormat.MinifyText(originalCode);
+                }
+
+                originalCode = TextFormat.RemoveCharactersFromText(originalCode, options.CharactersToRemoveFromRequests.Split(','));
+
+                chat.AppendSystemMessage(options.TurboChatCodeCommand);
+                chat.AppendUserInput(originalCode);
+            }
+
+            string requestToShowOnList = txtRequest.Text;
+
+            if (attachedImage != null)
+            {
+                requestToShowOnList = "🖼️ " + txtImage.Text + Environment.NewLine + Environment.NewLine + requestToShowOnList;
+
+                List<ChatContentForImage> chatContent = [new(attachedImage)];
+
+                chat.AppendUserInput(chatContent);
+            }
+
+            string request = await completionManager.ReplaceReferencesAsync(txtRequest.Text);
+
+            await RequestAsync(commandType, request, requestToShowOnList, shiftKeyPressed);
+        }
+
+        /// <summary>
+        /// Sends an asynchronous request based on the provided command type, processes the response, 
+        /// and updates the UI elements accordingly. Handles exceptions and manages UI state during the operation.
+        /// </summary>
+        private async System.Threading.Tasks.Task RequestAsync(CommandType commandType, string request, string requestToShowOnList, bool shiftKeyPressed)
         {
             try
             {
-                shiftKeyPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
-
-                if (!options.AzureEntraIdAuthentication && string.IsNullOrWhiteSpace(options.ApiKey))
-                {
-                    MessageBox.Show(Constants.MESSAGE_SET_API_KEY, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
-
-                    package.ShowOptionPage(typeof(OptionPageGridGeneral));
-
-                    return;
-                }
-
-                if (string.IsNullOrWhiteSpace(txtRequest.Text))
-                {
-                    MessageBox.Show(Constants.MESSAGE_WRITE_REQUEST, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Information);
-                    return;
-                }
-
-                if (!selectedContextFilesCodeAppended)
-                {
-                    string selectedContextFilesCode = await GetSelectedContextItemsCodeAsync();
-
-                    if (!string.IsNullOrWhiteSpace(selectedContextFilesCode))
-                    {
-                        chat.AppendSystemMessage(selectedContextFilesCode);
-                        selectedContextFilesCodeAppended = true;
-                    }
-                }
-
-                if (commandType == CommandType.Code)
-                {
-                    docView = await VS.Documents.GetActiveDocumentViewAsync();
-
-                    string originalCode = docView.TextView.TextBuffer.CurrentSnapshot.GetText();
-
-                    if (options.MinifyRequests)
-                    {
-                        originalCode = TextFormat.MinifyText(originalCode);
-                    }
-
-                    originalCode = TextFormat.RemoveCharactersFromText(originalCode, options.CharactersToRemoveFromRequests.Split(','));
-
-                    chat.AppendSystemMessage(options.TurboChatCodeCommand);
-                    chat.AppendUserInput(originalCode);
-                }
-
-                string requestToShowOnList = txtRequest.Text;
-
-                if (attachedImage != null)
-                {
-                    requestToShowOnList = "🖼️ " + txtImage.Text + Environment.NewLine + Environment.NewLine + requestToShowOnList;
-
-                    List<ChatContentForImage> chatContent = [new(attachedImage)];
-
-                    chat.AppendUserInput(chatContent);
-                }
-
                 chatListControlItems.Add(new ChatListControlItem(AuthorEnum.Me, requestToShowOnList));
-
-                string request = await completionManager.ReplaceReferencesAsync(txtRequest.Text);
 
                 request = options.MinifyRequests ? TextFormat.MinifyText(request) : request;
 
@@ -429,6 +510,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             btnAttachImage.IsEnabled = enable;
             btnRequestCode.IsEnabled = enable;
             btnRequestSend.IsEnabled = enable;
+            btnSqlSend.IsEnabled = enable;
             btnCancel.IsEnabled = !enable;
 
             btnAttachImage.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;

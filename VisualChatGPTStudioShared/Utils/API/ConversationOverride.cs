@@ -18,6 +18,8 @@ namespace JeffPires.VisualChatGPTStudio.Utils.API
 
         private readonly ChatEndpoint endpoint;
 
+        private readonly List<FunctionRequest> tools;
+
         public new ChatResult MostRecentApiResult { get; set; }
 
         #endregion Properties
@@ -33,6 +35,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.API
         public ConversationOverride(ChatEndpoint endpoint, Model model = null, ChatRequest defaultChatRequestArgs = null) : base(endpoint, model, defaultChatRequestArgs)
         {
             this.endpoint = endpoint;
+            tools = [];
         }
 
         #endregion Constructors
@@ -46,6 +49,15 @@ namespace JeffPires.VisualChatGPTStudio.Utils.API
         public void AppendUserInput(object content) => this.AppendMessage(new ChatMessageOverride(ChatMessageRole.User, content));
 
         /// <summary>
+        /// Appends a function request to the list of tools.
+        /// </summary>
+        /// <param name="functionRequest">The function request to be added.</param>
+        public void AppendFunctionCall(FunctionRequest functionRequest)
+        {
+            tools.Add(functionRequest);
+        }
+
+        /// <summary>
         /// Sends a request to the chatbot endpoint with the current set of messages and request parameters, and returns the response message content.
         /// </summary>
         /// <returns>
@@ -55,7 +67,11 @@ namespace JeffPires.VisualChatGPTStudio.Utils.API
         {
             try
             {
-                ChatRequest req = new(RequestParameters) { Messages = Messages.ToList() };
+                ChatRequestOverride req = new(RequestParameters)
+                {
+                    Messages = Messages.ToList(),
+                    Tools = tools.Any() ? tools : null
+                };
 
                 ChatResult res = await endpoint.CreateChatCompletionAsync(req);
 

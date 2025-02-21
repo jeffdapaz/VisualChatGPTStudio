@@ -9,6 +9,7 @@
     <Import_RootNamespace>VisualChatGPTStudioShared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Agents\SqlServerAgent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AddComments.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AddSummary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AddSummaryForAll.cs" />
@@ -57,8 +58,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ucChat.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\TerminalWindowTurboControl.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\API\ChatContent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\API\ChatEndpointOverride.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\API\ChatGPT.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\API\ChatMessageOverride.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\API\ChatRequestOverride.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\API\FunctionRequest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\AttachImage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ChatRepository.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ChatListControlItem.cs" />

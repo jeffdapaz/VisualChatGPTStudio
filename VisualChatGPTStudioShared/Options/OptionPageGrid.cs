@@ -61,25 +61,7 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DefaultValue(false)]
         public bool LogResponses { get; set; } = false;
 
-        [Category("General")]
-        [DisplayName("Generate Git Changes Comment Command")]
-        [Description("Command to request to OpenAI generates a comment based on current repository git changes.")]
-        [DefaultValue("Based on the changes, write a concise comment for I can use in readme file and/or git changes push comment. Write each change in a new line. Use Markdown format.")]
-        public string GenerateGitCommentCommand { get; set; } = "Based on the changes, write a concise comment for I can use in readme file and/or git changes push comment. Write each change in a new line. Use Markdown format.";
-
-        [Category("General")]
-        [DisplayName("Code Review Command")]
-        [Description("Command to request to OpenAI generates a Code Review on current repository git changes.")]
-        [DefaultValue("Make a code view of the following changes and indicate if there is anything that can or should be modified taking into account the following points: performance, readable and well-structured code, use of known patterns, security, potential bugs that must be eliminated, etc. If there is no recommendation for a point, ignore it, otherwise, say what is wrong and provide suggestions, including code examples. Be very concise and direct in your response, provide the code review in a very summarized manner.")]
-        public string CodeReviewCommand { get; set; } = "Make a code view of the following changes and indicate if there is anything that can or should be modified taking into account the following points: performance, readable and well-structured code, use of known patterns, security, potential bugs that must be eliminated, etc. If there is no recommendation for a point, ignore it, otherwise, say what is wrong and provide suggestions, including code examples. Be very concise and direct in your response, provide the code review in a very summarized manner.";
-
-        [Category("General")]
-        [DisplayName("Tool Window System Message")]
-        [Description("Set the System Message for requests made through the Tool Window (optional).")]
-        [DefaultValue("")]
-        public string ToolWindowSystemMessage { get; set; } = string.Empty;
-
-        [Category("General")]
+        [Category("Commands")]
         [DisplayName("Use Completion API for Commands")]
         [Description("If true, all requests to completion-code will use alternative 'Completion' model and API. Configure 'Completion Parameters' section before. Not works for Azure API.")]
         [DefaultValue(false)]
@@ -264,5 +246,33 @@ namespace JeffPires.VisualChatGPTStudio.Options
 #endif
 
         #endregion Copilot
+
+        #region Commands
+
+        [Category("Commands")]
+        [DisplayName("Generate Git Changes Comment Command")]
+        [Description("Command to request to AI generates a comment based on current repository git changes.")]
+        [DefaultValue("Based on the changes, write a concise comment for I can use in readme file and/or git changes push comment. Write each change in a new line. Use Markdown format.")]
+        public string GenerateGitCommentCommand { get; set; } = "Based on the changes, write a concise comment for I can use in readme file and/or git changes push comment. Write each change in a new line. Use Markdown format.";
+
+        [Category("Commands")]
+        [DisplayName("Code Review Command")]
+        [Description("Command to request to AI generates a Code Review on current repository git changes.")]
+        [DefaultValue("Make a code view of the following changes and indicate if there is anything that can or should be modified taking into account the following points: performance, readable and well-structured code, use of known patterns, security, potential bugs that must be eliminated, etc. If there is no recommendation for a point, ignore it, otherwise, say what is wrong and provide suggestions, including code examples. Be very concise and direct in your response, provide the code review in a very summarized manner.")]
+        public string CodeReviewCommand { get; set; } = "Make a code view of the following changes and indicate if there is anything that can or should be modified taking into account the following points: performance, readable and well-structured code, use of known patterns, security, potential bugs that must be eliminated, etc. If there is no recommendation for a point, ignore it, otherwise, say what is wrong and provide suggestions, including code examples. Be very concise and direct in your response, provide the code review in a very summarized manner.";
+
+        [Category("Commands")]
+        [DisplayName("Tool Window System Message")]
+        [Description("Set the System Message for requests made through the Tool Window (optional).")]
+        [DefaultValue("")]
+        public string ToolWindowSystemMessage { get; set; } = string.Empty;
+
+        [Category("Commands")]
+        [DisplayName("SQL Server Agent Command")]
+        [Description("The command that guide the AI to create SQL Server scripts to be executed according the database template.")]
+        [DefaultValue("Based on the database template provided following, generate SQL Server scripts that adhere to the structure of the template and execute then. The scripts should be created according to the specific instructions that may I will provide in requests.")]
+        public string SqlServerAgentCommand { get; set; } = "Based on the database template provided following, generate SQL Server scripts that adhere to the structure of the template and execute then. The scripts should be created according to the specific instructions that may I will provide in requests.";
+
+        #endregion Commands
     }
 }

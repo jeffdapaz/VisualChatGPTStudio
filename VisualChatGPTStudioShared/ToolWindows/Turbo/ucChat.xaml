@@ -140,12 +140,14 @@
                     </ContextMenu>
                 </avalonEdit:TextEditor.ContextMenu>
             </avalonEdit:TextEditor>
-            <Grid Grid.Row="2" Grid.Column="1">
+            <Grid Name="grdCommands"  Grid.Row="2" Grid.Column="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="5"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="5"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="5"/>
                     <ColumnDefinition Width="Auto"/>
@@ -173,6 +175,16 @@
                     Grid.Column="4"
                     Height="20" 
                     Width="20" 
+                    x:Name="btnSql" 
+                    ToolTip="Add context to a database" 
+                    Click="btnSql_Click" 
+                    Margin="10,0,0,0">
+                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/DB.png"/>
+                </Button>
+                <Button 
+                    Grid.Column="6"
+                    Height="20" 
+                    Width="20" 
                     x:Name="btnAttachImage" 
                     ToolTip="Attach an image" 
                     Click="btnAttachImage_Click" 
@@ -180,7 +192,7 @@
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/image.png"/>
                 </Button>
                 <Button 
-                    Grid.Column="6"
+                    Grid.Column="8"
                     Width="20" 
                     x:Name="btnRequestCode" 
                     ToolTip="Send Code (Ctrl+Alt+Enter)" 
@@ -189,7 +201,7 @@
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/sendCode.png"/>
                 </Button>
                 <Button 
-                    Grid.Column="8"
+                    Grid.Column="10"
                     Width="20" 
                     x:Name="btnRequestSend" 
                     ToolTip="Send (Ctrl+Enter)" 
@@ -198,7 +210,7 @@
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/send.png"/>
                 </Button>
                 <Button 
-                    Grid.Column="8"
+                    Grid.Column="10"
                     Width="20" 
                     x:Name="btnCancel" 
                     ToolTip="Cancel (Alt+Q)" 
@@ -207,6 +219,38 @@
                     IsEnabled="False" 
                     Margin="10,0,0,0">
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/cancel.png"/>
+                </Button>
+            </Grid>
+            <Grid Name="grdSQL" Grid.Row="2" Grid.Column="1" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="5"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="5"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <ComboBox 
+                    Grid.Column="0"
+                    x:Name="cbConnection"  
+                    DisplayMemberPath="Description"
+                    SelectedValuePath="ConnectionString" />
+                <Button 
+                    Grid.Column="2"
+                    Width="20" 
+                    x:Name="btnSqlCancel" 
+                    ToolTip="Cancel" 
+                    Click="btnSqlCancel_Click" 
+                    Margin="10,0,0,0">
+                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/cancel.png"/>
+                </Button>
+                <Button 
+                    Grid.Column="4"
+                    Width="20" 
+                    x:Name="btnSqlSend" 
+                    ToolTip="Send Context Database to the AI" 
+                    Click="btnSqlSend_Click" 
+                    Margin="10,0,0,0">
+                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/send.png"/>
                 </Button>
             </Grid>
         </Grid>

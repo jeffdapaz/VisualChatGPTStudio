@@ -1,6 +1,6 @@
-﻿using JeffPires.VisualChatGPTStudio.Utils.API;
-using Microsoft.VisualStudio.Data.Services;
+﻿using Microsoft.VisualStudio.Data.Services;
 using Microsoft.VisualStudio.Shell;
+using OpenAI_API.Functions;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -30,6 +30,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
 
                 return new SqlServerConnectionInfo
                 {
+                    InitialCatalog = builder.InitialCatalog,
                     Description = $"{builder.DataSource}: {builder.InitialCatalog}",
                     ConnectionString = connectionString
                 };
@@ -41,7 +42,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         {
             List<FunctionRequest> functions = [];
 
-            Parameter parameter = new ()
+            Parameter parameter = new()
             {
                 Properties = new Dictionary<string, Property>
                 {
@@ -55,8 +56,18 @@ namespace JeffPires.VisualChatGPTStudio.Agents
             {
                 Function = new()
                 {
-                    Name = nameof(ExecuteQueryReader),
+                    Name = nameof(ExecuteReader),
                     Description = "Execute a SQL Server script to read and retrieve data from the database.",
+                    Parameters = parameter
+                }
+            };
+
+            FunctionRequest functionNonQuery = new()
+            {
+                Function = new()
+                {
+                    Name = nameof(ExecuteNonQuery),
+                    Description = "Executes a SQL Server script and returns the number of rows affected.",
                     Parameters = parameter
                 }
             };
@@ -65,13 +76,14 @@ namespace JeffPires.VisualChatGPTStudio.Agents
             {
                 Function = new()
                 {
-                    Name = nameof(ExecuteQueryScalar),
-                    Description = "Execute a SQL Server scalar script to insert, update, delete, etc.",
+                    Name = nameof(ExecuteScalar),
+                    Description = "Executes a SQL Server script, and returns the first column of the first row in the result set returned by the query. Additional columns or rows are ignored.",
                     Parameters = parameter
                 }
             };
 
             functions.Add(functionReader);
+            functions.Add(functionNonQuery);
             functions.Add(functionScalar);
 
             return functions;
@@ -128,7 +140,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
 
                                     SELECT @DDL AS DatabaseDDL;";
 
-            _ = ExecuteQueryReader(connectionString, QUERY, out List<object> queryResult);
+            _ = ExecuteReader(connectionString, QUERY, out List<object> queryResult);
 
             string result = GetInitialCatalogValue(connectionString) + ": ";
 
@@ -140,36 +152,63 @@ namespace JeffPires.VisualChatGPTStudio.Agents
             return result += queryResult[0].ToString();
         }
 
-        public static string ExecuteQueryReader(string connectionString, string query, out List<object> result)
+        public static string ExecuteReader(string connectionString, string query, out List<object> result)
         {
             result = [];
 
-            using (SqlConnection connection = new(connectionString))
+            try
             {
-                connection.Open();
-
-                using (SqlCommand command = new(query, connection))
+                using (SqlConnection connection = new(connectionString))
                 {
-                    SqlParameter outputParam = new("@MessageOutput", SqlDbType.NVarChar, 4000) { Direction = ParameterDirection.Output };
+                    connection.Open();
 
-                    command.Parameters.Add(outputParam);
+                    string messageOutput = string.Empty;
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlCommand command = new(query, connection))
                     {
-                        while (reader.Read())
+                        using (SqlDataReader reader = command.ExecuteReader())
                         {
-                            object[] row = new object[reader.FieldCount];
-                            reader.GetValues(row);
-                            result.Add(row);
+                            while (reader.Read())
+                            {
+                                object[] row = new object[reader.FieldCount];
+                                reader.GetValues(row);
+                                result.Add(row);
+                            }
                         }
-                    }
 
-                    return $"Query executed successfully with {result.Count} rows.";
+                        return "Rows retrieved: " + result.Count;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
             }
         }
 
-        public static string ExecuteQueryScalar(string connectionString, string query)
+        public static string ExecuteNonQuery(string connectionString, string query)
+        {
+            try
+            {
+                using (SqlConnection connection = new(connectionString))
+                {
+                    connection.Open();
+
+                    using (SqlCommand command = new(query, connection))
+                    {
+                        int rowsAffected = command.ExecuteNonQuery();
+
+                        return "Rows affected: " + rowsAffected;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
+        }
+
+        public static string ExecuteScalar(string connectionString, string query)
         {
             try
             {
@@ -181,7 +220,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
 
                     object result = command.ExecuteScalar();
 
-                    return result != null ? result.ToString() : string.Empty;
+                    return result?.ToString();
                 }
             }
             catch (Exception ex)
@@ -198,6 +237,8 @@ namespace JeffPires.VisualChatGPTStudio.Agents
 
     public class SqlServerConnectionInfo
     {
+        public string InitialCatalog { get; set; }
+
         public string Description { get; set; }
 
         public string ConnectionString { get; set; }

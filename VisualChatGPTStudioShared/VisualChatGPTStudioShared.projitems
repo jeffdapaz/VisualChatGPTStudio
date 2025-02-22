@@ -57,12 +57,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ucChatHeader.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ucChat.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\TerminalWindowTurboControl.xaml.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\API\ChatContent.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\API\ChatEndpointOverride.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\API\ChatGPT.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\API\ChatMessageOverride.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\API\ChatRequestOverride.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\API\FunctionRequest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\ApiHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\AttachImage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ChatRepository.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ChatListControlItem.cs" />
@@ -70,7 +65,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandImage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\CodeCompletion\CompletionData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Constants.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\API\ConversationOverride.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\DiffView.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\EnumHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\GitChanges.cs" />

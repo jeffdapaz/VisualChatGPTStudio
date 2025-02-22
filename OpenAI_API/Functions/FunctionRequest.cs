@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 
-namespace JeffPires.VisualChatGPTStudio.Utils.API
+namespace OpenAI_API.Functions
 {
     /// <summary>
     /// Class to request functions executions from AI

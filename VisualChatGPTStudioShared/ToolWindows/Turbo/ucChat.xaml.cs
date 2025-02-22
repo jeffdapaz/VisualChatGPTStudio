@@ -7,8 +7,12 @@ using JeffPires.VisualChatGPTStudio.Utils.API;
 using JeffPires.VisualChatGPTStudio.Utils.CodeCompletion;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
+using Newtonsoft.Json.Linq;
+using OpenAI_API.Chat;
+using OpenAI_API.Functions;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -37,9 +41,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private readonly OptionPageGridGeneral options;
         private readonly Package package;
         private readonly List<MessageEntity> messages;
-        private readonly ConversationOverride chat;
+        private readonly Conversation chat;
         private readonly List<ChatListControlItem> chatListControlItems;
-        private CancellationTokenSource cancellationTokenSource;
+        private readonly CancellationTokenSource cancellationTokenSource;
         private DocumentView docView;
         private bool shiftKeyPressed;
         private bool selectedContextFilesCodeAppended = false;
@@ -85,7 +89,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             StringBuilder segments;
 
-            chat = ChatGPT.CreateConversation(options, options.TurboChatBehavior);
+            chat = ApiHandler.CreateConversation(options, options.TurboChatBehavior);
 
             chatListControlItems = [];
 
@@ -213,6 +217,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
         }
 
+        /// <summary>
+        /// Handles the SQL send button click event. Retrieves the database schema, processes SQL functions, 
+        /// and sends a request asynchronously. Displays error messages and toggles UI visibility in case of exceptions.
+        /// </summary>
         private async void btnSqlSend_Click(object sender, RoutedEventArgs e)
         {
             string dataBaseSchema;
@@ -393,6 +401,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             string request = await completionManager.ReplaceReferencesAsync(txtRequest.Text);
 
+            txtRequest.Text = string.Empty;
+
             await RequestAsync(commandType, request, requestToShowOnList, shiftKeyPressed);
         }
 
@@ -415,46 +425,30 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 Application.Current.Dispatcher.Invoke(new Action(() =>
                 {
                     EnableDisableButtons(false);
-                    txtRequest.Text = string.Empty;
                     chatList.Items.Refresh();
                     scrollViewer.ScrollToEnd();
                 }));
 
-                string response = await SendRequestAsync();
-
                 messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.Me, Content = requestToShowOnList }] });
 
-                if (commandType == CommandType.Code && !shiftKeyPressed)
-                {
-                    List<ChatMessageSegment> segments = TextFormat.GetChatTurboResponseSegments(response);
+                CancellationTokenSource cancellationToken = new();
 
-                    for (int i = 0; i < segments.Count; i++)
-                    {
-                        if (segments[i].Author == AuthorEnum.ChatGPTCode)
-                        {
-                            docView.TextView.TextBuffer.Replace(new Span(0, docView.TextView.TextBuffer.CurrentSnapshot.Length), segments[i].Content);
-                        }
-                        else
-                        {
-                            chatListControlItems.Add(new ChatListControlItem(segments[i].Author, segments[i].Content));
-                        }
-                    }
+                (string, List<FunctionResult>) result = await SendRequestAsync(cancellationToken);
+
+                if (result.Item2 != null && result.Item2.Any())
+                {
+                    await HandleFunctionsCallsAsync(result.Item2, cancellationToken);
                 }
                 else
                 {
-                    messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.ChatGPT, Content = response }] });
-                    chatListControlItems.Add(new ChatListControlItem(AuthorEnum.ChatGPT, response));
+                    HandleResponse(commandType, shiftKeyPressed, result.Item1);
                 }
-
-                chatList.Items.Refresh();
-
-                scrollViewer.ScrollToEnd();
 
                 EnableDisableButtons(true);
 
                 if (firstMessage)
                 {
-                    await UpdateHeaderAsync();
+                    await UpdateHeaderAsync(cancellationToken);
                 }
                 else
                 {
@@ -483,14 +477,16 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         }
 
         /// <summary>
-        /// Sends a request to the chatbot asynchronously and waits for a response.
+        /// Sends an asynchronous request and waits for the response or cancellation. 
+        /// If the operation is canceled, a cancellation exception is thrown. 
+        /// Returns a tuple containing a string and a list of FunctionResult objects upon successful completion.
         /// </summary>
-        /// <returns>The response from the chatbot.</returns>
-        private async Task<string> SendRequestAsync()
+        /// <returns>
+        /// A tuple with a string and a list of FunctionResult objects.
+        /// </returns>
+        private async Task<(string, List<FunctionResult>)> SendRequestAsync(CancellationTokenSource cancellationTokenSource)
         {
-            cancellationTokenSource = new CancellationTokenSource();
-
-            Task<string> task = chat.GetResponseFromChatbotAsync();
+            Task<(string, List<FunctionResult>)> task = chat.GetResponseContentAndFunctionAsync();
 
             await System.Threading.Tasks.Task.WhenAny(task, System.Threading.Tasks.Task.Delay(Timeout.Infinite, cancellationTokenSource.Token));
 
@@ -538,15 +534,19 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         }
 
         /// <summary>
-        /// Updates the header of the chat.
+        /// Updates the chat header asynchronously by generating a concise and relevant title for the first message 
+        /// based on its context, limited to three words, and notifies the parent control of the new chat creation.
         /// </summary>
-        private async System.Threading.Tasks.Task UpdateHeaderAsync()
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+        private async System.Threading.Tasks.Task UpdateHeaderAsync(CancellationTokenSource cancellationToken)
         {
             string request = "Please suggest a concise and relevant title for my first message based on its context, using up to three words and in the same language as my first message.";
 
             chat.AppendUserInput(request);
 
-            string chatName = await SendRequestAsync();
+            (string, List<FunctionResult>) result = await SendRequestAsync(cancellationToken);
+
+            string chatName = result.Item1;
 
             chatName = TextFormat.RemoveCharactersFromText(chatName, "\r\n", "\n", "\r", ".", ",", ":", ";", "'", "\"");
 
@@ -571,7 +571,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// <returns>
         /// A list of all found TextEditor controls.
         /// </returns>
-        public static List<TextEditor> FindMarkDownCodeTextEditors(DependencyObject parent)
+        private static List<TextEditor> FindMarkDownCodeTextEditors(DependencyObject parent)
         {
             List<TextEditor> foundChildren = [];
 
@@ -599,6 +599,99 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
 
             return foundChildren;
+        }
+
+        private void HandleResponse(CommandType commandType, bool shiftKeyPressed, string response)
+        {
+            if (commandType == CommandType.Code && !shiftKeyPressed)
+            {
+                List<ChatMessageSegment> segments = TextFormat.GetChatTurboResponseSegments(response);
+
+                for (int i = 0; i < segments.Count; i++)
+                {
+                    if (segments[i].Author == AuthorEnum.ChatGPTCode)
+                    {
+                        docView.TextView.TextBuffer.Replace(new Span(0, docView.TextView.TextBuffer.CurrentSnapshot.Length), segments[i].Content);
+                    }
+                    else
+                    {
+                        chatListControlItems.Add(new ChatListControlItem(segments[i].Author, segments[i].Content));
+                    }
+                }
+            }
+            else
+            {
+                messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.ChatGPT, Content = response }] });
+                chatListControlItems.Add(new ChatListControlItem(AuthorEnum.ChatGPT, response));
+            }
+
+            chatList.Items.Refresh();
+
+            scrollViewer.ScrollToEnd();
+        }
+
+        private async System.Threading.Tasks.Task<bool> HandleFunctionsCallsAsync(List<FunctionResult> functions, CancellationTokenSource cancellationToken)
+        {
+            foreach (FunctionResult functionToCall in functions)
+            {
+                await ExecuteSqlFunctionAsync(functionToCall, cancellationToken);
+            }
+
+            var result = await SendRequestAsync(cancellationToken);
+
+            bool responseHandled = false;
+
+            if (result.Item2 != null && result.Item2.Any())
+            {
+                responseHandled = await HandleFunctionsCallsAsync(result.Item2, cancellationToken);
+            }
+
+            if (!responseHandled)
+            {
+                HandleResponse(CommandType.Request, false, result.Item1);
+
+                responseHandled = true;
+            }
+
+            return responseHandled;
+        }
+
+        private async System.Threading.Tasks.Task ExecuteSqlFunctionAsync(FunctionResult function, CancellationTokenSource cancellationTokenSource)
+        {
+            JObject arguments = JObject.Parse(function.Function.Arguments);
+
+            string database = arguments[nameof(database)].Value<string>();
+            string query = arguments[nameof(query)].Value<string>();
+
+            string connectionString = ((List<SqlServerConnectionInfo>)cbConnection.ItemsSource).First(c => c.InitialCatalog == database).ConnectionString;
+
+            string functionResult;
+
+            try
+            {
+                if (function.Function.Name.Equals(nameof(SqlServerAgent.ExecuteReader)))
+                {
+                    functionResult = SqlServerAgent.ExecuteReader(connectionString, query, out List<object> readerResult);
+                }
+                else if (function.Function.Name.Equals(nameof(SqlServerAgent.ExecuteNonQuery)))
+                {
+                    functionResult = SqlServerAgent.ExecuteNonQuery(connectionString, query);
+                }
+                else if (function.Function.Name.Equals(nameof(SqlServerAgent.ExecuteScalar)))
+                {
+                    functionResult = SqlServerAgent.ExecuteScalar(connectionString, query);
+                }
+                else
+                {
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                functionResult = ex.Message;
+            }
+
+            chat.AppendToolMessage(function.Id, functionResult);
         }
 
         #endregion Methods                            

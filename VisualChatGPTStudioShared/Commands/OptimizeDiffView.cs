@@ -51,8 +51,8 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                 CancellationTokenSource = new CancellationTokenSource();
 
                 string result = OptionsGeneral.UseCompletion && OptionsGeneral.Service == OpenAIService.OpenAI
-                    ? await ChatGPT.GetCompletionResponseAsync(OptionsGeneral, command + Constants.PROVIDE_ONLY_CODE_INSTRUCTION, selectedText, OptionsGeneral.StopSequences?.Split([','], StringSplitOptions.RemoveEmptyEntries), CancellationTokenSource.Token)
-                    : await ChatGPT.GetResponseAsync(OptionsGeneral, command + Constants.PROVIDE_ONLY_CODE_INSTRUCTION, selectedText, OptionsGeneral.StopSequences?.Split([','], StringSplitOptions.RemoveEmptyEntries), CancellationTokenSource.Token);
+                    ? await ApiHandler.GetCompletionResponseAsync(OptionsGeneral, command + Constants.PROVIDE_ONLY_CODE_INSTRUCTION, selectedText, OptionsGeneral.StopSequences?.Split([','], StringSplitOptions.RemoveEmptyEntries), CancellationTokenSource.Token)
+                    : await ApiHandler.GetResponseAsync(OptionsGeneral, command + Constants.PROVIDE_ONLY_CODE_INSTRUCTION, selectedText, OptionsGeneral.StopSequences?.Split([','], StringSplitOptions.RemoveEmptyEntries), CancellationTokenSource.Token);
 
                 result = TextFormat.RemoveCodeTagsFromOpenAIResponses(result.ToString());
 

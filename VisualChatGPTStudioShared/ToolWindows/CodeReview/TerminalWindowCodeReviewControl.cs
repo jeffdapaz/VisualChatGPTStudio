@@ -243,7 +243,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         /// <returns>A task that represents the asynchronous operation, resulting in a CodeReviewItem containing the review details.</returns>
         private async Task<CodeReviewItem> DoCodeReview(PatchEntryChanges change)
         {
-            string codeReview = await ChatGPT.GetResponseAsync(options, options.CodeReviewCommand, change.Patch, options.StopSequences.Split([','], StringSplitOptions.RemoveEmptyEntries), cancellationTokenSource.Token);
+            string codeReview = await ApiHandler.GetResponseAsync(options, options.CodeReviewCommand, change.Patch, options.StopSequences.Split([','], StringSplitOptions.RemoveEmptyEntries), cancellationTokenSource.Token);
 
             GitChanges.SeparateCodeChanges(change.Patch, out string originalCode, out string alteredCode);
 

@@ -75,8 +75,8 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
                 }
 
                 string prediction = options.UseCompletion && options.Service == OpenAIService.OpenAI
-                    ? await ChatGPT.GetCompletionResponseAsync(options, systemMessage, code, null, cancellationTokenSource.Token)
-                    : await ChatGPT.GetResponseAsync(options, systemMessage, code, null, cancellationTokenSource.Token);
+                    ? await ApiHandler.GetCompletionResponseAsync(options, systemMessage, code, null, cancellationTokenSource.Token)
+                    : await ApiHandler.GetResponseAsync(options, systemMessage, code, null, cancellationTokenSource.Token);
 
                 if (cancellationTokenSource.Token.IsCancellationRequested || string.IsNullOrWhiteSpace(prediction))
                 {

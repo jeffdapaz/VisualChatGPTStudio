@@ -128,7 +128,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             if (OptionsGeneral.UseCompletion && OptionsGeneral.Service == OpenAIService.OpenAI)
             {
-                result = await ChatGPT.GetCompletionResponseAsync(OptionsGeneral, command, selectedText, stopSequences, CancellationTokenSource.Token);
+                result = await ApiHandler.GetCompletionResponseAsync(OptionsGeneral, command, selectedText, stopSequences, CancellationTokenSource.Token);
 
                 ResultHandler(result);
             }
@@ -136,13 +136,13 @@ namespace JeffPires.VisualChatGPTStudio.Commands
             {
                 if (OptionsGeneral.SingleResponse || IsCodeCommand())
                 {
-                    result = await ChatGPT.GetResponseAsync(OptionsGeneral, command, selectedText, stopSequences, CancellationTokenSource.Token);
+                    result = await ApiHandler.GetResponseAsync(OptionsGeneral, command, selectedText, stopSequences, CancellationTokenSource.Token);
 
                     ResultHandler(result);
                 }
                 else
                 {
-                    await ChatGPT.GetResponseAsync(OptionsGeneral, command, selectedText, stopSequences, ResultHandler, CancellationTokenSource.Token);
+                    await ApiHandler.GetResponseAsync(OptionsGeneral, command, selectedText, stopSequences, ResultHandler, CancellationTokenSource.Token);
                 }
             }
 

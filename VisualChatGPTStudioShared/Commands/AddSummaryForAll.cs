@@ -229,7 +229,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             command = TextFormat.FormatCommandForSummary($"{command}\r\n\r\n{{0}}\r\n\r\n", code);
 
-            string result = await ChatGPT.GetResponseAsync(OptionsGeneral, command, code, new string[] { "public", "private", "internal" }, CancellationTokenSource.Token);
+            string result = await ApiHandler.GetResponseAsync(OptionsGeneral, command, code, new string[] { "public", "private", "internal" }, CancellationTokenSource.Token);
 
             //If the response contains the code, leave only the summary
             result = result.Replace(code, string.Empty);

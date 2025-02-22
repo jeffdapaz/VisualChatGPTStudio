@@ -149,7 +149,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 string request = await completionManager.ReplaceReferencesAsync(txtRequest.Text);
 
-                string result = await ChatGPT.GetResponseAsync(options,
+                string result = await ApiHandler.GetResponseAsync(options,
                                                                options.ToolWindowSystemMessage,
                                                                request,
                                                                options.StopSequences.Split([','],
@@ -225,7 +225,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 removeCodeTagsFromOpenAIResponses = true;
 
-                string comment = await ChatGPT.GetResponseAsync(options, options.GenerateGitCommentCommand, changes, options.StopSequences.Split([','], StringSplitOptions.RemoveEmptyEntries), cancellationTokenSource.Token);
+                string comment = await ApiHandler.GetResponseAsync(options, options.GenerateGitCommentCommand, changes, options.StopSequences.Split([','], StringSplitOptions.RemoveEmptyEntries), cancellationTokenSource.Token);
 
                 ResultHandler(comment);
             }
@@ -394,13 +394,13 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
                 if (options.SingleResponse || removeCodeTagsFromOpenAIResponses)
                 {
-                    string result = await ChatGPT.GetResponseAsync(options, command, selectedText, options.StopSequences.Split([','], StringSplitOptions.RemoveEmptyEntries), cancellationTokenSource.Token);
+                    string result = await ApiHandler.GetResponseAsync(options, command, selectedText, options.StopSequences.Split([','], StringSplitOptions.RemoveEmptyEntries), cancellationTokenSource.Token);
 
                     ResultHandler(result);
                 }
                 else
                 {
-                    await ChatGPT.GetResponseAsync(options, command, selectedText, options.StopSequences.Split([','], StringSplitOptions.RemoveEmptyEntries), ResultHandler, cancellationTokenSource.Token);
+                    await ApiHandler.GetResponseAsync(options, command, selectedText, options.StopSequences.Split([','], StringSplitOptions.RemoveEmptyEntries), ResultHandler, cancellationTokenSource.Token);
                 }
             }
             catch (OperationCanceledException)

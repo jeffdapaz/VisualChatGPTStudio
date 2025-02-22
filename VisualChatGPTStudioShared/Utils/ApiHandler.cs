@@ -10,12 +10,12 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace JeffPires.VisualChatGPTStudio.Utils.API
+namespace JeffPires.VisualChatGPTStudio.Utils
 {
     /// <summary>
-    /// Static class containing methods for interacting with the ChatGPT API.
+    /// Static class containing methods for interacting with the API.
     /// </summary>
-    static class ChatGPT
+    static class ApiHandler
     {
         private static OpenAIAPI openAiAPI;
         private static OpenAIAPI azureAPI;
@@ -25,7 +25,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.API
         #region Public Methods
 
         /// <summary>
-        /// Asynchronously gets a comletion response.
+        /// Asynchronously gets a completion response.
         /// </summary>
         /// <param name="options">The options for the chatbot.</param>
         /// <param name="systemMessage">The system message to send to the chatbot.</param>
@@ -79,7 +79,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.API
         /// <returns>A task that represents the asynchronous operation, containing the chatbot's response as a string.</returns>
         public static async Task<string> GetResponseAsync(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences, CancellationToken cancellationToken, byte[] image = null)
         {
-            ConversationOverride chat = CreateConversationForCompletions(options, systemMessage, userInput, stopSequences, image);
+            Conversation chat = CreateConversationForCompletions(options, systemMessage, userInput, stopSequences, image);
 
             string selectedContextFilesCode = await GetSelectedContextItemsCodeAsync();
 
@@ -88,7 +88,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.API
                 chat.AppendSystemMessage(selectedContextFilesCode);
             }
 
-            Task<string> task = chat.GetResponseFromChatbotAsync();
+            Task<string> task = chat.GetResponseContentAsync();
 
             await Task.WhenAny(task, Task.Delay(timeout, cancellationToken)).ConfigureAwait(false);
 
@@ -114,7 +114,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.API
         /// <returns>A task representing the asynchronous operation.</returns>
         public static async Task GetResponseAsync(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences, Action<string> resultHandler, CancellationToken cancellationToken)
         {
-            ConversationOverride chat = CreateConversationForCompletions(options, systemMessage, userInput, stopSequences);
+            Conversation chat = CreateConversationForCompletions(options, systemMessage, userInput, stopSequences);
 
             string selectedContextFilesCode = await GetSelectedContextItemsCodeAsync();
 
@@ -141,21 +141,21 @@ namespace JeffPires.VisualChatGPTStudio.Utils.API
         /// <param name="options">The options to use for the conversation.</param>
         /// <param name="systemMessage">The system message to append to the conversation.</param>
         /// <returns>The created conversation.</returns>
-        public static ConversationOverride CreateConversation(OptionPageGridGeneral options, string systemMessage)
+        public static Conversation CreateConversation(OptionPageGridGeneral options, string systemMessage)
         {
-            ConversationOverride chat;
+            Conversation chat;
 
             if (options.Service == OpenAIService.OpenAI)
             {
                 CreateOpenAIApiHandler(options);
 
-                chat = new ConversationOverride((ChatEndpoint)openAiAPI.Chat);
+                chat = new Conversation((ChatEndpoint)openAiAPI.Chat);
             }
             else
             {
                 CreateAzureApiHandler(options);
 
-                chat = new ConversationOverride((ChatEndpoint)azureAPI.Chat);
+                chat = new Conversation((ChatEndpoint)azureAPI.Chat);
             }
 
             chat.AppendSystemMessage(systemMessage);
@@ -220,9 +220,9 @@ namespace JeffPires.VisualChatGPTStudio.Utils.API
         /// <returns>
         /// A <see cref="ConversationOverride"/> object that encapsulates the conversation details.
         /// </returns>
-        private static ConversationOverride CreateConversationForCompletions(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences, byte[] image = null)
+        private static Conversation CreateConversationForCompletions(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences, byte[] image = null)
         {
-            ConversationOverride chat = CreateConversation(options, systemMessage);
+            Conversation chat = CreateConversation(options, systemMessage);
 
             if (options.MinifyRequests)
             {

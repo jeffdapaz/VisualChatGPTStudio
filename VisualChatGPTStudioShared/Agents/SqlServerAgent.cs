@@ -9,8 +9,19 @@ using System.Linq;
 
 namespace JeffPires.VisualChatGPTStudio.Agents
 {
+    /// <summary>
+    /// Allows executing SQL Server scripts as an Agent
+    /// </summary>
     public static class SqlServerAgent
     {
+        /// <summary>
+        /// Retrieves a list of SQL Server connection information by filtering and processing connections 
+        /// from the Visual Studio Data Explorer Connection Manager that match a specific SQL Server provider.
+        /// </summary>
+        /// <returns>
+        /// A list of <see cref="SqlServerConnectionInfo"/> objects containing details such as Initial Catalog, 
+        /// Description, and Connection String for each valid SQL Server connection.
+        /// </returns>
         public static List<SqlServerConnectionInfo> GetConnections()
         {
             const string SQL_SERVER_PROVIDER = "91510608-8809-4020-8897-fba057e22d54";
@@ -38,6 +49,12 @@ namespace JeffPires.VisualChatGPTStudio.Agents
             .ToList();
         }
 
+        /// <summary>
+        /// Retrieves a list of SQL function requests, each containing details about the function name, description, and required parameters.
+        /// </summary>
+        /// <returns>
+        /// A list of <see cref="FunctionRequest"/> objects representing SQL functions for executing scripts (e.g., ExecuteReader, ExecuteNonQuery, ExecuteScalar).
+        /// </returns>
         public static List<FunctionRequest> GetSqlFunctions()
         {
             List<FunctionRequest> functions = [];
@@ -89,6 +106,13 @@ namespace JeffPires.VisualChatGPTStudio.Agents
             return functions;
         }
 
+        /// <summary>
+        /// Generates the database schema as a DDL (Data Definition Language) script, including table creation, primary keys, and foreign keys.
+        /// </summary>
+        /// <param name="connectionString">The connection string to the database.</param>
+        /// <returns>
+        /// A string containing the database schema in DDL format.
+        /// </returns>
         public static string GetDataBaseSchema(string connectionString)
         {
             const string QUERY = @"DECLARE @DDL NVARCHAR(MAX) = '';
@@ -151,7 +175,17 @@ namespace JeffPires.VisualChatGPTStudio.Agents
             return result;
         }
 
-        public static string ExecuteReader(string connectionString, string query, out List<object> result)
+        /// <summary>
+        /// Executes a SQL query using the provided connection string and retrieves the result as a list of dictionaries, 
+        /// where each dictionary represents a row with column names as keys and their corresponding values.
+        /// </summary>
+        /// <param name="connectionString">The connection string to the database.</param>
+        /// <param name="query">The SQL query to execute.</param>
+        /// <param name="result">An output parameter that contains the query result as a list of dictionaries.</param>
+        /// <returns>
+        /// A string message indicating the number of rows retrieved or an error message if an exception occurs.
+        /// </returns>
+        public static string ExecuteReader(string connectionString, string query, out List<Dictionary<string, object>> result)
         {
             result = [];
 
@@ -167,10 +201,22 @@ namespace JeffPires.VisualChatGPTStudio.Agents
                     {
                         using (SqlDataReader reader = command.ExecuteReader())
                         {
+                            List<string> columnNames = [];
+
+                            for (int i = 0; i < reader.FieldCount; i++)
+                            {
+                                columnNames.Add(reader.GetName(i));
+                            }
+
                             while (reader.Read())
                             {
-                                object[] row = new object[reader.FieldCount];
-                                reader.GetValues(row);
+                                Dictionary<string, object> row = [];
+
+                                for (int i = 0; i < reader.FieldCount; i++)
+                                {
+                                    row[columnNames[i]] = reader.GetValue(i);
+                                }
+
                                 result.Add(row);
                             }
                         }
@@ -185,6 +231,14 @@ namespace JeffPires.VisualChatGPTStudio.Agents
             }
         }
 
+        /// <summary>
+        /// Executes a non-query SQL command (e.g., INSERT, UPDATE, DELETE) using the provided connection string and query.
+        /// </summary>
+        /// <param name="connectionString">The connection string to the database.</param>
+        /// <param name="query">The SQL query to execute.</param>
+        /// <returns>
+        /// A string indicating the number of rows affected by the query, or an error message if an exception occurs.
+        /// </returns>
         public static string ExecuteNonQuery(string connectionString, string query)
         {
             try
@@ -207,6 +261,14 @@ namespace JeffPires.VisualChatGPTStudio.Agents
             }
         }
 
+        /// <summary>
+        /// Executes a scalar SQL query and returns the result as a string.
+        /// </summary>
+        /// <param name="connectionString">The connection string to the database.</param>
+        /// <param name="query">The SQL query to execute.</param>
+        /// <returns>
+        /// The result of the scalar query as a string, or the exception message if an error occurs.
+        /// </returns>
         public static string ExecuteScalar(string connectionString, string query)
         {
             try
@@ -228,18 +290,37 @@ namespace JeffPires.VisualChatGPTStudio.Agents
             }
         }
 
+        /// <summary>
+        /// Extracts and returns the Initial Catalog (database name) value from the provided connection string.
+        /// </summary>
+        /// <param name="connectionString">The database connection string to parse.</param>
+        /// <returns>
+        /// The Initial Catalog value (database name) from the connection string.
+        /// </returns>
         private static string GetInitialCatalogValue(string connectionString)
         {
             return new SqlConnectionStringBuilder(connectionString).InitialCatalog;
         }
     }
 
+    /// <summary>
+    /// Represents the connection information required to connect to a SQL Server database.
+    /// </summary>
     public class SqlServerConnectionInfo
     {
+        /// <summary>
+        /// Gets or sets the name of the initial catalog (database) to be used in the connection string.
+        /// </summary>
         public string InitialCatalog { get; set; }
 
+        /// <summary>
+        /// Gets or sets the description text.
+        /// </summary>
         public string Description { get; set; }
 
+        /// <summary>
+        /// Gets or sets the connection string used to establish a connection to a database or other data source.
+        /// </summary>
         public string ConnectionString { get; set; }
     }
 }

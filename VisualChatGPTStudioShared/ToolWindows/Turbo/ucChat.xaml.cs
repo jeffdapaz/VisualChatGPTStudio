@@ -601,6 +601,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             return foundChildren;
         }
 
+        /// <summary>
+        /// Handles the response based on the command type and shift key state, updating the document view or chat list control items accordingly.
+        /// </summary>
         private void HandleResponse(CommandType commandType, bool shiftKeyPressed, string response)
         {
             if (commandType == CommandType.Code && !shiftKeyPressed)
@@ -637,7 +640,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 await ExecuteSqlFunctionAsync(functionToCall, cancellationToken);
             }
 
-            var result = await SendRequestAsync(cancellationToken);
+            (string, List<FunctionResult>) result = await SendRequestAsync(cancellationToken);
 
             bool responseHandled = false;
 
@@ -671,7 +674,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             {
                 if (function.Function.Name.Equals(nameof(SqlServerAgent.ExecuteReader)))
                 {
-                    functionResult = SqlServerAgent.ExecuteReader(connectionString, query, out List<object> readerResult);
+                    functionResult = SqlServerAgent.ExecuteReader(connectionString, query, out List<Dictionary<string, object>> readerResult);
                 }
                 else if (function.Function.Name.Equals(nameof(SqlServerAgent.ExecuteNonQuery)))
                 {

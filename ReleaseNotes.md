@@ -1,5 +1,10 @@
 ﻿## Release Notes 📜
 
+### 4.0.0
+
+- Added the ability to request the AI to execute SQL Server scripts on one or more databases through the Turbo Chat window.
+- Refactoring to remove the dependency on the library [OpenAI-API-dotnet](https://github.com/OkGoDoIt/OpenAI-API-dotnet), and add its source code as a project in the Solution, making it possible to customize it.
+
 ### 3.4.0
 
 - Added the possibility to attach images to the requests (not all models accept images).

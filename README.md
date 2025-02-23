@@ -280,7 +280,6 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 - [AvalonEdit](https://github.com/icsharpcode/AvalonEdit)
 - [LibGit2Sharp](https://github.com/libgit2/libgit2sharp)
-- [OpenAI-API-dotnet](https://github.com/OkGoDoIt/OpenAI-API-dotnet)
 - [sqlite-net-pcl](https://github.com/praeclarum/sqlite-net)
 - [MdXaml](https://github.com/whistyun/MdXaml)
 - [VsixLogger](https://github.com/madskristensen/VsixLogger)
@@ -288,16 +287,15 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ## Release Notes 📜
 
+### 4.0.0
+
+- Added the ability to request the AI to execute SQL Server scripts on one or more databases through the Turbo Chat window.
+- Refactoring to remove the dependency on the library [OpenAI-API-dotnet](https://github.com/OkGoDoIt/OpenAI-API-dotnet), and add its source code as a project in the Solution, making it possible to customize it.
+
 ### 3.4.0
 
 - Added the possibility to attach images to the requests (not all models accept images).
 - Added to the list of models the o1 and o3-mini models.
 - Improvements in the functionality of referencing files and methods in requests.
-
-### 3.3.0
-
-- Shortcuts have been added for the predefined commands, as well as the ability to reference files and/or methods directly in the request fields.
-- Improvements in the visualization of fields for the Tool Window.
-- Added a filter in the Solution Context window.
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

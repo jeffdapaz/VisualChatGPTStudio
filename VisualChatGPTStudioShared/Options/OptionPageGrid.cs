@@ -270,8 +270,8 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Category("Commands")]
         [DisplayName("SQL Server Agent Command")]
         [Description("The command that guide the AI to create SQL Server scripts to be executed according the database template.")]
-        [DefaultValue("Based on the database template provided following, generate SQL Server scripts that adhere to the structure of the template and execute then. The scripts should be created according to the specific instructions that may I will provide in requests.")]
-        public string SqlServerAgentCommand { get; set; } = "Based on the database template provided following, generate SQL Server scripts that adhere to the structure of the template and execute then. The scripts should be created according to the specific instructions that may I will provide in requests.";
+        [DefaultValue("Based on the database template provided following, generate SQL Server scripts that adhere to the structure of the template and execute then. The scripts should be created according to the specific instructions that may I will provide in requests, and you don't need show the data result in your responses.")]
+        public string SqlServerAgentCommand { get; set; } = "Based on the database template provided following, generate SQL Server scripts that adhere to the structure of the template and execute then. The scripts should be created according to the specific instructions that may I will provide in requests, and you don't need show the data result in your responses.";
 
         #endregion Commands
     }

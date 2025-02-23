@@ -185,7 +185,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         /// <returns>
         /// The result of the executed SQL function as a string.
         /// </returns>
-        public static string ExecuteFunction(FunctionResult function, out List<Dictionary<string, object>> readerResult)
+        public static string ExecuteFunction(FunctionResult function, out DataView readerResult)
         {
             readerResult = null;
             string functionResult;
@@ -235,13 +235,14 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         /// </summary>
         /// <param name="connectionString">The connection string to the database.</param>
         /// <param name="query">The SQL query to execute.</param>
-        /// <param name="result">An output parameter that contains the query result as a list of dictionaries.</param>
+        /// <param name="result">An output parameter that contains the query result.</param>
         /// <returns>
         /// A string message indicating the number of rows retrieved or an error message if an exception occurs.
         /// </returns>
-        private static string ExecuteReader(string connectionString, string query, out List<Dictionary<string, object>> result)
+        private static string ExecuteReader(string connectionString, string query, out DataView result)
         {
             result = [];
+            List<Dictionary<string, object>> rows = [];
 
             try
             {
@@ -271,9 +272,11 @@ namespace JeffPires.VisualChatGPTStudio.Agents
                                     row[columnNames[i]] = reader.GetValue(i);
                                 }
 
-                                result.Add(row);
+                                rows.Add(row);
                             }
                         }
+
+                        result = ConvertReaderResultToDataTable(rows);
 
                         return "Rows retrieved: " + result.Count;
                     }
@@ -354,6 +357,38 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         private static string GetInitialCatalogValue(string connectionString)
         {
             return new SqlConnectionStringBuilder(connectionString).InitialCatalog;
+        }
+
+        /// <summary>
+        /// Converts a list of dictionaries representing rows of data into a DataView object. 
+        /// Each dictionary's keys are used as column names, and the values populate the rows of the DataTable.
+        /// </summary>
+        /// <param name="readerResult">A list of dictionaries where each dictionary represents a row of data with column names as keys.</param>
+        /// <returns>
+        /// A DataView object representing the converted data from the input list of dictionaries.
+        /// </returns>
+        private static DataView ConvertReaderResultToDataTable(List<Dictionary<string, object>> readerResult)
+        {
+            DataTable dataTable = new();
+
+            foreach (string key in readerResult.First().Keys)
+            {
+                dataTable.Columns.Add(key);
+            }
+
+            foreach (Dictionary<string, object> row in readerResult)
+            {
+                DataRow dataRow = dataTable.NewRow();
+
+                foreach (string key in row.Keys)
+                {
+                    dataRow[key] = row[key] ?? DBNull.Value;
+                }
+
+                dataTable.Rows.Add(dataRow);
+            }
+
+            return dataTable.DefaultView;
         }
     }
 

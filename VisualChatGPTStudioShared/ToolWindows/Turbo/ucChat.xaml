@@ -65,6 +65,8 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="5"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <ScrollViewer Grid.Row="0" x:Name="scrollViewer" VerticalScrollBarVisibility="Auto">
                 <ItemsControl Grid.Row="0" Name="chatList">
@@ -111,18 +113,22 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </ScrollViewer>
-            <Grid Name="grdProgress" Grid.Row="2" Visibility="Collapsed">
+            <Expander Grid.Row="2" x:Name="exDataGrid" Visibility="Collapsed" IsExpanded="True" Header="Select Query Result" Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}">
+                <DataGrid 
+                    Name="dataGridResult" 
+                    AutoGenerateColumns="True" 
+                    IsReadOnly="True"                     
+                    MaxHeight="350"
+                    HorizontalScrollBarVisibility="Auto" 
+                    VerticalScrollBarVisibility="Auto"/>
+            </Expander>
+            <Grid Name="grdProgress" Grid.Row="4" Visibility="Collapsed">
                 <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="True" />
                 <TextBlock Text="Waiting API Response" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Black" />
             </Grid>
         </Grid>
         <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Background="#FF007ACC" Margin="0,5,0,5" />
         <Grid Name="grdRequest" Grid.Row="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="5"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="5"/>
-            </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="5"/>
@@ -130,7 +136,7 @@
             </Grid.RowDefinitions>
             <avalonEdit:TextEditor        
                 xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit" BorderBrush="DarkGray" BorderThickness="1"
-                Name="txtRequest" Grid.Row="0"  Grid.Column="1" FontSize="14"
+                Name="txtRequest" Grid.Row="0" FontSize="14"
                 HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" ShowLineNumbers="false"                 
                 Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
                 Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}">
@@ -140,7 +146,7 @@
                     </ContextMenu>
                 </avalonEdit:TextEditor.ContextMenu>
             </avalonEdit:TextEditor>
-            <Grid Name="grdCommands"  Grid.Row="2" Grid.Column="1">
+            <Grid Name="grdCommands" Grid.Row="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="5"/>
@@ -221,7 +227,7 @@
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/cancel.png"/>
                 </Button>
             </Grid>
-            <Grid Name="grdSQL" Grid.Row="2" Grid.Column="1" Visibility="Collapsed">
+            <Grid Name="grdSQL" Grid.Row="2" Visibility="Collapsed">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="5"/>

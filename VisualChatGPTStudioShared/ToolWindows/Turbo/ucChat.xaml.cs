@@ -647,15 +647,33 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             scrollViewer.ScrollToEnd();
         }
 
+        /// <summary>
+        /// Handles a list of function calls asynchronously, processes their results, updates the UI, and recursively handles additional function calls if needed.
+        /// </summary>
+        /// <param name="functions">A list of functions to be executed and processed.</param>
+        /// <param name="cancellationToken">A cancellation token to manage task cancellation.</param>
+        /// <returns>
+        /// A boolean indicating whether the response was successfully handled.
+        /// </returns>
         private async System.Threading.Tasks.Task<bool> HandleFunctionsCallsAsync(List<FunctionResult> functions, CancellationTokenSource cancellationToken)
         {
             string functionResult;
 
             foreach (FunctionResult function in functions)
             {
-                functionResult = SqlServerAgent.ExecuteFunction(function, out List<Dictionary<string, object>> readerResult);
+                functionResult = SqlServerAgent.ExecuteFunction(function, out DataView readerResult);
 
                 chat.AppendToolMessage(function.Id, functionResult);
+
+                if (readerResult != null && readerResult.Count > 0)
+                {
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        dataGridResult.ItemsSource = null;
+                        dataGridResult.ItemsSource = readerResult;
+                        exDataGrid.Visibility = Visibility.Visible;
+                    });
+                }
             }
 
             (string, List<FunctionResult>) result = await SendRequestAsync(cancellationToken);

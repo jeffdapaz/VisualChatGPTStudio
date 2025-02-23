@@ -213,7 +213,16 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             try
             {
-                cbConnection.ItemsSource = SqlServerAgent.GetConnections();
+                List<SqlServerConnectionInfo> connections = SqlServerAgent.GetConnections();
+
+                if (connections == null || connections.Count == 0)
+                {
+                    MessageBox.Show("No SQL Server connections were found. Please add connections first through the Server Explorer window.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                    return;
+                }
+
+                cbConnection.ItemsSource = connections;
 
                 cbConnection.SelectedIndex = 0;
 

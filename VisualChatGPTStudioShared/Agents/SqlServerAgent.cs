@@ -93,6 +93,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         {
             const string QUERY = @"DECLARE @DDL NVARCHAR(MAX) = '';
 
+                                    -- Generate CREATE TABLE
                                     SELECT @DDL = @DDL + 'CREATE TABLE ' + t.name + ' (' +
                                         STUFF((
                                             SELECT ', ' + c.name + ' ' + tp.name + 
@@ -101,6 +102,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
                                                        WHEN tp.name IN ('decimal', 'numeric') THEN '(' + CAST(c.precision AS VARCHAR) + ',' + CAST(c.scale AS VARCHAR) + ')'
                                                        ELSE ''
                                                    END + 
+                                                   CASE WHEN c.is_identity = 1 THEN ' IDENTITY(' + CAST(IDENT_SEED(t.name) AS VARCHAR) + ',' + CAST(IDENT_INCR(t.name) AS VARCHAR) + ')' ELSE '' END + 
                                                    CASE WHEN c.is_nullable = 0 THEN ' NOT NULL' ELSE ' NULL' END
                                             FROM sys.columns c
                                             JOIN sys.types tp ON c.user_type_id = tp.user_type_id
@@ -108,6 +110,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
                                             FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 2, '') + ');' + CHAR(13) + CHAR(10)
                                     FROM sys.tables t;
 
+                                    -- Generate the PKs 
                                     SELECT @DDL = @DDL + 'ALTER TABLE ' + t.name + ' ADD CONSTRAINT ' + kc.name + ' PRIMARY KEY (' +
                                         STUFF((
                                             SELECT ', ' + c.name
@@ -119,6 +122,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
                                     JOIN sys.tables t ON kc.parent_object_id = t.object_id
                                     WHERE kc.type = 'PK';
 
+                                    -- Generate the FKs
                                     SELECT @DDL = @DDL + 'ALTER TABLE ' + t.name + ' ADD CONSTRAINT ' + fk.name + 
                                            ' FOREIGN KEY (' +
                                            STUFF((
@@ -140,16 +144,11 @@ namespace JeffPires.VisualChatGPTStudio.Agents
 
                                     SELECT @DDL AS DatabaseDDL;";
 
-            _ = ExecuteReader(connectionString, QUERY, out List<object> queryResult);
-
             string result = GetInitialCatalogValue(connectionString) + ": ";
 
-            if (queryResult[0] is object[] firstRow && firstRow.Length > 0)
-            {
-                return result += firstRow[0].ToString();
-            }
+            result += ExecuteScalar(connectionString, QUERY);
 
-            return result += queryResult[0].ToString();
+            return result;
         }
 
         public static string ExecuteReader(string connectionString, string query, out List<object> result)

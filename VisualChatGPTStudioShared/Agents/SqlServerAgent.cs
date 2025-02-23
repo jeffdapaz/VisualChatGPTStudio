@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.Data.Services;
 using Microsoft.VisualStudio.Shell;
+using Newtonsoft.Json.Linq;
 using OpenAI_API.Functions;
 using System;
 using System.Collections.Generic;
@@ -176,6 +177,60 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         }
 
         /// <summary>
+        /// Executes a specified SQL function (ExecuteReader, ExecuteNonQuery, or ExecuteScalar) on a given database connection 
+        /// and returns the result. Optionally outputs the reader result for ExecuteReader operations.
+        /// </summary>
+        /// <param name="connections">A list of SQL Server connection information objects.</param>
+        /// <param name="function">The function to execute, including its name and arguments.</param>
+        /// <param name="readerResult">An output parameter to store the result of ExecuteReader operations.</param>
+        /// <returns>
+        /// The result of the executed SQL function as a string.
+        /// </returns>
+        public static string ExecuteFunction(List<SqlServerConnectionInfo> connections, FunctionResult function, out List<Dictionary<string, object>> readerResult)
+        {
+            readerResult = null;
+            string functionResult;
+
+            try
+            {
+                JObject arguments = JObject.Parse(function.Function.Arguments);
+
+                string database = arguments[nameof(database)].Value<string>();
+                string query = arguments[nameof(query)].Value<string>();
+
+                string connectionString = connections.FirstOrDefault(c => c.InitialCatalog == database)?.ConnectionString;
+
+                if (string.IsNullOrWhiteSpace(connectionString))
+                {
+                    return $"The database {database} was not found.";
+                }
+
+                if (function.Function.Name.Equals(nameof(SqlServerAgent.ExecuteReader)))
+                {
+                    functionResult = SqlServerAgent.ExecuteReader(connectionString, query, out readerResult);
+                }
+                else if (function.Function.Name.Equals(nameof(SqlServerAgent.ExecuteNonQuery)))
+                {
+                    functionResult = SqlServerAgent.ExecuteNonQuery(connectionString, query);
+                }
+                else if (function.Function.Name.Equals(nameof(SqlServerAgent.ExecuteScalar)))
+                {
+                    functionResult = SqlServerAgent.ExecuteScalar(connectionString, query);
+                }
+                else
+                {
+                    functionResult = $"The function {function.Function.Name} not exists.";
+                }
+            }
+            catch (Exception ex)
+            {
+                functionResult = ex.ToString();
+            }
+
+            return functionResult;
+        }
+
+        /// <summary>
         /// Executes a SQL query using the provided connection string and retrieves the result as a list of dictionaries, 
         /// where each dictionary represents a row with column names as keys and their corresponding values.
         /// </summary>
@@ -185,7 +240,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         /// <returns>
         /// A string message indicating the number of rows retrieved or an error message if an exception occurs.
         /// </returns>
-        public static string ExecuteReader(string connectionString, string query, out List<Dictionary<string, object>> result)
+        private static string ExecuteReader(string connectionString, string query, out List<Dictionary<string, object>> result)
         {
             result = [];
 
@@ -239,7 +294,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         /// <returns>
         /// A string indicating the number of rows affected by the query, or an error message if an exception occurs.
         /// </returns>
-        public static string ExecuteNonQuery(string connectionString, string query)
+        private static string ExecuteNonQuery(string connectionString, string query)
         {
             try
             {
@@ -269,7 +324,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         /// <returns>
         /// The result of the scalar query as a string, or the exception message if an error occurs.
         /// </returns>
-        public static string ExecuteScalar(string connectionString, string query)
+        private static string ExecuteScalar(string connectionString, string query)
         {
             try
             {

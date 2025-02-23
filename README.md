@@ -16,9 +16,9 @@ Watch here some examples:
 
 [<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/275614252-5f824ba6-df13-45e3-928e-086609fe1bcd.png" width="70%">](https://youtu.be/eU5hEh6e5Ow)
 
-## Copilot Functionality 🤖
+## Copilot Functionality (only for Visual Studio 2022) 🤖
 
-The newly introduced Copilot functionality enhances your coding experience by providing intelligent code suggestions as you type. 
+The Copilot functionality enhances your coding experience by providing intelligent code suggestions as you type. 
 
 When you start writing code, simply press the Enter key to receive contextual suggestions that can help you complete your code more efficiently. Confirm the suggestion pressing the TAB key.
 

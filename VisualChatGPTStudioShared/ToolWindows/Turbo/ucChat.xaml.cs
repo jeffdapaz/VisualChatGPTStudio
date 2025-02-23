@@ -7,7 +7,6 @@ using JeffPires.VisualChatGPTStudio.Utils.API;
 using JeffPires.VisualChatGPTStudio.Utils.CodeCompletion;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
-using Newtonsoft.Json.Linq;
 using OpenAI_API.Chat;
 using OpenAI_API.Functions;
 using System;
@@ -635,9 +634,13 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
         private async System.Threading.Tasks.Task<bool> HandleFunctionsCallsAsync(List<FunctionResult> functions, CancellationTokenSource cancellationToken)
         {
-            foreach (FunctionResult functionToCall in functions)
+            string functionResult;
+
+            foreach (FunctionResult function in functions)
             {
-                await ExecuteSqlFunctionAsync(functionToCall, cancellationToken);
+                functionResult = SqlServerAgent.ExecuteFunction((List<SqlServerConnectionInfo>)cbConnection.ItemsSource, function, out List<Dictionary<string, object>> readerResult);
+
+                chat.AppendToolMessage(function.Id, functionResult);
             }
 
             (string, List<FunctionResult>) result = await SendRequestAsync(cancellationToken);
@@ -657,44 +660,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
 
             return responseHandled;
-        }
-
-        private async System.Threading.Tasks.Task ExecuteSqlFunctionAsync(FunctionResult function, CancellationTokenSource cancellationTokenSource)
-        {
-            JObject arguments = JObject.Parse(function.Function.Arguments);
-
-            string database = arguments[nameof(database)].Value<string>();
-            string query = arguments[nameof(query)].Value<string>();
-
-            string connectionString = ((List<SqlServerConnectionInfo>)cbConnection.ItemsSource).First(c => c.InitialCatalog == database).ConnectionString;
-
-            string functionResult;
-
-            try
-            {
-                if (function.Function.Name.Equals(nameof(SqlServerAgent.ExecuteReader)))
-                {
-                    functionResult = SqlServerAgent.ExecuteReader(connectionString, query, out List<Dictionary<string, object>> readerResult);
-                }
-                else if (function.Function.Name.Equals(nameof(SqlServerAgent.ExecuteNonQuery)))
-                {
-                    functionResult = SqlServerAgent.ExecuteNonQuery(connectionString, query);
-                }
-                else if (function.Function.Name.Equals(nameof(SqlServerAgent.ExecuteScalar)))
-                {
-                    functionResult = SqlServerAgent.ExecuteScalar(connectionString, query);
-                }
-                else
-                {
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                functionResult = ex.Message;
-            }
-
-            chat.AppendToolMessage(function.Id, functionResult);
         }
 
         #endregion Methods                            

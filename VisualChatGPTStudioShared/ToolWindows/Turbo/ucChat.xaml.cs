@@ -638,7 +638,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             foreach (FunctionResult function in functions)
             {
-                functionResult = SqlServerAgent.ExecuteFunction((List<SqlServerConnectionInfo>)cbConnection.ItemsSource, function, out List<Dictionary<string, object>> readerResult);
+                functionResult = SqlServerAgent.ExecuteFunction(function, out List<Dictionary<string, object>> readerResult);
 
                 chat.AppendToolMessage(function.Id, functionResult);
             }

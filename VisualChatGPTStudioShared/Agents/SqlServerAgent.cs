@@ -180,13 +180,12 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         /// Executes a specified SQL function (ExecuteReader, ExecuteNonQuery, or ExecuteScalar) on a given database connection 
         /// and returns the result. Optionally outputs the reader result for ExecuteReader operations.
         /// </summary>
-        /// <param name="connections">A list of SQL Server connection information objects.</param>
         /// <param name="function">The function to execute, including its name and arguments.</param>
         /// <param name="readerResult">An output parameter to store the result of ExecuteReader operations.</param>
         /// <returns>
         /// The result of the executed SQL function as a string.
         /// </returns>
-        public static string ExecuteFunction(List<SqlServerConnectionInfo> connections, FunctionResult function, out List<Dictionary<string, object>> readerResult)
+        public static string ExecuteFunction(FunctionResult function, out List<Dictionary<string, object>> readerResult)
         {
             readerResult = null;
             string functionResult;
@@ -198,7 +197,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
                 string database = arguments[nameof(database)].Value<string>();
                 string query = arguments[nameof(query)].Value<string>();
 
-                string connectionString = connections.FirstOrDefault(c => c.InitialCatalog == database)?.ConnectionString;
+                string connectionString = GetConnections().FirstOrDefault(c => c.InitialCatalog == database)?.ConnectionString;
 
                 if (string.IsNullOrWhiteSpace(connectionString))
                 {

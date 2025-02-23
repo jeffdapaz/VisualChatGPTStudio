@@ -7,6 +7,7 @@ using JeffPires.VisualChatGPTStudio.Utils.API;
 using JeffPires.VisualChatGPTStudio.Utils.CodeCompletion;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
+using Newtonsoft.Json;
 using OpenAI_API.Chat;
 using OpenAI_API.Functions;
 using System;
@@ -104,9 +105,20 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     segments.AppendLine(message.Segments[i].Content);
                 }
 
-                chatListControlItems.Add(new ChatListControlItem(message.Segments[0].Author, segments.ToString()));
+                if (message.Segments[0].Author == AuthorEnum.FunctionCall)
+                {
+                    chat.AppendFunctionCall(JsonConvert.DeserializeObject<FunctionRequest>(message.Segments[0].Content));
+                }
+                else if (message.Segments[0].Author == AuthorEnum.DataBaseSchema)
+                {
+                    chat.AppendUserInput(message.Segments[0].Content);
+                }
+                else
+                {
+                    chatListControlItems.Add(new ChatListControlItem(message.Segments[0].Author, segments.ToString()));
 
-                chat.AppendUserInput(segments.ToString());
+                    chat.AppendUserInput(segments.ToString());
+                }
             }
 
             chatList.ItemsSource = chatListControlItems;
@@ -247,11 +259,14 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             foreach (FunctionRequest function in sqlFunctions)
             {
                 chat.AppendFunctionCall(function);
+                messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.FunctionCall, Content = JsonConvert.SerializeObject(function) }] });
             }
 
             string request = options.SqlServerAgentCommand + Environment.NewLine + "Database: " + dataBaseSchema + Environment.NewLine;
 
-            string requestToShowOnList = options.SqlServerAgentCommand + Environment.NewLine + Environment.NewLine + ((SqlServerConnectionInfo)cbConnection.SelectedItem).Description;
+            string requestToShowOnList = "###" + ((SqlServerConnectionInfo)cbConnection.SelectedItem).Description + Environment.NewLine + Environment.NewLine + Environment.NewLine + options.SqlServerAgentCommand;
+
+            messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.DataBaseSchema, Content = request }] });
 
             await RequestAsync(CommandType.Request, request, requestToShowOnList, false);
 
@@ -391,7 +406,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             if (attachedImage != null)
             {
-                requestToShowOnList = "🖼️ " + txtImage.Text + Environment.NewLine + Environment.NewLine + requestToShowOnList;
+                requestToShowOnList = "### 🖼️ " + txtImage.Text + Environment.NewLine + Environment.NewLine + requestToShowOnList;
 
                 List<ChatContentForImage> chatContent = [new(attachedImage)];
 

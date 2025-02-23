@@ -37,6 +37,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
     {
         Me,
         ChatGPT,
-        ChatGPTCode
+        ChatGPTCode,
+        FunctionCall,
+        DataBaseSchema
     }
 }

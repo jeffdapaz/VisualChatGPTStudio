@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace JeffPires.VisualChatGPTStudio.Agents
 {
@@ -38,6 +39,8 @@ namespace JeffPires.VisualChatGPTStudio.Agents
             })
             .Select(connectionString =>
             {
+                connectionString = ReplaceTrustedCertificate(connectionString);
+
                 SqlConnectionStringBuilder builder = new(connectionString);
 
                 return new SqlServerConnectionInfo
@@ -356,7 +359,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         /// </returns>
         private static string GetInitialCatalogValue(string connectionString)
         {
-            return new SqlConnectionStringBuilder(connectionString).InitialCatalog;
+            return new SqlConnectionStringBuilder(ReplaceTrustedCertificate(connectionString)).InitialCatalog;
         }
 
         /// <summary>
@@ -389,6 +392,18 @@ namespace JeffPires.VisualChatGPTStudio.Agents
             }
 
             return dataTable.DefaultView;
+        }
+
+        /// <summary>
+        /// Replaces occurrences of "trust server certificate" (case-insensitive) in the given connection string with "TrustServerCertificate".
+        /// </summary>
+        /// <param name="connectionString">The connection string to process.</param>
+        /// <returns>
+        /// The updated connection string with the replacement applied.
+        /// </returns>
+        private static string ReplaceTrustedCertificate(string connectionString)
+        {
+            return Regex.Replace(connectionString, "(?i)trust server certificate", "TrustServerCertificate");
         }
     }
 

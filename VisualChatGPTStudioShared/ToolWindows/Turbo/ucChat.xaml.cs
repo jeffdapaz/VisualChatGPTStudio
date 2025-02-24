@@ -271,7 +271,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.FunctionCall, Content = JsonConvert.SerializeObject(function) }] });
             }
 
-            string request = options.SqlServerAgentCommand + Environment.NewLine + "Database: " + dataBaseSchema + Environment.NewLine;
+            string request = options.SqlServerAgentCommand + Environment.NewLine + dataBaseSchema + Environment.NewLine;
 
             string requestToShowOnList = "###" + ((SqlServerConnectionInfo)cbConnection.SelectedItem).Description + Environment.NewLine + Environment.NewLine + Environment.NewLine + options.SqlServerAgentCommand;
 

@@ -43,6 +43,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
 
                 return new SqlServerConnectionInfo
                 {
+                    DataSource = builder.DataSource,
                     InitialCatalog = builder.InitialCatalog,
                     Description = $"{builder.DataSource}: {builder.InitialCatalog}",
                     ConnectionString = builder.ConnectionString
@@ -65,10 +66,11 @@ namespace JeffPires.VisualChatGPTStudio.Agents
             {
                 Properties = new Dictionary<string, Property>
                 {
-                    { "database", new Property { Type = "string", Description = "Database name where the script will be executed." } },
+                    { nameof(SqlServerConnectionInfo.DataSource), new Property { Type = "string", Description = "DataSource (server) name where the script will be executed." } },
+                    { nameof(SqlServerConnectionInfo.InitialCatalog), new Property { Type = "string", Description = "Database name where the script will be executed." } },
                     { "query", new Property { Type = "string", Description = "Script to be executed." } }
                 },
-                Required = ["database", "query"]
+                Required = [nameof(SqlServerConnectionInfo.DataSource), nameof(SqlServerConnectionInfo.InitialCatalog), "query"]
             };
 
             FunctionRequest functionReader = new()
@@ -203,14 +205,15 @@ namespace JeffPires.VisualChatGPTStudio.Agents
             {
                 JObject arguments = JObject.Parse(function.Function.Arguments);
 
-                string database = arguments[nameof(database)].Value<string>();
+                string dataSource = arguments[nameof(SqlServerConnectionInfo.DataSource)]?.Value<string>();
+                string initialCatalog = arguments[nameof(SqlServerConnectionInfo.InitialCatalog)]?.Value<string>();
                 string query = arguments[nameof(query)].Value<string>();
 
-                string connectionString = GetConnections().FirstOrDefault(c => c.InitialCatalog == database)?.ConnectionString;
+                string connectionString = GetConnections().FirstOrDefault(c => c.DataSource == dataSource && c.InitialCatalog == initialCatalog)?.ConnectionString;
 
                 if (string.IsNullOrWhiteSpace(connectionString))
                 {
-                    return $"The database {database} was not found.";
+                    return $"The datasource {dataSource} and initial catalog {initialCatalog} was not found.";
                 }
 
                 if (function.Function.Name.Equals(nameof(SqlServerAgent.ExecuteReader)))
@@ -418,6 +421,11 @@ namespace JeffPires.VisualChatGPTStudio.Agents
     /// </summary>
     public class SqlServerConnectionInfo
     {
+        /// <summary>
+        /// Gets or sets the data source (server) to be used in the connection string.
+        /// </summary>
+        public string DataSource { get; set; }
+
         /// <summary>
         /// Gets or sets the name of the initial catalog (database) to be used in the connection string.
         /// </summary>

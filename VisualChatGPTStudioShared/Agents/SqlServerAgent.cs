@@ -35,19 +35,17 @@ namespace JeffPires.VisualChatGPTStudio.Agents
             .Select(kvp => kvp.Value.Connection.DisplayConnectionString)
             .Where(connectionString =>
             {
-                return !string.IsNullOrWhiteSpace(GetInitialCatalogValue(connectionString));
+                return !string.IsNullOrWhiteSpace(GetSqlConnectionStringBuilder(connectionString)?.InitialCatalog);
             })
             .Select(connectionString =>
             {
-                connectionString = ReplaceTrustedCertificate(connectionString);
-
-                SqlConnectionStringBuilder builder = new(connectionString);
+                SqlConnectionStringBuilder builder = GetSqlConnectionStringBuilder(connectionString);
 
                 return new SqlServerConnectionInfo
                 {
                     InitialCatalog = builder.InitialCatalog,
                     Description = $"{builder.DataSource}: {builder.InitialCatalog}",
-                    ConnectionString = connectionString
+                    ConnectionString = builder.ConnectionString
                 };
             })
             .ToList();
@@ -172,9 +170,17 @@ namespace JeffPires.VisualChatGPTStudio.Agents
 
                                     SELECT @DDL AS DatabaseDDL;";
 
-            string result = GetInitialCatalogValue(connectionString) + ": ";
+            string result = ExecuteScalar(connectionString, QUERY);
 
-            result += ExecuteScalar(connectionString, QUERY);
+            SqlConnectionStringBuilder sqlConnectionStringBuilder = GetSqlConnectionStringBuilder(connectionString);
+
+            result = string.Format("{0}: {1}, {2}: {3}{4}{5}",
+                                    nameof(sqlConnectionStringBuilder.DataSource),
+                                    sqlConnectionStringBuilder.DataSource,
+                                    nameof(sqlConnectionStringBuilder.InitialCatalog),
+                                    sqlConnectionStringBuilder.InitialCatalog,
+                                    Environment.NewLine,
+                                    result);
 
             return result;
         }
@@ -351,15 +357,15 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         }
 
         /// <summary>
-        /// Extracts and returns the Initial Catalog (database name) value from the provided connection string.
+        /// Creates and returns a SqlConnectionStringBuilder object initialized with the provided connection string after replacing the trusted certificate setting.
         /// </summary>
-        /// <param name="connectionString">The database connection string to parse.</param>
+        /// <param name="connectionString">The database connection string to be processed.</param>
         /// <returns>
-        /// The Initial Catalog value (database name) from the connection string.
+        /// A SqlConnectionStringBuilder object with the modified connection string.
         /// </returns>
-        private static string GetInitialCatalogValue(string connectionString)
+        private static SqlConnectionStringBuilder GetSqlConnectionStringBuilder(string connectionString)
         {
-            return new SqlConnectionStringBuilder(ReplaceTrustedCertificate(connectionString)).InitialCatalog;
+            return new SqlConnectionStringBuilder(ReplaceTrustedCertificate(connectionString));
         }
 
         /// <summary>

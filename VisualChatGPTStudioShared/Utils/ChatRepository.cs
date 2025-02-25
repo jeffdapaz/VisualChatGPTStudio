@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;using SQLite;
-using System;using System.Collections.Generic;using System.IO;using System.Windows;using VisualChatGPTStudioShared.ToolWindows.Turbo;namespace JeffPires.VisualChatGPTStudio.Utils{
+using System;using System.Collections.Generic;using System.IO;using System.Linq;using System.Windows;using VisualChatGPTStudioShared.ToolWindows.Turbo;namespace JeffPires.VisualChatGPTStudio.Utils{
     /// <summary>
     /// Repository class for managing the Turbo Chats.
     /// </summary>
@@ -31,6 +31,7 @@ using System;using System.Collections.Generic;using System.IO;using System.Wi
                 connection = new(filePath);
 
                 CreateTableChats();
+                CreateTableSqlServerConnections();
             }
             catch (Exception ex)
             {
@@ -44,6 +45,15 @@ using System;using System.Collections.Generic;using System.IO;using System.Wi
         /// Creates a table named CHATS in the SQLite database.
         /// </summary>
         private static void CreateTableChats()        {            string query = @"CREATE TABLE IF NOT EXISTS CHATS                            (                                ID       VARCHAR(50)  PRIMARY KEY UNIQUE NOT NULL,                                NAME     TEXT         NOT NULL,                                DATE     DATETIME     NOT NULL,                                MESSAGES TEXT         NOT NULL                                                                       );";            SQLiteCommand command = connection.CreateCommand(query);
+
+            command.ExecuteNonQuery();
+        }
+
+        /// <summary>
+        /// Creates the SQL_SERVER_CONNECTIONS table in the database if it does not already exist. 
+        /// The table includes columns for ID, CHAT_ID, and CONNECTION, with ID serving as the primary key.
+        /// </summary>
+        private static void CreateTableSqlServerConnections()        {            string query = @"CREATE TABLE IF NOT EXISTS SQL_SERVER_CONNECTIONS                            (                                ID         VARCHAR(50)  PRIMARY KEY UNIQUE NOT NULL,                                CHAT_ID    VARCHAR(50)  NOT NULL,                                CONNECTION VARCHAR(255) NOT NULL                                                                );";            SQLiteCommand command = connection.CreateCommand(query);
 
             command.ExecuteNonQuery();
         }
@@ -107,6 +117,48 @@ using System;using System.Collections.Generic;using System.IO;using System.Wi
         public static void DeleteChat(string chatId)
         {
             SQLiteCommand command = connection.CreateCommand("DELETE FROM CHATS WHERE ID = ?", chatId);
+
+            command.ExecuteNonQuery();
+
+            DeleteConnectionString(chatId);
+        }
+
+        /// <summary>
+        /// Retrieves a list of SQL Server connection strings associated with a specific chat ID from the database.
+        /// </summary>
+        /// <param name="chatId">The chat ID used to filter the SQL Server connections.</param>
+        /// <returns>
+        /// A list of SQL Server connection strings corresponding to the provided chat ID.
+        /// </returns>
+        public static List<string> GetSqlServerConnections(string chatId)
+        {
+            SQLiteCommand command = connection.CreateCommand("SELECT CONNECTION FROM SQL_SERVER_CONNECTIONS WHERE CHAT_ID = ?", chatId);            return command.ExecuteQueryScalars<string>().ToList();
+        }
+
+        /// <summary>
+        /// Inserts a new connection.
+        /// </summary>
+        /// <param name="chatId">The chat ID associated with the connection.</param>
+        /// <param name="connectionString">The connection string to be stored.</param>
+        public static void AddSqlServerConnection(string chatId, string connectionString)
+        {
+            string query = @"INSERT INTO SQL_SERVER_CONNECTIONS (ID, CHAT_ID, CONNECTION) VALUES (@id, @chatId, @connectionString);";
+
+            SQLiteCommand command = connection.CreateCommand(query);
+
+            command.Bind("@id", Guid.NewGuid());
+            command.Bind("@chatId", chatId);
+            command.Bind("@connectionString", connectionString);
+
+            command.ExecuteNonQuery();
+        }
+
+        /// <summary>
+        /// Deletes connection strings from the SQL_SERVER_CONNECTIONS table based on the provided chat ID.
+        /// </summary>
+        private static void DeleteConnectionString(string chatId)
+        {
+            SQLiteCommand command = connection.CreateCommand("DELETE FROM SQL_SERVER_CONNECTIONS WHERE CHAT_ID = ?", chatId);
 
             command.ExecuteNonQuery();
         }

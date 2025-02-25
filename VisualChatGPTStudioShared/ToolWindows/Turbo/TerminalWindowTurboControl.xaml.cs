@@ -49,7 +49,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             ucChatHeader ucChatHeader = new(this, "New Chat");
 
-            ucChat ucChat = new(this, options, package, ucChatHeader, []);
+            string chatId = Guid.NewGuid().ToString();
+
+            ucChat ucChat = new(this, options, package, ucChatHeader, [], chatId);
 
             TabItem newChatTab = new() { Header = ucChatHeader, Content = ucChat };
 
@@ -57,7 +59,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             tabChats.SelectedItem = newChatTab;
 
-            chatUserControlsItems.Add(new() { Chat = new() { Id = Guid.NewGuid().ToString(), Name = string.Empty }, Header = ucChatHeader, TabItem = newChatTab });
+            chatUserControlsItems.Add(new() { Chat = new() { Id = chatId, Name = string.Empty }, Header = ucChatHeader, TabItem = newChatTab });
         }
 
         /// <summary>
@@ -241,7 +243,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 chatItem.Chat.Messages = ChatRepository.GetMessages(chatItem.Chat.Id);
 
-                ucChat ucChat = new(this, options, package, chatItem.Header, chatItem.Chat.Messages);
+                ucChat ucChat = new(this, options, package, chatItem.Header, chatItem.Chat.Messages, chatItem.Chat.Id);
 
                 chatItem.TabItem = new() { Header = chatItem.Header, Content = ucChat };
 

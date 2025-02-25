@@ -6,7 +6,6 @@ using JeffPires.VisualChatGPTStudio.Utils;
 using JeffPires.VisualChatGPTStudio.Utils.API;
 using JeffPires.VisualChatGPTStudio.Utils.CodeCompletion;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Text;
 using Newtonsoft.Json;
 using OpenAI_API.Chat;
 using OpenAI_API.Functions;
@@ -44,12 +43,15 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private readonly Conversation chat;
         private readonly List<ChatListControlItem> chatListControlItems;
         private readonly CancellationTokenSource cancellationTokenSource;
+        private readonly string chatId;
         private DocumentView docView;
         private bool shiftKeyPressed;
         private bool selectedContextFilesCodeAppended = false;
         private bool firstMessage = true;
         private readonly CompletionManager completionManager;
         private byte[] attachedImage;
+        private List<SqlServerConnectionInfo> sqlServerConnections;
+        private readonly List<string> sqlServerConnectionsAlreadyAdded = [];
 
         #endregion Properties
 
@@ -63,7 +65,13 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// <param name="package">The Package package.</param>
         /// <param name="ucChatHeader">The ucChatHeader control.</param>
         /// <param name="messages">The list of MessageEntity messages.</param>
-        public ucChat(TerminalWindowTurboControl parentControl, OptionPageGridGeneral options, Package package, ucChatHeader ucChatHeader, List<MessageEntity> messages)
+        /// <param name="chatId">The database chat id.</param>
+        public ucChat(TerminalWindowTurboControl parentControl,
+                      OptionPageGridGeneral options,
+                      Package package,
+                      ucChatHeader ucChatHeader,
+                      List<MessageEntity> messages,
+                      string chatId)
         {
             //It is necessary for the MdXaml library load successfully
             MdXaml.MarkdownScrollViewer _ = new();
@@ -75,6 +83,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             this.package = package;
             this.ChatHeader = ucChatHeader;
             this.messages = messages;
+            this.chatId = chatId;
 
             rowRequest.MaxHeight = parentControl.ActualHeight - 200;
             txtRequest.MaxHeight = rowRequest.MaxHeight - 10;
@@ -124,6 +133,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             chatList.ItemsSource = chatListControlItems;
 
             scrollViewer.ScrollToEnd();
+
+            sqlServerConnectionsAlreadyAdded = ChatRepository.GetSqlServerConnections(chatId);
         }
 
         #endregion Constructors
@@ -213,16 +224,23 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             try
             {
-                List<SqlServerConnectionInfo> connections = SqlServerAgent.GetConnections();
+                sqlServerConnections = SqlServerAgent.GetConnections();
 
-                if (connections == null || connections.Count == 0)
+                if (sqlServerConnections == null || sqlServerConnections.Count == 0)
                 {
                     MessageBox.Show("No SQL Server connections were found. Please add connections first through the Server Explorer window.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
-
                     return;
                 }
 
-                cbConnection.ItemsSource = connections;
+                sqlServerConnections = sqlServerConnections.Where(c1 => !sqlServerConnectionsAlreadyAdded.Any(c2 => c2 == c1.ConnectionString)).ToList();
+
+                if (sqlServerConnections == null || sqlServerConnections.Count == 0)
+                {
+                    MessageBox.Show("All available connections have been added to the context.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                cbConnection.ItemsSource = sqlServerConnections;
 
                 cbConnection.SelectedIndex = 0;
 
@@ -273,11 +291,23 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             string request = options.SqlServerAgentCommand + Environment.NewLine + dataBaseSchema + Environment.NewLine;
 
-            string requestToShowOnList = "###" + ((SqlServerConnectionInfo)cbConnection.SelectedItem).Description + Environment.NewLine + Environment.NewLine + Environment.NewLine + options.SqlServerAgentCommand;
+            SqlServerConnectionInfo connection = (SqlServerConnectionInfo)cbConnection.SelectedItem;
+
+            string requestToShowOnList = "###" + connection.Description + Environment.NewLine + Environment.NewLine + Environment.NewLine + options.SqlServerAgentCommand;
 
             messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.DataBaseSchema, Content = request }] });
 
             await RequestAsync(CommandType.Request, request, requestToShowOnList, false);
+
+            sqlServerConnectionsAlreadyAdded.Add(connection.ConnectionString);
+
+            ChatRepository.AddSqlServerConnection(chatId, connection.ConnectionString);
+
+            sqlServerConnections.Remove(connection);
+
+            cbConnection.ItemsSource = sqlServerConnections;
+
+            cbConnection.SelectedIndex = 0;
 
             grdSQL.Visibility = Visibility.Collapsed;
             grdCommands.Visibility = Visibility.Visible;
@@ -637,7 +667,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 {
                     if (segments[i].Author == AuthorEnum.ChatGPTCode)
                     {
-                        docView.TextView.TextBuffer.Replace(new Span(0, docView.TextView.TextBuffer.CurrentSnapshot.Length), segments[i].Content);
+                        docView.TextView.TextBuffer.Replace(new Microsoft.VisualStudio.Text.Span(0, docView.TextView.TextBuffer.CurrentSnapshot.Length), segments[i].Content);
                     }
                     else
                     {

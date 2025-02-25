@@ -387,6 +387,31 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             btnDeleteImage.Visibility = Visibility.Visible;
         }
 
+        /// <summary>
+        /// Handles the PreviewMouseWheel event for a DataGrid to enable horizontal scrolling when the Shift key is pressed.
+        /// </summary>
+        private void DataGridResult_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+            {
+                ScrollViewer scrollViewer = FindVisualChild<ScrollViewer>(sender as DataGrid);
+
+                if (scrollViewer != null)
+                {
+                    if (e.Delta > 0)
+                    {
+                        scrollViewer.LineLeft();
+                    }
+                    else
+                    {
+                        scrollViewer.LineRight();
+                    }
+
+                    e.Handled = true;
+                }
+            }
+        }
+
         #endregion Event Handlers
 
         #region Methods        
@@ -700,7 +725,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             foreach (FunctionResult function in functions)
             {
-                functionResult = SqlServerAgent.ExecuteFunction(function, out DataView readerResult);
+                functionResult = SqlServerAgent.ExecuteFunction(function, options.LogSqlServerAgentQueries, out DataView readerResult);
 
                 chat.AppendToolMessage(function.Id, functionResult);
 
@@ -710,7 +735,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     {
                         dataGridResult.ItemsSource = null;
                         dataGridResult.ItemsSource = readerResult;
-                        exDataGrid.Visibility = Visibility.Visible;
+                        dataGridResult.Visibility = Visibility.Visible;
                     });
                 }
             }
@@ -732,6 +757,36 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
 
             return responseHandled;
+        }
+
+        /// <summary>
+        /// Recursively searches for a visual child of a specified type within a given DependencyObject.
+        /// </summary>
+        /// <typeparam name="T">The type of the visual child to find.</typeparam>
+        /// <param name="obj">The parent DependencyObject to search within.</param>
+        /// <returns>
+        /// The first visual child of the specified type, or null if no such child is found.
+        /// </returns>
+        private static T FindVisualChild<T>(DependencyObject obj) where T : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(obj, i);
+
+                if (child is T t)
+                {
+                    return t;
+                }
+
+                T childOfChild = FindVisualChild<T>(child);
+
+                if (childOfChild != null)
+                {
+                    return childOfChild;
+                }
+            }
+
+            return null;
         }
 
         #endregion Methods                            

@@ -192,11 +192,12 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         /// and returns the result. Optionally outputs the reader result for ExecuteReader operations.
         /// </summary>
         /// <param name="function">The function to execute, including its name and arguments.</param>
-        /// <param name="readerResult">An output parameter to store the result of ExecuteReader operations.</param>
+        /// <param name="logQueries">If true, all queries executed by the SQL Server Agent will be logged to the Output window.</param>
+        /// <param name="readerResult">An output parameter to store the result of ExecuteReader operations.</param>        
         /// <returns>
         /// The result of the executed SQL function as a string.
         /// </returns>
-        public static string ExecuteFunction(FunctionResult function, out DataView readerResult)
+        public static string ExecuteFunction(FunctionResult function, bool logQueries, out DataView readerResult)
         {
             readerResult = null;
             string functionResult;
@@ -232,9 +233,16 @@ namespace JeffPires.VisualChatGPTStudio.Agents
                 {
                     functionResult = $"The function {function.Function.Name} not exists.";
                 }
+
+                if (logQueries)
+                {
+                    Logger.Log(query);
+                    Logger.Log(new string('_', 100));
+                }
             }
             catch (Exception ex)
             {
+                Logger.Log(ex);
                 functionResult = ex.ToString();
             }
 
@@ -249,54 +257,47 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         /// <param name="query">The SQL query to execute.</param>
         /// <param name="result">An output parameter that contains the query result.</param>
         /// <returns>
-        /// A string message indicating the number of rows retrieved or an error message if an exception occurs.
+        /// A string message indicating the number of rows retrieved.
         /// </returns>
         private static string ExecuteReader(string connectionString, string query, out DataView result)
         {
             result = [];
             List<Dictionary<string, object>> rows = [];
 
-            try
+            using (SqlConnection connection = new(connectionString))
             {
-                using (SqlConnection connection = new(connectionString))
+                connection.Open();
+
+                string messageOutput = string.Empty;
+
+                using (SqlCommand command = new(query, connection))
                 {
-                    connection.Open();
-
-                    string messageOutput = string.Empty;
-
-                    using (SqlCommand command = new(query, connection))
+                    using (SqlDataReader reader = command.ExecuteReader())
                     {
-                        using (SqlDataReader reader = command.ExecuteReader())
+                        List<string> columnNames = [];
+
+                        for (int i = 0; i < reader.FieldCount; i++)
                         {
-                            List<string> columnNames = [];
+                            columnNames.Add(reader.GetName(i));
+                        }
+
+                        while (reader.Read())
+                        {
+                            Dictionary<string, object> row = [];
 
                             for (int i = 0; i < reader.FieldCount; i++)
                             {
-                                columnNames.Add(reader.GetName(i));
+                                row[columnNames[i]] = reader.GetValue(i);
                             }
 
-                            while (reader.Read())
-                            {
-                                Dictionary<string, object> row = [];
-
-                                for (int i = 0; i < reader.FieldCount; i++)
-                                {
-                                    row[columnNames[i]] = reader.GetValue(i);
-                                }
-
-                                rows.Add(row);
-                            }
+                            rows.Add(row);
                         }
-
-                        result = ConvertReaderResultToDataTable(rows);
-
-                        return "Rows retrieved: " + result.Count;
                     }
+
+                    result = ConvertReaderResultToDataTable(rows);
+
+                    return "Rows retrieved: " + result.Count;
                 }
-            }
-            catch (Exception ex)
-            {
-                return ex.Message;
             }
         }
 
@@ -306,27 +307,20 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         /// <param name="connectionString">The connection string to the database.</param>
         /// <param name="query">The SQL query to execute.</param>
         /// <returns>
-        /// A string indicating the number of rows affected by the query, or an error message if an exception occurs.
+        /// A string indicating the number of rows affected by the query.
         /// </returns>
         private static string ExecuteNonQuery(string connectionString, string query)
         {
-            try
+            using (SqlConnection connection = new(connectionString))
             {
-                using (SqlConnection connection = new(connectionString))
+                connection.Open();
+
+                using (SqlCommand command = new(query, connection))
                 {
-                    connection.Open();
+                    int rowsAffected = command.ExecuteNonQuery();
 
-                    using (SqlCommand command = new(query, connection))
-                    {
-                        int rowsAffected = command.ExecuteNonQuery();
-
-                        return "Rows affected: " + rowsAffected;
-                    }
+                    return "Rows affected: " + rowsAffected;
                 }
-            }
-            catch (Exception ex)
-            {
-                return ex.Message;
             }
         }
 
@@ -336,26 +330,19 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         /// <param name="connectionString">The connection string to the database.</param>
         /// <param name="query">The SQL query to execute.</param>
         /// <returns>
-        /// The result of the scalar query as a string, or the exception message if an error occurs.
+        /// The result of the scalar query as a string.
         /// </returns>
         private static string ExecuteScalar(string connectionString, string query)
         {
-            try
+            using (SqlConnection connection = new(connectionString))
             {
-                using (SqlConnection connection = new(connectionString))
-                {
-                    SqlCommand command = new(query, connection);
+                SqlCommand command = new(query, connection);
 
-                    connection.Open();
+                connection.Open();
 
-                    object result = command.ExecuteScalar();
+                object result = command.ExecuteScalar();
 
-                    return result?.ToString();
-                }
-            }
-            catch (Exception ex)
-            {
-                return ex.Message;
+                return result?.ToString();
             }
         }
 

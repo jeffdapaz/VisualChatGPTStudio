@@ -61,6 +61,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DefaultValue(false)]
         public bool LogResponses { get; set; } = false;
 
+        [Category("General")]
+        [DisplayName("Log SQL Server Agent Queries")]
+        [Description("If true, all queries executed by the SQL Server Agent will be logged to the Output window.")]
+        [DefaultValue(false)]
+        public bool LogSqlServerAgentQueries { get; set; } = false;
+
         [Category("Commands")]
         [DisplayName("Use Completion API for Commands")]
         [Description("If true, all requests to completion-code will use alternative 'Completion' model and API. Configure 'Completion Parameters' section before. Not works for Azure API.")]

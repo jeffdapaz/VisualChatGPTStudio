@@ -581,12 +581,14 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             grdProgress.Visibility = enable ? Visibility.Collapsed : Visibility.Visible;
 
+            btnSql.IsEnabled = enable;
             btnAttachImage.IsEnabled = enable;
             btnRequestCode.IsEnabled = enable;
             btnRequestSend.IsEnabled = enable;
             btnSqlSend.IsEnabled = enable;
             btnCancel.IsEnabled = !enable;
 
+            btnSql.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
             btnAttachImage.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
             btnRequestCode.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
             btnRequestSend.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;

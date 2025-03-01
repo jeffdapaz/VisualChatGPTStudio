@@ -9,6 +9,8 @@
     <Import_RootNamespace>VisualChatGPTStudioShared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Agents\ApiAgent\ApiItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Agents\ApiAgent\ApiTagItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Agents\SqlServerAgent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AddComments.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AddSummary.cs" />
@@ -31,6 +33,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Commands\TerminalWindowCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\TerminalWindowTurboCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\Translate.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\ApiAgent\OptionApiAgent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\ApiAgent\OptionApiAgentWindow.xaml.cs">
+      <DependentUpon>OptionApiAgentWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Options\Commands\Commands.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\Commands\OptionCommandsWindow.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionPageGrid.cs">
@@ -76,6 +82,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)VisuallChatGPTStudioPackage.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="$(MSBuildThisFileDirectory)Options\ApiAgent\OptionApiAgentWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="$(MSBuildThisFileDirectory)Options\Commands\OptionCommandsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

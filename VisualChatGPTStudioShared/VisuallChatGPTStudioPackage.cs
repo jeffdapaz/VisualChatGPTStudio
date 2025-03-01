@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.Shell;
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
+using VisualChatGPTStudioShared.Options.ApiAgent;
 
 namespace JeffPires.VisualChatGPTStudio
 {
@@ -20,6 +21,8 @@ namespace JeffPires.VisualChatGPTStudio
     [ProvideProfile(typeof(OptionPageGridGeneral), "Visual chatGPT Studio", "General", 0, 0, true)]
     [ProvideOptionPage(typeof(OptionCommands), "Visual chatGPT Studio", "Commands", 1, 1, true)]
     [ProvideProfile(typeof(OptionCommands), "Visual chatGPT Studio", "Commands", 1, 1, true)]
+    [ProvideOptionPage(typeof(OptionApiAgent), "Visual chatGPT Studio", "API Agent", 2, 2, true)]
+    [ProvideProfile(typeof(OptionApiAgent), "Visual chatGPT Studio", "API Agent", 2, 2, true)]
     [ProvideToolWindow(typeof(TerminalWindow))]
     [ProvideToolWindow(typeof(TerminalWindowTurbo))]
     [ProvideToolWindow(typeof(TerminalWindowSolutionContext))]
@@ -43,13 +46,30 @@ namespace JeffPires.VisualChatGPTStudio
         }
 
         /// <summary>
-        /// Gets the OptionPageGridCommands object.
+        /// Retrieves the instance of the <see cref="OptionsCommands"/> associated with the dialog page.
         /// </summary>
+        /// <returns>
+        /// The <see cref="OptionsCommands"/> instance obtained from the dialog page.
+        /// </returns>
         public OptionCommands OptionsCommands
         {
             get
             {
                 return (OptionCommands)GetDialogPage(typeof(OptionCommands));
+            }
+        }
+
+        /// <summary>
+        /// Retrieves the instance of the <see cref="OptionApiAgent"/> associated with the dialog page.
+        /// </summary>
+        /// <returns>
+        /// The <see cref="OptionApiAgent"/> instance obtained from the dialog page.
+        /// </returns>
+        public OptionApiAgent OptionApiAgent
+        {
+            get
+            {
+                return (OptionApiAgent)GetDialogPage(typeof(OptionApiAgent));
             }
         }
 

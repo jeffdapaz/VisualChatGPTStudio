@@ -6,6 +6,17 @@
              xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              mc:Ignorable="d"             
              Name="MyToolWindow">
+    <UserControl.Resources>
+        <Style x:Key="ImageHandCursorStyle" TargetType="{x:Type Image}">
+            <Setter Property="Cursor" Value="Arrow"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Cursor" Value="Hand"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <Grid Margin="10">
             <Grid.RowDefinitions>
@@ -69,16 +80,7 @@
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Key" Binding="{Binding Key}" IsReadOnly="False" Width="1*" FontSize="14"/>
                     <DataGridTextColumn Header="Value" Binding="{Binding Value}" IsReadOnly="False" Width="2*" FontSize="14"/>
-                    <DataGridTemplateColumn Header="Type" MinWidth="100">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <ComboBox SelectedIndex="0">
-                                    <ComboBoxItem Content="Header" />
-                                    <ComboBoxItem Content="QueryString" />
-                                </ComboBox>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
+                    <DataGridComboBoxColumn Header="Type" MinWidth="100" x:Name="cbTypeColumn" SelectedItemBinding="{Binding Type}"/>
                     <DataGridTemplateColumn Header="">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
@@ -90,18 +92,8 @@
                                     Name="btnDelete" 
                                     MouseDown="btnGrdTagsDelete_Click" 
                                     ToolTip="Delete this key-value pair." 
-                                    Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/garbage_color.png">
-                                    <Image.Style>
-                                        <Style TargetType="{x:Type Image}">
-                                            <Setter Property="Cursor" Value="Arrow"/>
-                                            <Style.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="Cursor" Value="Hand"/>
-                                                </Trigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Image.Style>
-                                </Image>
+                                    Style="{StaticResource ImageHandCursorStyle}"
+                                    Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/garbage_color.png"/>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
@@ -120,35 +112,44 @@
 
             <!-- APIs List -->
             <Label Content="APIs:" Grid.Row="14" Grid.Column="0" VerticalAlignment="Top" />
-            <ListView x:Name="lstApis" Grid.Row="14" Grid.Column="2" >
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Header="API" DisplayMemberBinding="{Binding Name}" Width="Auto">
-                            <GridViewColumn.HeaderContainerStyle>
-                                <Style TargetType="GridViewColumnHeader">
-                                    <Setter Property="HorizontalContentAlignment" Value="Left" />
-                                </Style>
-                            </GridViewColumn.HeaderContainerStyle>
-                        </GridViewColumn>
-                        <GridViewColumn Header="">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/edit_color.png" 
-                                               Width="16" Height="16" Margin="0,0,5,0" 
-                                               ToolTip="Edit this API." 
-                                               MouseDown="btnEditApi_Click" />
-                                        <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/garbage_color.png" 
-                                               Width="16" Height="16" 
-                                               ToolTip="Delete this API." 
-                                               MouseDown="btnDeleteApi_Click" />
-                                    </StackPanel>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                    </GridView>
-                </ListView.View>
-            </ListView>
+            <DataGrid 
+                x:Name="grdApis" 
+                Grid.Row="14" 
+                Grid.Column="2" 
+                AutoGenerateColumns="False" 
+                CanUserAddRows="False"
+                CanUserReorderColumns="False"
+                SelectionMode="Single">
+                <DataGrid.Columns>
+                    <!-- API Name -->
+                    <DataGridTextColumn Header="API" Binding="{Binding Name}" Width="*" IsReadOnly="True"/>
+
+                    <!-- Edit/Delete Actions -->
+                    <DataGridTemplateColumn Header="" MinWidth="50">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Image 
+                                        Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/edit_color.png" 
+                                        Width="16" 
+                                        Height="16" 
+                                        Margin="5,0,5,0" 
+                                        ToolTip="Edit this API." 
+                                        Style="{StaticResource ImageHandCursorStyle}"
+                                        MouseDown="btnEditApi_Click" />
+                                    <Image 
+                                        Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/garbage_color.png" 
+                                        Width="16"
+                                        Height="16" 
+                                        ToolTip="Delete this API." 
+                                        Style="{StaticResource ImageHandCursorStyle}"
+                                        MouseDown="btnDeleteApi_Click" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
         </Grid>
     </ScrollViewer>
 </UserControl>

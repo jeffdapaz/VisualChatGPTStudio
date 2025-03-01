@@ -16,7 +16,7 @@ namespace OpenAI_API
     /// </summary>
     public abstract class EndpointBase
     {
-        private const string UserAgent = "okgodoit/dotnet_openai_api";
+        private const string UserAgent = "Visual_chatGPT_Studio";
 
         /// <summary>
         /// The internal reference to the API, mostly used for authentication
@@ -52,12 +52,12 @@ namespace OpenAI_API
         /// Gets an HTTPClient with the appropriate authorization and other headers set
         /// </summary>
         /// <returns>The fully initialized HttpClient</returns>
-        /// <exception cref="AuthenticationException">Thrown if there is no valid authentication.  Please refer to <see href="https://github.com/OkGoDoIt/OpenAI-API-dotnet#authentication"/> for details.</exception>
+        /// <exception cref="AuthenticationException">Thrown if there is no valid authentication.</exception>
         protected HttpClient GetClient()
         {
             if (_Api.Auth?.ApiKey is null)
             {
-                throw new AuthenticationException("You must provide API authentication.  Please refer to https://github.com/OkGoDoIt/OpenAI-API-dotnet#authentication for details.");
+                throw new AuthenticationException("You must provide API authentication.");
             }
 
             HttpClient client;
@@ -156,7 +156,7 @@ namespace OpenAI_API
 
                 if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
-                    throw new AuthenticationException("OpenAI rejected your authorization, most likely due to an invalid API Key.  Try checking your API Key and see https://github.com/OkGoDoIt/OpenAI-API-dotnet#authentication for guidance.  Full API response follows: " + resultAsString);
+                    throw new AuthenticationException("OpenAI rejected your authorization, most likely due to an invalid API Key. Full API response follows: " + resultAsString);
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
                 {

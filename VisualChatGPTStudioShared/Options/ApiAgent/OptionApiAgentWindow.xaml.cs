@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -27,7 +28,9 @@ namespace JeffPires.VisualChatGPTStudio.Options.ApiAgent
             InitializeComponent();
 
             grdTags.ItemsSource = Tags;
-            lstApis.ItemsSource = Apis;
+            grdApis.ItemsSource = Apis;
+
+            cbTypeColumn.ItemsSource = Enum.GetValues(typeof(ApiTagType));
         }
 
         #endregion Constructors
@@ -71,12 +74,19 @@ namespace JeffPires.VisualChatGPTStudio.Options.ApiAgent
                 return;
             }
 
+            if (Apis.Any(a => a.Name.Equals(txtIdentification.Text.Trim(), System.StringComparison.InvariantCultureIgnoreCase)))
+            {
+                MessageBox.Show($"The API '{txtIdentification.Text}' definition already exists.", Utils.Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                return;
+            }
+
             Apis.Add(new ApiItem
             {
-                Name = txtIdentification.Text,
-                BaseUrl = txtBaseUrl.Text,
+                Name = txtIdentification.Text.Trim(),
+                BaseUrl = txtBaseUrl.Text.Trim(),
                 Tags = Tags.ToList(),
-                Definition = txtDefinition.Text
+                Definition = txtDefinition.Text.Trim()
             });
 
             txtIdentification.Clear();
@@ -87,7 +97,7 @@ namespace JeffPires.VisualChatGPTStudio.Options.ApiAgent
 
         private void btnEditApi_Click(object sender, MouseButtonEventArgs e)
         {
-            if (lstApis.SelectedItem is ApiItem selectedApi)
+            if (grdApis.SelectedItem is ApiItem selectedApi)
             {
                 txtIdentification.Text = selectedApi.Name;
                 txtBaseUrl.Text = selectedApi.BaseUrl;
@@ -105,7 +115,7 @@ namespace JeffPires.VisualChatGPTStudio.Options.ApiAgent
 
         private void btnDeleteApi_Click(object sender, MouseButtonEventArgs e)
         {
-            if (lstApis.SelectedItem is ApiItem selectedApi)
+            if (grdApis.SelectedItem is ApiItem selectedApi)
             {
                 MessageBoxResult result = MessageBox.Show($"Are you sure you want to delete the API '{selectedApi.Name}'?", Utils.Constants.EXTENSION_NAME, MessageBoxButton.YesNo, MessageBoxImage.Question);
 
@@ -114,8 +124,13 @@ namespace JeffPires.VisualChatGPTStudio.Options.ApiAgent
                     Apis.Remove(selectedApi);
                 }
             }
-        }        
+        }
 
         #endregion Event Handlers
-    }    
+
+        public void SaveApiDefinitions()
+        {
+
+        }
+    }
 }

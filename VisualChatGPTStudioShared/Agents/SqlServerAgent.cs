@@ -243,7 +243,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
             catch (Exception ex)
             {
                 Logger.Log(ex);
-                functionResult = ex.ToString();
+                functionResult = ex.Message;
             }
 
             return functionResult;

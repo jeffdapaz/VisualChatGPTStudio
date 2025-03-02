@@ -54,12 +54,12 @@
 
             <!-- Identification -->
             <Label Content="Identification:" Grid.Row="0" Grid.Column="0" />
-            <TextBox x:Name="txtIdentification" Grid.Row="0" Grid.Column="2" FontSize="16"/>
+            <TextBox x:Name="txtIdentification" Grid.Row="0" Grid.Column="2" FontSize="16" MaxLength="255"/>
             <Image Grid.Row="0" Grid.Column="4" Height="20" VerticalAlignment="Center" ToolTip="Enter a unique name to identify the API." Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/information.png" />
 
             <!-- Base URL -->
             <Label Content="Base URL:" Grid.Row="2" Grid.Column="0" />
-            <TextBox x:Name="txtBaseUrl" Grid.Row="2" Grid.Column="2" FontSize="16"/>
+            <TextBox x:Name="txtBaseUrl" Grid.Row="2" Grid.Column="2" FontSize="16" MaxLength="255"/>
             <Image Grid.Row="2" Grid.Column="4" VerticalAlignment="Center" ToolTip="Enter the base URL of the API." Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/information.png" />
 
             <!-- TAGs -->

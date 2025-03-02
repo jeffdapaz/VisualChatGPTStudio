@@ -1,5 +1,6 @@
 ﻿using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils;
+using JeffPires.VisualChatGPTStudio.Utils.Repositories;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;

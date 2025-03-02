@@ -8,6 +8,11 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
     public class ApiItem
     {
         /// <summary>
+        /// API definition ID
+        /// </summary>
+        public string Id { get; set; }
+
+        /// <summary>
         /// Gets or sets the API's name.
         /// </summary>
         public string Name { get; set; }

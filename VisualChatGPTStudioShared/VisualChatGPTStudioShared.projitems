@@ -65,7 +65,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\TerminalWindowTurboControl.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ApiHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\AttachImage.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\ChatRepository.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\Repositories\ApiAgentRepository.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\Repositories\ChatRepository.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ChatListControlItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\CodeCompletion\CompletionManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandImage.cs" />
@@ -78,6 +79,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Http\ChatGPTHttpClientFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Http\HttpClientCustom.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Http\RequestCaptureHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\Repositories\Repository.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\TextFormat.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)VisuallChatGPTStudioPackage.cs" />
   </ItemGroup>

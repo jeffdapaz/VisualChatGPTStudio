@@ -5,6 +5,7 @@ using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils;
 using JeffPires.VisualChatGPTStudio.Utils.API;
 using JeffPires.VisualChatGPTStudio.Utils.CodeCompletion;
+using JeffPires.VisualChatGPTStudio.Utils.Repositories;
 using Microsoft.VisualStudio.Shell;
 using Newtonsoft.Json;
 using OpenAI_API.Chat;

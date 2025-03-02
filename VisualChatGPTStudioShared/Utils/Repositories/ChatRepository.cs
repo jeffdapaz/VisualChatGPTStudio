@@ -1,9 +1,10 @@
 ﻿using Newtonsoft.Json;using SQLite;
-using System;using System.Collections.Generic;using System.IO;using System.Linq;using System.Windows;using VisualChatGPTStudioShared.ToolWindows.Turbo;namespace JeffPires.VisualChatGPTStudio.Utils{
+using System;using System.Collections.Generic;using System.IO;using System.Linq;using System.Windows;using VisualChatGPTStudioShared.ToolWindows.Turbo;using VisualChatGPTStudioShared.Utils.Repositories;namespace JeffPires.VisualChatGPTStudio.Utils.Repositories{
     /// <summary>
     /// Repository class for managing the Turbo Chats.
     /// </summary>
-    public static class ChatRepository    {
+    public static class ChatRepository
+    {
         #region Constantes
         private const string PARAMETER_ID = "@PARAMETER_ID";        private const string PARAMETER_NAME = "@PARAMETER_NAME";        private const string PARAMETER_DATE = "@PARAMETER_DATE";        private const string PARAMETER_MESSAGES = "@PARAMETER_MESSAGES";
 
@@ -11,24 +12,18 @@ using System;using System.Collections.Generic;using System.IO;using System.Li
         #region Properties
         private static SQLiteConnection connection;
 
+
+
         #endregion Properties
         #region Methods
 
         /// <summary>
-        /// Creates a database file for VisualChatGptStudio if it does not already exist and opens a connection to it.
+        /// Creates a database and establishes a connection. Initializes required tables for chats and SQL Server connections.
+        /// Logs and displays any exceptions that occur during the process.
         /// </summary>
         public static void CreateDataBase()        {            try
             {
-                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Constants.EXTENSION_NAME);
-
-                string filePath = Path.Combine(folder, "VisualChatGptStudio.db");
-
-                if (!Directory.Exists(folder))
-                {
-                    Directory.CreateDirectory(folder);
-                }
-
-                connection = new(filePath);
+                connection = Repository.CreateDataBaseAndConnection();
 
                 CreateTableChats();
                 CreateTableSqlServerConnections();

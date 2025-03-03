@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;using SQLite;
-using System;using System.Collections.Generic;using System.IO;using System.Linq;using System.Windows;using VisualChatGPTStudioShared.ToolWindows.Turbo;using VisualChatGPTStudioShared.Utils.Repositories;namespace JeffPires.VisualChatGPTStudio.Utils.Repositories{
+using System;using System.Collections.Generic;using System.Linq;using System.Windows;using VisualChatGPTStudioShared.ToolWindows.Turbo;using VisualChatGPTStudioShared.Utils.Repositories;namespace JeffPires.VisualChatGPTStudio.Utils.Repositories{
     /// <summary>
     /// Repository class for managing the Turbo Chats.
     /// </summary>
@@ -15,7 +15,7 @@ using System;using System.Collections.Generic;using System.IO;using System.Li
 
 
         #endregion Properties
-        #region Methods
+        #region Chats
 
         /// <summary>
         /// Creates a database and establishes a connection. Initializes required tables for chats and SQL Server connections.
@@ -27,6 +27,7 @@ using System;using System.Collections.Generic;using System.IO;using System.Li
 
                 CreateTableChats();
                 CreateTableSqlServerConnections();
+                CreateTableApiDefinitions();
             }
             catch (Exception ex)
             {
@@ -49,6 +50,14 @@ using System;using System.Collections.Generic;using System.IO;using System.Li
         /// The table includes columns for ID, CHAT_ID, and CONNECTION, with ID serving as the primary key.
         /// </summary>
         private static void CreateTableSqlServerConnections()        {            string query = @"CREATE TABLE IF NOT EXISTS SQL_SERVER_CONNECTIONS                            (                                ID         VARCHAR(50)  PRIMARY KEY UNIQUE NOT NULL,                                CHAT_ID    VARCHAR(50)  NOT NULL,                                CONNECTION VARCHAR(255) NOT NULL                                                                );";            SQLiteCommand command = connection.CreateCommand(query);
+
+            command.ExecuteNonQuery();
+        }
+
+        /// <summary>
+        /// Creates the API_DEFINITIONS table in the database if it does not already exist.
+        /// </summary>
+        private static void CreateTableApiDefinitions()        {            string query = @"CREATE TABLE IF NOT EXISTS API_DEFINITIONS                            (                                ID       VARCHAR(50)  PRIMARY KEY UNIQUE NOT NULL,                                CHAT_ID  VARCHAR(50)  NOT NULL,                                API_NAME VARCHAR(255) NOT NULL                                                                );";            SQLiteCommand command = connection.CreateCommand(query);
 
             command.ExecuteNonQuery();
         }
@@ -116,7 +125,12 @@ using System;using System.Collections.Generic;using System.IO;using System.Li
             command.ExecuteNonQuery();
 
             DeleteConnectionString(chatId);
+            DeleteApiDefinition(chatId);
         }
+
+        #endregion Chats
+
+        #region SQL Agent
 
         /// <summary>
         /// Retrieves a list of SQL Server connection strings associated with a specific chat ID from the database.
@@ -158,5 +172,46 @@ using System;using System.Collections.Generic;using System.IO;using System.Li
             command.ExecuteNonQuery();
         }
 
-        #endregion Methods
+        #endregion #region SQL Agent
+
+        #region API Agent
+
+        /// <summary>
+        /// Retrieves a list of API definitions associated with a specific chat ID from the database.
+        /// </summary>
+        /// <returns>
+        /// A list of API names as strings corresponding to the provided chat ID.
+        /// </returns>
+        public static List<string> GetApiDefinitions(string chatId)
+        {
+            SQLiteCommand command = connection.CreateCommand("SELECT API_NAME FROM API_DEFINITIONS WHERE CHAT_ID = ?", chatId);            return command.ExecuteQueryScalars<string>().ToList();
+        }
+
+        /// <summary>
+        /// Adds a new API definition to the database by inserting a record with a unique ID, chat ID, and API name.
+        /// </summary>
+        public static void AddApiDefinition(string chatId, string apiName)
+        {
+            string query = @"INSERT INTO API_DEFINITIONS (ID, CHAT_ID, API_NAME) VALUES (@id, @chatId, @apiName);";
+
+            SQLiteCommand command = connection.CreateCommand(query);
+
+            command.Bind("@id", Guid.NewGuid());
+            command.Bind("@chatId", chatId);
+            command.Bind("@apiName", apiName);
+
+            command.ExecuteNonQuery();
+        }
+
+        /// <summary>
+        /// Deletes an API definition from the database based on the provided chat ID.
+        /// </summary>
+        private static void DeleteApiDefinition(string chatId)
+        {
+            SQLiteCommand command = connection.CreateCommand("DELETE FROM API_DEFINITIONS WHERE CHAT_ID = ?", chatId);
+
+            command.ExecuteNonQuery();
+        }
+
+        #endregion API Agent
     }}

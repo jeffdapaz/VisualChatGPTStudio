@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace OpenAI_API.Functions
 {
@@ -69,10 +70,17 @@ namespace OpenAI_API.Functions
         public Dictionary<string, Property> Properties { get; set; }
 
         /// <summary>
-        /// Indicate if the parameter is mandatory
+        /// Indicate if the parameter is mandatory.
+        /// All fields in properties must be marked as required.
         /// </summary>
         [JsonProperty("required")]
-        public List<string> Required { get; set; }
+        public List<string> Required
+        {
+            get
+            {
+                return Properties.Select(p => p.Key).ToList();
+            }
+        }
 
         /// <summary>
         /// Must be set to false for each object in the parameters
@@ -87,10 +95,11 @@ namespace OpenAI_API.Functions
     public class Property
     {
         /// <summary>
-        /// Property type
+        /// Property types
+        /// You can denote optional fields by adding null as a type option 
         /// </summary>
         [JsonProperty("type")]
-        public string Type { get; set; }
+        public List<string> Types { get; set; }
 
         /// <summary>
         /// Property description

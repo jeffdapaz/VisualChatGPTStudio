@@ -21,6 +21,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using VisualChatGPTStudioShared.Agents.ApiAgent;
 using VisualChatGPTStudioShared.ToolWindows.Turbo;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 using MessageBox = System.Windows.MessageBox;
@@ -52,7 +53,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private readonly CompletionManager completionManager;
         private byte[] attachedImage;
         private List<SqlServerConnectionInfo> sqlServerConnections;
+        private List<ApiItem> apiDefinitions;
         private readonly List<string> sqlServerConnectionsAlreadyAdded = [];
+        private readonly List<string> apiDefinitionsAlreadyAdded = [];
 
         #endregion Properties
 
@@ -119,7 +122,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 {
                     chat.AppendFunctionCall(JsonConvert.DeserializeObject<FunctionRequest>(message.Segments[0].Content));
                 }
-                else if (message.Segments[0].Author == AuthorEnum.DataBaseSchema)
+                else if (message.Segments[0].Author == AuthorEnum.FunctionRequest)
                 {
                     chat.AppendUserInput(message.Segments[0].Content);
                 }
@@ -136,6 +139,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             scrollViewer.ScrollToEnd();
 
             sqlServerConnectionsAlreadyAdded = ChatRepository.GetSqlServerConnections(chatId);
+            apiDefinitionsAlreadyAdded = ChatRepository.GetApiDefinitions(chatId);
         }
 
         #endregion Constructors
@@ -200,8 +204,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             {
                 txtImage.Text = imageName;
 
-                txtImage.Visibility = Visibility.Visible;
-                btnDeleteImage.Visibility = Visibility.Visible;
+                spImage.Visibility = Visibility.Visible;
             }
         }
 
@@ -212,11 +215,101 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         private void btnDeleteImage_Click(object sender, RoutedEventArgs e)
         {
-            txtImage.Visibility = Visibility.Hidden;
-            btnDeleteImage.Visibility = Visibility.Hidden;
+            spImage.Visibility = Visibility.Collapsed;
 
             attachedImage = null;
         }
+
+        /// <summary>
+        /// Handles the PreviewMouseWheel event for the txtChat control, scrolling the associated ScrollViewer based on the mouse wheel delta.
+        /// </summary>
+        private void txtChat_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+            {
+                MdXaml.MarkdownScrollViewer mdXaml = (MdXaml.MarkdownScrollViewer)sender;
+
+                List<TextEditor> textEditors = FindMarkDownCodeTextEditors(mdXaml);
+
+                if (textEditors != null)
+                {
+                    foreach (TextEditor textEditor in textEditors)
+                    {
+                        ScrollViewer scrollViewerEditor = textEditor.Template.FindName("PART_ScrollViewer", textEditor) as ScrollViewer;
+
+                        if (scrollViewerEditor != null)
+                        {
+                            scrollViewerEditor.ScrollToHorizontalOffset(scrollViewerEditor.HorizontalOffset - e.Delta);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - e.Delta);
+            }
+
+            e.Handled = true;
+        }
+
+        /// <summary>
+        /// To avoid the behavior that caused the scroll to move automatically when clicking with the mouse to select text
+        /// </summary>
+        private void txtChat_GotFocus(object sender, RoutedEventArgs e)
+        {
+            double currentOffset = scrollViewer.VerticalOffset;
+
+            scrollViewer.Opacity = 0.5;
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                scrollViewer.ScrollToVerticalOffset(currentOffset);
+                scrollViewer.Opacity = 1;
+            }), System.Windows.Threading.DispatcherPriority.Background);
+        }
+
+        /// <summary>
+        /// Handles the event when an image is pasted, attaching the image and updating the UI with the file name.
+        /// </summary>
+        /// <param name="attachedImage">The byte array representing the pasted image.</param>
+        /// <param name="fileName">The name of the pasted image file.</param>
+        private void AttachImage_OnImagePaste(byte[] attachedImage, string fileName)
+        {
+            this.attachedImage = attachedImage;
+
+            txtImage.Text = fileName;
+
+            spImage.Visibility = Visibility.Visible;
+        }
+
+        /// <summary>
+        /// Handles the PreviewMouseWheel event for a DataGrid to enable horizontal scrolling when the Shift key is pressed.
+        /// </summary>
+        private void DataGridResult_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+            {
+                ScrollViewer scrollViewer = FindVisualChild<ScrollViewer>(sender as DataGrid);
+
+                if (scrollViewer != null)
+                {
+                    if (e.Delta > 0)
+                    {
+                        scrollViewer.LineLeft();
+                    }
+                    else
+                    {
+                        scrollViewer.LineRight();
+                    }
+
+                    e.Handled = true;
+                }
+            }
+        }
+
+        #endregion Event Handlers
+
+        #region SQL Event Handlers
 
         /// <summary>
         /// Handles the SQL button click event and populates the connection dropdown.
@@ -296,7 +389,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             string requestToShowOnList = "###" + connection.Description + Environment.NewLine + Environment.NewLine + Environment.NewLine + options.SqlServerAgentCommand;
 
-            messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.DataBaseSchema, Content = request }] });
+            messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.FunctionRequest, Content = request }] });
 
             await RequestAsync(CommandType.Request, request, requestToShowOnList, false);
 
@@ -325,95 +418,99 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             grdCommands.Visibility = Visibility.Visible;
         }
 
+        #endregion SQL Event Handlers
+
+        #region API Event Handlers
+
         /// <summary>
-        /// Handles the PreviewMouseWheel event for the txtChat control, scrolling the associated ScrollViewer based on the mouse wheel delta.
+        /// Handles the click event for the API button. Retrieves API definitions, filters out already added definitions, 
+        /// and updates the UI to display the remaining APIs. Displays appropriate messages if no APIs are found or all are already added.
         /// </summary>
-        private void txtChat_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        private async void btnAPI_Click(object sender, RoutedEventArgs e)
         {
-            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+            try
             {
-                MdXaml.MarkdownScrollViewer mdXaml = (MdXaml.MarkdownScrollViewer)sender;
+                apiDefinitions = ApiAgent.GetAPIsDefinitions();
 
-                List<TextEditor> textEditors = FindMarkDownCodeTextEditors(mdXaml);
-
-                if (textEditors != null)
+                if (apiDefinitions == null || apiDefinitions.Count == 0)
                 {
-                    foreach (TextEditor textEditor in textEditors)
-                    {
-                        ScrollViewer scrollViewerEditor = textEditor.Template.FindName("PART_ScrollViewer", textEditor) as ScrollViewer;
-
-                        if (scrollViewerEditor != null)
-                        {
-                            scrollViewerEditor.ScrollToHorizontalOffset(scrollViewerEditor.HorizontalOffset - e.Delta);
-                        }
-                    }
+                    MessageBox.Show("No API definitions were found. Please add API definitions first through the extension's options window.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
                 }
-            }
-            else
-            {
-                scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - e.Delta);
-            }
 
-            e.Handled = true;
-        }
+                apiDefinitions = apiDefinitions.Where(c1 => !apiDefinitionsAlreadyAdded.Any(c2 => c2 == c1.Name)).ToList();
 
-        /// <summary>
-        /// To avoid the behavior that caused the scroll to move automatically when clicking with the mouse to select text
-        /// </summary>
-        private void txtChat_GotFocus(object sender, RoutedEventArgs e)
-        {
-            double currentOffset = scrollViewer.VerticalOffset;
-
-            scrollViewer.Opacity = 0.5;
-
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                scrollViewer.ScrollToVerticalOffset(currentOffset);
-                scrollViewer.Opacity = 1;
-            }), System.Windows.Threading.DispatcherPriority.Background);
-        }
-
-        /// <summary>
-        /// Handles the event when an image is pasted, attaching the image and updating the UI with the file name.
-        /// </summary>
-        /// <param name="attachedImage">The byte array representing the pasted image.</param>
-        /// <param name="fileName">The name of the pasted image file.</param>
-        private void AttachImage_OnImagePaste(byte[] attachedImage, string fileName)
-        {
-            this.attachedImage = attachedImage;
-
-            txtImage.Text = fileName;
-
-            txtImage.Visibility = Visibility.Visible;
-            btnDeleteImage.Visibility = Visibility.Visible;
-        }
-
-        /// <summary>
-        /// Handles the PreviewMouseWheel event for a DataGrid to enable horizontal scrolling when the Shift key is pressed.
-        /// </summary>
-        private void DataGridResult_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
-            {
-                ScrollViewer scrollViewer = FindVisualChild<ScrollViewer>(sender as DataGrid);
-
-                if (scrollViewer != null)
+                if (apiDefinitions == null || apiDefinitions.Count == 0)
                 {
-                    if (e.Delta > 0)
-                    {
-                        scrollViewer.LineLeft();
-                    }
-                    else
-                    {
-                        scrollViewer.LineRight();
-                    }
-
-                    e.Handled = true;
+                    MessageBox.Show("All available APIs have been added to the context.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
                 }
+
+                cbAPIs.ItemsSource = apiDefinitions;
+
+                cbAPIs.SelectedIndex = 0;
+
+                grdCommands.Visibility = Visibility.Collapsed;
+                grdAPI.Visibility = Visibility.Visible;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+
+                MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);
             }
         }
 
-        #endregion Event Handlers
+        /// <summary>
+        /// Handles the click event for the API send button. Sends API function calls, updates the chat and message list, 
+        /// processes the selected API definition, and updates the UI accordingly.
+        /// </summary>
+        private async void btnApiSend_Click(object sender, RoutedEventArgs e)
+        {
+            List<FunctionRequest> apiFunctions = ApiAgent.GetRestApiFunctions();
+
+            foreach (FunctionRequest function in apiFunctions)
+            {
+                chat.AppendFunctionCall(function);
+                messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.FunctionCall, Content = JsonConvert.SerializeObject(function) }] });
+            }
+
+            ApiItem apiDefinition = (ApiItem)cbAPIs.SelectedItem;
+
+            string request = string.Concat(options.APIAgentCommand, Environment.NewLine, "API Name: ", apiDefinition.Name, Environment.NewLine, apiDefinition.Definition);
+
+            string requestToShowOnList = "###" + apiDefinition.Name + Environment.NewLine + Environment.NewLine + Environment.NewLine + options.APIAgentCommand;
+
+            messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.FunctionRequest, Content = request }] });
+
+            await RequestAsync(CommandType.Request, request, requestToShowOnList, false);
+
+            apiDefinitionsAlreadyAdded.Add(apiDefinition.Name);
+
+            ChatRepository.AddApiDefinition(chatId, apiDefinition.Name);
+
+            apiDefinitions.Remove(apiDefinition);
+
+            cbAPIs.ItemsSource = apiDefinitions;
+
+            cbAPIs.SelectedIndex = 0;
+
+            grdAPI.Visibility = Visibility.Collapsed;
+            grdCommands.Visibility = Visibility.Visible;
+        }
+
+        /// <summary>
+        /// Handles the click event for the API cancel button. Cancels the current request and updates the UI by hiding the API grid and showing the commands grid.
+        /// </summary>
+        private async void btnApiCancel_Click(object sender, RoutedEventArgs e)
+        {
+            CancelRequest(sender, e);
+
+            grdAPI.Visibility = Visibility.Collapsed;
+            grdCommands.Visibility = Visibility.Visible;
+        }
+
+        #endregion API Event Handlers        
 
         #region Methods        
 
@@ -548,8 +645,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             {
                 EnableDisableButtons(true);
 
-                txtImage.Visibility = Visibility.Hidden;
-                btnDeleteImage.Visibility = Visibility.Hidden;
+                spImage.Visibility = Visibility.Collapsed;
 
                 attachedImage = null;
             }
@@ -582,6 +678,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             grdProgress.Visibility = enable ? Visibility.Collapsed : Visibility.Visible;
 
+            btnAPI.IsEnabled = enable;
             btnSql.IsEnabled = enable;
             btnAttachImage.IsEnabled = enable;
             btnRequestCode.IsEnabled = enable;
@@ -589,6 +686,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             btnSqlSend.IsEnabled = enable;
             btnCancel.IsEnabled = !enable;
 
+            btnAPI.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
             btnSql.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
             btnAttachImage.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
             btnRequestCode.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
@@ -728,19 +826,26 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             foreach (FunctionResult function in functions)
             {
-                functionResult = SqlServerAgent.ExecuteFunction(function, options.LogSqlServerAgentQueries, out DataView readerResult);
+                if (function.Function.Name == "CallRestApi")
+                {
+                    functionResult = await ApiAgent.ExecuteFunctionAsync(function, options.LogAPIAgentRequestAndResponses);
+                }
+                else
+                {
+                    functionResult = SqlServerAgent.ExecuteFunction(function, options.LogSqlServerAgentQueries, out DataView readerResult);
+
+                    if (readerResult != null && readerResult.Count > 0)
+                    {
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            dataGridResult.ItemsSource = null;
+                            dataGridResult.ItemsSource = readerResult;
+                            dataGridResult.Visibility = Visibility.Visible;
+                        });
+                    }
+                }
 
                 chat.AppendToolMessage(function.Id, functionResult);
-
-                if (readerResult != null && readerResult.Count > 0)
-                {
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        dataGridResult.ItemsSource = null;
-                        dataGridResult.ItemsSource = readerResult;
-                        dataGridResult.Visibility = Visibility.Visible;
-                    });
-                }
             }
 
             (string, List<FunctionResult>) result = await SendRequestAsync(cancellationToken);

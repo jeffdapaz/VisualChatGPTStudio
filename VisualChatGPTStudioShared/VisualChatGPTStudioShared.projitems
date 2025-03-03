@@ -9,6 +9,7 @@
     <Import_RootNamespace>VisualChatGPTStudioShared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Agents\ApiAgent\ApiAgent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Agents\ApiAgent\ApiItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Agents\ApiAgent\ApiTagItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Agents\SqlServerAgent.cs" />
@@ -65,6 +66,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\TerminalWindowTurboControl.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ApiHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\AttachImage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\Http\HttpLogs.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Repositories\ApiAgentRepository.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Repositories\ChatRepository.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ChatListControlItem.cs" />

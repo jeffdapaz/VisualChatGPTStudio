@@ -369,15 +369,14 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 <a id="18"></a>
 ## Release Notes 📜
 
+### 5.0.0
+
+- Added the ability to request the AI to call REST APIs on one or more endpoints through the Turbo Chat window.
+- Fixed git-worktree repository detection logic (thanks [Kryeker](https://github.com/Kryeker)).
+
 ### 4.0.0
 
 - Added the ability to request the AI to execute SQL Server scripts on one or more databases through the Turbo Chat window.
 - Refactoring to remove the dependency on the library [OpenAI-API-dotnet](https://github.com/OkGoDoIt/OpenAI-API-dotnet), and add its source code as a project in the Solution, making it possible to customize it.
-
-### 3.4.0
-
-- Added the possibility to attach images to the requests (not all models accept images).
-- Added to the list of models the o1 and o3-mini models.
-- Improvements in the functionality of referencing files and methods in requests.
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

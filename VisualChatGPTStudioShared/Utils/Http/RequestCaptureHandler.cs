@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using VisualChatGPTStudioShared.Utils.Http;
 
 namespace JeffPires.VisualChatGPTStudio.Utils.Http
 {
@@ -38,46 +39,14 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Http
 
             if (options.LogRequests)
             {
-                Logger.Log($"Request URI: {request.RequestUri}");
-                Logger.Log($"Request Method: {request.Method}");
-                Logger.Log("Request Headers:");
-
-                foreach (KeyValuePair<string, IEnumerable<string>> header in request.Headers)
-                {
-                    Logger.Log($"{header.Key}: {string.Join(", ", header.Value)}");
-                }
-
-                if (request.Content != null)
-                {
-                    content = await request.Content.ReadAsStringAsync();
-
-                    Logger.Log("Request Content: " + content);
-                }
-
-                Logger.Log(new string('_', 100));
+                await HttpLogs.LogRequestAsync(request);
             }
 
             HttpResponseMessage response = await base.SendAsync(request, cancellationToken);
 
-            if (response != null && options.LogResponses)
+            if (options.LogResponses)
             {
-                Logger.Log("Response Headers:");
-
-                foreach (KeyValuePair<string, IEnumerable<string>> header in response.Headers)
-                {
-                    Logger.Log($"{header.Key}: {string.Join(", ", header.Value)}");
-                }
-
-                Logger.Log($"Response Status Code: {response.StatusCode}");
-
-                if (response.Content != null)
-                {
-                    content = await response.Content.ReadAsStringAsync();
-
-                    Logger.Log("Response Content: " + content);
-                }
-
-                Logger.Log(new string('_', 100));
+                await HttpLogs.LogResponseAsync(response);
             }
 
             return response;

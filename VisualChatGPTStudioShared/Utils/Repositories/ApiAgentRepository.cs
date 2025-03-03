@@ -2,6 +2,7 @@
 using SQLite;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using VisualChatGPTStudioShared.Agents.ApiAgent;
 
@@ -76,6 +77,29 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
             SQLiteCommand command = connection.CreateCommand(query);
 
             command.ExecuteNonQuery();
+        }
+
+        /// <summary>
+        /// Retrieves an API item from the database by its name, including its associated tags.
+        /// </summary>
+        /// <param name="name">The name of the API to retrieve.</param>
+        /// <returns>
+        /// An <see cref="ApiItem"/> object if found; otherwise, <c>null</c>.
+        /// </returns>
+        public static ApiItem GetAPI(string name)
+        {
+            SQLiteCommand command = connection.CreateCommand("SELECT ID AS Id, NAME AS Name, BASE_URL AS BaseUrl, DEFINITION AS Definition FROM APIS WHERE Name = ?", name);
+
+            ApiItem api = command.ExecuteQuery<ApiItem>().FirstOrDefault();
+
+            if (api == null)
+            {
+                return null;
+            }
+
+            api.Tags = GetApiTags(api.Id);
+
+            return api;
         }
 
         /// <summary>

@@ -66,11 +66,10 @@ namespace JeffPires.VisualChatGPTStudio.Agents
             {
                 Properties = new Dictionary<string, Property>
                 {
-                    { nameof(SqlServerConnectionInfo.DataSource), new Property { Type = "string", Description = "DataSource (server) name where the script will be executed." } },
-                    { nameof(SqlServerConnectionInfo.InitialCatalog), new Property { Type = "string", Description = "Database name where the script will be executed." } },
-                    { "query", new Property { Type = "string", Description = "Script to be executed." } }
-                },
-                Required = [nameof(SqlServerConnectionInfo.DataSource), nameof(SqlServerConnectionInfo.InitialCatalog), "query"]
+                    { nameof(SqlServerConnectionInfo.DataSource), new Property { Types = ["string"], Description = "DataSource (server) name where the script will be executed." } },
+                    { nameof(SqlServerConnectionInfo.InitialCatalog), new Property { Types = ["string"], Description = "Database name where the script will be executed." } },
+                    { "query", new Property { Types = ["string"], Description = "Script to be executed." } }
+                }
             };
 
             FunctionRequest functionReader = new()

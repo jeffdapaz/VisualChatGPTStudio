@@ -67,6 +67,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DefaultValue(false)]
         public bool LogSqlServerAgentQueries { get; set; } = false;
 
+        [Category("General")]
+        [DisplayName("Log API Agent Request and Responses")]
+        [Description("If true, all requests and responses made by the API Agent will be logged to the Output window.")]
+        [DefaultValue(false)]
+        public bool LogAPIAgentRequestAndResponses { get; set; } = false;
+
         [Category("Commands")]
         [DisplayName("Use Completion API for Commands")]
         [Description("If true, all requests to completion-code will use alternative 'Completion' model and API. Configure 'Completion Parameters' section before. Not works for Azure API.")]
@@ -278,6 +284,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Description("The command that guide the AI to create SQL Server scripts to be executed according the database template.")]
         [DefaultValue("Based on the database template provided following, generate SQL Server scripts that adhere to the structure of the template and execute then. The scripts should be created according to the specific instructions that may I will provide in requests, and you don't need show the data result in your responses.")]
         public string SqlServerAgentCommand { get; set; } = "Based on the database template provided following, generate SQL Server scripts that adhere to the structure of the template and execute then. The scripts should be created according to the specific instructions that may I will provide in requests, and you don't need show the data result in your responses.";
+
+        [Category("Commands")]
+        [DisplayName("API Agent Command")]
+        [Description("The command that guide the AI to make calls to REST APIs.")]
+        [DefaultValue("Based on the API's definition provided following, make API calls according to the instructions when requested. Do not include the base URL in the endpoints.")]
+        public string APIAgentCommand { get; set; } = "Based on the API's definition provided following, make API calls according to the instructions when requested. Do not include the base URL in the endpoints.";
 
         #endregion Commands
     }

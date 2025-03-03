@@ -39,6 +39,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         ChatGPT,
         ChatGPTCode,
         FunctionCall,
-        DataBaseSchema
+        FunctionRequest
     }
 }

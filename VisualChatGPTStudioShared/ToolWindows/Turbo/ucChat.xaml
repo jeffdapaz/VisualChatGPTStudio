@@ -58,7 +58,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*" MinHeight="65"/>
             <RowDefinition Height="15"/>
-            <RowDefinition Height="Auto" MinHeight="90" x:Name="rowRequest" />
+            <RowDefinition Height="Auto" MinHeight="115" x:Name="rowRequest" />
         </Grid.RowDefinitions>
         <Grid Name="grdChat" Grid.Row="0">
             <Grid.RowDefinitions>
@@ -131,13 +131,45 @@
         <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Background="#FF007ACC" Margin="0,5,0,5" />
         <Grid Name="grdRequest" Grid.Row="2">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="5"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="5"/>
                 <RowDefinition Height="20"/>
             </Grid.RowDefinitions>
+            <StackPanel Name="spImage" Grid.Row="0" Orientation="Horizontal" Visibility="Collapsed">
+                <TextBlock                 
+                    Name="txtImage" 
+                    HorizontalAlignment="Left" 
+                    VerticalAlignment="Center" 
+                    Height="20"
+                    Margin="0,0,10,0"
+                    Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}" />
+                <Button 
+                    Height="10" 
+                    Width="10" 
+                    HorizontalAlignment="Left" 
+                    VerticalAlignment="Center" 
+                    Name="btnDeleteImage" 
+                    Click="btnDeleteImage_Click">
+                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/close.png"/>
+                </Button>
+            </StackPanel>
+            <ComboBox 
+                Grid.Row="0"
+                x:Name="cbConnection"  
+                Visibility="{Binding Visibility, ElementName=grdSQL}"
+                DisplayMemberPath="Description"
+                SelectedValuePath="ConnectionString" />
+            <ComboBox 
+                Grid.Row="0"
+                x:Name="cbAPIs"  
+                Visibility="{Binding Visibility, ElementName=grdAPI}"
+                DisplayMemberPath="Name"
+                SelectedValuePath="Name" />
             <avalonEdit:TextEditor        
                 xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit" BorderBrush="DarkGray" BorderThickness="1"
-                Name="txtRequest" Grid.Row="0" FontSize="14"
+                Name="txtRequest" Grid.Row="2" FontSize="14"
                 HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" ShowLineNumbers="false"                 
                 Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
                 Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}">
@@ -147,116 +179,121 @@
                     </ContextMenu>
                 </avalonEdit:TextEditor.ContextMenu>
             </avalonEdit:TextEditor>
-            <Grid Name="grdCommands" Grid.Row="2">
+            <Grid Name="grdCommands" Grid.Row="4">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="5"/>
-                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="5"/>
+                    <ColumnDefinition Width="15"/>
                     <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="5"/>
+                    <ColumnDefinition Width="15"/>
                     <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="5"/>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="15"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock 
-                    Name="txtImage" 
-                    Grid.Column="0"
-                    HorizontalAlignment="Left" 
-                    VerticalAlignment="Center" 
-                    Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}" />
                 <Button 
-                    Grid.Column="2" 
-                    Height="10" 
-                    Width="10" 
-                    HorizontalAlignment="Left" 
-                    VerticalAlignment="Center" 
-                    Name="btnDeleteImage" 
-                    Visibility="Collapsed" 
-                    Click="btnDeleteImage_Click">
-                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/close.png"/>
+                    Grid.Column="1"
+                    Height="20" 
+                    Width="20" 
+                    x:Name="btnAPI" 
+                    ToolTip="Add context to an API" 
+                    Click="btnAPI_Click" 
+                    Margin="10,0,0,0">
+                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/cloud.png"/>
                 </Button>
                 <Button 
-                    Grid.Column="4"
+                    Grid.Column="3"
                     Height="20" 
                     Width="20" 
                     x:Name="btnSql" 
                     ToolTip="Add context to a database" 
-                    Click="btnSql_Click" 
-                    Margin="10,0,0,0">
+                    Click="btnSql_Click" >
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/DB.png"/>
                 </Button>
                 <Button 
-                    Grid.Column="6"
+                    Grid.Column="5"
                     Height="20" 
                     Width="20" 
                     x:Name="btnAttachImage" 
                     ToolTip="Attach an image" 
-                    Click="btnAttachImage_Click" 
-                    Margin="10,0,0,0">
+                    Click="btnAttachImage_Click">
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/image.png"/>
                 </Button>
                 <Button 
-                    Grid.Column="8"
+                    Grid.Column="7"
                     Width="20" 
                     x:Name="btnRequestCode" 
                     ToolTip="Send Code (Ctrl+Alt+Enter)" 
-                    Click="SendCode" 
-                    Margin="10,0,0,0">
+                    Click="SendCode" >
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/sendCode.png"/>
                 </Button>
                 <Button 
-                    Grid.Column="10"
+                    Grid.Column="9"
                     Width="20" 
                     x:Name="btnRequestSend" 
                     ToolTip="Send (Ctrl+Enter)" 
-                    Click="SendRequest" 
-                    Margin="10,0,0,0">
+                    Click="SendRequest" >
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/send.png"/>
                 </Button>
                 <Button 
-                    Grid.Column="10"
+                    Grid.Column="11"
                     Width="20" 
                     x:Name="btnCancel" 
                     ToolTip="Cancel (Alt+Q)" 
                     Click="CancelRequest" 
                     Visibility="Collapsed" 
-                    IsEnabled="False" 
-                    Margin="10,0,0,0">
+                    IsEnabled="False" >
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/cancel.png"/>
                 </Button>
             </Grid>
-            <Grid Name="grdSQL" Grid.Row="2" Visibility="Collapsed">
+
+            <Grid Name="grdSQL" Grid.Row="4" Visibility="Collapsed">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="5"/>
                     <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="5"/>
+                    <ColumnDefinition Width="15"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <ComboBox 
-                    Grid.Column="0"
-                    x:Name="cbConnection"  
-                    DisplayMemberPath="Description"
-                    SelectedValuePath="ConnectionString" />
                 <Button 
-                    Grid.Column="2"
+                    Grid.Column="1"
                     Width="20" 
                     x:Name="btnSqlCancel" 
                     ToolTip="Cancel" 
-                    Click="btnSqlCancel_Click" 
-                    Margin="10,0,0,0">
+                    Click="btnSqlCancel_Click" >
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/cancel.png"/>
                 </Button>
                 <Button 
-                    Grid.Column="4"
+                    Grid.Column="3"
                     Width="20" 
                     x:Name="btnSqlSend" 
                     ToolTip="Send Context Database to the AI" 
-                    Click="btnSqlSend_Click" 
-                    Margin="10,0,0,0">
+                    Click="btnSqlSend_Click" >
+                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/send.png"/>
+                </Button>
+            </Grid>
+
+            <Grid Name="grdAPI" Grid.Row="4" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Button 
+                    Grid.Column="1"
+                    Width="20" 
+                    x:Name="btnApiCancel" 
+                    ToolTip="Cancel" 
+                    Click="btnApiCancel_Click" >
+                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/cancel.png"/>
+                </Button>
+                <Button 
+                    Grid.Column="3"
+                    Width="20" 
+                    x:Name="btnApiSend" 
+                    ToolTip="Send Context API to the AI" 
+                    Click="btnApiSend_Click" >
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/send.png"/>
                 </Button>
             </Grid>

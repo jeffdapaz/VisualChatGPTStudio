@@ -265,6 +265,9 @@
     <Resource Include="..\Resources\DB.png">
       <Link>Resources\DB.png</Link>
     </Resource>
+    <Resource Include="..\Resources\cloud.png">
+      <Link>Resources\cloud.png</Link>
+    </Resource>
     <Content Include="Icon2019.png">
       <IncludeInVSIX>true</IncludeInVSIX>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

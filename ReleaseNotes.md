@@ -1,5 +1,10 @@
 ﻿## Release Notes 📜
 
+### 5.0.0
+
+- Added the ability to request the AI to call REST APIs on one or more endpoints through the Turbo Chat window.
+- Fixed git-worktree repository detection logic (thanks [Kryeker](https://github.com/Kryeker)).
+
 ### 4.0.0
 
 - Added the ability to request the AI to execute SQL Server scripts on one or more databases through the Turbo Chat window.

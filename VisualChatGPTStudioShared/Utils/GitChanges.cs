@@ -121,7 +121,8 @@ namespace VisualChatGPTStudioShared.Utils
 
             while (directoryInfo?.Parent != null)
             {
-                if (System.IO.Directory.Exists(System.IO.Path.Combine(directoryInfo.FullName, ".git")))
+                string path = System.IO.Path.Combine(directoryInfo.FullName, ".git");
+                if (System.IO.Directory.Exists(path) || System.IO.File.Exists(path))
                 {
                     return directoryInfo.FullName;
                 }

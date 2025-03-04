@@ -467,7 +467,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         private async void btnApiSend_Click(object sender, RoutedEventArgs e)
         {
-            List<FunctionRequest> apiFunctions = ApiAgent.GetRestApiFunctions();
+            List<FunctionRequest> apiFunctions = ApiAgent.GetApiFunctions();
 
             foreach (FunctionRequest function in apiFunctions)
             {
@@ -826,7 +826,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             foreach (FunctionResult function in functions)
             {
-                if (function.Function.Name == "CallRestApi")
+                if (ApiAgent.GetApiFunctions().Select(f => f.Function.Name).Any(f => f.Equals(function.Function.Name, StringComparison.InvariantCultureIgnoreCase)))
                 {
                     functionResult = await ApiAgent.ExecuteFunctionAsync(function, options.LogAPIAgentRequestAndResponses);
                 }

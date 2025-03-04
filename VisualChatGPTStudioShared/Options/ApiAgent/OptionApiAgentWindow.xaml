@@ -104,7 +104,7 @@
             <!-- Definition -->
             <Label Content="Definition:" Grid.Row="8" Grid.Column="0" VerticalAlignment="Top" />
             <TextBox x:Name="txtDefinition" Grid.Row="8" Grid.Column="2" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" />
-            <Image Grid.Row="8" Grid.Column="4" VerticalAlignment="Top" ToolTip="Paste the API's definition (e.g., OpenAPI, Swagger) here. This allows the AI to understand the API's structure and capabilities for making requests." Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/information.png" />
+            <Image Grid.Row="8" Grid.Column="4" VerticalAlignment="Top" ToolTip="Enter the API's definition (e.g., OpenAPI, Swagger, SOAP) here. This allows the AI to understand the API's structure and capabilities for making requests." Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/information.png" />
 
             <Button x:Name="btnInsertApi" Content="Confirm" Grid.Row="10" Grid.Column="2" HorizontalAlignment="Right" Width="150" Click="btnInsertApi_Click" />
 

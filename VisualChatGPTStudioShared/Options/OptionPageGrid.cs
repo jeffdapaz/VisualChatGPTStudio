@@ -287,7 +287,7 @@ namespace JeffPires.VisualChatGPTStudio.Options
 
         [Category("Commands")]
         [DisplayName("API Agent Command")]
-        [Description("The command that guide the AI to make calls to REST APIs.")]
+        [Description("The command that guide the AI to make calls to APIs.")]
         [DefaultValue("Based on the API's definition provided following, make API calls according to the instructions when requested. Do not include the base URL in the endpoints.")]
         public string APIAgentCommand { get; set; } = "Based on the API's definition provided following, make API calls according to the instructions when requested. Do not include the base URL in the endpoints.";
 

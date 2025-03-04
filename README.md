@@ -25,6 +25,7 @@ Watch here some examples:
 - [Automatically create comments for your GIT changes](#5)
 - [Features by `Visual chatGPT Studio Turbo` chat tool window](#6)
 - [SQL Server Agent](#7)
+- [API Service Agent](#7-1)
 - [Commands Shortcuts and File/Method References](#8)
 - [Features by `Visual chatGPT Studio Solution Context` tool window](#9)
 - [Features by `Visual chatGPT Studio Code Review` tool window](#10)
@@ -181,6 +182,44 @@ Follow these steps to make the most of this feature:
 6. **Important considerations**  
    - The **connection string** is never sent to the AI. Only the server name, database name, and schema are shared.  
    - Query data is never sent to the AI, both for data protection reasons and to save token usage. The only exception is when the AI executes a **SCALAR** script (returning only one record and one column). 
+
+<a id="7-1"></a>
+## API Service Agent 🧙‍♂️
+
+An AI-powered agent capable of interacting with most REST and SOAP services. It dynamically processes API structures, enabling seamless communication with various web services while keeping authentication details securely managed by the user.
+
+Follow these steps to make the most of this feature:
+
+1. **Add API definitions**  
+   In the extension options window, add definitions to the desired APIs:
+
+   ![image]()
+
+   - **Identification**: Enter a unique name to identify the API.
+   - **Base URL**: Enter the base URL of the API.
+   - **Key/Values**: Define key-value pairs to be included in API requests, or to replace the key/values defined by the AI. Ideal for inserting authentication/authorization key/values, or to ensure that all calls have a certain key/value.
+   - **Definition**: Enter the API's definition (e.g., OpenAPI, Swagger, SOAP) here. This allows the AI to understand the API's structure and capabilities for making requests.
+
+2. **Access the 'API' icon in Turbo Chat**  
+   In the Turbo Chat window, click on the API icon:
+
+   ![image]()
+
+3. **Select the API definition from the combobox**  
+   Use the combobox to choose which APIs you want the AI to work with. You can add as many APIs as needed:
+
+   ![image]()
+
+4. **Request actions in the chat**  
+   After adding the API(s) to the chat context, make requests for AI to interact with the APIs:
+
+   ![image]()
+
+5. **Important considerations**  
+   - The AI ​​never has knowledge of the keys/values ​​configured through the options, so they are ideal for authentication tokens.
+   - The AI ​​never has knowledge of the Base URL.
+   - However, if for some reason you want the AI ​​to have knowledge of the above data, you will have to inform the AI ​​via requests.
+   - Depending on the type of authentication used in the API, you will have to manually authenticate, and then parameterize the token via options, or inform the authentication data via request.
 
 <a id="8"></a>
 ## Commands Shortcuts and File/Method References ⌨️
@@ -371,7 +410,7 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ### 5.0.0
 
-- Added the ability to request the AI to call REST APIs on one or more endpoints through the Turbo Chat window.
+- Added the ability to request the AI to call REST and SOAP APIs on one or more endpoints through the Turbo Chat window.
 - Fixed git-worktree repository detection logic (thanks [Kryeker](https://github.com/Kryeker)).
 
 ### 4.0.0

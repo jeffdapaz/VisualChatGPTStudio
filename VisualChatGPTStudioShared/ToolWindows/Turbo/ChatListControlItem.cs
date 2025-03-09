@@ -30,6 +30,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             {
                 ImageSource = "pack://application:,,,/VisualChatGPTStudio;component/Resources/chatGPT.png";
             }
+            else if (author == AuthorEnum.ApiResult)
+            {
+                ImageSource = "pack://application:,,,/VisualChatGPTStudio;component/Resources/api.png";
+            }
         }
     }
 
@@ -39,6 +43,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         ChatGPT,
         ChatGPTCode,
         FunctionCall,
-        FunctionRequest
+        FunctionRequest,
+        ApiResult
     }
 }

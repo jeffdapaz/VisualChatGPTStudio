@@ -226,6 +226,7 @@
     <Resource Include="Resources\diffView.png" />
     <Resource Include="Resources\DB.png" />
     <Resource Include="Resources\cloud.png" />
+    <Resource Include="Resources\api.png" />
     <Content Include="Resources\Icon.png">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>

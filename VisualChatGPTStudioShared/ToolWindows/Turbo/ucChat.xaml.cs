@@ -126,6 +126,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 {
                     chat.AppendUserInput(message.Segments[0].Content);
                 }
+                else if (message.Segments[0].Author == AuthorEnum.ApiResult)
+                {
+                    chatListControlItems.Add(new ChatListControlItem(message.Segments[0].Author, segments.ToString()));
+                }
                 else
                 {
                     chatListControlItems.Add(new ChatListControlItem(message.Segments[0].Author, segments.ToString()));
@@ -828,7 +832,17 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             {
                 if (ApiAgent.GetApiFunctions().Select(f => f.Function.Name).Any(f => f.Equals(function.Function.Name, StringComparison.InvariantCultureIgnoreCase)))
                 {
-                    functionResult = await ApiAgent.ExecuteFunctionAsync(function, options.LogAPIAgentRequestAndResponses);
+                    (string, string) apiResponse = await ApiAgent.ExecuteFunctionAsync(function, options.LogAPIAgentRequestAndResponses);
+
+                    functionResult = apiResponse.Item1;
+
+                    if (!string.IsNullOrWhiteSpace(apiResponse.Item2))
+                    {
+                        messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.ApiResult, Content = apiResponse.Item2 }] });
+                        chatListControlItems.Add(new ChatListControlItem(AuthorEnum.ApiResult, apiResponse.Item2));
+                        chatList.Items.Refresh();
+                        scrollViewer.ScrollToEnd();
+                    }
                 }
                 else
                 {

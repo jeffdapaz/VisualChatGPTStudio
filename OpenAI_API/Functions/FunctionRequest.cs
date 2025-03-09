@@ -49,7 +49,7 @@ namespace OpenAI_API.Functions
         /// Setting strict to true will ensure function calls reliably adhere to the function schema, instead of being best effort. We recommend always enabling strict mode.
         /// </summary>
         [JsonProperty("strict")]
-        public bool Strict => true;
+        public bool Strict => false;
     }
 
     /// <summary>

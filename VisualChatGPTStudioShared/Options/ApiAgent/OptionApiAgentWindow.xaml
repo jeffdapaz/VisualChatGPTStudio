@@ -62,6 +62,17 @@
             <TextBox x:Name="txtBaseUrl" Grid.Row="2" Grid.Column="2" FontSize="16" MaxLength="255"/>
             <Image Grid.Row="2" Grid.Column="4" VerticalAlignment="Center" ToolTip="Enter the base URL of the API." Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/information.png" />
 
+            <!-- SEND RESPONSES TO AI -->
+            <Label Content="Send Responses to AI:" Grid.Row="4" Grid.Column="0" />
+            <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Left">
+                <CheckBox Name="chkSendReponsesToAI" Margin="0,0,10,0">
+                    <CheckBox.LayoutTransform>
+                        <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
+                    </CheckBox.LayoutTransform>
+                </CheckBox>
+                <Image ToolTip="If checked, all API responses will be forwarded to the AI so it can process and retain them in its context. Otherwise, the AI will only receive the HTTP status, and the responses will be displayed directly in the chat. This option is ideal if you want to protect data and save tokens." Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/information.png" />
+            </StackPanel>            
+            
             <!-- TAGs -->
             <Button x:Name="btnInsertTag" Content="Insert a Key/Value" Click="btnInsertTag_Click"  Grid.Row="4" Grid.Column="2" HorizontalAlignment="Right" Width="150" />
             <Label Content="Key/Values:" Grid.Row="6" Grid.Column="0" VerticalAlignment="Top" />

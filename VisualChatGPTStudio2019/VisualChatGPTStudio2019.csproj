@@ -181,6 +181,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Resource Include="..\Resources\api.png">
+      <Link>Resources\api.png</Link>
+    </Resource>
     <Content Include="..\Resources\cancelCommand.png">
       <Link>Resources\cancelCommand.png</Link>
     </Content>

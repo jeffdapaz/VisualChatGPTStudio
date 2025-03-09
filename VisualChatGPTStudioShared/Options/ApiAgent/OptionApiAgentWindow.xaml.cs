@@ -128,6 +128,7 @@ namespace JeffPires.VisualChatGPTStudio.Options.ApiAgent
                 Name = txtIdentification.Text.Trim(),
                 BaseUrl = txtBaseUrl.Text.Trim(),
                 Tags = Tags.ToList(),
+                SendResponsesToAI = chkSendReponsesToAI.IsChecked.Value,
                 Definition = txtDefinition.Text.Trim()
             };
 
@@ -139,6 +140,7 @@ namespace JeffPires.VisualChatGPTStudio.Options.ApiAgent
             txtIdentification.Clear();
             txtBaseUrl.Clear();
             txtDefinition.Clear();
+            chkSendReponsesToAI.IsChecked = false;
             Tags.Clear();
         }
 
@@ -153,6 +155,7 @@ namespace JeffPires.VisualChatGPTStudio.Options.ApiAgent
                 apiIdOnEdit = selectedApi.Id;
                 txtIdentification.Text = selectedApi.Name;
                 txtBaseUrl.Text = selectedApi.BaseUrl;
+                chkSendReponsesToAI.IsChecked = selectedApi.SendResponsesToAI;
                 txtDefinition.Text = selectedApi.Definition;
                 Tags.Clear();
 

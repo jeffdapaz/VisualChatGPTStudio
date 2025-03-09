@@ -49,10 +49,11 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
         {
             string query = @"CREATE TABLE IF NOT EXISTS APIS
                             (
-                                ID         VARCHAR(50)  PRIMARY KEY UNIQUE NOT NULL,
-                                NAME       VARCHAR(255) NOT NULL,
-                                BASE_URL   VARCHAR(255) NOT NULL,
-                                DEFINITION TEXT         NOT NULL                                       
+                                ID                   VARCHAR(50)  PRIMARY KEY UNIQUE NOT NULL,
+                                NAME                 VARCHAR(255) NOT NULL,
+                                BASE_URL             VARCHAR(255) NOT NULL,
+                                SEND_RESPONSES_TO_AI INTEGER      NOT NULL,
+                                DEFINITION           TEXT         NOT NULL                                       
                             );";
 
             SQLiteCommand command = connection.CreateCommand(query);
@@ -88,7 +89,14 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
         /// </returns>
         public static ApiItem GetAPI(string name)
         {
-            SQLiteCommand command = connection.CreateCommand("SELECT ID AS Id, NAME AS Name, BASE_URL AS BaseUrl, DEFINITION AS Definition FROM APIS WHERE Name = ?", name);
+            SQLiteCommand command = connection.CreateCommand(@"SELECT 
+                                                                    ID                   AS Id, 
+                                                                    NAME                 AS Name, 
+                                                                    BASE_URL             AS BaseUrl, 
+                                                                    SEND_RESPONSES_TO_AI AS SendResponsesToAI,
+                                                                    DEFINITION           AS Definition 
+                                                               FROM APIS 
+                                                               WHERE Name = ?", name);
 
             ApiItem api = command.ExecuteQuery<ApiItem>().FirstOrDefault();
 
@@ -110,7 +118,13 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
         /// </returns>
         public static List<ApiItem> GetAPIs()
         {
-            SQLiteCommand command = connection.CreateCommand("SELECT ID AS Id, NAME AS Name, BASE_URL AS BaseUrl, DEFINITION AS Definition FROM APIS");
+            SQLiteCommand command = connection.CreateCommand(@"SELECT 
+                                                                    ID                   AS Id, 
+                                                                    NAME                 AS Name, 
+                                                                    BASE_URL             AS BaseUrl, 
+                                                                    SEND_RESPONSES_TO_AI AS SendResponsesToAI, 
+                                                                    DEFINITION           AS Definition 
+                                                               FROM APIS");
 
             List<ApiItem> result = command.ExecuteQuery<ApiItem>();
 
@@ -172,7 +186,9 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
         {
             string apiId = Guid.NewGuid().ToString();
 
-            SQLiteCommand command = connection.CreateCommand("INSERT INTO APIS (ID, NAME, BASE_URL, DEFINITION) VALUES (?, ?, ?, ?)", apiId, api.Name, api.BaseUrl, api.Definition);
+            SQLiteCommand command = connection.CreateCommand(@"INSERT INTO APIS (ID, NAME, BASE_URL, SEND_RESPONSES_TO_AI, DEFINITION) 
+                                                               VALUES (?, ?, ?, ?, ?)",
+                                                               apiId, api.Name, api.BaseUrl, api.SendResponsesToAI, api.Definition);
 
             command.ExecuteNonQuery();
 
@@ -214,7 +230,8 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
         /// </summary>
         public static void UpdateApi(ApiItem api)
         {
-            SQLiteCommand command = connection.CreateCommand("UPDATE APIS SET NAME = ?, BASE_URL = ?, DEFINITION = ? WHERE ID = ?", api.Name, api.BaseUrl, api.Definition, api.Id);
+            SQLiteCommand command = connection.CreateCommand("UPDATE APIS SET NAME = ?, BASE_URL = ?, SEND_RESPONSES_TO_AI = ?, DEFINITION = ? WHERE ID = ?",
+                                                              api.Name, api.BaseUrl, api.SendResponsesToAI, api.Definition, api.Id);
 
             command.ExecuteNonQuery();
 

@@ -198,6 +198,7 @@ Follow these steps to make the most of this feature:
    - **Identification**: Enter a unique name to identify the API.
    - **Base URL**: Enter the base URL of the API.
    - **Key/Values**: Define key-value pairs to be included in API requests, or to replace the key/values defined by the AI. Ideal for inserting authentication/authorization key/values, or to ensure that all calls have a certain key/value.
+   - **Send Responses to AI**: If checked, all API responses will be forwarded to the AI so it can process and retain them in its context. Otherwise, the AI will only receive the HTTP status, and the responses will be displayed directly in the chat. This option is ideal if you want to protect data and save tokens.
    - **Definition**: Enter the API's definition (e.g., OpenAPI, Swagger, SOAP) here. This allows the AI to understand the API's structure and capabilities for making requests.
 
 2. **Access the 'API' icon in Turbo Chat**  
@@ -212,6 +213,10 @@ Follow these steps to make the most of this feature:
 
 4. **Request actions in the chat**  
    After adding the API(s) to the chat context, make requests for AI to interact with the APIs:
+
+   ![image]()
+
+   Or if you prefer that the AI only receives the status code from the APIs, without the actual responses (after disabled the "Send Responses to AI" parameter):
 
    ![image]()
 

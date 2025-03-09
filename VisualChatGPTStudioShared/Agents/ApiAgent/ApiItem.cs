@@ -23,6 +23,11 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
         public string BaseUrl { get; set; }
 
         /// <summary>
+        /// If true, all responses will be send to AI, when false, only HTTP status will be send.
+        /// </summary>
+        public bool SendResponsesToAI { get; set; }
+
+        /// <summary>
         /// Gets or sets the collection of API tag items.
         /// </summary>
         public List<ApiTagItem> Tags { get; set; }

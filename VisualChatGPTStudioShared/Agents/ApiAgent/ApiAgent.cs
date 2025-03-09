@@ -2,12 +2,17 @@
 using OpenAI_API.Functions;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Linq;
 using VisualChatGPTStudioShared.Utils.Http;
 using VisualChatGPTStudioShared.Utils.Repositories;
+using Parameter = OpenAI_API.Functions.Parameter;
 
 namespace VisualChatGPTStudioShared.Agents.ApiAgent
 {
@@ -92,12 +97,12 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
         }
 
         /// <summary>
-        /// Executes the function based on the arguments provided by the AI.
+        /// Executes an asynchronous function call to an API, handling both SOAP and REST requests based on the provided function parameters.
         /// </summary>
-        /// <param name="function">The <see cref="FunctionResult"/> object with the function arguments.</param>
-        /// <param name="logRequestAndResponse">Indicate whether the request and response should be logged.</param>
-        /// <returns>The response returned by the API or exception details in case of an error.</returns>
-        public static async Task<string> ExecuteFunctionAsync(FunctionResult function, bool logRequestAndResponse)
+        /// <param name="function">The function result containing the API call details.</param>
+        /// <param name="logRequestAndResponse">A boolean indicating whether to log the request and response.</param>
+        /// <returns>A tuple where the first value refers to the response to be sent to the AI, and the second value refers to the API response to be displayed in the chat, when applicable.</returns>
+        public static async Task<(string, string)> ExecuteFunctionAsync(FunctionResult function, bool logRequestAndResponse)
         {
             try
             {
@@ -109,7 +114,7 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
 
                 if (apiDefinition == null)
                 {
-                    return $"API with name {apiName} was not found.";
+                    return ($"API with name {apiName} was not found.", null);
                 }
 
                 string endPoint = arguments[nameof(endPoint)]?.Value<string>();
@@ -129,41 +134,59 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
                     }
                 }
 
+                HttpStatusCode responseStatusCode;
+                string responseContent;
+
                 if (function.Function.Name == nameof(CallSoapApiAsync))
                 {
                     string soapAction = arguments["soapAction"]?.Value<string>();
                     string soapEnvelope = arguments["soapEnvelope"]?.Value<string>();
 
-                    return await CallSoapApiAsync(apiDefinition, endPoint, soapAction, headers, soapEnvelope, logRequestAndResponse);
+                    HttpResponseMessage response = await CallSoapApiAsync(apiDefinition, endPoint, soapAction, headers, soapEnvelope, logRequestAndResponse);
+
+                    responseStatusCode = response.StatusCode;
+                    responseContent = FormatXml(await response.Content.ReadAsStringAsync());
                 }
-
-                string method = arguments[nameof(method)]?.Value<string>();
-
-                // Optional query parameters
-                Dictionary<string, string> queryParams = arguments[nameof(queryParams)]?.ToObject<Dictionary<string, string>>() ?? [];
-
-                // Request body (for POST, PUT, PATCH, etc.)
-                string body = arguments[nameof(body)]?.Value<string>();
-
-                foreach (ApiTagItem tag in apiDefinition.Tags.Where(t => t.Type == ApiTagType.QueryString))
+                else
                 {
-                    if (queryParams.ContainsKey(tag.Key))
+                    string method = arguments[nameof(method)]?.Value<string>();
+
+                    // Optional query parameters
+                    Dictionary<string, string> queryParams = arguments[nameof(queryParams)]?.ToObject<Dictionary<string, string>>() ?? [];
+
+                    // Request body (for POST, PUT, PATCH, etc.)
+                    string body = arguments[nameof(body)]?.Value<string>();
+
+                    foreach (ApiTagItem tag in apiDefinition.Tags.Where(t => t.Type == ApiTagType.QueryString))
                     {
-                        queryParams[tag.Key] = tag.Value;
+                        if (queryParams.ContainsKey(tag.Key))
+                        {
+                            queryParams[tag.Key] = tag.Value;
+                        }
+                        else
+                        {
+                            queryParams.Add(tag.Key, tag.Value);
+                        }
                     }
-                    else
-                    {
-                        queryParams.Add(tag.Key, tag.Value);
-                    }
+
+                    HttpResponseMessage response = await CallRestApiAsync(apiDefinition, endPoint, method, headers, queryParams, body, logRequestAndResponse);
+
+                    responseStatusCode = response.StatusCode;
+                    responseContent = FormatJson(await response.Content.ReadAsStringAsync());
                 }
 
-                return await CallRestApiAsync(apiDefinition, endPoint, method, headers, queryParams, body, logRequestAndResponse);
+                if (apiDefinition.SendResponsesToAI)
+                {
+                    return ($"Response Status Code: {responseStatusCode}{Environment.NewLine}{responseContent}", null);
+                }
+
+                return ($"Response Status Code: {responseStatusCode}", responseContent);
             }
             catch (Exception ex)
             {
                 Logger.Log(ex);
 
-                return ex.Message;
+                return (ex.Message, null);
             }
         }
 
@@ -180,17 +203,17 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
         /// <param name="headers">Optional headers.</param>
         /// <param name="soapEnvelope">SOAP envelope in XML format.</param>
         /// <param name="logRequestAndResponse">Indicate whether the request and response should be logged..</param>
-        /// <returns>Response content from the SOAP service as a string.</returns>
-        private static async Task<string> CallSoapApiAsync(ApiItem apiDefinition,
-                                                           string endPoint,
-                                                           string soapAction,
-                                                           Dictionary<string, string> headers,
-                                                           string soapEnvelope,
-                                                           bool logRequestAndResponse)
+        /// <returns>The API response.</returns>
+        private static async Task<HttpResponseMessage> CallSoapApiAsync(ApiItem apiDefinition,
+                                                                        string endPoint,
+                                                                        string soapAction,
+                                                                        Dictionary<string, string> headers,
+                                                                        string soapEnvelope,
+                                                                        bool logRequestAndResponse)
         {
             using (HttpClient client = new())
             {
-                HttpRequestMessage request = new(HttpMethod.Post, apiDefinition.BaseUrl + endPoint)
+                HttpRequestMessage request = new(HttpMethod.Post, apiDefinition.BaseUrl.TrimEnd('/') + endPoint)
                 {
                     Content = new StringContent(soapEnvelope, Encoding.UTF8, "text/xml")
                 };
@@ -222,7 +245,7 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
                     await HttpLogs.LogResponseAsync(response);
                 }
 
-                return await response.Content.ReadAsStringAsync();
+                return response;
             }
         }
 
@@ -236,14 +259,14 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
         /// <param name="queryParams">Optional query parameters.</param>
         /// <param name="body">Request body (when applicable).</param>
         /// <param name="logRequestAndResponse">Indicate whether the request and response should be logged..</param>
-        /// <returns>Response content from the API as a string.</returns>
-        private static async Task<string> CallRestApiAsync(ApiItem apiDefinition,
-                                                           string endPoint,
-                                                           string method,
-                                                           Dictionary<string, string> headers,
-                                                           Dictionary<string, string> queryParams,
-                                                           string body,
-                                                           bool logRequestAndResponse)
+        /// <returns>The API response.</returns>
+        private static async Task<HttpResponseMessage> CallRestApiAsync(ApiItem apiDefinition,
+                                                                        string endPoint,
+                                                                        string method,
+                                                                        Dictionary<string, string> headers,
+                                                                        Dictionary<string, string> queryParams,
+                                                                        string body,
+                                                                        bool logRequestAndResponse)
         {
             using (HttpClient client = new())
             {
@@ -255,7 +278,7 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
                     endPoint += (endPoint.Contains("?") ? "&" : "?") + queryString;
                 }
 
-                HttpRequestMessage request = new(new HttpMethod(method), apiDefinition.BaseUrl + endPoint);
+                HttpRequestMessage request = new(new HttpMethod(method), apiDefinition.BaseUrl.TrimEnd('/') + endPoint);
 
                 // Add headers, if provided
                 if (headers != null)
@@ -285,7 +308,67 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
                     await HttpLogs.LogResponseAsync(response);
                 }
 
-                return await response.Content.ReadAsStringAsync();
+                return response;
+            }
+        }
+
+        /// <summary>
+        /// Formats the provided XML string with indentation and wraps it in code block syntax for display.
+        /// </summary>
+        /// <param name="xml">The XML string to be formatted.</param>
+        /// <returns>A formatted XML string wrapped in code block syntax.</returns>
+        private static string FormatXml(string xml)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(xml))
+                {
+                    return null;
+                }
+
+                StringBuilder stringBuilder = new();
+
+                XDocument xmlDoc = XDocument.Parse(xml);
+
+                using (StringWriter stringWriter = new(stringBuilder))
+                {
+                    using (XmlWriter xmlWriter = XmlWriter.Create(stringWriter, new XmlWriterSettings { Indent = true }))
+                    {
+                        xmlDoc.WriteTo(xmlWriter);
+                    }
+                }
+
+                return string.Concat("```xml", Environment.NewLine, stringBuilder.ToString(), Environment.NewLine, "```");
+            }
+            catch (Exception)
+            {
+                return xml;
+            }
+        }
+
+        /// <summary>
+        /// Formats a JSON string by parsing it and returning a prettified version enclosed in markdown code block syntax for JSON.
+        /// </summary>
+        /// <param name="json">The JSON string to be formatted.</param>
+        /// <returns>
+        /// A string containing the formatted JSON wrapped in markdown code block syntax.
+        /// </returns>
+        private static string FormatJson(string json)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(json))
+                {
+                    return null;
+                }
+
+                JToken parsedJson = JToken.Parse(json);
+
+                return string.Concat("```json", Environment.NewLine, parsedJson.ToString(Newtonsoft.Json.Formatting.Indented), Environment.NewLine, "```");
+            }
+            catch (Exception)
+            {
+                return json;
             }
         }
 

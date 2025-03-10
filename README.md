@@ -420,7 +420,8 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 - Added the ability to request the AI to call REST and SOAP APIs on one or more endpoints through the Turbo Chat window.
 - Fixed git-worktree repository detection logic (thanks [Kryeker](https://github.com/Kryeker)).
-- Added the new 'Azure URL Override' parameter on options.
+- Added the new 'Azure URL Override' parameter on options, to manually define the Azure OpenAI connection URL instead of using 'Resource Name', 'Deployment Name', and 'API Version'. This is useful for custom endpoints.
+- Added the new 'Completion Base API URL Override' parameter on options, to possibility change the Completion API connection URL if you wish to do so for some reason, for example use a custom LLM deployment specific only for the Completions.
 
 ### 4.0.0
 

@@ -119,6 +119,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         #region Completion Parameters
 
         [Category("Completion Parameters")]
+        [DisplayName("Completion Base API URL Override")]
+        [Description("Change the Completion API connection URL if you wish to do so for some reason, for example use a custom LLM deployment specific only for the Completions. Example: https://myurl.openai.com")]
+        [DefaultValue("")]
+        public string CompletionBaseAPI { get; set; } = string.Empty;
+
+        [Category("Completion Parameters")]
         [DisplayName("Completion Model Language Override")]
         [Description("Specify a custom model name for Completion requests. Overrides 'OpenAI. Model Language' if not empty.")]
         [DefaultValue("")]

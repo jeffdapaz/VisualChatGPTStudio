@@ -181,6 +181,11 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         {
             CreateOpenAIApiHandler(options);
 
+            if (!string.IsNullOrWhiteSpace(options.CompletionBaseAPI))
+            {
+                openAiAPI.ApiUrlFormat = options.CompletionBaseAPI + "/{0}/{1}";
+            }
+
             ICompletionEndpoint chat = openAiAPI.Completions;
 
             chat.DefaultCompletionRequestArgs.MaxTokens = options.CompletionMaxTokens ?? options.MaxTokens;

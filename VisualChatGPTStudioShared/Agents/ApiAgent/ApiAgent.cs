@@ -24,6 +24,14 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
         #region Public Methods
 
         /// <summary>
+        /// Static constructor for the ApiAgent class. Initializes the class by creating the database through the ApiAgentRepository.
+        /// </summary>
+        static ApiAgent()
+        {
+            ApiAgentRepository.CreateDataBase();
+        }
+
+        /// <summary>
         /// Retrieves a list of API definitions, ordered by their names.
         /// </summary>
         /// <returns>
@@ -31,8 +39,6 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
         /// </returns>
         public static List<ApiItem> GetAPIsDefinitions()
         {
-            ApiAgentRepository.CreateDataBase();
-
             return ApiAgentRepository.GetAPIs().OrderBy(x => x.Name).ToList();
         }
 

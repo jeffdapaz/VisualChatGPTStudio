@@ -119,6 +119,11 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
 
                 string endPoint = arguments[nameof(endPoint)]?.Value<string>();
 
+                if (!endPoint.StartsWith("/"))
+                {
+                    endPoint = "/" + endPoint;
+                }
+
                 // Optional headers
                 Dictionary<string, string> headers = arguments[nameof(headers)]?.ToObject<Dictionary<string, string>>() ?? [];
 
@@ -178,6 +183,11 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
                 if (apiDefinition.SendResponsesToAI)
                 {
                     return ($"Response Status Code: {responseStatusCode}{Environment.NewLine}{responseContent}", null);
+                }
+
+                if (responseStatusCode != HttpStatusCode.OK)
+                {
+                    responseContent = null;
                 }
 
                 return ($"Response Status Code: {responseStatusCode}", responseContent);

@@ -16,13 +16,16 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         private const string CODE_DIVIDER = "```";
 
         /// <summary>
-        /// Removes all whitespace and break lines from a given string.
+        /// Minifies the given text by replacing multiple whitespace characters with a specified replacement string.
         /// </summary>
-        /// <param name="textToMinify">The string to minify.</param>
-        /// <returns>A minified version of the given string.</returns>
-        public static string MinifyText(string textToMinify)
+        /// <param name="textToMinify">The input text that needs to be minified.</param>
+        /// <param name="replacement">The string to replace the whitespace characters with.</param>
+        /// <returns>
+        /// A minified version of the input text with whitespace replaced by the specified replacement string.
+        /// </returns>
+        public static string MinifyText(string textToMinify, string replacement)
         {
-            return Regex.Replace(textToMinify, @"\s+", " ");
+            return Regex.Replace(textToMinify, @"\s+", replacement);
         }
 
         /// <summary>

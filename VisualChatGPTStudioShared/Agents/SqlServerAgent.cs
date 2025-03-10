@@ -31,25 +31,26 @@ namespace JeffPires.VisualChatGPTStudio.Agents
             IVsDataExplorerConnectionManager connectionManager = Package.GetGlobalService(typeof(IVsDataExplorerConnectionManager)) as IVsDataExplorerConnectionManager;
 
             return connectionManager.Connections
-            .Where(kvp => kvp.Value.Provider == new Guid(SQL_SERVER_PROVIDER))
-            .Select(kvp => kvp.Value.Connection.DisplayConnectionString)
-            .Where(connectionString =>
-            {
-                return !string.IsNullOrWhiteSpace(GetSqlConnectionStringBuilder(connectionString)?.InitialCatalog);
-            })
-            .Select(connectionString =>
-            {
-                SqlConnectionStringBuilder builder = GetSqlConnectionStringBuilder(connectionString);
-
-                return new SqlServerConnectionInfo
+                .Where(kvp => kvp.Value.Provider == new Guid(SQL_SERVER_PROVIDER))
+                .Select(kvp => kvp.Value.Connection.DisplayConnectionString)
+                .Where(connectionString =>
                 {
-                    DataSource = builder.DataSource,
-                    InitialCatalog = builder.InitialCatalog,
-                    Description = $"{builder.DataSource}: {builder.InitialCatalog}",
-                    ConnectionString = builder.ConnectionString
-                };
-            })
-            .ToList();
+                    return !string.IsNullOrWhiteSpace(GetSqlConnectionStringBuilder(connectionString)?.InitialCatalog);
+                })
+                .Select(connectionString =>
+                {
+                    SqlConnectionStringBuilder builder = GetSqlConnectionStringBuilder(connectionString);
+
+                    return new SqlServerConnectionInfo
+                    {
+                        DataSource = builder.DataSource,
+                        InitialCatalog = builder.InitialCatalog,
+                        Description = $"{builder.DataSource}: {builder.InitialCatalog}",
+                        ConnectionString = builder.ConnectionString
+                    };
+                })
+                .OrderBy(c => c.Description)
+                .ToList();
         }
 
         /// <summary>

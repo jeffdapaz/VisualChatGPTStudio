@@ -39,7 +39,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
             if (options.MinifyRequests)
             {
-                userInput = TextFormat.MinifyText(userInput);
+                userInput = TextFormat.MinifyText(userInput, " ");
             }
 
             userInput = TextFormat.RemoveCharactersFromText(userInput, options.CharactersToRemoveFromRequests.Split(','));
@@ -226,7 +226,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
             if (options.MinifyRequests)
             {
-                userInput = TextFormat.MinifyText(userInput);
+                userInput = TextFormat.MinifyText(userInput, " ");
             }
 
             userInput = TextFormat.RemoveCharactersFromText(userInput, options.CharactersToRemoveFromRequests.Split(','));

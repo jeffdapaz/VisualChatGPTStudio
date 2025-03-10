@@ -225,6 +225,7 @@ Follow these steps to make the most of this feature:
    - The AI ​​never has knowledge of the Base URL.
    - However, if for some reason you want the AI ​​to have knowledge of the above data, you will have to inform the AI ​​via requests.
    - Depending on the type of authentication used in the API, you will have to manually authenticate, and then parameterize the token via options, or inform the authentication data via request.
+   - In my tests, I noticed that the AI may have difficulties dealing with complex APIs and/or complex endpoints. For these cases, I suggest trying to understand the API's difficulties through the logs in the Output Window and attempting to guide it through requests. In general, the API agent may not be suitable for complex cases.
 
 <a id="8"></a>
 ## Commands Shortcuts and File/Method References ⌨️

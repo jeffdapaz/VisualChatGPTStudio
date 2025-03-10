@@ -67,6 +67,8 @@ namespace JeffPires.VisualChatGPTStudio.Options.ApiAgent
         private void btnInsertTag_Click(object sender, RoutedEventArgs e)
         {
             Tags.Add(new ApiTagItem { Key = string.Empty, Value = string.Empty, Type = ApiTagType.Header });
+
+            grdTags.ScrollIntoView(grdTags.Items[grdTags.Items.Count - 1]);
         }
 
         /// <summary>

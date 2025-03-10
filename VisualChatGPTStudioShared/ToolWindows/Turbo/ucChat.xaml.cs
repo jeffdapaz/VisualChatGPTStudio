@@ -481,7 +481,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             ApiItem apiDefinition = (ApiItem)cbAPIs.SelectedItem;
 
-            string request = string.Concat(options.APIAgentCommand, Environment.NewLine, "API Name: ", apiDefinition.Name, Environment.NewLine, apiDefinition.Definition);
+            string request = string.Concat(options.APIAgentCommand, Environment.NewLine, "API Name: ", apiDefinition.Name, Environment.NewLine, TextFormat.MinifyText(apiDefinition.Definition, string.Empty));
 
             string requestToShowOnList = "###" + apiDefinition.Name + Environment.NewLine + Environment.NewLine + Environment.NewLine + options.APIAgentCommand;
 
@@ -559,7 +559,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 if (options.MinifyRequests)
                 {
-                    originalCode = TextFormat.MinifyText(originalCode);
+                    originalCode = TextFormat.MinifyText(originalCode, " ");
                 }
 
                 originalCode = TextFormat.RemoveCharactersFromText(originalCode, options.CharactersToRemoveFromRequests.Split(','));
@@ -596,7 +596,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             {
                 chatListControlItems.Add(new ChatListControlItem(AuthorEnum.Me, requestToShowOnList));
 
-                request = options.MinifyRequests ? TextFormat.MinifyText(request) : request;
+                request = options.MinifyRequests ? TextFormat.MinifyText(request, " ") : request;
 
                 request = TextFormat.RemoveCharactersFromText(request, options.CharactersToRemoveFromRequests.Split(','));
 

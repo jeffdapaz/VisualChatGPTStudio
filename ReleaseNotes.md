@@ -4,6 +4,7 @@
 
 - Added the ability to request the AI to call REST and SOAP APIs on one or more endpoints through the Turbo Chat window.
 - Fixed git-worktree repository detection logic (thanks [Kryeker](https://github.com/Kryeker)).
+- Added the new 'Azure URL Override' parameter on options.
 
 ### 4.0.0
 

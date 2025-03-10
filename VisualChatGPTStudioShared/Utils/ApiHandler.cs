@@ -356,11 +356,23 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                     chatGPTHttpClient.SetProxy(options.Proxy);
                 }
 
-                azureAPI = OpenAIAPI.ForAzure(options.AzureResourceName, options.AzureDeploymentId, options.ApiKey);
+                if (!string.IsNullOrWhiteSpace(options.AzureUrlOverride))
+                {
+                    azureAPI = OpenAIAPI.ForAzure(options.AzureUrlOverride, options.ApiKey);
+                }
+                else
+                {
+                    azureAPI = OpenAIAPI.ForAzure(options.AzureResourceName, options.AzureDeploymentId, options.ApiKey);
+                }
 
                 azureAPI.HttpClientFactory = chatGPTHttpClient;
             }
-            else if ((chatGPTHttpClient.Proxy ?? string.Empty) != (options.Proxy ?? string.Empty) || !azureAPI.ApiUrlFormat.Contains(options.AzureResourceName) || !azureAPI.ApiUrlFormat.Contains(options.AzureDeploymentId))
+            else if ((chatGPTHttpClient.Proxy ?? string.Empty) != (options.Proxy ?? string.Empty) ||
+                    (string.IsNullOrWhiteSpace(options.AzureUrlOverride) &&
+                    (
+                        !azureAPI.ApiUrlFormat.ToLower().Contains(options.AzureResourceName.ToLower()) ||
+                        !azureAPI.ApiUrlFormat.ToLower().Contains(options.AzureDeploymentId.ToLower()))
+                    ))
             {
                 azureAPI = null;
                 CreateAzureApiHandler(options);
@@ -371,9 +383,19 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                 azureAPI.Auth.ApiKey = options.ApiKey;
             }
 
-            if ((azureAPI.ApiVersion ?? string.Empty) != (options.AzureApiVersion ?? string.Empty))
+            if (!string.IsNullOrWhiteSpace(options.AzureUrlOverride))
             {
-                azureAPI.ApiVersion = options.AzureApiVersion;
+                if (azureAPI.ApiUrlFormat != options.AzureUrlOverride)
+                {
+                    azureAPI.ApiUrlFormat = options.AzureUrlOverride;
+                }
+            }
+            else
+            {
+                if ((azureAPI.ApiVersion ?? string.Empty) != (options.AzureApiVersion ?? string.Empty))
+                {
+                    azureAPI.ApiVersion = options.AzureApiVersion;
+                }
             }
         }
 

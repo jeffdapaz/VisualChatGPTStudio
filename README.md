@@ -328,6 +328,8 @@ To use this tool it is necessary to connect through the OpenAI API, Azure OpenAI
 
 5 - Set the Azure OpenAI API version. You can check the available versions [here](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#completions).
 
+6 - Optional: Instead of allowing the extension to automatically build the connection URL to Azure OpenAI from the parameters 'Resource Name', 'Deployment Name', and 'API Version', manually define the connection URL through the 'Azure URL Override' parameter, which is ideal for cases where the endpoint for Azure OpenAI is custom for some reason. When a value is set for this parameter, the other parameters ('Resource Name', 'Deployment Name', 'API Version') will be ignored.
+
 <a id="12-3"></a>
 ### By Azure (Entra ID Authentication)
 
@@ -417,6 +419,7 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 - Added the ability to request the AI to call REST and SOAP APIs on one or more endpoints through the Turbo Chat window.
 - Fixed git-worktree repository detection logic (thanks [Kryeker](https://github.com/Kryeker)).
+- Added the new 'Azure URL Override' parameter on options.
 
 ### 4.0.0
 

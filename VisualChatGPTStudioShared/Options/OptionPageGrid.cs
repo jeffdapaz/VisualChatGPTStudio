@@ -171,6 +171,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DefaultValue("2023-05-15")]
         public string AzureApiVersion { get; set; } = "2023-05-15";
 
+        [Category("Azure")]
+        [DisplayName("Azure URL Override")]
+        [Description("Manually define the Azure OpenAI connection URL instead of using 'Resource Name', 'Deployment Name', and 'API Version'. This is useful for custom endpoints. When this parameter is set, the other parameters will be ignored.")]
+        [DefaultValue("")]
+        public string AzureUrlOverride { get; set; } = "";
+
         #endregion Azure
 
         #region Azure Entra ID

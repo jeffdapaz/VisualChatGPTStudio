@@ -193,7 +193,7 @@ Follow these steps to make the most of this feature:
 1. **Add API definitions**  
    In the extension options window, add definitions to the desired APIs:
 
-   ![image]()
+   ![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio/5.0.0/1741729906077/image__12.png)
 
    - **Identification**: Enter a unique name to identify the API.
    - **Base URL**: Enter the base URL of the API.
@@ -204,21 +204,21 @@ Follow these steps to make the most of this feature:
 2. **Access the 'API' icon in Turbo Chat**  
    In the Turbo Chat window, click on the API icon:
 
-   ![image]()
+   ![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio/5.0.0/1741729906077/image__13.png)
 
 3. **Select the API definition from the combobox**  
    Use the combobox to choose which APIs you want the AI to work with. You can add as many APIs as needed:
 
-   ![image]()
+   ![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio/5.0.0/1741729906077/image__15.png)
 
 4. **Request actions in the chat**  
    After adding the API(s) to the chat context, make requests for AI to interact with the APIs:
 
-   ![image]()
+   ![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio/5.0.0/1741729906077/image__16.png)
 
    Or if you prefer that the AI only receives the status code from the APIs, without the actual responses (after disabled the "Send Responses to AI" parameter):
 
-   ![image]()
+   ![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio/5.0.0/1741729906077/image__17.png)
 
 5. **Important considerations**  
    - The AI ​​never has knowledge of the keys/values ​​configured through the options, so they are ideal for authentication tokens.

@@ -160,14 +160,13 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
             chat.AppendSystemMessage(systemMessage);
 
+            chat.Model = options.Model;
             chat.AutoTruncateOnContextLengthExceeded = true;
             chat.RequestParameters.Temperature = options.Temperature;
             chat.RequestParameters.MaxTokens = options.MaxTokens;
             chat.RequestParameters.TopP = options.TopP;
             chat.RequestParameters.FrequencyPenalty = options.FrequencyPenalty;
             chat.RequestParameters.PresencePenalty = options.PresencePenalty;
-
-            chat.Model = string.IsNullOrWhiteSpace(options.CustomModel) ? options.Model.GetStringValue() : options.CustomModel;
 
             return chat;
         }
@@ -198,13 +197,9 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             {
                 chat.DefaultCompletionRequestArgs.Model = options.CompletionCustomModel;
             }
-            else if (!string.IsNullOrWhiteSpace(options.CustomModel))
-            {
-                chat.DefaultCompletionRequestArgs.Model = options.CustomModel;
-            }
             else
             {
-                chat.DefaultCompletionRequestArgs.Model = options.Model.GetStringValue();
+                chat.DefaultCompletionRequestArgs.Model = options.Model;
             }
 
             return chat;
@@ -423,31 +418,6 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         }
 
         #endregion Private Methods
-    }
-
-    /// <summary>
-    /// Enum containing the different types of model languages.
-    /// </summary>
-    public enum ModelLanguageEnum
-    {
-        [EnumStringValue("gpt-3.5-turbo")]
-        GPT_3_5_Turbo,
-        [EnumStringValue("gpt-3.5-turbo-1106")]
-        GPT_3_5_Turbo_1106,
-        [EnumStringValue("gpt-4")]
-        GPT_4,
-        [EnumStringValue("gpt-4-32k")]
-        GPT_4_32K,
-        [EnumStringValue("gpt-4-turbo")]
-        GPT_4_Turbo,
-        [EnumStringValue("gpt-4o")]
-        GPT_4o,
-        [EnumStringValue("gpt-4o-mini")]
-        GPT_4o_Mini,
-        [EnumStringValue("o1")]
-        o1,
-        [EnumStringValue("o3-mini")]
-        o3_mini
     }
 
     /// <summary>

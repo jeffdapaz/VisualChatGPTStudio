@@ -222,16 +222,9 @@ namespace JeffPires.VisualChatGPTStudio.Options
 
         [Category("OpenAI")]
         [DisplayName("Model Language")]
-        [Description("See \"https://platform.openai.com/docs/models/overview\" for more details.")]
-        [DefaultValue(ModelLanguageEnum.GPT_4o_Mini)]
-        [TypeConverter(typeof(EnumConverter))]
-        public ModelLanguageEnum Model { get; set; } = ModelLanguageEnum.GPT_4o_Mini;
-
-        [Category("OpenAI")]
-        [DisplayName("Model Language Override")]
-        [Description("Specify a custom model name for custom API's. Overrides Model Language if not empty.")]
-        [DefaultValue("")]
-        public string CustomModel { get; set; } = "";
+        [Description("See \"https://platform.openai.com/docs/models\" for more details.")]
+        [DefaultValue("gpt-4.1-mini")]
+        public string Model { get; set; } = "gpt-4.1-mini";
 
         #endregion OpenAI
 

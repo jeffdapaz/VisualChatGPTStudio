@@ -1,5 +1,9 @@
 ﻿## Release Notes 📜
 
+### 5.2.0
+
+- Improvements in navigating controls in the Chat and Turbo Chat window using the keyboard.
+
 ### 5.1.0
 
 - Due to the fact that OpenAI is always updating the list of models, and also because other LLMs may have their own models, I am setting the "Model" parameter in the extension options as an open field for editing. And because of that, the parameter "Model Language Override" is not more necessary. See the available models [here](https://platform.openai.com/docs/models).

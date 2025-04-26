@@ -18,6 +18,7 @@
         <RoutedUICommand x:Key="sendCommand" Text="Text" />
         <RoutedUICommand x:Key="cancelCommand" Text="Text" />
         <utils:HighlightingDefinitionConverter x:Key="HighlightingDefinitionConverter" />
+
         <Style TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -26,11 +27,29 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <ContentPresenter />
+                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="Transparent" BorderThickness="0" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="DodgerBlue" />
+                                <Setter TargetName="border" Property="BorderThickness" Value="2" />
+                                <Setter TargetName="border" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="DodgerBlue" BlurRadius="10" ShadowDepth="0" />
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="LightSkyBlue" />
+                                <Setter TargetName="border" Property="BorderThickness" Value="1" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
+
         <Storyboard x:Key="FadeIn">
             <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.5"/>
         </Storyboard>
@@ -69,7 +88,12 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <ScrollViewer Grid.Row="0" x:Name="scrollViewer" VerticalScrollBarVisibility="Auto">
-                <ItemsControl Grid.Row="0" Name="chatList">
+                <ItemsControl 
+                    Grid.Row="0" 
+                    Name="chatList"
+                    TabIndex="0"
+                    IsTabStop="True"
+                    Focusable="True">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Grid>
@@ -106,6 +130,8 @@
                                         Padding="5"
                                         VerticalScrollBarVisibility="Disabled"
                                         GotFocus="txtChat_GotFocus"
+                                        IsTabStop="False"
+                                        Focusable="False"
                                         PreviewMouseWheel="txtChat_PreviewMouseWheel"/>
                                 </Border>
                             </Grid>
@@ -168,9 +194,18 @@
                 DisplayMemberPath="Name"
                 SelectedValuePath="Name" />
             <avalonEdit:TextEditor        
-                xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit" BorderBrush="DarkGray" BorderThickness="1"
-                Name="txtRequest" Grid.Row="2" FontSize="14"
-                HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" ShowLineNumbers="false"                 
+                xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit" 
+                BorderBrush="DarkGray" 
+                BorderThickness="1"
+                Name="txtRequest" 
+                Grid.Row="2" 
+                FontSize="14"
+                HorizontalScrollBarVisibility="Disabled" 
+                VerticalScrollBarVisibility="Auto" 
+                ShowLineNumbers="false"          
+                TabIndex="1"
+                IsTabStop="True"
+                Focusable="True"
                 Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
                 Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}">
                 <avalonEdit:TextEditor.ContextMenu>
@@ -199,6 +234,9 @@
                     x:Name="btnAPI" 
                     ToolTip="Add context to an API" 
                     Click="btnAPI_Click" 
+                    TabIndex="2"
+                    IsTabStop="True"
+                    Focusable="True"
                     Margin="10,0,0,0">
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/cloud.png"/>
                 </Button>
@@ -208,6 +246,9 @@
                     Width="20" 
                     x:Name="btnSql" 
                     ToolTip="Add context to a database" 
+                    TabIndex="3"
+                    IsTabStop="True"
+                    Focusable="True"
                     Click="btnSql_Click" >
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/DB.png"/>
                 </Button>
@@ -216,7 +257,10 @@
                     Height="20" 
                     Width="20" 
                     x:Name="btnAttachImage" 
-                    ToolTip="Attach an image" 
+                    ToolTip="Attach an image"
+                    TabIndex="4"
+                    IsTabStop="True"
+                    Focusable="True"
                     Click="btnAttachImage_Click">
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/image.png"/>
                 </Button>
@@ -225,6 +269,9 @@
                     Width="20" 
                     x:Name="btnRequestCode" 
                     ToolTip="Send Code (Ctrl+Alt+Enter)" 
+                    TabIndex="5"
+                    IsTabStop="True"
+                    Focusable="True"
                     Click="SendCode" >
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/sendCode.png"/>
                 </Button>
@@ -233,6 +280,9 @@
                     Width="20" 
                     x:Name="btnRequestSend" 
                     ToolTip="Send (Ctrl+Enter)" 
+                    TabIndex="6"
+                    IsTabStop="True"
+                    Focusable="True"
                     Click="SendRequest" >
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/send.png"/>
                 </Button>
@@ -243,6 +293,9 @@
                     ToolTip="Cancel (Alt+Q)" 
                     Click="CancelRequest" 
                     Visibility="Collapsed" 
+                    TabIndex="7"
+                    IsTabStop="True"
+                    Focusable="True"
                     IsEnabled="False" >
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/cancel.png"/>
                 </Button>
@@ -260,6 +313,9 @@
                     Width="20" 
                     x:Name="btnSqlCancel" 
                     ToolTip="Cancel" 
+                    TabIndex="8"
+                    IsTabStop="True"
+                    Focusable="True"
                     Click="btnSqlCancel_Click" >
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/cancel.png"/>
                 </Button>
@@ -268,6 +324,9 @@
                     Width="20" 
                     x:Name="btnSqlSend" 
                     ToolTip="Send Context Database to the AI" 
+                    TabIndex="9"
+                    IsTabStop="True"
+                    Focusable="True"
                     Click="btnSqlSend_Click" >
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/send.png"/>
                 </Button>
@@ -285,6 +344,9 @@
                     Width="20" 
                     x:Name="btnApiCancel" 
                     ToolTip="Cancel" 
+                    TabIndex="10"
+                    IsTabStop="True"
+                    Focusable="True"
                     Click="btnApiCancel_Click" >
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/cancel.png"/>
                 </Button>
@@ -293,6 +355,9 @@
                     Width="20" 
                     x:Name="btnApiSend" 
                     ToolTip="Send Context API to the AI" 
+                    TabIndex="11"
+                    IsTabStop="True"
+                    Focusable="True"
                     Click="btnApiSend_Click" >
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/send.png"/>
                 </Button>

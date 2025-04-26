@@ -16,9 +16,23 @@
         <RoutedUICommand x:Key="cancelCommand" Text="Text" />
         <Style x:Key="ImageHandCursorStyle" TargetType="{x:Type Image}">
             <Setter Property="Cursor" Value="Arrow"/>
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="Margin" Value="2" />
+            <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality" />
+            <Setter Property="RenderOptions.EdgeMode" Value="Aliased" />
+            <Setter Property="Effect" Value="{x:Null}" />
+            <Setter Property="Opacity" Value="1" />
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Cursor" Value="Hand"/>
+                </Trigger>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="Effect">
+                        <Setter.Value>
+                            <DropShadowEffect Color="DodgerBlue" BlurRadius="10" ShadowDepth="0" />
+                        </Setter.Value>
+                    </Setter>
+                    <Setter Property="Opacity" Value="1" />
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -78,7 +92,11 @@
                     x:Name="btnRequestSend" 
                     ToolTip="Send (Ctrl+Enter)" 
                     Command="{StaticResource sendCommand}" 
+                    KeyDown="btnRequestSend_KeyDown"
                     Style="{StaticResource ImageHandCursorStyle}"
+                    KeyboardNavigation.TabIndex="0"
+                    KeyboardNavigation.IsTabStop="True"
+                    Focusable="True"
                     Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/send.png"/>
                 <Image
                     Grid.Column="4" 
@@ -88,7 +106,11 @@
                     x:Name="btnAttachImage" 
                     ToolTip="Attach an image" 
                     MouseDown="btnAttachImage_Click" 
+                    KeyDown="btnAttachImage_KeyDown"
                     Style="{StaticResource ImageHandCursorStyle}"
+                    KeyboardNavigation.TabIndex="1"
+                    KeyboardNavigation.IsTabStop="True"
+                    Focusable="True"
                     Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/image.png"/>
                 <Image 
                     Grid.Column="6" 
@@ -98,7 +120,11 @@
                     x:Name="btnGenerateGitComment" 
                     ToolTip="Generate Git Changes Comment" 
                     MouseDown="btnGenerateGitComment_Click" 
+                    KeyDown="btnGenerateGitComment_KeyDown"
                     Style="{StaticResource ImageHandCursorStyle}"
+                    KeyboardNavigation.TabIndex="2"
+                    KeyboardNavigation.IsTabStop="True"
+                    Focusable="True"
                     Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/git.png"/>
                 <utils:CommandImage  
                     Grid.Column="8" 
@@ -108,8 +134,12 @@
                     x:Name="btnCancel" 
                     ToolTip="Cancel (Alt+Q)" 
                     Command="{StaticResource cancelCommand}" 
+                    KeyDown="btnCancel_KeyDown"
                     Style="{StaticResource ImageHandCursorStyle}"
                     IsEnabled="False" 
+                    KeyboardNavigation.TabIndex="2"
+                    KeyboardNavigation.IsTabStop="True"
+                    Focusable="True"
                     Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/cancel.png"/>
                 <Image 
                     Grid.Column="10" 
@@ -118,8 +148,12 @@
                     HorizontalAlignment="Left" 
                     Name="btnRequestPast" 
                     MouseDown="btnRequestPast_Click" 
+                    KeyDown="btnRequestPast_KeyDown"
                     ToolTip="Paste" 
                     Style="{StaticResource ImageHandCursorStyle}"
+                    KeyboardNavigation.TabIndex="3"
+                    KeyboardNavigation.IsTabStop="True"
+                    Focusable="True"
                     Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/paste.png"/>
                 <Image 
                     Grid.Column="12" 
@@ -128,8 +162,12 @@
                     HorizontalAlignment="Left" 
                     Name="btnRequestClear" 
                     MouseDown="btnRequestClear_Click" 
+                    KeyDown="btnRequestClear_KeyDown"
                     ToolTip="Clear" 
                     Style="{StaticResource ImageHandCursorStyle}"
+                    KeyboardNavigation.TabIndex="4"
+                    KeyboardNavigation.IsTabStop="True"
+                    Focusable="True"
                     Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/clear.png"/>
                 <Grid Name="grdProgress" Grid.Column="14" Visibility="Collapsed">
                     <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="True" />
@@ -167,6 +205,9 @@
                 WordWrap="True"
                 ScrollViewer.VerticalScrollBarVisibility="Auto" 
                 ShowLineNumbers="False" 
+                TabIndex="5"
+                IsTabStop="True"
+                Focusable="True"
                 Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
                 Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}">
                 <avalonEdit:TextEditor.ContextMenu>
@@ -176,7 +217,14 @@
                 </avalonEdit:TextEditor.ContextMenu>
             </avalonEdit:TextEditor>
         </Grid>
-        <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Background="#FF007ACC" Margin="0,5,0,5" />
+        <GridSplitter 
+            Grid.Row="1" 
+            HorizontalAlignment="Stretch" 
+            Background="#FF007ACC" 
+            TabIndex="6"
+            IsTabStop="True"
+            Focusable="True"
+            Margin="0,5,0,5" />
         <Grid Grid.Row="2" Name="grdResponse">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -202,8 +250,12 @@
                     HorizontalAlignment="Left" 
                     Name="btnResponseCopy" 
                     MouseDown="btnResponseCopy_Click" 
+                    KeyDown="btnResponseCopy_KeyDown"
                     ToolTip="Copy" 
                     Style="{StaticResource ImageHandCursorStyle}"
+                    KeyboardNavigation.TabIndex="7"
+                    KeyboardNavigation.IsTabStop="True"
+                    Focusable="True"
                     Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/copy.png"/>
             </Grid>
             <mdxam:MarkdownScrollViewer 
@@ -212,6 +264,7 @@
                 BorderThickness="1"
                 Grid.Row="2"
                 VerticalScrollBarVisibility="Auto"
+                IsTabStop="False"
                 Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
                 Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
                 MarkdownStyleName="Sasabune"

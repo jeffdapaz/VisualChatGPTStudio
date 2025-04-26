@@ -58,29 +58,62 @@ namespace JeffPires.VisualChatGPTStudio.Utils.API
         }
 
         /// <summary>
-        /// Handles the PreviewKeyDown event for a text editor to detect and process Ctrl+V when an image is in the clipboard.
-        /// Converts the clipboard image to a byte array and triggers the OnImagePaste event with the image data.
+        /// Handles the PreviewKeyDown event for a TextEditor control to customize behavior for Tab key navigation and image pasting.
+        /// When Tab is pressed without Shift, moves focus to the next control instead of inserting a tab character.
+        /// When Ctrl+V is pressed and the clipboard contains an image, converts the image to a byte array and triggers the OnImagePaste event.
+        /// Marks the event as handled to prevent default processing in these cases.
         /// </summary>
         public static void TextEditor_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key != Key.V ||
-                (Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control ||
-                !System.Windows.Clipboard.ContainsImage())
+            // Check if the pressed key is Tab and neither LeftShift nor RightShift is pressed
+            if (e.Key == Key.Tab)
             {
+                // Mark the event as handled to prevent default tab behavior
+                e.Handled = true;
+
+                TraversalRequest request;
+
+                if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+                {
+                    // Create a request to move focus to the previous control
+                    request = new(FocusNavigationDirection.Previous);
+                }
+                else
+                {
+                    // Create a request to move focus to the next control
+                    request = new(FocusNavigationDirection.Next);
+                }
+
+                // Move focus to the next UI element
+                (sender as UIElement)?.MoveFocus(request);
+
+                // Exit the method after handling tab key
                 return;
             }
 
+            // Check if the key is not 'V' or Ctrl is not pressed or clipboard does not contain an image
+            if (e.Key != Key.V || (Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control || !System.Windows.Clipboard.ContainsImage())
+            {
+                // If any condition is true, do nothing and return
+                return;
+            }
+
+            // Get the image from the clipboard
             System.Windows.Media.Imaging.BitmapSource image = System.Windows.Clipboard.GetImage();
 
+            // If no image is found, return
             if (image == null)
             {
                 return;
             }
 
+            // Convert the BitmapSource image to a byte array
             byte[] imageBytes = ConvertBitmapSourceToByteArray(image);
 
+            // Invoke the OnImagePaste event with the image bytes and a default file name
             OnImagePaste?.Invoke(imageBytes, "image_attached.png");
 
+            // Mark the event as handled to prevent further processing
             e.Handled = true;
         }
 

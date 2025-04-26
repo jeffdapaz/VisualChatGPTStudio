@@ -80,7 +80,14 @@
                 <Button Grid.Column="1" Grid.Row="1" Name="btnNewChat" ToolTip="Create a new chat" Click="btnNewChat_Click" >
                     <TextBlock FontWeight="Bold" FontSize="14">New Chat</TextBlock>
                 </Button>
-                <ListView Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="4" Name="lvChats" MouseDoubleClick="lvChats_MouseDoubleClick" Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}">
+                <ListView 
+                    Grid.Column="0" 
+                    Grid.Row="3" 
+                    Grid.ColumnSpan="4" 
+                    Name="lvChats" 
+                    MouseDoubleClick="lvChats_MouseDoubleClick" 
+                    KeyDown="lvChats_KeyDown"
+                    Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}">
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
                             <Style.Triggers>

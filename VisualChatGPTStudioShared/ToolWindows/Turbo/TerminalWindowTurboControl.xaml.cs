@@ -1,5 +1,4 @@
 ﻿using JeffPires.VisualChatGPTStudio.Options;
-using JeffPires.VisualChatGPTStudio.Utils;
 using JeffPires.VisualChatGPTStudio.Utils.Repositories;
 using Microsoft.VisualStudio.Shell;
 using System;
@@ -68,20 +67,19 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         private void lvChats_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (lvChats.SelectedItem is not ucChatItem listItem)
-            {
-                return;
-            }
+            OpenChat();
+        }
 
-            ChatUserControlsItem chatItem = chatUserControlsItems.First(c => c.ListItem == listItem);
-
-            if (chatItem.TabItem != null && tabChats.Items.Contains(chatItem.TabItem))
+        /// <summary>
+        /// Handles the KeyDown event for the lvChats ListView. When the Enter key is pressed,
+        /// it opens the selected chat and marks the event as handled to prevent further processing.
+        /// </summary>
+        private void lvChats_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
             {
-                tabChats.SelectedItem = chatItem.TabItem;
-            }
-            else
-            {
-                OpenTab(chatItem);
+                OpenChat();
+                e.Handled = true;
             }
         }
 
@@ -230,6 +228,28 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             ChatRepository.UpdateChatName(chatItem.Chat.Id, chatItem.Chat.Name);
 
             return true;
+        }
+
+        /// <summary>
+        /// Opens the selected chat from the chat list. If the chat is already opened in a tab, it selects that tab; otherwise, it opens a new tab for the chat.
+        /// </summary>
+        private void OpenChat()
+        {
+            if (lvChats.SelectedItem is not ucChatItem listItem)
+            {
+                return;
+            }
+
+            ChatUserControlsItem chatItem = chatUserControlsItems.First(c => c.ListItem == listItem);
+
+            if (chatItem.TabItem != null && tabChats.Items.Contains(chatItem.TabItem))
+            {
+                tabChats.SelectedItem = chatItem.TabItem;
+            }
+            else
+            {
+                OpenTab(chatItem);
+            }
         }
 
         /// <summary>

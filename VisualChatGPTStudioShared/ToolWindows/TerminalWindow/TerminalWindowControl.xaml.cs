@@ -62,6 +62,20 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         #region Event Handlers
 
         /// <summary>
+        /// Handles the KeyDown event for the btnRequestSend control. 
+        /// If the Enter key is pressed, it marks the event as handled and triggers the SendRequest method.
+        /// </summary>
+        private void btnRequestSend_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                e.Handled = true;
+
+                SendRequest(sender, null);
+            }
+        }
+
+        /// <summary>
         /// Handles the text entered event for the request text box, 
         /// passing the entered text to the CompletionManager for processing.
         /// </summary>
@@ -188,6 +202,20 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         }
 
         /// <summary>
+        /// Handles the KeyDown event for the btnAttachImage control. 
+        /// If the Enter key is pressed, marks the event as handled and triggers the btnAttachImage_Click event handler again.
+        /// </summary>
+        private void btnAttachImage_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                e.Handled = true;
+
+                btnAttachImage_Click(sender, e);
+            }
+        }
+
+        /// <summary>
         /// Handles the click event for the delete image button. 
         /// Collapses the image grid and clears the attached image reference.
         /// </summary>
@@ -250,6 +278,20 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         }
 
         /// <summary>
+        /// Handles the KeyDown event for the btnGenerateGitComment control.
+        /// If the Enter key is pressed, marks the event as handled and triggers the btnGenerateGitComment_Click event handler.
+        /// </summary>
+        private void btnGenerateGitComment_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                e.Handled = true;
+
+                btnGenerateGitComment_Click(sender, e);
+            }
+        }
+
+        /// <summary>
         /// Cancels the request.
         /// </summary>
         public async void CancelRequest(Object sender, ExecutedRoutedEventArgs e)
@@ -259,6 +301,20 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             cancellationTokenSource.Cancel();
 
             attachedImage = null;
+        }
+
+        /// <summary>
+        /// Handles the KeyDown event for the cancel button. 
+        /// If the Enter key is pressed, marks the event as handled and triggers the CancelRequest command.
+        /// </summary>
+        private void btnCancel_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                e.Handled = true;
+
+                CancelRequest(sender, null);
+            }
         }
 
         /// <summary>
@@ -272,6 +328,20 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             if (Clipboard.ContainsText())
             {
                 txtRequest.AppendText(Clipboard.GetText());
+            }
+        }
+
+        /// <summary>
+        /// Handles the KeyDown event for the btnRequestPast control. 
+        /// If the Enter key is pressed, it marks the event as handled and triggers the btnRequestPast_Click event handler.
+        /// </summary>
+        private void btnRequestPast_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                e.Handled = true;
+
+                btnRequestPast_Click(sender, null);
             }
         }
 
@@ -290,6 +360,20 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         }
 
         /// <summary>
+        /// Handles the KeyDown event for the btnRequestClear control. 
+        /// If the Enter key is pressed, marks the event as handled and triggers the btnRequestClear_Click event handler.
+        /// </summary>
+        private void btnRequestClear_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                e.Handled = true;
+
+                btnRequestClear_Click(sender, null);
+            }
+        }
+
+        /// <summary>
         /// Copy the content of the Response TextBox to the Clipboard.
         /// </summary>
         /// <param name="sender">The button that invokes the event.</param>
@@ -297,6 +381,20 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         private void btnResponseCopy_Click(object sender, RoutedEventArgs e)
         {
             TerminalWindowHelper.Copy((Image)sender, txtResponse.Markdown);
+        }
+
+        /// <summary>
+        /// Handles the KeyDown event for the btnResponseCopy control. 
+        /// If the Enter key is pressed, it marks the event as handled and triggers the btnResponseCopy_Click event handler.
+        /// </summary>
+        private void btnResponseCopy_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                e.Handled = true;
+
+                btnResponseCopy_Click(sender, null);
+            }
         }
 
         /// <summary>

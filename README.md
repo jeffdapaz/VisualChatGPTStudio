@@ -416,21 +416,12 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 <a id="18"></a>
 ## Release Notes 📜
 
+### 5.2.0
+
+- Improvements in navigating controls in the Chat and Turbo Chat window using the keyboard.
+
 ### 5.1.0
 
 - Due to the fact that OpenAI is always updating the list of models, and also because other LLMs may have their own models, I am setting the "Model" parameter in the extension options as an open field for editing. And because of that, the parameter "Model Language Override" is not more necessary. See the available models [here](https://platform.openai.com/docs/models).
-
-### 5.0.0
-
-- Added the ability to request the AI to call REST and SOAP APIs on one or more endpoints through the Turbo Chat window.
-- Fixed git-worktree repository detection logic (thanks [Kryeker](https://github.com/Kryeker)).
-- Added the new 'Azure URL Override' parameter on options, to manually define the Azure OpenAI connection URL instead of using 'Resource Name', 'Deployment Name', and 'API Version'. This is useful for custom endpoints.
-- Added the new 'Completion Base API URL Override' parameter on options, to possibility change the Completion API connection URL if you wish to do so for some reason, for example use a custom LLM deployment specific only for the Completions.
-- The visualization of the results of a query performed by the SQL Agent has been fixed when many records are returned.
-
-### 4.0.0
-
-- Added the ability to request the AI to execute SQL Server scripts on one or more databases through the Turbo Chat window.
-- Refactoring to remove the dependency on the library [OpenAI-API-dotnet](https://github.com/OkGoDoIt/OpenAI-API-dotnet), and add its source code as a project in the Solution, making it possible to customize it.
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

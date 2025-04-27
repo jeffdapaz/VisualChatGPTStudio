@@ -27,6 +27,9 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
     /// </summary>
     public class CompletionManager
     {
+        private const string SHOW_COMMAND_SHORTCUT = "/";
+        private const string SHOW_FILE_SHORTCUT = "@";
+
         private readonly Package package;
         private readonly TextEditor editor;
         private CompletionWindow completionWindowForCommands;
@@ -110,16 +113,16 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
         /// <summary>
         /// Handles the text entered event, triggering specific actions based on the input text.
         /// If the input is a forward slash ("/"), it calls the ShowCommands method.
-        /// If the input is a hash ("#"), it calls the ShowFiles method.
+        /// If the input is a "@", it calls the ShowFiles method.
         /// </summary>
         /// <param name="e">The event arguments containing the text input.</param>
         public async System.Threading.Tasks.Task HandleTextEnteredAsync(TextCompositionEventArgs e)
         {
-            if (e.Text == "/")
+            if (e.Text == SHOW_COMMAND_SHORTCUT)
             {
                 ShowCommands();
             }
-            else if (e.Text == "#")
+            else if (e.Text == SHOW_FILE_SHORTCUT)
             {
                 await ShowFilesAsync();
             }
@@ -245,9 +248,9 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
         {
             foreach (ICompletionData completionDataCommand in completionDataCommands)
             {
-                if (request.Contains("/" + completionDataCommand.Text))
+                if (request.Contains(SHOW_COMMAND_SHORTCUT + completionDataCommand.Text))
                 {
-                    request = request.Replace("/" + completionDataCommand.Text, completionDataCommand.Description.ToString());
+                    request = request.Replace(SHOW_COMMAND_SHORTCUT + completionDataCommand.Text, completionDataCommand.Description.ToString());
                 }
             }
 
@@ -256,7 +259,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
 
         /// <summary>
         /// Replaces placeholders in the request string with the corresponding file contents or method definitions 
-        /// based on the completion data available. It searches for placeholders prefixed with '#' and replaces 
+        /// based on the completion data available. It searches for placeholders prefixed with '@' and replaces 
         /// them with the actual content retrieved from the specified file or method.
         /// </summary>
         /// <param name="request">The input string containing placeholders to be replaced.</param>
@@ -272,11 +275,11 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
             foreach (CompletionData completionData in completionDataFilesAndMethods)
             {
                 if (completionData.CompletionItemType == CompletionItemType.CSharpMethod &&
-                    !request.Contains($"#{completionData.ClassName}.{completionData.MethodName}{completionData.MethodSignature}"))
+                    !request.Contains($"{SHOW_FILE_SHORTCUT}{completionData.ClassName}.{completionData.MethodName}{completionData.MethodSignature}"))
                 {
                     continue;
                 }
-                else if (!request.Contains("#" + completionData.Text))
+                else if (!request.Contains(SHOW_FILE_SHORTCUT + completionData.Text))
                 {
                     continue;
                 }
@@ -296,7 +299,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
                         break;
                 }
 
-                request = request.Replace("#" + completionData.Text, content);
+                request = request.Replace(SHOW_FILE_SHORTCUT + completionData.Text, content);
             }
 
             return request;

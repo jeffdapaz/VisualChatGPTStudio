@@ -5,6 +5,6 @@
   <!-- This is the main ruleset. -->
   <RuleSet>
     <Span color="command" begin="/" end=" "/>
-    <Span color="file" begin="#" end="(\.config|\.cs|\.css|\.html|\.js|\.json|\.md|\.sql|\.ts|\.vb|\.xml|\.xaml|\)|(?!.*\))\s)" />
+    <Span color="file" begin="@" end="(\.config|\.cs|\.css|\.html|\.js|\.json|\.md|\.sql|\.ts|\.vb|\.xml|\.xaml|\)|(?!.*\))\s)" />
   </RuleSet>
 </SyntaxDefinition>

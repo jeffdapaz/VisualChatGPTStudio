@@ -140,7 +140,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             chatList.ItemsSource = chatListControlItems;
 
-            scrollViewer.ScrollToEnd();
+            UpdateScrollPosition();
 
             sqlServerConnectionsAlreadyAdded = ChatRepository.GetSqlServerConnections(chatId);
             apiDefinitionsAlreadyAdded = ChatRepository.GetApiDefinitions(chatId);
@@ -605,8 +605,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 Application.Current.Dispatcher.Invoke(new Action(() =>
                 {
                     EnableDisableButtons(false);
-                    chatList.Items.Refresh();
-                    scrollViewer.ScrollToEnd();
+                    UpdateScrollPosition();
                 }));
 
                 messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.Me, Content = requestToShowOnList }] });
@@ -811,9 +810,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 chatListControlItems.Add(new ChatListControlItem(AuthorEnum.ChatGPT, response));
             }
 
-            chatList.Items.Refresh();
-
-            scrollViewer.ScrollToEnd();
+            UpdateScrollPosition();
         }
 
         /// <summary>
@@ -840,8 +837,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     {
                         messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.ApiResult, Content = apiResponse.Item2 }] });
                         chatListControlItems.Add(new ChatListControlItem(AuthorEnum.ApiResult, apiResponse.Item2));
-                        chatList.Items.Refresh();
-                        scrollViewer.ScrollToEnd();
+                        UpdateScrollPosition();
                     }
                 }
                 else
@@ -909,6 +905,32 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Updates the scroll position of the chat list to ensure the last item is visible.
+        /// Refreshes the items, updates the layout, and scrolls the ScrollViewer to the vertical offset of the last item.
+        /// If the last item container is not found, scrolls to the end of the ScrollViewer.
+        /// </summary>
+        private void UpdateScrollPosition()
+        {
+            chatList.Items.Refresh();
+
+            chatList.UpdateLayout();
+
+            FrameworkElement lastItemContainer = chatList.ItemContainerGenerator.ContainerFromIndex(chatList.Items.Count - 1) as FrameworkElement;
+
+            if (lastItemContainer != null)
+            {
+                GeneralTransform transform = lastItemContainer.TransformToAncestor(scrollViewer);
+                Point position = transform.Transform(new Point(0, 0));
+
+                scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset + position.Y);
+            }
+            else
+            {
+                scrollViewer.ScrollToEnd();
+            }
         }
 
         #endregion Methods                            

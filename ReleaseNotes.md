@@ -1,6 +1,6 @@
 ﻿## Release Notes 📜
 
-### 5.2.0
+### 5.1.1
 
 - Improvements in navigating controls in the Chat and Turbo Chat window using the keyboard.
 - Changed the shortcut to reference files and/or methods in request fields from "#" to "@" to avoid match with the word "c#" which may occasionally be used.

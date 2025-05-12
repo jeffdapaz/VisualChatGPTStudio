@@ -14,10 +14,22 @@
              xmlns:uc="clr-namespace:JeffPires.VisualChatGPTStudio.ToolWindows.Turbo">
 
     <UserControl.Resources>
+        <RoutedUICommand x:Key="deleteChat" Text="Text" />
+        <RoutedUICommand x:Key="editChat" Text="Text" />
         <Storyboard x:Key="FadeIn">
             <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.5"/>
         </Storyboard>
     </UserControl.Resources>
+
+    <UserControl.CommandBindings>
+        <CommandBinding Command="{StaticResource deleteChat}" Executed="DeleteChat" />
+        <CommandBinding Command="{StaticResource editChat}" Executed="EditChat" />
+    </UserControl.CommandBindings>
+
+    <UserControl.InputBindings>
+        <KeyBinding Key="Delete" Command="{StaticResource deleteChat}" />
+        <KeyBinding Key="F2" Command="{StaticResource editChat}" />
+    </UserControl.InputBindings>
 
     <TabControl Name="tabChats" Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}">
         <TabControl.Resources>
@@ -77,7 +89,13 @@
                     <ColumnDefinition Width="5" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="1" Grid.Row="1" Name="btnNewChat" ToolTip="Create a new chat" Click="btnNewChat_Click" >
+                <Button 
+                    Grid.Column="1" 
+                    Grid.Row="1" 
+                    Name="btnNewChat" 
+                    ToolTip="Create a new chat" 
+                    AutomationProperties.HelpText="Create a new chat"
+                    Click="btnNewChat_Click" >
                     <TextBlock FontWeight="Bold" FontSize="14">New Chat</TextBlock>
                 </Button>
                 <ListView 
@@ -87,9 +105,11 @@
                     Name="lvChats" 
                     MouseDoubleClick="lvChats_MouseDoubleClick" 
                     KeyDown="lvChats_KeyDown"
+                    GotFocus="lvChats_GotFocus"
                     Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}">
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
+                            <Setter Property="Focusable" Value="True" />
                             <Style.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter Property="Cursor" Value="Hand" />

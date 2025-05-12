@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 
@@ -23,6 +24,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             image.ToolTip = "Copied!";
             image.IsEnabled = false;
 
+            AutomationProperties.SetHelpText(image, "Copied!");
+
             System.Timers.Timer timer = new(2000) { Enabled = true };
 
             timer.Elapsed += (s, args) =>
@@ -32,6 +35,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
                     image.Source = new BitmapImage(new Uri("pack://application:,,,/VisualChatGPTStudio;component/Resources/copy.png"));
                     image.ToolTip = "Copy code";
                     image.IsEnabled = true;
+
+                    AutomationProperties.SetHelpText(image, "Copy code");
                 }));
 
                 timer.Enabled = false;

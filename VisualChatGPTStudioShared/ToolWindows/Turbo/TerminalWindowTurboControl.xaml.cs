@@ -105,6 +105,20 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             e.Handled = true;
         }
 
+        /// <summary>
+        /// Ensures that when the ListView 'lvChats' receives focus, if no item is selected and the list contains items,
+        /// the first item is selected and focused to improve keyboard navigation and user experience.
+        /// </summary>
+        private void lvChats_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (lvChats.SelectedIndex == -1 && lvChats.Items.Count > 0)
+            {
+                lvChats.SelectedIndex = 0;
+                ListViewItem item = lvChats.ItemContainerGenerator.ContainerFromIndex(0) as ListViewItem;
+                item?.Focus();
+            }
+        }
+
         #endregion Event Handlers
 
         #region Methods
@@ -235,14 +249,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         private void OpenChat()
         {
-            if (lvChats.SelectedItem is not ucChatItem listItem)
-            {
-                return;
-            }
+            ChatUserControlsItem chatItem = GetChatItem();
 
-            ChatUserControlsItem chatItem = chatUserControlsItems.First(c => c.ListItem == listItem);
-
-            if (chatItem.TabItem != null && tabChats.Items.Contains(chatItem.TabItem))
+            if (chatItem?.TabItem != null && tabChats.Items.Contains(chatItem.TabItem))
             {
                 tabChats.SelectedItem = chatItem.TabItem;
             }
@@ -276,15 +285,52 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             tabChats.SelectedItem = chatItem.TabItem;
         }
 
-        #endregion Methods                            
-    }
+        /// <summary>
+        /// Deletes the currently selected chat by invoking its delete event handler.
+        /// </summary>
+        public async void DeleteChat(Object sender, ExecutedRoutedEventArgs e)
+        {
+            ChatUserControlsItem chatItem = GetChatItem();
 
-    /// <summary>
-    /// Represents the different types of commands that can be used.
-    /// </summary>
-    enum CommandType
-    {
-        Code = 0,
-        Request = 1
+            if (chatItem?.ListItem == null)
+            {
+                return;
+            }
+
+            chatItem.ListItem.imgDelete_Click(sender, null);
+        }
+
+        /// <summary>
+        /// Handles the EditChat command execution by retrieving the current chat item and invoking its edit action.
+        /// </summary>
+        public async void EditChat(Object sender, ExecutedRoutedEventArgs e)
+        {
+            ChatUserControlsItem chatItem = GetChatItem();
+
+            if (chatItem?.ListItem == null)
+            {
+                return;
+            }
+
+            chatItem.ListItem.imgEdit_Click(sender, null);
+        }
+
+        /// <summary>
+        /// Retrieves the ChatUserControlsItem associated with the currently selected chat item in the list view.
+        /// </summary>
+        /// <returns>
+        /// The ChatUserControlsItem corresponding to the selected ucChatItem; returns null if no item is selected or the selected item is not a ucChatItem.
+        /// </returns>
+        private ChatUserControlsItem GetChatItem()
+        {
+            if (lvChats.SelectedItem is not ucChatItem listItem)
+            {
+                return null;
+            }
+
+            return chatUserControlsItems.First(c => c.ListItem == listItem);
+        }
+
+        #endregion Methods          
     }
 }

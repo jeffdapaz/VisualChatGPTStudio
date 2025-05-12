@@ -26,17 +26,23 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo{
         /// </summary>
         /// <param name="sender">The object that raised the event.</param>
         /// <param name="e">The MouseEventArgs containing event data.</param>
-        private void imgDelete_Click(object sender, MouseEventArgs e)        {            if (MessageBox.Show($"Delete the chat \"{lblName.Text}\"?", Constants.EXTENSION_NAME, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)            {                parentControl.DeleteChat(this);            }        }
+        public void imgDelete_Click(object sender, MouseEventArgs e)        {            if (!imgDelete.IsEnabled)
+            {
+                return;
+            }            if (MessageBox.Show($"Delete the chat \"{lblName.Text}\"?", Constants.EXTENSION_NAME, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)            {                parentControl.DeleteChat(this);            }        }
 
         /// <summary>
         /// Event handler for the click event of the imgEdit control.
         /// </summary>
         /// <param name="sender">The object that raised the event.</param>
         /// <param name="e">The MouseEventArgs containing event data.</param>
-        private void imgEdit_Click(object sender, MouseEventArgs e)        {            txtName.Width = lblName.ActualWidth;            imgDelete.IsEnabled = false;            imgEdit.IsEnabled = false;            lblName.Visibility = Visibility.Collapsed;
+        public void imgEdit_Click(object sender, MouseEventArgs e)        {            if (!imgEdit.IsEnabled)
+            {
+                return;
+            }            txtName.Width = lblName.ActualWidth;            imgDelete.IsEnabled = false;            imgEdit.IsEnabled = false;            lblName.Visibility = Visibility.Collapsed;
 
             txtName.Text = lblName.Text;
-            txtName.Visibility = Visibility.Visible;        }
+            txtName.Visibility = Visibility.Visible;            txtName.Focus();            }
 
         /// <summary>
         /// Event handler for the PreviewKeyDown event of the txtName TextBox.
@@ -45,6 +51,15 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo{
         /// <param name="e">The KeyEventArgs containing information about the key that was pressed.</param>
         private void txtName_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            if (e.Key == Key.Escape)
+            {
+                txtName.Visibility = Visibility.Collapsed;
+                lblName.Visibility = Visibility.Visible;
+
+                imgDelete.IsEnabled = true;
+                imgEdit.IsEnabled = true;
+            }
+
             if (e.Key != Key.Enter)
             {
                 return;
@@ -58,6 +73,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo{
             }
 
             string newName = txtName.Text.Trim();
+
+            if (lblName.Text == newName)
+            {
+                return;
+            }
 
             bool result = parentControl.SetChatNewName(this, newName);
 
@@ -83,7 +103,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo{
         {
             txtName.Visibility = Visibility.Collapsed;
             lblName.Visibility = Visibility.Visible;            imgDelete.IsEnabled = true;            imgEdit.IsEnabled = true;
-        }        
+        }
 
         #endregion Event Handlers      
     }}

@@ -146,6 +146,7 @@
                                         Height="16" 
                                         Margin="5,0,5,0" 
                                         ToolTip="Edit this API." 
+                                        AutomationProperties.HelpText="Edit this API."
                                         Style="{StaticResource ImageHandCursorStyle}"
                                         MouseDown="btnEditApi_Click" />
                                     <Image 
@@ -153,6 +154,7 @@
                                         Width="16"
                                         Height="16" 
                                         ToolTip="Delete this API." 
+                                        AutomationProperties.HelpText="Delete this API."
                                         Style="{StaticResource ImageHandCursorStyle}"
                                         MouseDown="btnDeleteApi_Click" />
                                 </StackPanel>

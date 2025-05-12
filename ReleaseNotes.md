@@ -1,5 +1,10 @@
 ﻿## Release Notes 📜
 
+### 5.1.2
+
+- Improvements added so that screen reading tools can read the commands.
+- More improvements in navigating controls in the Turbo Chat window using the keyboard.
+
 ### 5.1.1
 
 - Improvements in navigating controls in the Chat and Turbo Chat window using the keyboard.

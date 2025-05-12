@@ -2,6 +2,7 @@
 using JeffPires.VisualChatGPTStudio;
 using JeffPires.VisualChatGPTStudio.Commands;
 using JeffPires.VisualChatGPTStudio.Options.Commands;
+using JeffPires.VisualChatGPTStudio.Utils;
 
 namespace VisualChatGPTStudioShared.Commands
 {

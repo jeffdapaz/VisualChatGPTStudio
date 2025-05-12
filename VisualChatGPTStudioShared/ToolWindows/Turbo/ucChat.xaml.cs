@@ -13,6 +13,7 @@ using OpenAI_API.Functions;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IdentityModel.Protocols.WSTrust;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -176,7 +177,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         public async void SendCode(object sender, RoutedEventArgs e)
         {
-            await RequestAsync(CommandType.Code);
+            await RequestAsync(RequestType.Code);
         }
 
         /// <summary>
@@ -184,7 +185,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         public async void SendRequest(object sender, RoutedEventArgs e)
         {
-            await RequestAsync(CommandType.Request);
+            await RequestAsync(RequestType.Request);
         }
 
         /// <summary>
@@ -395,7 +396,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.FunctionRequest, Content = request }] });
 
-            await RequestAsync(CommandType.Request, request, requestToShowOnList, false);
+            await RequestAsync(RequestType.Request, request, requestToShowOnList, false);
 
             sqlServerConnectionsAlreadyAdded.Add(connection.ConnectionString);
 
@@ -487,7 +488,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.FunctionRequest, Content = request }] });
 
-            await RequestAsync(CommandType.Request, request, requestToShowOnList, false);
+            await RequestAsync(RequestType.Request, request, requestToShowOnList, false);
 
             apiDefinitionsAlreadyAdded.Add(apiDefinition.Name);
 
@@ -521,7 +522,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// <summary>
         /// Handles an asynchronous request based on the specified command type. Validates input, appends context or system messages, processes code or image-related requests, and sends the final request.
         /// </summary>
-        private async System.Threading.Tasks.Task RequestAsync(CommandType commandType)
+        private async System.Threading.Tasks.Task RequestAsync(RequestType commandType)
         {
             shiftKeyPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
 
@@ -551,7 +552,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 }
             }
 
-            if (commandType == CommandType.Code)
+            if (commandType == RequestType.Code)
             {
                 docView = await VS.Documents.GetActiveDocumentViewAsync();
 
@@ -590,7 +591,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// Sends an asynchronous request based on the provided command type, processes the response, 
         /// and updates the UI elements accordingly. Handles exceptions and manages UI state during the operation.
         /// </summary>
-        private async System.Threading.Tasks.Task RequestAsync(CommandType commandType, string request, string requestToShowOnList, bool shiftKeyPressed)
+        private async System.Threading.Tasks.Task RequestAsync(RequestType commandType, string request, string requestToShowOnList, bool shiftKeyPressed)
         {
             try
             {
@@ -786,9 +787,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// <summary>
         /// Handles the response based on the command type and shift key state, updating the document view or chat list control items accordingly.
         /// </summary>
-        private void HandleResponse(CommandType commandType, bool shiftKeyPressed, string response)
+        private void HandleResponse(RequestType commandType, bool shiftKeyPressed, string response)
         {
-            if (commandType == CommandType.Code && !shiftKeyPressed)
+            if (commandType == RequestType.Code && !shiftKeyPressed)
             {
                 List<ChatMessageSegment> segments = TextFormat.GetChatTurboResponseSegments(response);
 
@@ -869,7 +870,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             if (!responseHandled)
             {
-                HandleResponse(CommandType.Request, false, result.Item1);
+                HandleResponse(RequestType.Request, false, result.Item1);
 
                 responseHandled = true;
             }

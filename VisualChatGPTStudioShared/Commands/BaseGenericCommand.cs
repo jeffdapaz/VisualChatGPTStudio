@@ -303,14 +303,4 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                    commandType == typeof(AddComments);
         }
     }
-
-    /// <summary>
-    /// Enum to represent the different types of commands that can be used.
-    /// </summary>
-    enum CommandType
-    {
-        Replace,
-        InsertBefore,
-        InsertAfter
-    }
 }

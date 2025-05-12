@@ -2,6 +2,7 @@
 using EnvDTE;
 using JeffPires.VisualChatGPTStudio.Commands;
 using JeffPires.VisualChatGPTStudio.Options.Commands;
+using JeffPires.VisualChatGPTStudio.Utils;
 
 namespace JeffPires.VisualChatGPTStudio
 {

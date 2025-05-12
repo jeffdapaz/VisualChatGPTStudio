@@ -44,16 +44,16 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="10" />
         </Grid.ColumnDefinitions>
-        <Button Name="btnCodeReview" Click="btnCodeReview_Click" Grid.Row="1" Grid.Column="1" ToolTip="Start the Code Review Process">
+        <Button Name="btnCodeReview" Click="btnCodeReview_Click" Grid.Row="1" Grid.Column="1" ToolTip="Start the Code Review Process" AutomationProperties.HelpText="Start the Code Review Process">
             <TextBlock FontWeight="Bold" FontSize="12">Start  Review</TextBlock>
         </Button>
-        <Button Name="btnCancel" Click="btnCancel_Click" Grid.Row="1" Grid.Column="3" ToolTip="Cancel the Code Review Process" IsEnabled="False">
+        <Button Name="btnCancel" Click="btnCancel_Click" Grid.Row="1" Grid.Column="3" ToolTip="Cancel the Code Review Process" AutomationProperties.HelpText="Cancel the Code Review Process" IsEnabled="False">
             <TextBlock FontWeight="Bold" FontSize="12">Cancel</TextBlock>
         </Button>
-        <Button Name="btnExpandAll" Click="btnExpandAll_Click" Grid.Row="1" Grid.Column="5" ToolTip="Expand All">
+        <Button Name="btnExpandAll" Click="btnExpandAll_Click" Grid.Row="1" Grid.Column="5" ToolTip="Expand All" AutomationProperties.HelpText="Expand All">
             <TextBlock FontWeight="Bold" FontSize="12">Expand All</TextBlock>
         </Button>
-        <Button Name="btnCollapseAll" Click="btnCollapseAll_Click" Grid.Row="1" Grid.Column="7" ToolTip="Collapse All">
+        <Button Name="btnCollapseAll" Click="btnCollapseAll_Click" Grid.Row="1" Grid.Column="7" ToolTip="Collapse All" AutomationProperties.HelpText="Collapse All">
             <TextBlock FontWeight="Bold" FontSize="12">Collapse All</TextBlock>
         </Button>
         <Grid Name="grdProgress" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="8" Visibility="Collapsed" Height="25px" VerticalAlignment="Top">            

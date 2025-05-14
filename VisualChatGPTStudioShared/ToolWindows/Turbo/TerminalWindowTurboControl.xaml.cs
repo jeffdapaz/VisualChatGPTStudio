@@ -209,6 +209,17 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         }
 
         /// <summary>
+        /// Closes a tab in a chat interface based on the provided ucChat.
+        /// </summary>
+        /// <param name="chat">The chat user control whose tab should be closed.</param>
+        public void CloseTab(ucChat chat)
+        {
+            ChatUserControlsItem chatItem = chatUserControlsItems.First(c => c.TabItem?.Content != null && (ucChat)c.TabItem.Content == chat);
+
+            tabChats.Items.Remove(chatItem.TabItem);
+        }
+
+        /// <summary>
         /// Deletes a chat item from the chat list and repository.
         /// </summary>
         /// <param name="ucChatItem">The chat item to be deleted.</param>

@@ -17,6 +17,7 @@
         <RoutedUICommand x:Key="sendCode" Text="Text" />
         <RoutedUICommand x:Key="sendCommand" Text="Text" />
         <RoutedUICommand x:Key="cancelCommand" Text="Text" />
+        <RoutedUICommand x:Key="closeTab" Text="Text" />
         <utils:HighlightingDefinitionConverter x:Key="HighlightingDefinitionConverter" />
 
         <Style TargetType="Button">
@@ -59,6 +60,7 @@
         <CommandBinding Command="{StaticResource sendCode}" Executed="SendCode" />
         <CommandBinding Command="{StaticResource sendCommand}" Executed="SendRequest" />
         <CommandBinding Command="{StaticResource cancelCommand}" Executed="CancelRequest" />
+        <CommandBinding Command="{StaticResource closeTab}" Executed="CloseTab" />
     </UserControl.CommandBindings>
 
     <UserControl.InputBindings>
@@ -66,6 +68,7 @@
         <KeyBinding Key="Enter" Modifiers="Ctrl+Alt+Shift" Command="{StaticResource sendCode}" />
         <KeyBinding Key="Enter" Modifiers="Ctrl" Command="{StaticResource sendCommand}" />
         <KeyBinding Key="Q" Modifiers="Alt" Command="{StaticResource cancelCommand}" />
+        <KeyBinding Key="W" Modifiers="Ctrl" Command="{StaticResource closeTab}"/>
     </UserControl.InputBindings>
 
     <Grid Name="grdRoot" Margin="5">

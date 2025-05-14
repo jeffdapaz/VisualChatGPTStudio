@@ -22,8 +22,8 @@
             HorizontalAlignment="Left" 
             Name="btnClose" 
             MouseDown="btnClose_Click" 
-            ToolTip="Close Tab" 
-            AutomationProperties.HelpText="Close Tab"
+            ToolTip="Close Tab (CTRL+W)" 
+            AutomationProperties.HelpText="Close Tab (CTRL+W)"
             Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/close.png">
             <Image.Style>
                 <Style TargetType="{x:Type Image}">

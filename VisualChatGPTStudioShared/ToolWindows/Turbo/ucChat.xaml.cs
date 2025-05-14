@@ -934,6 +934,14 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
         }
 
+        /// <summary>
+        /// Closes the current tab by invoking the CloseTab method on the parent control.
+        /// </summary>
+        public void CloseTab(Object sender, ExecutedRoutedEventArgs e)
+        {
+            parentControl.CloseTab(this);
+        }
+
         #endregion Methods                            
     }
 }

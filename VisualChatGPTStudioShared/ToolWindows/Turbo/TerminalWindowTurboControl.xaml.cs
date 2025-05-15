@@ -33,6 +33,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             this.InitializeComponent();
 
+            this.PreviewKeyUp += TerminalWindowTurboControl_PreviewKeyUp;
+
             ChatRepository.CreateDataBase();
 
             chatUserControlsItems = [];
@@ -41,6 +43,35 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         #endregion Constructors
 
         #region Event Handlers
+
+        /// <summary>
+        /// Handles the PreviewKeyUp event for the TerminalWindowTurboControl.
+        /// Switches the selected tab in the tabChats control when the user releases a number key (1-9) while holding the Control key.
+        /// </summary>
+        private void TerminalWindowTurboControl_PreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            if (Keyboard.Modifiers != ModifierKeys.Control)
+            {
+                return;
+            }
+
+            int tabIndex = -1;
+
+            if (e.Key == Key.D1) tabIndex = 0;
+            else if (e.Key == Key.D2) tabIndex = 1;
+            else if (e.Key == Key.D3) tabIndex = 2;
+            else if (e.Key == Key.D4) tabIndex = 3;
+            else if (e.Key == Key.D5) tabIndex = 4;
+            else if (e.Key == Key.D6) tabIndex = 5;
+            else if (e.Key == Key.D7) tabIndex = 6;
+            else if (e.Key == Key.D8) tabIndex = 7;
+            else if (e.Key == Key.D9) tabIndex = 8;
+
+            if (tabIndex >= 0 && tabIndex < tabChats.Items.Count)
+            {
+                tabChats.SelectedIndex = tabIndex;
+            }
+        }
 
         /// <summary>
         /// Event handler for the "New Chat" button click. Creates a new chat header and chat user control, adds them to a new tab item, and selects the new tab item.

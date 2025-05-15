@@ -109,6 +109,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             if (e.Key == Key.Enter)
             {
+                if (Keyboard.FocusedElement is TextBox)
+                {
+                    return;
+                }
+
                 OpenChat();
                 e.Handled = true;
             }

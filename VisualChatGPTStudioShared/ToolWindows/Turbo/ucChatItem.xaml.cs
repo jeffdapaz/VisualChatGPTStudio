@@ -1,4 +1,6 @@
 ﻿using JeffPires.VisualChatGPTStudio.Utils;
+using Microsoft.VisualStudio.Shell;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -69,7 +71,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         /// <param name="sender">The object that raised the event.</param>
         /// <param name="e">The MouseEventArgs containing event data.</param>
-        public void imgEdit_Click(object sender, MouseEventArgs e)
+        public async void imgEdit_Click(object sender, MouseEventArgs e)
         {
             if (!imgEdit.IsEnabled)
             {
@@ -77,15 +79,14 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
 
             txtName.Width = lblName.ActualWidth;
-
-            imgDelete.IsEnabled = false;
-            imgEdit.IsEnabled = false;
-
-            lblName.Visibility = Visibility.Collapsed;
-
             txtName.Text = lblName.Text;
-            txtName.Visibility = Visibility.Visible;
-            txtName.Focus();
+
+            SetEditModeAsync(true);
+
+            await Dispatcher.BeginInvoke(new Action(() =>
+            {
+                txtName.Focus();
+            }), System.Windows.Threading.DispatcherPriority.Background);
         }
 
         /// <summary>
@@ -93,15 +94,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         /// <param name="sender">The object that raised the event.</param>
         /// <param name="e">The KeyEventArgs containing information about the key that was pressed.</param>
-        private void txtName_PreviewKeyDown(object sender, KeyEventArgs e)
+        private async void txtName_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Escape)
             {
-                txtName.Visibility = Visibility.Collapsed;
-                lblName.Visibility = Visibility.Visible;
-
-                imgDelete.IsEnabled = true;
-                imgEdit.IsEnabled = true;
+                SetEditModeAsync(false);
             }
 
             if (e.Key != Key.Enter)
@@ -109,17 +106,19 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(txtName.Text))
-            {
-                MessageBox.Show("The name can not be null.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
-
-                return;
-            }
-
             string newName = txtName.Text.Trim();
 
             if (lblName.Text == newName)
             {
+                SetEditModeAsync(false);
+
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtName.Text))
+            {
+                MessageBox.Show("The name can not be null.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+
                 return;
             }
 
@@ -134,11 +133,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             lblName.Text = newName;
 
-            txtName.Visibility = Visibility.Collapsed;
-            lblName.Visibility = Visibility.Visible;
-
-            imgDelete.IsEnabled = true;
-            imgEdit.IsEnabled = true;
+            SetEditModeAsync(false);
         }
 
         /// <summary>
@@ -148,11 +143,23 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         private void TxtName_LostFocus(object sender, RoutedEventArgs e)
         {
-            txtName.Visibility = Visibility.Collapsed;
-            lblName.Visibility = Visibility.Visible;
+            SetEditModeAsync(false);
+        }
 
-            imgDelete.IsEnabled = true;
-            imgEdit.IsEnabled = true;
+        /// <summary>
+        /// Sets the edit mode for the chat item asynchronously, toggling visibility of the text box and label,
+        /// and enabling or disabling the delete and edit image controls accordingly.
+        /// </summary>
+        /// <param name="isEditing">True to enable edit mode; false to disable it.</param>
+        private async void SetEditModeAsync(bool isEditing)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            txtName.Visibility = isEditing ? Visibility.Visible : Visibility.Collapsed;
+            lblName.Visibility = isEditing ? Visibility.Collapsed : Visibility.Visible;
+
+            imgDelete.IsEnabled = !isEditing;
+            imgEdit.IsEnabled = !isEditing;
         }
 
         #endregion Event Handlers      

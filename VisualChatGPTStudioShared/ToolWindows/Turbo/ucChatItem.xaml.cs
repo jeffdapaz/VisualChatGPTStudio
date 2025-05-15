@@ -1,24 +1,49 @@
-﻿using JeffPires.VisualChatGPTStudio.Utils;using System.Windows;using System.Windows.Controls;using System.Windows.Input;
+﻿using JeffPires.VisualChatGPTStudio.Utils;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 
-namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo{
+namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
+{
     /// <summary>
     /// Represents a user control for displaying a chat item in a chat interface.
     /// </summary>
-    public partial class ucChatItem : UserControl    {
-        #region Properties
+    public partial class ucChatItem : UserControl
+    {
+        #region Properties
+
         private readonly TerminalWindowTurboControl parentControl;
 
-        #endregion Properties
-        #region Constructors
+        #endregion Properties
+
+        #region Constructors
+
         /// <summary>
         /// Initializes a new instance of the ucChatItem class.
         /// </summary>
         /// <param name="parentControl">The parent TerminalWindowTurboControl.</param>
         /// <param name="chatName">The name of the chat item.</param>
-        public ucChatItem(TerminalWindowTurboControl parentControl, string chatName)        {            this.InitializeComponent();            this.parentControl = parentControl;
-            lblName.Text = chatName;        }
+        public ucChatItem(TerminalWindowTurboControl parentControl, string chatName)
+        {
+            this.InitializeComponent();
 
-        #endregion Constructors
+            this.parentControl = parentControl;
+            lblName.Text = chatName;
+        }
+
+        #endregion Constructors
+
+        /// <summary>
+        /// This method returns the chat name so screen readers can announce it.
+        /// </summary>
+        /// <returns>
+        /// A string representing the chat name.
+        /// </returns>
+        public override string ToString()
+        {
+            return lblName.Text;
+        }
+
         #region Event Handlers
 
         /// <summary>
@@ -26,23 +51,42 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo{
         /// </summary>
         /// <param name="sender">The object that raised the event.</param>
         /// <param name="e">The MouseEventArgs containing event data.</param>
-        public void imgDelete_Click(object sender, MouseEventArgs e)        {            if (!imgDelete.IsEnabled)
+        public void imgDelete_Click(object sender, MouseEventArgs e)
+        {
+            if (!imgDelete.IsEnabled)
             {
                 return;
-            }            if (MessageBox.Show($"Delete the chat \"{lblName.Text}\"?", Constants.EXTENSION_NAME, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)            {                parentControl.DeleteChat(this);            }        }
+            }
+
+            if (MessageBox.Show($"Delete the chat \"{lblName.Text}\"?", Constants.EXTENSION_NAME, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+                parentControl.DeleteChat(this);
+            }
+        }
 
         /// <summary>
         /// Event handler for the click event of the imgEdit control.
         /// </summary>
         /// <param name="sender">The object that raised the event.</param>
         /// <param name="e">The MouseEventArgs containing event data.</param>
-        public void imgEdit_Click(object sender, MouseEventArgs e)        {            if (!imgEdit.IsEnabled)
+        public void imgEdit_Click(object sender, MouseEventArgs e)
+        {
+            if (!imgEdit.IsEnabled)
             {
                 return;
-            }            txtName.Width = lblName.ActualWidth;            imgDelete.IsEnabled = false;            imgEdit.IsEnabled = false;            lblName.Visibility = Visibility.Collapsed;
+            }
+
+            txtName.Width = lblName.ActualWidth;
+
+            imgDelete.IsEnabled = false;
+            imgEdit.IsEnabled = false;
+
+            lblName.Visibility = Visibility.Collapsed;
 
             txtName.Text = lblName.Text;
-            txtName.Visibility = Visibility.Visible;            txtName.Focus();            }
+            txtName.Visibility = Visibility.Visible;
+            txtName.Focus();
+        }
 
         /// <summary>
         /// Event handler for the PreviewKeyDown event of the txtName TextBox.
@@ -91,7 +135,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo{
             lblName.Text = newName;
 
             txtName.Visibility = Visibility.Collapsed;
-            lblName.Visibility = Visibility.Visible;            imgDelete.IsEnabled = true;            imgEdit.IsEnabled = true;
+            lblName.Visibility = Visibility.Visible;
+
+            imgDelete.IsEnabled = true;
+            imgEdit.IsEnabled = true;
         }
 
         /// <summary>
@@ -102,8 +149,12 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo{
         private void TxtName_LostFocus(object sender, RoutedEventArgs e)
         {
             txtName.Visibility = Visibility.Collapsed;
-            lblName.Visibility = Visibility.Visible;            imgDelete.IsEnabled = true;            imgEdit.IsEnabled = true;
+            lblName.Visibility = Visibility.Visible;
+
+            imgDelete.IsEnabled = true;
+            imgEdit.IsEnabled = true;
         }
 
         #endregion Event Handlers      
-    }}
+    }
+}

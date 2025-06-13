@@ -146,7 +146,7 @@
       <Version>4.71.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Language">
-      <Version>17.13.226</Version>
+      <Version>17.14.249</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.9.3184">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -241,6 +241,9 @@
       <Project>{fb118d8f-18e1-4b77-9882-4ee77469cb8d}</Project>
       <Name>OpenAI_API</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <Import Project="VisualChatGPTStudioShared\VisualChatGPTStudioShared.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,5 +1,10 @@
 ﻿## Release Notes 📜
 
+### 5.2.0
+
+- The Copilot feature has been fixed to work with Visual Studio 2022 version 17.14.x.
+- Due to the need to ensure compatibility of the Copilot feature with Visual Studio, starting from this version, Visual Studio version 17.14 or higher is required.
+
 ### 5.1.2
 
 - Improvements added so that screen reading tools can read the commands.

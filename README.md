@@ -416,14 +416,14 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 <a id="18"></a>
 ## Release Notes 📜
 
+### 5.2.0
+
+- The Copilot feature has been fixed to work with Visual Studio 2022 version 17.14.x.
+- Due to the need to ensure compatibility of the Copilot feature with Visual Studio, starting from this version, Visual Studio version 17.14 or higher is required.
+
 ### 5.1.2
 
 - Improvements added so that screen reading tools can read the commands.
 - More improvements in navigating controls in the Turbo Chat window using the keyboard.
-
-### 5.1.1
-
-- Improvements in navigating controls in the Chat and Turbo Chat window using the keyboard.
-- Changed the shortcut to reference files and/or methods in request fields from "#" to "@" to avoid match with the word "c#" which may occasionally be used.
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

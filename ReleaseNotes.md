@@ -1,5 +1,10 @@
 ﻿## Release Notes 📜
 
+### 5.2.1
+
+- Copilot feature predictions enhancement. Thanks [Asafima](https://github.com/Asafima).
+- Added error handling for when the API returns status code 429 and requests to try again after a specific amount of time. In this case, the extension will wait for that time before making a new request automatically.
+
 ### 5.2.0
 
 - The Copilot feature has been fixed to work with Visual Studio 2022 version 17.14.x.

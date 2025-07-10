@@ -137,6 +137,7 @@ namespace OpenAI_API
                     req.Content = stringContent;
                 }
             }
+
             response = await client.SendAsync(req, streaming ? HttpCompletionOption.ResponseHeadersRead : HttpCompletionOption.ResponseContentRead);
 
             if (response.IsSuccessStatusCode)
@@ -151,22 +152,49 @@ namespace OpenAI_API
                 }
                 catch (Exception readError)
                 {
-                    resultAsString = "Additionally, the following error was thrown when attemping to read the response content: " + readError.ToString();
+                    resultAsString = "Additionally, the following error was thrown when attempting to read the response content: " + readError.ToString();
                 }
 
                 if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
-                    throw new AuthenticationException("OpenAI rejected your authorization, most likely due to an invalid API Key. Full API response follows: " + resultAsString);
+                    throw new AuthenticationException("API rejected your authorization. Full API response follows: " + resultAsString);
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
                 {
-                    throw new HttpRequestException("OpenAI had an internal server error, which can happen occasionally.  Please retry your request.  " + GetErrorMessage(resultAsString, response, Endpoint, url));
+                    throw new HttpRequestException("API had an internal server error. Please retry your request.  " + GetErrorMessage(resultAsString, response, Endpoint, url));
+                }
+                else if ((int)response.StatusCode == 429)
+                {
+                    // Handle rate limit: retry after specified time if Retry-After header exists
+                    if (response.Headers.TryGetValues("Retry-After", out IEnumerable<string> values))
+                    {
+                        string retryAfterValue = values.FirstOrDefault();
+
+                        if (int.TryParse(retryAfterValue, out int delaySeconds))
+                        {
+                            await Task.Delay(delaySeconds * 1000);
+
+                            // Retry the request recursively
+                            return await HttpRequestRaw(url, verb, postData, streaming);
+                        }
+                        else
+                        {
+                            // Retry-After header exists but is not a valid integer, rethrow
+                            throw new HttpRequestException(GetErrorMessage(resultAsString, response, Endpoint, url));
+                        }
+                    }
+                    else
+                    {
+                        // No Retry-After header, rethrow
+                        throw new HttpRequestException(GetErrorMessage(resultAsString, response, Endpoint, url));
+                    }
                 }
                 else
                 {
                     HttpRequestException errorToThrow = new HttpRequestException(GetErrorMessage(resultAsString, response, Endpoint, url));
 
                     ApiErrorResponse parsedError = JsonConvert.DeserializeObject<ApiErrorResponse>(resultAsString);
+
                     try
                     {
                         errorToThrow.Data.Add("message", parsedError.Error.Message);
@@ -178,6 +206,7 @@ namespace OpenAI_API
                     {
                         throw new HttpRequestException(errorToThrow.Message, parsingError);
                     }
+
                     throw errorToThrow;
                 }
             }
@@ -228,40 +257,6 @@ namespace OpenAI_API
 
             return res;
         }
-
-        /*
-		/// <summary>
-		/// Sends an HTTP Request, supporting a streaming response
-		/// </summary>
-		/// <typeparam name="T">The <see cref="ApiResultBase"/>-derived class for the result</typeparam>
-		/// <param name="url">(optional) If provided, overrides the url endpoint for this request.  If omitted, then <see cref="Url"/> will be used.</param>
-		/// <param name="verb">(optional) The HTTP verb to use, for example "<see cref="HttpMethod.Get"/>".  If omitted, then "GET" is assumed.</param>
-		/// <param name="postData">(optional) A json-serializable object to include in the request body.</param>
-		/// <returns>An awaitable Task with the parsed result of type <typeparamref name="T"/></returns>
-		/// <exception cref="HttpRequestException">Throws an exception if a non-success HTTP response was returned or if the result couldn't be parsed.</exception>
-		private async Task<T> StreamingHttpRequest<T>(string url = null, HttpMethod verb = null, object postData = null) where T : ApiResultBase
-		{
-			var response = await HttpRequestRaw(url, verb, postData);
-			string resultAsString = await response.Content.ReadAsStringAsync();
-
-			var res = JsonConvert.DeserializeObject<T>(resultAsString);
-			try
-			{
-				res.Organization = response.Headers.GetValues("Openai-Organization").FirstOrDefault();
-				res.RequestId = response.Headers.GetValues("X-Request-ID").FirstOrDefault();
-				res.ProcessingTime = TimeSpan.FromMilliseconds(int.Parse(response.Headers.GetValues("Openai-Processing-Ms").First()));
-				res.OpenaiVersion = response.Headers.GetValues("Openai-Version").FirstOrDefault();
-				if (string.IsNullOrEmpty(res.Model))
-					res.Model = response.Headers.GetValues("Openai-Model").FirstOrDefault();
-			}
-			catch (Exception e)
-			{
-				Debug.Print($"Issue parsing metadata of OpenAi Response.  Url: {url}, Error: {e.ToString()}, Response: {resultAsString}.  This is probably ignorable.");
-			}
-
-			return res;
-		}
-		*/
 
         /// <summary>
         /// Sends an HTTP Get request and does initial parsing

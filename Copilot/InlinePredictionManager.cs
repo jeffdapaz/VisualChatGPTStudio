@@ -14,7 +14,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
-using JeffPires.VisualChatGPTStudio.Utils.API;
 
 namespace JeffPires.VisualChatGPTStudio.Copilot
 {
@@ -45,6 +44,8 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
         /// </summary>
         public async Task OnEnterPressed(OptionPageGridGeneral options)
         {
+            const string MARKER = "\n **AUTOCOMPLETE HERE** \n";
+
             try
             {
                 await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_WAITING_COPILOT, 1, 2);
@@ -58,9 +59,12 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
 
                 string filePath = ((ITextDocument)view.TextDataModel.DocumentBuffer.Properties.GetProperty(typeof(ITextDocument))).FilePath;
 
-                string systemMessage = TextFormat.FormatForCompleteCommand(options.CopilotCommand + Constants.PROVIDE_ONLY_CODE_INSTRUCTION, filePath);
+                string systemMessage = TextFormat.FormatForCompleteCommand(options.CopilotCommand + Constants.COPILOT_ADDICTIONAL_INSTRUCTIONS, filePath);
 
-                string code = GetCodeUpToCurrentPosition(caretPosition);
+                string codeUp = GetCodeUpToCurrentPosition(caretPosition);
+                string codeDown = GetCodeBelowCurrentPosition(caretPosition);
+
+                string code = codeUp + MARKER + codeDown;
 
                 string codeNormalized = TextFormat.NormalizeLineBreaks(code);
                 codeNormalized = TextFormat.RemoveBlankLinesFromResult(codeNormalized).Trim();
@@ -168,6 +172,51 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
             }
 
             return codeUpToCurrentPosition.ToString();
+        }
+
+        /// <summary>
+        /// Retrieves the code from the caret position down to the end of the current method or document.
+        /// </summary>
+        /// <param name="caretPosition">The current position of the caret in the text buffer.</param>
+        /// <returns>A string containing the code after the caret.</returns>
+        private string GetCodeBelowCurrentPosition(int caretPosition)
+        {
+            ITextSnapshot snapshot = view.TextBuffer.CurrentSnapshot;
+            ITextSnapshotLine currentLine = snapshot.GetLineFromPosition(caretPosition);
+            StringBuilder codeBelow = new();
+
+            // Start from current line or line after caret?
+            int startLine = currentLine.LineNumber;
+
+            // Count curly braces to detect end of method
+            int openBraces = 0;
+            bool insideMethod = false;
+
+            for (int i = startLine; i < snapshot.LineCount; i++)
+            {
+                string lineText = snapshot.GetLineFromLineNumber(i).GetText();
+                codeBelow.AppendLine(lineText);
+
+                foreach (char c in lineText)
+                {
+                    if (c == '{')
+                    {
+                        openBraces++;
+                        insideMethod = true;
+                    }
+                    else if (c == '}')
+                    {
+                        openBraces--;
+                    }
+                }
+
+                if (insideMethod && openBraces <= 0)
+                {
+                    break; // method body is closed
+                }
+            }
+
+            return codeBelow.ToString();
         }
 
         /// <summary>

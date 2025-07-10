@@ -134,7 +134,7 @@
                                         VerticalScrollBarVisibility="Disabled"
                                         GotFocus="txtChat_GotFocus"
                                         IsTabStop="False"
-                                        Focusable="False"
+                                        Focusable="true"
                                         PreviewMouseWheel="txtChat_PreviewMouseWheel"/>
                                 </Border>
                             </Grid>

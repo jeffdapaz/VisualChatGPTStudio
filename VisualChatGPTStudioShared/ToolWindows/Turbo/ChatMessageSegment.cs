@@ -8,7 +8,7 @@
         /// <summary>
         /// Segment author.
         /// </summary>
-        public AuthorEnum Author { get; set; }
+        public IdentifierEnum Author { get; set; }
 
         /// <summary>
         /// The message content.
@@ -24,5 +24,17 @@
         /// To Control the segment position by the end.
         /// </summary>
         public int SegmentOrderEnd { get; set; }
+    }
+
+    public enum IdentifierEnum
+    {
+        Me,
+        ChatGPT,
+        ChatGPTCode,
+        FunctionCall,
+        FunctionRequest,
+        ApiResult,
+        CopyIcon,
+        CheckIcon
     }
 }

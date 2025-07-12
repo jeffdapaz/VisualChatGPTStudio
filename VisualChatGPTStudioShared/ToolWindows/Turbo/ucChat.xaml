@@ -7,7 +7,6 @@
              xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"   
              xmlns:utils="clr-namespace:JeffPires.VisualChatGPTStudio.Utils"             
              xmlns:utils_shared="clr-namespace:VisualChatGPTStudioShared.Utils"
-             xmlns:mdxam="clr-namespace:MdXaml;assembly=MdXaml"
              Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
              Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
              mc:Ignorable="d"
@@ -90,58 +89,9 @@
                 <RowDefinition Height="5"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <ScrollViewer Grid.Row="0" x:Name="scrollViewer" VerticalScrollBarVisibility="Auto">
-                <ItemsControl 
-                    Grid.Row="0" 
-                    Name="chatList"
-                    TabIndex="0"
-                    IsTabStop="True"
-                    Focusable="True">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="5"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="15"/>
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="5" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="5" />
-                                </Grid.ColumnDefinitions>
-                                <Image 
-                                    Grid.Row="0" 
-                                    Grid.Column="1" 
-                                    Source="{Binding ImageSource}" 
-                                    Width="36" 
-                                    Height="36" 
-                                    HorizontalAlignment="Left"/>
-                                <Border 
-                                    Grid.Row="2" 
-                                    Grid.Column="1" 
-                                    Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
-                                    BorderBrush="Gray"
-                                    BorderThickness="1"
-                                    CornerRadius="10">
-                                    <mdxam:MarkdownScrollViewer 
-                                        Markdown="{Binding Text}" 
-                                        Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
-                                        Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
-                                        MarkdownStyleName="Sasabune"
-                                        Padding="5"
-                                        VerticalScrollBarVisibility="Disabled"
-                                        GotFocus="txtChat_GotFocus"
-                                        IsTabStop="False"
-                                        Focusable="true"
-                                        PreviewMouseWheel="txtChat_PreviewMouseWheel"/>
-                                </Border>
-                            </Grid>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
+
+            <WebBrowser x:Name="webBrowserChat" Grid.Row="0"/>
+            
             <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Background="#FF007ACC" Margin="0,5,0,5"  Visibility="{Binding Visibility, ElementName=dataGridResult}"/>
             <DataGrid 
                 Grid.Row="2"

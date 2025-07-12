@@ -281,7 +281,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
                 substrings.Add(new ChatMessageSegment
                 {
-                    Author = AuthorEnum.ChatGPTCode,
+                    Author = IdentifierEnum.ChatGPTCode,
                     Content = RemoveBlankLinesFromResult(codeContent),
                     SegmentOrderStart = start,
                     SegmentOrderEnd = end
@@ -314,7 +314,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
                 substrings.Add(new ChatMessageSegment
                 {
-                    Author = AuthorEnum.ChatGPT,
+                    Author = IdentifierEnum.ChatGPT,
                     Content = RemoveBlankLinesFromResult(allSubstrings[i]),
                     SegmentOrderStart = start,
                     SegmentOrderEnd = end
@@ -347,7 +347,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         {
             List<ChatMessageSegment> segments = GetChatTurboResponseSegments(response);
 
-            if (!segments.Any(s => s.Author == AuthorEnum.ChatGPTCode))
+            if (!segments.Any(s => s.Author == IdentifierEnum.ChatGPTCode))
             {
                 return NormalizeLineBreaks(RemoveLinesStartingWithCodeTags(response));
             }
@@ -356,7 +356,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
             foreach (ChatMessageSegment segment in segments)
             {
-                if (segment.Author == AuthorEnum.ChatGPTCode)
+                if (segment.Author == IdentifierEnum.ChatGPTCode)
                 {
                     result.AppendLine(segment.Content);
                 }

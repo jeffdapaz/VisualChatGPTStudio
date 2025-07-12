@@ -1,5 +1,9 @@
 ﻿## Release Notes 📜
 
+### 5.3.0
+
+- This version features a faster, lighter, and more responsive turbo chat interface with improved usability.
+
 ### 5.2.1
 
 - Copilot feature predictions enhancement. Thanks [Asafima](https://github.com/Asafima).

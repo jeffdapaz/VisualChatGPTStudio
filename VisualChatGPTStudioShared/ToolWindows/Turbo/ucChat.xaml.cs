@@ -6,6 +6,8 @@ using JeffPires.VisualChatGPTStudio.Utils;
 using JeffPires.VisualChatGPTStudio.Utils.API;
 using JeffPires.VisualChatGPTStudio.Utils.CodeCompletion;
 using JeffPires.VisualChatGPTStudio.Utils.Repositories;
+using Markdig;
+using Markdig.SyntaxHighlighting;
 using Microsoft.VisualStudio.Shell;
 using Newtonsoft.Json;
 using OpenAI_API.Chat;
@@ -13,7 +15,6 @@ using OpenAI_API.Functions;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.IdentityModel.Protocols.WSTrust;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -26,7 +27,6 @@ using VisualChatGPTStudioShared.Agents.ApiAgent;
 using VisualChatGPTStudioShared.ToolWindows.Turbo;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 using MessageBox = System.Windows.MessageBox;
-using TextEditor = ICSharpCode.AvalonEdit.TextEditor;
 
 namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 {
@@ -42,9 +42,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private readonly TerminalWindowTurboControl parentControl;
         private readonly OptionPageGridGeneral options;
         private readonly Package package;
-        private readonly List<MessageEntity> messages;
-        private readonly Conversation chat;
-        private readonly List<ChatListControlItem> chatListControlItems;
+        private readonly List<MessageEntity> messagesForDatabase;
+        private readonly Conversation apiChat;
         private readonly CancellationTokenSource cancellationTokenSource;
         private readonly string chatId;
         private DocumentView docView;
@@ -57,6 +56,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private List<ApiItem> apiDefinitions;
         private readonly List<string> sqlServerConnectionsAlreadyAdded = [];
         private readonly List<string> apiDefinitionsAlreadyAdded = [];
+        private readonly MarkdownPipeline markdownPipeline;
+        private readonly StringBuilder messagesHtml = new();
+        private readonly Dictionary<IdentifierEnum, string> base64Images = [];
 
         #endregion Properties
 
@@ -78,16 +80,13 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                       List<MessageEntity> messages,
                       string chatId)
         {
-            //It is necessary for the MdXaml library load successfully
-            MdXaml.MarkdownScrollViewer _ = new();
-
             this.InitializeComponent();
 
             this.parentControl = parentControl;
             this.options = options;
             this.package = package;
             this.ChatHeader = ucChatHeader;
-            this.messages = messages;
+            this.messagesForDatabase = messages;
             this.chatId = chatId;
 
             rowRequest.MaxHeight = parentControl.ActualHeight - 200;
@@ -101,11 +100,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             completionManager = new CompletionManager(package, txtRequest);
 
+            markdownPipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().DisableHtml().UseSyntaxHighlighting().Build();
+
             StringBuilder segments;
 
-            chat = ApiHandler.CreateConversation(options, options.TurboChatBehavior);
-
-            chatListControlItems = [];
+            apiChat = ApiHandler.CreateConversation(options, options.TurboChatBehavior);
 
             foreach (MessageEntity message in messages.OrderBy(m => m.Order))
             {
@@ -119,29 +118,27 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     segments.AppendLine(message.Segments[i].Content);
                 }
 
-                if (message.Segments[0].Author == AuthorEnum.FunctionCall)
+                if (message.Segments[0].Author == IdentifierEnum.FunctionCall)
                 {
-                    chat.AppendFunctionCall(JsonConvert.DeserializeObject<FunctionRequest>(message.Segments[0].Content));
+                    apiChat.AppendFunctionCall(JsonConvert.DeserializeObject<FunctionRequest>(message.Segments[0].Content));
                 }
-                else if (message.Segments[0].Author == AuthorEnum.FunctionRequest)
+                else if (message.Segments[0].Author == IdentifierEnum.FunctionRequest)
                 {
-                    chat.AppendUserInput(message.Segments[0].Content);
+                    apiChat.AppendUserInput(message.Segments[0].Content);
                 }
-                else if (message.Segments[0].Author == AuthorEnum.ApiResult)
+                else if (message.Segments[0].Author == IdentifierEnum.ApiResult)
                 {
-                    chatListControlItems.Add(new ChatListControlItem(message.Segments[0].Author, segments.ToString()));
+                    AddMessagesHtml(message.Segments[0].Author, segments.ToString());
                 }
                 else
                 {
-                    chatListControlItems.Add(new ChatListControlItem(message.Segments[0].Author, segments.ToString()));
+                    AddMessagesHtml(message.Segments[0].Author, segments.ToString());
 
-                    chat.AppendUserInput(segments.ToString());
+                    apiChat.AppendUserInput(segments.ToString());
                 }
             }
 
-            chatList.ItemsSource = chatListControlItems;
-
-            UpdateScrollPosition();
+            UpdateBrowser();
 
             sqlServerConnectionsAlreadyAdded = ChatRepository.GetSqlServerConnections(chatId);
             apiDefinitionsAlreadyAdded = ChatRepository.GetApiDefinitions(chatId);
@@ -223,54 +220,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             spImage.Visibility = Visibility.Collapsed;
 
             attachedImage = null;
-        }
-
-        /// <summary>
-        /// Handles the PreviewMouseWheel event for the txtChat control, scrolling the associated ScrollViewer based on the mouse wheel delta.
-        /// </summary>
-        private void txtChat_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
-            {
-                MdXaml.MarkdownScrollViewer mdXaml = (MdXaml.MarkdownScrollViewer)sender;
-
-                List<TextEditor> textEditors = FindMarkDownCodeTextEditors(mdXaml);
-
-                if (textEditors != null)
-                {
-                    foreach (TextEditor textEditor in textEditors)
-                    {
-                        ScrollViewer scrollViewerEditor = textEditor.Template.FindName("PART_ScrollViewer", textEditor) as ScrollViewer;
-
-                        if (scrollViewerEditor != null)
-                        {
-                            scrollViewerEditor.ScrollToHorizontalOffset(scrollViewerEditor.HorizontalOffset - e.Delta);
-                        }
-                    }
-                }
-            }
-            else
-            {
-                scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - e.Delta);
-            }
-
-            e.Handled = true;
-        }
-
-        /// <summary>
-        /// To avoid the behavior that caused the scroll to move automatically when clicking with the mouse to select text
-        /// </summary>
-        private void txtChat_GotFocus(object sender, RoutedEventArgs e)
-        {
-            double currentOffset = scrollViewer.VerticalOffset;
-
-            scrollViewer.Opacity = 0.5;
-
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                scrollViewer.ScrollToVerticalOffset(currentOffset);
-                scrollViewer.Opacity = 1;
-            }), System.Windows.Threading.DispatcherPriority.Background);
         }
 
         /// <summary>
@@ -384,8 +333,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             foreach (FunctionRequest function in sqlFunctions)
             {
-                chat.AppendFunctionCall(function);
-                messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.FunctionCall, Content = JsonConvert.SerializeObject(function) }] });
+                apiChat.AppendFunctionCall(function);
+                messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.FunctionCall, Content = JsonConvert.SerializeObject(function) }] });
             }
 
             string request = options.SqlServerAgentCommand + Environment.NewLine + dataBaseSchema + Environment.NewLine;
@@ -394,7 +343,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             string requestToShowOnList = "###" + connection.Description + Environment.NewLine + Environment.NewLine + Environment.NewLine + options.SqlServerAgentCommand;
 
-            messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.FunctionRequest, Content = request }] });
+            messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.FunctionRequest, Content = request }] });
 
             await RequestAsync(RequestType.Request, request, requestToShowOnList, false);
 
@@ -476,8 +425,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             foreach (FunctionRequest function in apiFunctions)
             {
-                chat.AppendFunctionCall(function);
-                messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.FunctionCall, Content = JsonConvert.SerializeObject(function) }] });
+                apiChat.AppendFunctionCall(function);
+                messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.FunctionCall, Content = JsonConvert.SerializeObject(function) }] });
             }
 
             ApiItem apiDefinition = (ApiItem)cbAPIs.SelectedItem;
@@ -486,7 +435,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             string requestToShowOnList = "###" + apiDefinition.Name + Environment.NewLine + Environment.NewLine + Environment.NewLine + options.APIAgentCommand;
 
-            messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.FunctionRequest, Content = request }] });
+            messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.FunctionRequest, Content = request }] });
 
             await RequestAsync(RequestType.Request, request, requestToShowOnList, false);
 
@@ -517,7 +466,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
         #endregion API Event Handlers        
 
-        #region Methods        
+        #region Methods  
 
         /// <summary>
         /// Handles an asynchronous request based on the specified command type. Validates input, appends context or system messages, processes code or image-related requests, and sends the final request.
@@ -547,7 +496,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 if (!string.IsNullOrWhiteSpace(selectedContextFilesCode))
                 {
-                    chat.AppendSystemMessage(selectedContextFilesCode);
+                    apiChat.AppendSystemMessage(selectedContextFilesCode);
                     selectedContextFilesCodeAppended = true;
                 }
             }
@@ -565,8 +514,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 originalCode = TextFormat.RemoveCharactersFromText(originalCode, options.CharactersToRemoveFromRequests.Split(','));
 
-                chat.AppendSystemMessage(options.TurboChatCodeCommand);
-                chat.AppendUserInput(originalCode);
+                apiChat.AppendSystemMessage(options.TurboChatCodeCommand);
+                apiChat.AppendUserInput(originalCode);
             }
 
             string requestToShowOnList = txtRequest.Text;
@@ -577,7 +526,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 List<ChatContentForImage> chatContent = [new(attachedImage)];
 
-                chat.AppendUserInput(chatContent);
+                apiChat.AppendUserInput(chatContent);
             }
 
             string request = await completionManager.ReplaceReferencesAsync(txtRequest.Text);
@@ -595,21 +544,22 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             try
             {
-                chatListControlItems.Add(new ChatListControlItem(AuthorEnum.Me, requestToShowOnList));
+                AddMessagesHtml(IdentifierEnum.Me, requestToShowOnList);
+
+                UpdateBrowser();
 
                 request = options.MinifyRequests ? TextFormat.MinifyText(request, " ") : request;
 
                 request = TextFormat.RemoveCharactersFromText(request, options.CharactersToRemoveFromRequests.Split(','));
 
-                chat.AppendUserInput(request);
+                apiChat.AppendUserInput(request);
 
                 Application.Current.Dispatcher.Invoke(new Action(() =>
                 {
                     EnableDisableButtons(false);
-                    UpdateScrollPosition();
                 }));
 
-                messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.Me, Content = requestToShowOnList }] });
+                messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.Me, Content = requestToShowOnList }] });
 
                 CancellationTokenSource cancellationToken = new();
 
@@ -632,7 +582,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 }
                 else
                 {
-                    parentControl.NotifyNewChatMessagesAdded(ChatHeader, messages);
+                    parentControl.NotifyNewChatMessagesAdded(ChatHeader, messagesForDatabase);
                 }
             }
             catch (OperationCanceledException)
@@ -665,7 +615,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </returns>
         private async Task<(string, List<FunctionResult>)> SendRequestAsync(CancellationTokenSource cancellationTokenSource)
         {
-            Task<(string, List<FunctionResult>)> task = chat.GetResponseContentAndFunctionAsync();
+            Task<(string, List<FunctionResult>)> task = apiChat.GetResponseContentAndFunctionAsync();
 
             await System.Threading.Tasks.Task.WhenAny(task, System.Threading.Tasks.Task.Delay(Timeout.Infinite, cancellationTokenSource.Token));
 
@@ -725,7 +675,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             string request = "Please suggest a concise and relevant title for my first message based on its context, using up to three words and in the same language as my first message.";
 
-            chat.AppendUserInput(request);
+            apiChat.AppendUserInput(request);
 
             (string, List<FunctionResult>) result = await SendRequestAsync(cancellationToken);
 
@@ -742,46 +692,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             ChatHeader.UpdateChatName(chatName);
 
-            parentControl.NotifyNewChatCreated(ChatHeader, chatName, messages);
+            parentControl.NotifyNewChatCreated(ChatHeader, chatName, messagesForDatabase);
 
             firstMessage = false;
-        }
-
-        /// <summary>
-        /// Recursively searches for all TextEditor controls within the visual tree of a given DependencyObject.
-        /// </summary>
-        /// <param name="parent">The parent DependencyObject to start the search from.</param>
-        /// <returns>
-        /// A list of all found TextEditor controls.
-        /// </returns>
-        private static List<TextEditor> FindMarkDownCodeTextEditors(DependencyObject parent)
-        {
-            List<TextEditor> foundChildren = [];
-
-            if (parent == null)
-            {
-                return foundChildren;
-            }
-
-            int childrenCount = VisualTreeHelper.GetChildrenCount(parent);
-
-            for (int i = 0; i < childrenCount; i++)
-            {
-                DependencyObject child = VisualTreeHelper.GetChild(parent, i);
-
-                TextEditor childType = child as TextEditor;
-
-                if (childType == null)
-                {
-                    foundChildren.AddRange(FindMarkDownCodeTextEditors(child));
-                }
-                else
-                {
-                    foundChildren.Add(childType);
-                }
-            }
-
-            return foundChildren;
         }
 
         /// <summary>
@@ -795,23 +708,23 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 for (int i = 0; i < segments.Count; i++)
                 {
-                    if (segments[i].Author == AuthorEnum.ChatGPTCode)
+                    if (segments[i].Author == IdentifierEnum.ChatGPTCode)
                     {
                         docView.TextView.TextBuffer.Replace(new Microsoft.VisualStudio.Text.Span(0, docView.TextView.TextBuffer.CurrentSnapshot.Length), segments[i].Content);
                     }
                     else
                     {
-                        chatListControlItems.Add(new ChatListControlItem(segments[i].Author, segments[i].Content));
+                        AddMessagesHtml(segments[i].Author, segments[i].Content);
                     }
                 }
             }
             else
             {
-                messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.ChatGPT, Content = response }] });
-                chatListControlItems.Add(new ChatListControlItem(AuthorEnum.ChatGPT, response));
+                messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.ChatGPT, Content = response }] });
+                AddMessagesHtml(IdentifierEnum.ChatGPT, response);
             }
 
-            UpdateScrollPosition();
+            UpdateBrowser();
         }
 
         /// <summary>
@@ -836,9 +749,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                     if (!string.IsNullOrWhiteSpace(apiResponse.Item2))
                     {
-                        messages.Add(new() { Order = messages.Count + 1, Segments = [new() { Author = AuthorEnum.ApiResult, Content = apiResponse.Item2 }] });
-                        chatListControlItems.Add(new ChatListControlItem(AuthorEnum.ApiResult, apiResponse.Item2));
-                        UpdateScrollPosition();
+                        messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.ApiResult, Content = apiResponse.Item2 }] });
+                        AddMessagesHtml(IdentifierEnum.ApiResult, apiResponse.Item2);
                     }
                 }
                 else
@@ -856,7 +768,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     }
                 }
 
-                chat.AppendToolMessage(function.Id, functionResult);
+                apiChat.AppendToolMessage(function.Id, functionResult);
             }
 
             (string, List<FunctionResult>) result = await SendRequestAsync(cancellationToken);
@@ -909,37 +821,239 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         }
 
         /// <summary>
-        /// Updates the scroll position of the chat list to ensure the last item is visible.
-        /// Refreshes the items, updates the layout, and scrolls the ScrollViewer to the vertical offset of the last item.
-        /// If the last item container is not found, scrolls to the end of the ScrollViewer.
-        /// </summary>
-        private void UpdateScrollPosition()
-        {
-            chatList.Items.Refresh();
-
-            chatList.UpdateLayout();
-
-            FrameworkElement lastItemContainer = chatList.ItemContainerGenerator.ContainerFromIndex(chatList.Items.Count - 1) as FrameworkElement;
-
-            if (lastItemContainer != null)
-            {
-                GeneralTransform transform = lastItemContainer.TransformToAncestor(scrollViewer);
-                Point position = transform.Transform(new Point(0, 0));
-
-                scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset + position.Y);
-            }
-            else
-            {
-                scrollViewer.ScrollToEnd();
-            }
-        }
-
-        /// <summary>
         /// Closes the current tab by invoking the CloseTab method on the parent control.
         /// </summary>
         public void CloseTab(Object sender, ExecutedRoutedEventArgs e)
         {
             parentControl.CloseTab(this);
+        }
+
+        /// <summary>
+        /// Adds a formatted HTML message to the message list, including the author's avatar and the response content converted from Markdown.
+        /// </summary>
+        /// <param name="author">The author of the message, used to determine the avatar image.</param>
+        /// <param name="response">The message content in Markdown format to be converted and displayed.</param>
+        private void AddMessagesHtml(IdentifierEnum author, string response)
+        {
+            string imageBase64 = GetImageBase64(author);
+            string htmlContent = Markdown.ToHtml(response, markdownPipeline);
+
+            htmlContent = htmlContent.Replace("<script", "&lt;script").Replace("</script>", "&lt;/script&gt;");
+
+            string messageHtml = $@"
+                    <div style='position: relative; margin-bottom: 16px; padding-top: 20px;'>
+                        <img src='{imageBase64}' style='display: block; position: absolute; top: 0px; width: 40px; height: 40px;' />
+                        <div style='margin-left: 0; margin-top: 20px; border: 1.5px solid #888; border-radius: 12px; padding: 5px 5px 5px 5px; box-sizing: border-box;'>
+                            {htmlContent}
+                        </div>
+                    </div>";
+
+            messagesHtml.AppendLine(messageHtml);
+        }
+
+        /// <summary>
+        /// Updates the embedded web browser control with dynamically generated HTML content.
+        /// </summary>
+        private void UpdateBrowser()
+        {
+            Color textColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.WindowTextKey]).Color;
+            Color backgroundColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.WindowKey]).Color;
+
+            Color codeBackgroundColor = Color.FromRgb(
+                (byte)Math.Max(0, backgroundColor.R - 10),
+                (byte)Math.Max(0, backgroundColor.G - 10),
+                (byte)Math.Max(0, backgroundColor.B - 10)
+            );
+
+            string cssTextColor = ToCssColor(textColor);
+            string cssBackgroundColor = ToCssColor(backgroundColor);
+            string cssCodeBackgroundColor = ToCssColor(codeBackgroundColor);
+
+            string copyIcon = GetImageBase64(IdentifierEnum.CopyIcon);
+            string checkIcon = GetImageBase64(IdentifierEnum.CheckIcon);
+
+            string html = $@"
+                    <html>
+                    <head>
+                        <meta http-equiv='X-UA-Compatible' content='IE=edge' />
+                        <meta charset='UTF-8'>
+                        <style>
+                            body {{
+                                font-family: Segoe UI, Tahoma, Geneva, Verdana, sans-serif;
+                                margin: 10px;
+                                background-color: {cssBackgroundColor};
+                                color: {cssTextColor};
+                            }}
+                            p {{
+                                margin-top: 1px;
+                                margin-bottom: 1px;
+                            }}
+                            pre {{
+                                overflow-x: auto;
+                                white-space: pre;
+                                background: {cssCodeBackgroundColor};
+                                color: {cssTextColor};
+                                padding: 8px;
+                                font-family: Consolas, 'Courier New', monospace;
+                                font-size: 13px;
+                                margin: 6px 0;
+                            }}
+                            code {{
+                                font-family: Consolas, 'Courier New', monospace;
+                                font-size: 13px;
+                                color: {cssTextColor};
+                            }}
+                            .copy-btn {{
+                                position: absolute;
+                                right: 8px;
+                                top: 6px;
+                                width: 15px;
+                                height: 15px;
+                                background: none;
+                                border: none;
+                                padding: 0;
+                                cursor: pointer;
+                                outline: none;
+                            }}
+                            .copy-btn img {{
+                                width: 15px;
+                                height: 15px;
+                                display: block;
+                            }}
+                        </style>
+                        <script type='text/javascript'>
+                            var copyIcon = '{copyIcon}';
+                            var checkIcon = '{checkIcon}';
+
+                            window.onload = function() {{
+                                window.scrollTo(0, document.body.scrollHeight);
+                                
+                                document.body.focus();
+
+                                document.body.addEventListener('keydown', function(e) {{
+                                    var amount = 40;
+                                    switch (e.key) {{
+                                        case 'ArrowDown': window.scrollBy(0, amount); e.preventDefault(); break;
+                                        case 'ArrowUp': window.scrollBy(0, -amount); e.preventDefault(); break;
+                                        case 'PageDown': window.scrollBy(0, window.innerHeight - 40); e.preventDefault(); break;
+                                        case 'PageUp': window.scrollBy(0, -window.innerHeight + 40); e.preventDefault(); break;
+                                        case 'Home': window.scrollTo(0, 0); e.preventDefault(); break;
+                                        case 'End': window.scrollTo(0, document.body.scrollHeight); e.preventDefault(); break;
+                                    }}
+                                }});
+
+                                var pres = document.getElementsByTagName('pre');
+
+                                for (var i = 0; i < pres.length; i++) {{
+                                    var pre = pres[i];
+                                    
+                                    var btn = document.createElement('button');
+                                    btn.className = 'copy-btn';
+                                    btn.title = 'Copy';
+
+                                    var img = document.createElement('img');
+                                    img.src = copyIcon;
+                                    btn.appendChild(img);
+
+                                    var wrapper = document.createElement('div');
+                                    wrapper.style.position = 'relative';
+
+                                    pre.parentNode.insertBefore(wrapper, pre);
+                                    wrapper.appendChild(pre);
+
+                                    wrapper.appendChild(btn);
+
+                                    btn.onclick = function() {{
+                                        var code = this.parentNode.getElementsByTagName('pre')[0].innerText;
+                                        
+                                        if (window.clipboardData && window.clipboardData.setData) {{
+                                            window.clipboardData.setData('Text', code);
+                                        }} else if (navigator.clipboard) {{
+                                            navigator.clipboard.writeText(code);
+                                        }} else {{
+                                            var textarea = document.createElement('textarea');
+                                            textarea.value = code;
+                                            document.body.appendChild(textarea);
+                                            textarea.select();
+                                            try {{ document.execCommand('copy'); }} catch(e) {{}}
+                                            document.body.removeChild(textarea);
+                                        }}
+                                        var img = this.getElementsByTagName('img')[0];
+                                        img.src = checkIcon;
+                                        var btn = this;
+                                        setTimeout(function() {{ img.src = copyIcon; }}, 1200);
+                                    }};
+
+                                    pre.addEventListener('wheel', function(e) {{
+                                        if (e.shiftKey) {{
+                                            this.scrollLeft += (e.deltaY || e.detail || e.wheelDelta) > 0 ? 40 : -40;
+                                            e.preventDefault();
+                                        }}
+                                    }});
+                                }}
+                            }};
+                        </script>
+                    </head>
+                    <body tabindex=""0"">
+                        {messagesHtml}
+                    </body>
+                    </html>";
+
+            webBrowserChat.NavigateToString(html);
+        }
+
+        /// <summary>
+        /// Retrieves the Base64-encoded string representation of an image associated with the specified <paramref name="identifier"/>.
+        /// </summary>
+        /// <param name="identifier">The identifier enum value representing the image to retrieve.</param>
+        /// <returns>
+        /// A string containing the Base64-encoded image data prefixed with the appropriate data URI scheme.
+        /// </returns>
+        private string GetImageBase64(IdentifierEnum identifier)
+        {
+            if (base64Images.TryGetValue(identifier, out string result))
+            {
+                return result;
+            }
+
+            string imageSource = identifier switch
+            {
+                IdentifierEnum.Me => "pack://application:,,,/VisualChatGPTStudio;component/Resources/vs.png",
+                IdentifierEnum.ChatGPT => "pack://application:,,,/VisualChatGPTStudio;component/Resources/chatGPT.png",
+                IdentifierEnum.ApiResult => "pack://application:,,,/VisualChatGPTStudio;component/Resources/api.png",
+                IdentifierEnum.CopyIcon => "pack://application:,,,/VisualChatGPTStudio;component/Resources/copy.png",
+                IdentifierEnum.CheckIcon => "pack://application:,,,/VisualChatGPTStudio;component/Resources/check.png"
+            };
+
+            Uri uri = new(imageSource, UriKind.RelativeOrAbsolute);
+
+            System.Windows.Resources.StreamResourceInfo streamResourceInfo = Application.GetResourceStream(uri);
+
+            string image;
+
+            using (System.IO.Stream stream = streamResourceInfo.Stream)
+            {
+                byte[] buffer = new byte[stream.Length];
+                stream.Read(buffer, 0, buffer.Length);
+                string base64 = Convert.ToBase64String(buffer);
+                image = $"data:image/png;base64,{base64}";
+            }
+
+            base64Images.Add(identifier, image);
+
+            return image;
+        }
+
+        /// <summary>
+        /// Converts a <see cref="System.Windows.Media.Color"/> to its CSS hexadecimal color string representation (e.g., "#RRGGBB").
+        /// </summary>
+        /// <param name="color">The color to convert.</param>
+        /// <returns>
+        /// A string representing the color in CSS hexadecimal format.
+        /// </returns>
+        private static string ToCssColor(System.Windows.Media.Color color)
+        {
+            return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
         }
 
         #endregion Methods                            

@@ -412,18 +412,19 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 - [MdXaml](https://github.com/whistyun/MdXaml)
 - [VsixLogger](https://github.com/madskristensen/VsixLogger)
 - [Community.VisualStudio.Toolkit.17](https://github.com/VsixCommunity/Community.VisualStudio.Toolkit)
+- [Markdig](https://github.com/xoofx/markdig)
+- [Markdig.SyntaxHighlighting](https://github.com/RichardSlater/Markdig.SyntaxHighlighting/)
 
 <a id="18"></a>
 ## Release Notes 📜
+
+### 5.3.0
+
+- This version features a faster, lighter, and more responsive turbo chat interface with improved usability.
 
 ### 5.2.1
 
 - Copilot feature predictions enhancement. Thanks [Asafima](https://github.com/Asafima).
 - Added error handling for when the API returns status code 429 and requests to try again after a specific amount of time. In this case, the extension will wait for that time before making a new request automatically.
-
-### 5.2.0
-
-- The Copilot feature has been fixed to work with Visual Studio 2022 version 17.14.x.
-- Due to the need to ensure compatibility of the Copilot feature with Visual Studio, starting from this version, Visual Studio version 17.14 or higher is required.
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

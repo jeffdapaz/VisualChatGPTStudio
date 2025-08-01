@@ -169,6 +169,16 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             completionManager.HandleTextEntering(e);
         }
 
+        private void btnComputerUse_Click(object sender, RoutedEventArgs e)
+        {
+            if (!IsReadyToSendRequest())
+            {
+                return;
+            }
+
+
+        }
+
         /// <summary>
         /// Handles the Click event of the btnRequestCode control.
         /// </summary>
@@ -475,18 +485,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             shiftKeyPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
 
-            if (!options.AzureEntraIdAuthentication && string.IsNullOrWhiteSpace(options.ApiKey))
+            if (!IsReadyToSendRequest())
             {
-                MessageBox.Show(Constants.MESSAGE_SET_API_KEY, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
-
-                package.ShowOptionPage(typeof(OptionPageGridGeneral));
-
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(txtRequest.Text))
-            {
-                MessageBox.Show(Constants.MESSAGE_WRITE_REQUEST, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -534,6 +534,33 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             txtRequest.Text = string.Empty;
 
             await RequestAsync(commandType, request, requestToShowOnList, shiftKeyPressed);
+        }
+
+        /// <summary>
+        /// Checks whether the necessary conditions are met to send a request, including authentication and request content.
+        /// </summary>
+        /// <returns>
+        /// True if the request is ready to be sent; otherwise, false.
+        /// </returns>
+        private bool IsReadyToSendRequest()
+        {
+            if (!options.AzureEntraIdAuthentication && string.IsNullOrWhiteSpace(options.ApiKey))
+            {
+                MessageBox.Show(Constants.MESSAGE_SET_API_KEY, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                package.ShowOptionPage(typeof(OptionPageGridGeneral));
+
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtRequest.Text))
+            {
+                MessageBox.Show(Constants.MESSAGE_WRITE_REQUEST, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Information);
+
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>

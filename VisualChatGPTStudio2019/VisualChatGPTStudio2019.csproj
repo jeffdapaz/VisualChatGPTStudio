@@ -80,6 +80,9 @@
     <EmbeddedResource Include="..\Resources\Highlighting.xshd">
       <Link>Resources\Highlighting.xshd</Link>
     </EmbeddedResource>
+    <Resource Include="..\Resources\computer-use.png">
+      <Link>Resources\computer-use.png</Link>
+    </Resource>
     <Content Include="lib\osx-arm64\libgit2-3f4182d.dylib">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>

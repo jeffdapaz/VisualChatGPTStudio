@@ -91,7 +91,7 @@
             </Grid.RowDefinitions>
 
             <WebBrowser x:Name="webBrowserChat" Grid.Row="0"/>
-            
+
             <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Background="#FF007ACC" Margin="0,5,0,5"  Visibility="{Binding Visibility, ElementName=dataGridResult}"/>
             <DataGrid 
                 Grid.Row="2"
@@ -179,6 +179,8 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="15"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Button 
                     Grid.Column="1"
@@ -223,36 +225,48 @@
                 <Button 
                     Grid.Column="7"
                     Width="20" 
+                    x:Name="btnComputerUse" 
+                    ToolTip="Let the AI take control of Visual Studio to execute your instruction" 
+                    AutomationProperties.HelpText="Let the AI take control of Visual Studio to execute your instruction"
+                    TabIndex="5"
+                    IsTabStop="True"
+                    Focusable="True"
+                    Click="btnComputerUse_Click" >
+                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/computer-use.png"/>
+                </Button>
+                <Button 
+                    Grid.Column="9"
+                    Width="20" 
                     x:Name="btnRequestCode" 
                     ToolTip="Send Code (Ctrl+Alt+Enter)" 
                     AutomationProperties.HelpText="Send Code (Ctrl+Alt+Enter)"
-                    TabIndex="5"
+                    TabIndex="6"
                     IsTabStop="True"
                     Focusable="True"
                     Click="SendCode" >
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/sendCode.png"/>
                 </Button>
                 <Button 
-                    Grid.Column="9"
+                    Grid.Column="11"
                     Width="20" 
                     x:Name="btnRequestSend" 
                     ToolTip="Send (Ctrl+Enter)" 
                     AutomationProperties.HelpText="Send (Ctrl+Enter)"
-                    TabIndex="6"
+                    TabIndex="7"
                     IsTabStop="True"
                     Focusable="True"
                     Click="SendRequest" >
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/send.png"/>
                 </Button>
                 <Button 
-                    Grid.Column="11"
+                    Grid.Column="13"
                     Width="20" 
                     x:Name="btnCancel" 
                     ToolTip="Cancel (Alt+Q)" 
                     AutomationProperties.HelpText="Cancel (Alt+Q)"
                     Click="CancelRequest" 
                     Visibility="Collapsed" 
-                    TabIndex="7"
+                    TabIndex="8"
                     IsTabStop="True"
                     Focusable="True"
                     IsEnabled="False" >

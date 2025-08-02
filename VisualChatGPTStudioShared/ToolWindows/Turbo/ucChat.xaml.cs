@@ -12,9 +12,11 @@ using Microsoft.VisualStudio.Shell;
 using Newtonsoft.Json;
 using OpenAI_API.Chat;
 using OpenAI_API.Functions;
+using OpenAI_API.ResponsesAPI.Models.Response;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -44,7 +46,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private readonly Package package;
         private readonly List<MessageEntity> messagesForDatabase;
         private readonly Conversation apiChat;
-        private readonly CancellationTokenSource cancellationTokenSource;
+        private CancellationTokenSource cancellationTokenSource;
         private readonly string chatId;
         private DocumentView docView;
         private bool shiftKeyPressed;
@@ -169,14 +171,55 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             completionManager.HandleTextEntering(e);
         }
 
-        private void btnComputerUse_Click(object sender, RoutedEventArgs e)
+        private async void btnComputerUse_Click(object sender, RoutedEventArgs e)
         {
-            if (!IsReadyToSendRequest())
+            try
             {
-                return;
+                if (!IsReadyToSendRequest())
+                {
+                    return;
+                }
+
+                EnableDisableButtons(false);
+
+                byte[] screenshot = ScreenCapturer.CaptureActiveWindowScreenshot(out int displayWidth, out int displayHeight);
+
+                File.WriteAllBytes("C:\\Users\\j.da.paz.pires\\Desktop\\janela_ativa.png", screenshot);
+
+                AddMessagesHtml(IdentifierEnum.Me, txtRequest.Text);
+
+                UpdateBrowser();
+
+                messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.Me, Content = txtRequest.Text }] });
+
+                cancellationTokenSource = new();
+
+                Task<ComputerUseResponse> task = ApiHandler.GetComputerUseResponseAsync(options, txtRequest.Text, displayWidth, displayHeight, screenshot, cancellationToken: cancellationTokenSource.Token);
+
+                await System.Threading.Tasks.Task.WhenAny(task, System.Threading.Tasks.Task.Delay(Timeout.Infinite, cancellationTokenSource.Token));
+
+                cancellationTokenSource.Token.ThrowIfCancellationRequested();
+
+                await task;
             }
+            catch (OperationCanceledException)
+            {
+                //catch request cancelation
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
 
+                MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            finally
+            {
+                EnableDisableButtons(true);
 
+                spImage.Visibility = Visibility.Collapsed;
+
+                attachedImage = null;
+            }
         }
 
         /// <summary>
@@ -588,24 +631,22 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.Me, Content = requestToShowOnList }] });
 
-                CancellationTokenSource cancellationToken = new();
+                cancellationTokenSource = new();
 
-                (string, List<FunctionResult>) result = await SendRequestAsync(cancellationToken);
+                (string, List<FunctionResult>) result = await SendRequestAsync(cancellationTokenSource);
 
                 if (result.Item2 != null && result.Item2.Any())
                 {
-                    await HandleFunctionsCallsAsync(result.Item2, cancellationToken);
+                    await HandleFunctionsCallsAsync(result.Item2, cancellationTokenSource);
                 }
                 else
                 {
                     HandleResponse(commandType, shiftKeyPressed, result.Item1);
                 }
 
-                EnableDisableButtons(true);
-
                 if (firstMessage)
                 {
-                    await UpdateHeaderAsync(cancellationToken);
+                    await UpdateHeaderAsync(cancellationTokenSource);
                 }
                 else
                 {
@@ -662,6 +703,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             btnAPI.IsEnabled = enable;
             btnSql.IsEnabled = enable;
             btnAttachImage.IsEnabled = enable;
+            btnComputerUse.IsEnabled = enable;
             btnRequestCode.IsEnabled = enable;
             btnRequestSend.IsEnabled = enable;
             btnSqlSend.IsEnabled = enable;
@@ -670,6 +712,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             btnAPI.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
             btnSql.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
             btnAttachImage.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
+            btnComputerUse.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
             btnRequestCode.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
             btnRequestSend.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
             btnCancel.Visibility = !enable ? Visibility.Visible : Visibility.Collapsed;

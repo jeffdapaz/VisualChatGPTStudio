@@ -4,8 +4,12 @@ using JeffPires.VisualChatGPTStudio.Utils.Http;
 using OpenAI_API;
 using OpenAI_API.Chat;
 using OpenAI_API.Completions;
+using OpenAI_API.ResponsesAPI;
+using OpenAI_API.ResponsesAPI.Models.Request;
+using OpenAI_API.ResponsesAPI.Models.Response;
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -203,6 +207,87 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             }
 
             return chat;
+        }
+
+        public static async Task<ComputerUseResponse> GetComputerUseResponseAsync(OptionPageGridGeneral options,
+                                                                                  string prompt,
+                                                                                  int displayWidth,
+                                                                                  int displayHeight,
+                                                                                  byte[] screenshot,
+                                                                                  string previousResponseId = null,
+                                                                                  List<ComputerUseSafetyCheck> acknowledgedSafetyChecks = null,
+                                                                                  CancellationToken cancellationToken = default)
+        {
+            if (options.MinifyRequests)
+            {
+                prompt = TextFormat.MinifyText(prompt, " ");
+            }
+
+            prompt = TextFormat.RemoveCharactersFromText(prompt, options.CharactersToRemoveFromRequests.Split(','));
+
+            ComputerUseTool tool = new()
+            {
+                DisplayWidth = displayWidth,
+                DisplayHeight = displayHeight
+            };
+
+            List<ComputerUseInput> inputList =
+            [
+                new ComputerUseInput
+                {
+                    Type = "input_text",
+                    Content = [new ComputerUseContent(prompt)]
+                },
+                new ComputerUseInput
+                {
+                    Type = "input_image",
+                    Content = [new ComputerUseContent(screenshot)] 
+                }
+            ];
+
+            ComputerUseRequest request = new()
+            {
+                Tools = [tool],
+                Input = inputList,
+                PreviousResponseId = previousResponseId,
+                AcknowledgedSafetyChecks = acknowledgedSafetyChecks
+            };
+
+            string endpointUrl;
+            bool isAzure = false;
+
+            if (options.Service == OpenAIService.OpenAI)
+            {
+                endpointUrl = !string.IsNullOrWhiteSpace(options.BaseAPI)
+                    ? $"{options.BaseAPI.TrimEnd('/')}/responses"
+                    : "https://api.openai.com/v1/responses";
+            }
+            else
+            {
+                endpointUrl = !string.IsNullOrWhiteSpace(options.AzureUrlOverride)
+                    ? $"{options.AzureUrlOverride.TrimEnd('/')}/openai/v1/responses?api-version={options.AzureApiVersion}"
+                    : $"https://{options.AzureResourceName}.openai.azure.com/openai/v1/responses?api-version={options.AzureApiVersion}";
+                isAzure = true;
+            }
+
+            ChatGPTHttpClientFactory chatGPTHttpClient = new(options);
+
+            if (!string.IsNullOrWhiteSpace(options.Proxy))
+            {
+                chatGPTHttpClient.SetProxy(options.Proxy);
+            }
+
+            HttpClient httpClient = chatGPTHttpClient.CreateClient();
+            httpClient.BaseAddress = new Uri(endpointUrl);
+
+            return await ResponsesApiHandler.SendComputerUseRequestAsync(
+                request,
+                httpClient,
+                options.ApiKey,
+                isAzure,
+                options.OpenAIOrganization,
+                cancellationToken
+            );
         }
 
         #endregion Public Methods

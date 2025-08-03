@@ -66,6 +66,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\TerminalWindowTurboControl.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ApiHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\AttachImage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\ComputerUse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Enums.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Http\HttpLogs.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Repositories\ApiAgentRepository.cs" />

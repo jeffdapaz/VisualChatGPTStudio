@@ -22,9 +22,5 @@ namespace OpenAI_API.ResponsesAPI.Models.Request
 
         [JsonProperty("previous_response_id")]
         public string PreviousResponseId { get; set; }
-
-        [JsonProperty("acknowledged_safety_checks")]
-        public List<ComputerUseSafetyCheck> AcknowledgedSafetyChecks { get; set; }
-
     }
 }

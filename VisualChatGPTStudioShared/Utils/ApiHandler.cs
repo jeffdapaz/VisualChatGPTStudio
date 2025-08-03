@@ -235,13 +235,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             [
                 new ComputerUseInput
                 {
-                    Type = "input_text",
-                    Content = [new ComputerUseContent(prompt)]
-                },
-                new ComputerUseInput
-                {
-                    Type = "input_image",
-                    Content = [new ComputerUseContent(screenshot)] 
+                    Content = [new ComputerUseContent(prompt), new ComputerUseContent(screenshot)]
                 }
             ];
 
@@ -249,8 +243,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             {
                 Tools = [tool],
                 Input = inputList,
-                PreviousResponseId = previousResponseId,
-                AcknowledgedSafetyChecks = acknowledgedSafetyChecks
+                PreviousResponseId = previousResponseId
             };
 
             string endpointUrl;

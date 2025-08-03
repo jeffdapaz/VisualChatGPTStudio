@@ -8,11 +8,16 @@ namespace OpenAI_API.ResponsesAPI.Models.Request
         [JsonProperty("type")]
         public string Type { get; private set; }
 
-        [JsonProperty("text")]
+        [JsonProperty("text", NullValueHandling = NullValueHandling.Ignore)]
         public string Text { get; private set; }
 
-        [JsonProperty("image_url")]
+        [JsonProperty("image_url", NullValueHandling = NullValueHandling.Ignore)]
         public string ImageUrl { get; private set; }
+
+        public ComputerUseContent()
+        {
+
+        }
 
         public ComputerUseContent(string text)
         {

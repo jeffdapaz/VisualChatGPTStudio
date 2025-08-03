@@ -12,11 +12,11 @@ using Microsoft.VisualStudio.Shell;
 using Newtonsoft.Json;
 using OpenAI_API.Chat;
 using OpenAI_API.Functions;
+using OpenAI_API.ResponsesAPI.Models.Request;
 using OpenAI_API.ResponsesAPI.Models.Response;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -184,23 +184,27 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 byte[] screenshot = ScreenCapturer.CaptureFocusedScreenScreenshot(out int displayWidth, out int displayHeight);
 
-                File.WriteAllBytes("C:\\Users\\j.da.paz.pires\\Desktop\\janela_ativa.png", screenshot);
+                string request = txtRequest.Text;
 
-                AddMessagesHtml(IdentifierEnum.Me, txtRequest.Text);
+                txtRequest.Text = string.Empty;
+
+                AddMessagesHtml(IdentifierEnum.Me, request);
 
                 UpdateBrowser();
 
-                messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.Me, Content = txtRequest.Text }] });
+                messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.Me, Content = request }] });
 
                 cancellationTokenSource = new();
 
-                Task<ComputerUseResponse> task = ApiHandler.GetComputerUseResponseAsync(options, txtRequest.Text, displayWidth, displayHeight, screenshot, cancellationToken: cancellationTokenSource.Token);
+                Task<ComputerUseResponse> task = ApiHandler.GetComputerUseResponseAsync(options, request, displayWidth, displayHeight, screenshot, cancellationToken: cancellationTokenSource.Token);
 
                 await System.Threading.Tasks.Task.WhenAny(task, System.Threading.Tasks.Task.Delay(Timeout.Infinite, cancellationTokenSource.Token));
 
                 cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
-                await task;
+                ComputerUseResponse response = await task;
+
+                ProcessComputerUseResponseAsync(response);
             }
             catch (OperationCanceledException)
             {
@@ -1124,6 +1128,31 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private static string ToCssColor(System.Windows.Media.Color color)
         {
             return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+        }
+
+        private async void ProcessComputerUseResponseAsync(ComputerUseResponse response)
+        {
+            List<ComputerUseContent> messages = response.Output.Where(o => o.Type == ComputerUseOutputItemType.message).SelectMany(o => o.Content).ToList();
+
+            messages.AddRange(response.Output.Where(o => o.Type == ComputerUseOutputItemType.reasoning).SelectMany(o => o.Summary));
+
+            foreach (ComputerUseContent message in messages)
+            {
+                AddMessagesHtml(IdentifierEnum.ChatGPT, message.Text);
+
+                messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.ChatGPT, Content = message.Text }] });
+            }
+
+            UpdateBrowser();
+
+            if (firstMessage)
+            {
+                await UpdateHeaderAsync(cancellationTokenSource);
+            }
+            else
+            {
+                parentControl.NotifyNewChatMessagesAdded(ChatHeader, messagesForDatabase);
+            }
         }
 
         #endregion Methods                            

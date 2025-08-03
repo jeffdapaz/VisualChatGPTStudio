@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 
 namespace JeffPires.VisualChatGPTStudio.Utils
 {
@@ -42,37 +43,47 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         }
 
         /// <summary>
-        /// Captures a screenshot of the currently active (foreground) window (supposed to be the Visual Studio) and returns it as a PNG byte array.
-        /// Also outputs the width and height of the captured window.
+        /// Captures the screen that currently shows the Visual Studio window.
         /// </summary>
-        /// <param name="displayWidth">The width of the captured window in pixels.</param>
-        /// <param name="displayHeight">The height of the captured window in pixels.</param>
-        /// <returns>
-        /// A byte array containing the PNG-encoded screenshot of the active window.
-        /// </returns>
-        public static byte[] CaptureActiveWindowScreenshot(out int displayWidth, out int displayHeight)
+        /// <param name="displayWidth">Output: width of the captured screen (in pixels).</param>
+        /// <param name="displayHeight">Output: height of the captured screen (in pixels).</param>
+        /// <returns>A byte array containing the PNG-encoded screenshot.</returns>
+        public static byte[] CaptureFocusedScreenScreenshot(out int displayWidth, out int displayHeight)
         {
+            // 1. Get the handle of the foreground (focused) window
             IntPtr hWnd = GetForegroundWindow();
 
             if (hWnd == IntPtr.Zero)
             {
-                throw new InvalidOperationException("It was not possible to get the active window.");
+                throw new InvalidOperationException("Failed to get the Visual Studio window.");
             }
 
+            // 2. Get the window's position and size
             if (!GetWindowRect(hWnd, out RECT rect))
             {
-                throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error(), "Failure in GetWindowRect");
+                throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error(), "GetWindowRect failed.");
             }
 
-            displayWidth = rect.Right - rect.Left;
-            displayHeight = rect.Bottom - rect.Top;
+            // 3. Convert RECT to .NET Rectangle
+            Rectangle windowRect = new(rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top);
 
+            // 4. Determine which screen contains most of the window
+            Screen targetScreen = Screen.FromRectangle(windowRect);
+
+            Rectangle screenBounds = targetScreen.Bounds;
+
+            displayWidth = screenBounds.Width;
+            displayHeight = screenBounds.Height;
+
+            // 5. Capture the entire screen as a bitmap
             using Bitmap bmp = new(displayWidth, displayHeight, PixelFormat.Format32bppArgb);
+
             using (Graphics g = Graphics.FromImage(bmp))
             {
-                g.CopyFromScreen(rect.Left, rect.Top, 0, 0, new Size(displayWidth, displayHeight), CopyPixelOperation.SourceCopy);
+                g.CopyFromScreen(screenBounds.Location, Point.Empty, screenBounds.Size, CopyPixelOperation.SourceCopy);
             }
 
+            // 6. Save the image to a memory stream as PNG and return the byte array
             using MemoryStream ms = new();
 
             bmp.Save(ms, ImageFormat.Png);

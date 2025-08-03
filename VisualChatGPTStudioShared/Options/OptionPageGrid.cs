@@ -174,8 +174,20 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Category("Azure")]
         [DisplayName("API Version")]
         [Description("Set the Azure OpenAI API version. You can check the available versions here: https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#completions")]
-        [DefaultValue("2023-05-15")]
-        public string AzureApiVersion { get; set; } = "2023-05-15";
+        [DefaultValue("2024-12-01-preview")]
+        public string AzureApiVersion { get; set; } = "2024-12-01-preview";
+
+        [Category("Azure")]
+        [DisplayName("Deployment Name For Computer Use")]
+        [Description("Set Azure OpenAI deployment name for computer-use model.")]
+        [DefaultValue("")]
+        public string AzureDeploymentIdForComputerUse { get; set; } = string.Empty;
+
+        [Category("Azure")]
+        [DisplayName("API Version For Computer Use")]
+        [Description("Set the Azure OpenAI API version for computer-use model.")]
+        [DefaultValue("preview")]
+        public string AzureApiVersionForComputerUse { get; set; } = "preview";
 
         [Category("Azure")]
         [DisplayName("Azure URL Override")]

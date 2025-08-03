@@ -182,7 +182,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 EnableDisableButtons(false);
 
-                byte[] screenshot = ScreenCapturer.CaptureActiveWindowScreenshot(out int displayWidth, out int displayHeight);
+                byte[] screenshot = ScreenCapturer.CaptureFocusedScreenScreenshot(out int displayWidth, out int displayHeight);
 
                 File.WriteAllBytes("C:\\Users\\j.da.paz.pires\\Desktop\\janela_ativa.png", screenshot);
 

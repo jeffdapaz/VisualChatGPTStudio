@@ -265,8 +265,8 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             else
             {
                 endpointUrl = !string.IsNullOrWhiteSpace(options.AzureUrlOverride)
-                    ? $"{options.AzureUrlOverride.TrimEnd('/')}/openai/v1/responses?api-version={options.AzureApiVersion}"
-                    : $"https://{options.AzureResourceName}.openai.azure.com/openai/v1/responses?api-version={options.AzureApiVersion}";
+                    ? $"{options.AzureUrlOverride.TrimEnd('/')}/openai/v1/responses?api-version={options.AzureApiVersionForComputerUse}"
+                    : $"https://{options.AzureResourceName}.openai.azure.com/openai/v1/responses?api-version={options.AzureApiVersionForComputerUse}";
                 isAzure = true;
             }
 

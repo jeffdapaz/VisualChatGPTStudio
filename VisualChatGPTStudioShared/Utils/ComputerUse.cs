@@ -1,10 +1,10 @@
 ﻿using OpenAI_API.ResponsesAPI.Models.Response;
 
-namespace VisualChatGPTStudioShared.Utils
+namespace JeffPires.VisualChatGPTStudio.Utils
 {
     public static class ComputerUse
     {
-        public static void DoAction(ComputerUseResponse response)
+        public static void DoAction(ComputerUseAction action)
         {
 
         }

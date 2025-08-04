@@ -6,7 +6,7 @@ namespace OpenAI_API.ResponsesAPI.Models.Request
     public class ComputerUseInput
     {
         [JsonProperty("role", NullValueHandling = NullValueHandling.Ignore)]
-        public string Role => "user";
+        public string Role { get; set; }
 
         [JsonProperty("type", NullValueHandling = NullValueHandling.Ignore)]
         public string Type { get; set; }

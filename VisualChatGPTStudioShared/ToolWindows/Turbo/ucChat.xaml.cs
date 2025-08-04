@@ -102,7 +102,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             completionManager = new CompletionManager(package, txtRequest);
 
-            markdownPipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().DisableHtml().UseSyntaxHighlighting().Build();
+            markdownPipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().DisableHtml().UseSoftlineBreakAsHardlineBreak().UseSyntaxHighlighting().Build();
 
             StringBuilder segments;
 
@@ -173,7 +173,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
         private async void btnComputerUse_Click(object sender, RoutedEventArgs e)
         {
-            try
+            await ExecuteRequestWithCommonHandlingAsync(async () =>
             {
                 if (!IsReadyToSendRequest())
                 {
@@ -205,25 +205,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 ComputerUseResponse response = await task;
 
                 ProcessComputerUseResponseAsync(response);
-            }
-            catch (OperationCanceledException)
-            {
-                //catch request cancelation
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-
-                MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
-            finally
-            {
-                EnableDisableButtons(true);
-
-                spImage.Visibility = Visibility.Collapsed;
-
-                attachedImage = null;
-            }
+            });
         }
 
         /// <summary>
@@ -616,7 +598,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         private async System.Threading.Tasks.Task RequestAsync(RequestType commandType, string request, string requestToShowOnList, bool shiftKeyPressed)
         {
-            try
+            await ExecuteRequestWithCommonHandlingAsync(async () =>
             {
                 AddMessagesHtml(IdentifierEnum.Me, requestToShowOnList);
 
@@ -656,25 +638,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 {
                     parentControl.NotifyNewChatMessagesAdded(ChatHeader, messagesForDatabase);
                 }
-            }
-            catch (OperationCanceledException)
-            {
-                //catch request cancelation
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-
-                MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
-            finally
-            {
-                EnableDisableButtons(true);
-
-                spImage.Visibility = Visibility.Collapsed;
-
-                attachedImage = null;
-            }
+            });
         }
 
         /// <summary>
@@ -1119,6 +1083,33 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         }
 
         /// <summary>
+        /// Executes the specified asynchronous operation with common exception handling for requests.
+        /// </summary>
+        /// <param name="requestOperation">The asynchronous operation to execute.</param>
+        private async System.Threading.Tasks.Task ExecuteRequestWithCommonHandlingAsync(Func<System.Threading.Tasks.Task> requestOperation)
+        {
+            try
+            {
+                await requestOperation();
+            }
+            catch (OperationCanceledException)
+            {
+                // catch request cancelation
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+                MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            finally
+            {
+                EnableDisableButtons(true);
+                spImage.Visibility = Visibility.Collapsed;
+                attachedImage = null;
+            }
+        }
+
+        /// <summary>
         /// Converts a <see cref="System.Windows.Media.Color"/> to its CSS hexadecimal color string representation (e.g., "#RRGGBB").
         /// </summary>
         /// <param name="color">The color to convert.</param>
@@ -1132,27 +1123,69 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
         private async void ProcessComputerUseResponseAsync(ComputerUseResponse response)
         {
-            List<ComputerUseContent> messages = response.Output.Where(o => o.Type == ComputerUseOutputItemType.message).SelectMany(o => o.Content).ToList();
-
-            messages.AddRange(response.Output.Where(o => o.Type == ComputerUseOutputItemType.reasoning).SelectMany(o => o.Summary));
-
-            foreach (ComputerUseContent message in messages)
+            await ExecuteRequestWithCommonHandlingAsync(async () =>
             {
-                AddMessagesHtml(IdentifierEnum.ChatGPT, message.Text);
+                while (true)
+                {
+                    // 1. Display messages and reasoning in the UI
+                    List<ComputerUseContent> messages = response.Output
+                        .Where(o => o.Type == ComputerUseOutputItemType.message && o.Content != null)
+                        .SelectMany(o => o.Content)
+                        .ToList();
 
-                messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.ChatGPT, Content = message.Text }] });
-            }
+                    messages.AddRange(response.Output
+                        .Where(o => o.Type == ComputerUseOutputItemType.reasoning && o.Summary != null)
+                        .SelectMany(o => o.Summary));
 
-            UpdateBrowser();
+                    foreach (ComputerUseContent message in messages)
+                    {
+                        AddMessagesHtml(IdentifierEnum.ChatGPT, message.Text);
 
-            if (firstMessage)
-            {
-                await UpdateHeaderAsync(cancellationTokenSource);
-            }
-            else
-            {
-                parentControl.NotifyNewChatMessagesAdded(ChatHeader, messagesForDatabase);
-            }
+                        messagesForDatabase.Add(new()
+                        {
+                            Order = messagesForDatabase.Count + 1,
+                            Segments = [new() { Author = IdentifierEnum.ChatGPT, Content = message.Text }]
+                        });
+                    }
+
+                    UpdateBrowser();
+
+                    // 2. Find the next computer_call action
+                    ComputerUseOutputItem computerCall = response.Output.FirstOrDefault(o => o.Type == ComputerUseOutputItemType.computer_call);
+
+                    if (computerCall == null)
+                    {
+                        // No more actions to perform
+                        if (firstMessage)
+                        {
+                            await UpdateHeaderAsync(cancellationTokenSource);
+                        }
+                        else
+                        {
+                            parentControl.NotifyNewChatMessagesAdded(ChatHeader, messagesForDatabase);
+                        }
+
+                        break;
+                    }
+
+                    // 3. Execute the action programmatically in Windows/Visual Studio
+                    ComputerUse.DoAction(computerCall.Action);
+
+                    // 4. Capture the updated screenshot
+                    byte[] screenshot = ScreenCapturer.CaptureFocusedScreenScreenshot(out int displayWidth, out int displayHeight);
+
+                    // 5. Send the next request using the output of the action
+                    response = await ApiHandler.GetComputerUseResponseAsync(
+                        options,
+                        displayWidth,
+                        displayHeight,
+                        screenshot,
+                        computerCall.CallId,
+                        previousResponseId: response.Id,
+                        cancellationToken: cancellationTokenSource.Token
+                    );
+                }
+            });
         }
 
         #endregion Methods                            

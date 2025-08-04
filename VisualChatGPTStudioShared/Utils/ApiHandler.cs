@@ -214,8 +214,6 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                                                                                   int displayWidth,
                                                                                   int displayHeight,
                                                                                   byte[] screenshot,
-                                                                                  string previousResponseId = null,
-                                                                                  List<ComputerUseSafetyCheck> acknowledgedSafetyChecks = null,
                                                                                   CancellationToken cancellationToken = default)
         {
             if (options.MinifyRequests)
@@ -235,7 +233,42 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             [
                 new ComputerUseInput
                 {
+                    Role = "user",
                     Content = [new ComputerUseContent(prompt), new ComputerUseContent(screenshot)]
+                }
+            ];
+
+            ComputerUseRequest request = new()
+            {
+                Tools = [tool],
+                Input = inputList
+            };
+
+            return await SendComputerUseRequestAsync(options, request, cancellationToken);
+        }
+
+        public static async Task<ComputerUseResponse> GetComputerUseResponseAsync(OptionPageGridGeneral options,
+                                                                                  int displayWidth,
+                                                                                  int displayHeight,
+                                                                                  byte[] screenshot,
+                                                                                  string lastCallId,
+                                                                                  string previousResponseId,
+                                                                                  List<ComputerUseSafetyCheck> acknowledgedSafetyChecks = null,
+                                                                                  CancellationToken cancellationToken = default)
+        {
+            ComputerUseTool tool = new()
+            {
+                DisplayWidth = displayWidth,
+                DisplayHeight = displayHeight
+            };
+
+            List<ComputerUseInput> inputList =
+            [
+                new ComputerUseInput
+                {
+                    CallId = lastCallId,
+                    Type = "computer_call_output",
+                    Output = new ComputerUseContent(screenshot)
                 }
             ];
 
@@ -246,41 +279,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                 PreviousResponseId = previousResponseId
             };
 
-            string endpointUrl;
-            bool isAzure = false;
-
-            if (options.Service == OpenAIService.OpenAI)
-            {
-                endpointUrl = !string.IsNullOrWhiteSpace(options.BaseAPI)
-                    ? $"{options.BaseAPI.TrimEnd('/')}/responses"
-                    : "https://api.openai.com/v1/responses";
-            }
-            else
-            {
-                endpointUrl = !string.IsNullOrWhiteSpace(options.AzureUrlOverride)
-                    ? $"{options.AzureUrlOverride.TrimEnd('/')}/openai/v1/responses?api-version={options.AzureApiVersionForComputerUse}"
-                    : $"https://{options.AzureResourceName}.openai.azure.com/openai/v1/responses?api-version={options.AzureApiVersionForComputerUse}";
-                isAzure = true;
-            }
-
-            ChatGPTHttpClientFactory chatGPTHttpClient = new(options);
-
-            if (!string.IsNullOrWhiteSpace(options.Proxy))
-            {
-                chatGPTHttpClient.SetProxy(options.Proxy);
-            }
-
-            HttpClient httpClient = chatGPTHttpClient.CreateClient();
-            httpClient.BaseAddress = new Uri(endpointUrl);
-
-            return await ResponsesApiHandler.SendComputerUseRequestAsync(
-                request,
-                httpClient,
-                options.ApiKey,
-                isAzure,
-                options.OpenAIOrganization,
-                cancellationToken
-            );
+            return await SendComputerUseRequestAsync(options, request, cancellationToken);
         }
 
         #endregion Public Methods
@@ -493,6 +492,45 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             }
 
             return result.ToString();
+        }
+
+        private static async Task<ComputerUseResponse> SendComputerUseRequestAsync(OptionPageGridGeneral options, ComputerUseRequest request, CancellationToken cancellationToken)
+        {
+            string endpointUrl;
+            bool isAzure = false;
+
+            if (options.Service == OpenAIService.OpenAI)
+            {
+                endpointUrl = !string.IsNullOrWhiteSpace(options.BaseAPI)
+                    ? $"{options.BaseAPI.TrimEnd('/')}/responses"
+                    : "https://api.openai.com/v1/responses";
+            }
+            else
+            {
+                endpointUrl = !string.IsNullOrWhiteSpace(options.AzureUrlOverride)
+                    ? $"{options.AzureUrlOverride.TrimEnd('/')}/openai/v1/responses?api-version={options.AzureApiVersionForComputerUse}"
+                    : $"https://{options.AzureResourceName}.openai.azure.com/openai/v1/responses?api-version={options.AzureApiVersionForComputerUse}";
+                isAzure = true;
+            }
+
+            ChatGPTHttpClientFactory chatGPTHttpClient = new(options);
+
+            if (!string.IsNullOrWhiteSpace(options.Proxy))
+            {
+                chatGPTHttpClient.SetProxy(options.Proxy);
+            }
+
+            HttpClient httpClient = chatGPTHttpClient.CreateClient();
+            httpClient.BaseAddress = new Uri(endpointUrl);
+
+            return await ResponsesApiHandler.SendComputerUseRequestAsync(
+                request,
+                httpClient,
+                options.ApiKey,
+                isAzure,
+                options.OpenAIOrganization,
+                cancellationToken
+            );
         }
 
         #endregion Private Methods

@@ -414,17 +414,18 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 - [Community.VisualStudio.Toolkit.17](https://github.com/VsixCommunity/Community.VisualStudio.Toolkit)
 - [Markdig](https://github.com/xoofx/markdig)
 - [Markdig.SyntaxHighlighting](https://github.com/RichardSlater/Markdig.SyntaxHighlighting/)
+- [InputSimulator](https://github.com/michaelnoonan/inputsimulator)
 
 <a id="18"></a>
 ## Release Notes 📜
 
+### 5.4.0
+
+- Add the new computer-use beta feature on Turbo Chat.
+- Improved Turbo Chat formatting.
+
 ### 5.3.0
 
 - This version features a faster, lighter, and more responsive turbo chat interface with improved usability.
-
-### 5.2.1
-
-- Copilot feature predictions enhancement. Thanks [Asafima](https://github.com/Asafima).
-- Added error handling for when the API returns status code 429 and requests to try again after a specific amount of time. In this case, the extension will wait for that time before making a new request automatically.
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

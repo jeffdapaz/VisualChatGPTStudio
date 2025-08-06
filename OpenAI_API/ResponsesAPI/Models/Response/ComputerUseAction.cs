@@ -20,6 +20,12 @@ namespace OpenAI_API.ResponsesAPI.Models.Response
         [JsonProperty("y")]
         public int? Y { get; set; }
 
+        [JsonProperty("scrollX")]
+        public int? ScrollX { get; set; }
+
+        [JsonProperty("scrollY")]
+        public int? ScrollY { get; set; }
+
         [JsonProperty("text")]
         public string Text { get; set; }
     }
@@ -42,8 +48,10 @@ namespace OpenAI_API.ResponsesAPI.Models.Response
         Wait,
         [EnumMember(Value = "screenshot")]
         Screenshot,
-        [EnumMember(Value = "unknown")]
-        Unknown
+        [EnumMember(Value = "move")]
+        Move,
+        [EnumMember(Value = "drag")]
+        Drag
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
@@ -54,8 +62,6 @@ namespace OpenAI_API.ResponsesAPI.Models.Response
         [EnumMember(Value = "right")]
         Right,
         [EnumMember(Value = "middle")]
-        Middle,
-        [EnumMember(Value = "unknown")]
-        Unknown
+        Middle
     }
 }

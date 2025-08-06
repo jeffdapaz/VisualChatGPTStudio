@@ -17,6 +17,7 @@ using OpenAI_API.ResponsesAPI.Models.Response;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -27,6 +28,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using VisualChatGPTStudioShared.Agents.ApiAgent;
 using VisualChatGPTStudioShared.ToolWindows.Turbo;
+using Color = System.Windows.Media.Color;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 using MessageBox = System.Windows.MessageBox;
 
@@ -61,6 +63,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private readonly MarkdownPipeline markdownPipeline;
         private readonly StringBuilder messagesHtml = new();
         private readonly Dictionary<IdentifierEnum, string> base64Images = [];
+        private Rectangle screenBounds;
 
         #endregion Properties
 
@@ -102,7 +105,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             completionManager = new CompletionManager(package, txtRequest);
 
-            markdownPipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().DisableHtml().UseSoftlineBreakAsHardlineBreak().UseSyntaxHighlighting().Build();
+            markdownPipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().DisableHtml().UseSyntaxHighlighting().ConfigureNewLine("<br />").Build();
 
             StringBuilder segments;
 
@@ -182,7 +185,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 EnableDisableButtons(false);
 
-                byte[] screenshot = ScreenCapturer.CaptureFocusedScreenScreenshot(out int displayWidth, out int displayHeight);
+                byte[] screenshot = ScreenCapturer.CaptureFocusedScreenScreenshot(out screenBounds);
 
                 string request = txtRequest.Text;
 
@@ -196,7 +199,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 cancellationTokenSource = new();
 
-                Task<ComputerUseResponse> task = ApiHandler.GetComputerUseResponseAsync(options, request, displayWidth, displayHeight, screenshot, cancellationToken: cancellationTokenSource.Token);
+                Task<ComputerUseResponse> task = ApiHandler.GetComputerUseResponseAsync(options, request, screenBounds.Width, screenBounds.Height, screenshot, cancellationTokenSource.Token);
 
                 await System.Threading.Tasks.Task.WhenAny(task, System.Threading.Tasks.Task.Delay(Timeout.Infinite, cancellationTokenSource.Token));
 
@@ -204,7 +207,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 ComputerUseResponse response = await task;
 
-                ProcessComputerUseResponseAsync(response);
+                await ProcessComputerUseResponseAsync(response);
             });
         }
 
@@ -632,7 +635,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 if (firstMessage)
                 {
-                    await UpdateHeaderAsync(cancellationTokenSource);
+                    string request = "Please suggest a concise and relevant title for my first message based on its context, using up to three words and in the same language as my first message.";
+
+                    await UpdateHeaderAsync(request, cancellationTokenSource);
                 }
                 else
                 {
@@ -705,14 +710,13 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         }
 
         /// <summary>
-        /// Updates the chat header asynchronously by generating a concise and relevant title for the first message 
-        /// based on its context, limited to three words, and notifies the parent control of the new chat creation.
+        /// Updates the chat header based on the user's request by sending the request,
+        /// processing the response to generate a chat name, and notifying the parent control of the new chat.
         /// </summary>
-        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-        private async System.Threading.Tasks.Task UpdateHeaderAsync(CancellationTokenSource cancellationToken)
+        /// <param name="request">The user's input request to be sent and processed.</param>
+        /// <param name="cancellationToken">The cancellation token source to cancel the asynchronous operation if needed.</param>
+        private async System.Threading.Tasks.Task UpdateHeaderAsync(string request, CancellationTokenSource cancellationToken)
         {
-            string request = "Please suggest a concise and relevant title for my first message based on its context, using up to three words and in the same language as my first message.";
-
             apiChat.AppendUserInput(request);
 
             (string, List<FunctionResult>) result = await SendRequestAsync(cancellationToken);
@@ -876,6 +880,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             string imageBase64 = GetImageBase64(author);
             string htmlContent = Markdown.ToHtml(response, markdownPipeline);
 
+            if (htmlContent.EndsWith("<br />"))
+            {
+                htmlContent = htmlContent.Substring(0, htmlContent.Length - 6);
+            }
+
             htmlContent = htmlContent.Replace("<script", "&lt;script").Replace("</script>", "&lt;/script&gt;");
 
             string messageHtml = $@"
@@ -978,7 +987,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                                         case 'Home': window.scrollTo(0, 0); e.preventDefault(); break;
                                         case 'End': window.scrollTo(0, document.body.scrollHeight); e.preventDefault(); break;
                                     }}
-                                }});
+                                }});     
 
                                 var pres = document.getElementsByTagName('pre');
 
@@ -1121,73 +1130,71 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
         }
 
-        private async void ProcessComputerUseResponseAsync(ComputerUseResponse response)
+        private async System.Threading.Tasks.Task ProcessComputerUseResponseAsync(ComputerUseResponse response)
         {
-            await ExecuteRequestWithCommonHandlingAsync(async () =>
+            while (true)
             {
-                while (true)
+                // 1. Display messages and reasoning in the UI
+                List<ComputerUseContent> messages = response.Output
+                    .Where(o => o.Type == ComputerUseOutputItemType.reasoning && o.Summary != null)
+                    .SelectMany(o => o.Summary).ToList();
+
+                messages.AddRange(response.Output
+                    .Where(o => o.Type == ComputerUseOutputItemType.message && o.Content != null)
+                    .SelectMany(o => o.Content));
+
+                foreach (ComputerUseContent message in messages)
                 {
-                    // 1. Display messages and reasoning in the UI
-                    List<ComputerUseContent> messages = response.Output
-                        .Where(o => o.Type == ComputerUseOutputItemType.message && o.Content != null)
-                        .SelectMany(o => o.Content)
-                        .ToList();
+                    AddMessagesHtml(IdentifierEnum.ChatGPT, message.Text);
 
-                    messages.AddRange(response.Output
-                        .Where(o => o.Type == ComputerUseOutputItemType.reasoning && o.Summary != null)
-                        .SelectMany(o => o.Summary));
-
-                    foreach (ComputerUseContent message in messages)
+                    messagesForDatabase.Add(new()
                     {
-                        AddMessagesHtml(IdentifierEnum.ChatGPT, message.Text);
-
-                        messagesForDatabase.Add(new()
-                        {
-                            Order = messagesForDatabase.Count + 1,
-                            Segments = [new() { Author = IdentifierEnum.ChatGPT, Content = message.Text }]
-                        });
-                    }
-
-                    UpdateBrowser();
-
-                    // 2. Find the next computer_call action
-                    ComputerUseOutputItem computerCall = response.Output.FirstOrDefault(o => o.Type == ComputerUseOutputItemType.computer_call);
-
-                    if (computerCall == null)
-                    {
-                        // No more actions to perform
-                        if (firstMessage)
-                        {
-                            await UpdateHeaderAsync(cancellationTokenSource);
-                        }
-                        else
-                        {
-                            parentControl.NotifyNewChatMessagesAdded(ChatHeader, messagesForDatabase);
-                        }
-
-                        break;
-                    }
-
-                    // 3. Execute the action programmatically in Windows/Visual Studio
-                    ComputerUse.DoAction(computerCall.Action);
-
-                    // 4. Capture the updated screenshot
-                    byte[] screenshot = ScreenCapturer.CaptureFocusedScreenScreenshot(out int displayWidth, out int displayHeight);
-
-                    // 5. Send the next request using the output of the action
-                    response = await ApiHandler.GetComputerUseResponseAsync(
-                        options,
-                        displayWidth,
-                        displayHeight,
-                        screenshot,
-                        computerCall.CallId,
-                        previousResponseId: response.Id,
-                        cancellationToken: cancellationTokenSource.Token
-                    );
+                        Order = messagesForDatabase.Count + 1,
+                        Segments = [new() { Author = IdentifierEnum.ChatGPT, Content = message.Text }]
+                    });
                 }
-            });
+
+                UpdateBrowser();
+
+                // 2. Find the next computer_call action
+                ComputerUseOutputItem computerCall = response.Output.FirstOrDefault(o => o.Type == ComputerUseOutputItemType.computer_call);
+
+                if (computerCall == null)
+                {
+                    // No more actions to perform
+                    if (firstMessage)
+                    {
+                        string request = $"Please suggest a concise and relevant title for the message \"{messagesForDatabase[0].Segments[0].Content}\", based on its context, using up to three words and in the same language as the message.";
+
+                        await UpdateHeaderAsync(request, cancellationTokenSource);
+                    }
+                    else
+                    {
+                        parentControl.NotifyNewChatMessagesAdded(ChatHeader, messagesForDatabase);
+                    }
+
+                    break;
+                }
+
+                // 3. Execute the action programmatically in Windows/Visual Studio
+                ComputerUse.DoAction(computerCall.Action, screenBounds);
+
+                // 4. Capture the updated screenshot
+                byte[] screenshot = ScreenCapturer.CaptureFocusedScreenScreenshot(out screenBounds);
+
+                // 5. Send the next request using the output of the action
+                response = await ApiHandler.GetComputerUseResponseAsync(
+                    options,
+                    screenBounds.Width,
+                    screenBounds.Height,
+                    screenshot,
+                    computerCall.CallId,
+                    previousResponseId: response.Id,
+                    cancellationToken: cancellationTokenSource.Token
+                );
+            }
         }
 
-        #endregion Methods                            
+        #endregion Methods   
     }
 }

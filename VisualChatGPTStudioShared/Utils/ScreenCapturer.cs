@@ -43,12 +43,11 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         }
 
         /// <summary>
-        /// Captures the screen that currently shows the Visual Studio window.
+        /// Captures a screenshot of the entire screen that contains the currently focused (Visual Studio) window.
         /// </summary>
-        /// <param name="displayWidth">Output: width of the captured screen (in pixels).</param>
-        /// <param name="displayHeight">Output: height of the captured screen (in pixels).</param>
-        /// <returns>A byte array containing the PNG-encoded screenshot.</returns>
-        public static byte[] CaptureFocusedScreenScreenshot(out int displayWidth, out int displayHeight)
+        /// <param name="screenBounds">Outputs the bounds of the screen where the focused window is located.</param>
+        /// <returns>A byte array containing the screenshot image in PNG format.</returns>
+        public static byte[] CaptureFocusedScreenScreenshot(out Rectangle screenBounds)
         {
             // 1. Get the handle of the foreground (focused) window
             IntPtr hWnd = GetForegroundWindow();
@@ -70,13 +69,10 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             // 4. Determine which screen contains most of the window
             Screen targetScreen = Screen.FromRectangle(windowRect);
 
-            Rectangle screenBounds = targetScreen.Bounds;
-
-            displayWidth = screenBounds.Width;
-            displayHeight = screenBounds.Height;
+            screenBounds = targetScreen.Bounds;
 
             // 5. Capture the entire screen as a bitmap
-            using Bitmap bmp = new(displayWidth, displayHeight, PixelFormat.Format32bppArgb);
+            using Bitmap bmp = new(screenBounds.Width, screenBounds.Height, PixelFormat.Format32bppArgb);
 
             using (Graphics g = Graphics.FromImage(bmp))
             {

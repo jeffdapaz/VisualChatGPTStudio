@@ -1,5 +1,10 @@
 ﻿## Release Notes 📜
 
+### 5.4.0
+
+- Add the new computer-use beta feature on Turbo Chat.
+- Improved Turbo Chat formatting.
+
 ### 5.3.0
 
 - This version features a faster, lighter, and more responsive turbo chat interface with improved usability.

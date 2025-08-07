@@ -178,10 +178,10 @@ namespace JeffPires.VisualChatGPTStudio.Options
         public string AzureApiVersion { get; set; } = "2024-12-01-preview";
 
         [Category("Azure")]
-        [DisplayName("Deployment Name For Computer Use")]
-        [Description("Set Azure OpenAI deployment name for computer-use model.")]
+        [DisplayName("Azure URL Override")]
+        [Description("Manually define the Azure OpenAI connection URL instead of using 'Resource Name', 'Deployment Name', and 'API Version'. This is useful for custom endpoints. When this parameter is set, the other parameters will be ignored.")]
         [DefaultValue("")]
-        public string AzureDeploymentIdForComputerUse { get; set; } = string.Empty;
+        public string AzureUrlOverride { get; set; } = "";
 
         [Category("Azure")]
         [DisplayName("API Version For Computer Use")]
@@ -190,10 +190,10 @@ namespace JeffPires.VisualChatGPTStudio.Options
         public string AzureApiVersionForComputerUse { get; set; } = "preview";
 
         [Category("Azure")]
-        [DisplayName("Azure URL Override")]
-        [Description("Manually define the Azure OpenAI connection URL instead of using 'Resource Name', 'Deployment Name', and 'API Version'. This is useful for custom endpoints. When this parameter is set, the other parameters will be ignored.")]
+        [DisplayName("Azure URL Override For Computer Use")]
+        [Description("Manually define the Azure OpenAI connection URL instead of using 'Resource Name', 'Deployment Name', and 'API Version' for computer-use model. This is useful for custom endpoints. When this parameter is set, the other parameters will be ignored.")]
         [DefaultValue("")]
-        public string AzureUrlOverride { get; set; } = "";
+        public string AzureUrlOverrideForComputerUse { get; set; } = "";
 
         #endregion Azure
 

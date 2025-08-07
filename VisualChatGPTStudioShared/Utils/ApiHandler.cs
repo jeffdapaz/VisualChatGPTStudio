@@ -209,12 +209,22 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             return chat;
         }
 
+        /// <summary>
+        /// Asynchronously creates and sends a computer use request based on the provided options, prompt, display dimensions, and screenshot.
+        /// </summary>
+        /// <param name="options">The options containing settings for request formatting and other configurations.</param>
+        /// <param name="prompt">The text prompt to include in the request.</param>
+        /// <param name="displayWidth">The width of the display to include in the tool configuration.</param>
+        /// <param name="displayHeight">The height of the display to include in the tool configuration.</param>
+        /// <param name="screenshot">A byte array representing the screenshot to include in the request content.</param>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+        /// <returns>The task result contains the <see cref="ComputerUseResponse"/> returned from sending the request.</returns>
         public static async Task<ComputerUseResponse> GetComputerUseResponseAsync(OptionPageGridGeneral options,
-                                                                                  string prompt,
-                                                                                  int displayWidth,
-                                                                                  int displayHeight,
-                                                                                  byte[] screenshot,
-                                                                                  CancellationToken cancellationToken = default)
+                                                                                          string prompt,
+                                                                                          int displayWidth,
+                                                                                          int displayHeight,
+                                                                                          byte[] screenshot,
+                                                                                          CancellationToken cancellationToken = default)
         {
             if (options.MinifyRequests)
             {
@@ -247,13 +257,23 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             return await SendComputerUseRequestAsync(options, request, cancellationToken);
         }
 
+        /// <summary>
+        /// Creates and sends a computer use request with the specified display dimensions, screenshot, and previous call information.
+        /// </summary>
+        /// <param name="options">The options for the request.</param>
+        /// <param name="displayWidth">The width of the display.</param>
+        /// <param name="displayHeight">The height of the display.</param>
+        /// <param name="screenshot">A byte array representing the screenshot to include in the request.</param>
+        /// <param name="lastCallId">The identifier of the last call to associate with the request output.</param>
+        /// <param name="previousResponseId">The identifier of the previous response to link the current request.</param>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+        /// <returns>The task result contains the computer use response.</returns>
         public static async Task<ComputerUseResponse> GetComputerUseResponseAsync(OptionPageGridGeneral options,
                                                                                   int displayWidth,
                                                                                   int displayHeight,
                                                                                   byte[] screenshot,
                                                                                   string lastCallId,
                                                                                   string previousResponseId,
-                                                                                  List<ComputerUseSafetyCheck> acknowledgedSafetyChecks = null,
                                                                                   CancellationToken cancellationToken = default)
         {
             ComputerUseTool tool = new()
@@ -494,6 +514,15 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             return result.ToString();
         }
 
+        /// <summary>
+        /// Sends an asynchronous request to the computer use API endpoint based on the provided options and request data.
+        /// Determines the appropriate endpoint URL depending on whether the service is OpenAI or Azure,
+        /// configures the HTTP client including proxy settings if specified, and then sends the request.
+        /// </summary>
+        /// <param name="options">The configuration options including service type, API keys, URLs, and proxy settings.</param>
+        /// <param name="request">The computer use request payload to be sent.</param>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+        /// <returns>Containing the response from the computer use API.</returns>
         private static async Task<ComputerUseResponse> SendComputerUseRequestAsync(OptionPageGridGeneral options, ComputerUseRequest request, CancellationToken cancellationToken)
         {
             string endpointUrl;
@@ -507,8 +536,8 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             }
             else
             {
-                endpointUrl = !string.IsNullOrWhiteSpace(options.AzureUrlOverride)
-                    ? $"{options.AzureUrlOverride.TrimEnd('/')}/openai/v1/responses?api-version={options.AzureApiVersionForComputerUse}"
+                endpointUrl = !string.IsNullOrWhiteSpace(options.AzureUrlOverrideForComputerUse)
+                    ? options.AzureUrlOverrideForComputerUse
                     : $"https://{options.AzureResourceName}.openai.azure.com/openai/v1/responses?api-version={options.AzureApiVersionForComputerUse}";
                 isAzure = true;
             }

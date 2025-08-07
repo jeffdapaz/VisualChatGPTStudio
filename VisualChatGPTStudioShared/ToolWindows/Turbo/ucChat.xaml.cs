@@ -174,6 +174,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             completionManager.HandleTextEntering(e);
         }
 
+        /// <summary>
+        /// Handles the click event of the btnComputerUse button. 
+        /// Captures a screenshot of the focused screen, sends a request asynchronously to the API with the captured image and user input.
+        /// </summary>
         private async void btnComputerUse_Click(object sender, RoutedEventArgs e)
         {
             await ExecuteRequestWithCommonHandlingAsync(async () =>
@@ -1130,6 +1134,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
         }
 
+        /// <summary>
+        /// Processes the computer use response asynchronously by displaying messages, executing computer actions,
+        /// capturing screenshots, and sending subsequent requests until no further actions are available.
+        /// </summary>
+        /// <param name="response">The initial ComputerUseResponse containing output items to process.</param>
         private async System.Threading.Tasks.Task ProcessComputerUseResponseAsync(ComputerUseResponse response)
         {
             while (true)

@@ -20,10 +20,10 @@ namespace OpenAI_API.ResponsesAPI.Models.Response
         [JsonProperty("y")]
         public int? Y { get; set; }
 
-        [JsonProperty("scrollX")]
+        [JsonProperty("scroll_x")]
         public int? ScrollX { get; set; }
 
-        [JsonProperty("scrollY")]
+        [JsonProperty("scroll_y")]
         public int? ScrollY { get; set; }
 
         [JsonProperty("text")]

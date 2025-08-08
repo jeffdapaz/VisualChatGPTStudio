@@ -1186,7 +1186,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 }
 
                 // 3. Execute the action programmatically in Windows/Visual Studio
-                ComputerUse.DoAction(computerCall.Action, screenBounds);
+                ComputerUse.DoActionAsync(computerCall.Action, screenBounds);
 
                 // 4. Capture the updated screenshot
                 byte[] screenshot = ScreenCapturer.CaptureFocusedScreenScreenshot(out screenBounds);
@@ -1198,8 +1198,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     screenBounds.Height,
                     screenshot,
                     computerCall.CallId,
-                    previousResponseId: response.Id,
-                    cancellationToken: cancellationTokenSource.Token
+                    response.Id,
+                    computerCall.PendingSafetyChecks,
+                    cancellationTokenSource.Token
                 );
             }
         }

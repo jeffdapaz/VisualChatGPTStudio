@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 namespace OpenAI_API.ResponsesAPI.Models.Response
@@ -28,6 +29,9 @@ namespace OpenAI_API.ResponsesAPI.Models.Response
 
         [JsonProperty("text")]
         public string Text { get; set; }
+
+        [JsonProperty("keys")]
+        public List<string> Keys { get; set; }
     }
 
 

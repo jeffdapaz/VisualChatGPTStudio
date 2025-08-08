@@ -18,9 +18,6 @@ namespace OpenAI_API.ResponsesAPI.Models.Response
         [JsonProperty("call_id")]
         public string CallId { get; set; }
 
-        [JsonProperty("pending_safety_checks")]
-        public List<ComputerUseSafetyCheck> PendingSafetyChecks { get; set; }
-
         [JsonProperty("content")]
         public List<ComputerUseContent> Content { get; set; }
 
@@ -29,6 +26,9 @@ namespace OpenAI_API.ResponsesAPI.Models.Response
 
         [JsonProperty("action")]
         public ComputerUseAction Action { get; set; }
+
+        [JsonProperty("pending_safety_checks")]
+        public List<ComputerUseSafetyCheck> PendingSafetyChecks { get; set; }
     }
 
     [JsonConverter(typeof(StringEnumConverter))]

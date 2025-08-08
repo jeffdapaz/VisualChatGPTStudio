@@ -227,7 +227,7 @@
                     Width="20" 
                     x:Name="btnComputerUse" 
                     ToolTip="Let the AI take control of Visual Studio to execute your instruction" 
-                    AutomationProperties.HelpText="Let the AI take control of Visual Studio to execute your instruction"
+                    AutomationProperties.HelpText="Computer-Use: Let the AI take control of Visual Studio to execute your instruction"
                     TabIndex="5"
                     IsTabStop="True"
                     Focusable="True"

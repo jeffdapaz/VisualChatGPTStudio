@@ -1,6 +1,12 @@
-﻿using OpenAI_API.ResponsesAPI.Models.Response;
+﻿using Community.VisualStudio.Toolkit;
+using Microsoft.VisualStudio.Text;
+using OpenAI_API.ResponsesAPI.Models.Response;
+using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using WindowsInput;
 using WindowsInput.Native;
@@ -12,7 +18,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         private static readonly InputSimulator inputSimulator = new();
         private static Rectangle _screenBounds;
 
-        public static void DoAction(ComputerUseAction action, Rectangle screenBounds)
+        public static async Task DoActionAsync(ComputerUseAction action, Rectangle screenBounds)
         {
             _screenBounds = screenBounds;
 
@@ -28,10 +34,10 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                     MouseScroll(action.X, action.Y, action.ScrollX ?? 0, action.ScrollY ?? 0);
                     break;
                 case ComputerUseActionType.KeyPress:
-                    KeyPress(action.Text);
+                    await KeyPressAsync(action.Keys);
                     break;
                 case ComputerUseActionType.Type:
-                    TypeText(action.Text);
+                    await TypeTextAsync(action.Text);
                     break;
                 case ComputerUseActionType.Move:
                     SetCursorPosition(action.X, action.Y);
@@ -95,34 +101,121 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             }
         }
 
-        private static void KeyPress(string keys)
+        public static async Task KeyPressAsync(IEnumerable<string> keys)
         {
-            if (string.IsNullOrWhiteSpace(keys))
+            if (keys == null)
             {
                 return;
             }
 
-            // Map common keys
-            if (keys.ToUpper().Contains("ENTER"))
+            // Normalize keys to upper-case
+            List<string> keyList = keys.Where(k => !string.IsNullOrWhiteSpace(k)).Select(k => k.Trim().ToUpperInvariant()).ToList();
+
+            if (keyList.Count == 0)
             {
-                inputSimulator.Keyboard.KeyPress(VirtualKeyCode.RETURN);
+                return;
             }
-            else if (keys.ToUpper().Contains("SPACE"))
+
+            DocumentView docView = await VS.Documents.GetActiveDocumentViewAsync().ConfigureAwait(true);
+            ITextBuffer textBuffer = docView?.TextBuffer;
+            Microsoft.VisualStudio.Text.Editor.IWpfTextView textView = docView?.TextView;
+            int caretPos = textView?.Caret.Position.BufferPosition.Position ?? -1;
+            bool handledInEditor = false;
+
+            // If it's a simple text insertion (no modifiers) we can insert directly
+            if (textBuffer != null && caretPos >= 0 && keyList.Count == 1 && !IsModifierKey(keyList[0]))
             {
-                inputSimulator.Keyboard.KeyPress(VirtualKeyCode.SPACE);
-            }
-            else
-            {
-                foreach (char c in keys)
+                if (keyList[0] == "ENTER")
                 {
-                    inputSimulator.Keyboard.TextEntry(c);
+                    textBuffer.Insert(caretPos, Environment.NewLine);
+                    handledInEditor = true;
+                }
+                else if (keyList[0] == "SPACE")
+                {
+                    textBuffer.Insert(caretPos, " ");
+                    handledInEditor = true;
+                }
+                else if (keyList[0].Length == 1)
+                {
+                    textBuffer.Insert(caretPos, keyList[0]);
+                    handledInEditor = true;
+                }
+            }
+
+            if (handledInEditor)
+            {
+                return;
+            }
+
+            // Fallback to InputSimulator for any other keypress scenario
+            // Press all modifier keys down first
+            List<string> modifiers = keyList.Where(IsModifierKey).Distinct().ToList();
+            List<string> normalKeys = keyList.Except(modifiers).ToList();
+
+            // Map strings to VirtualKeyCode
+            VirtualKeyCode ToVk(string k) => k switch
+            {
+                "CTRL" or "CONTROL" => VirtualKeyCode.CONTROL,
+                "SHIFT" => VirtualKeyCode.SHIFT,
+                "ALT" => VirtualKeyCode.MENU,
+                "ENTER" => VirtualKeyCode.RETURN,
+                "SPACE" => VirtualKeyCode.SPACE,
+                "TAB" => VirtualKeyCode.TAB,
+                // Add more named keys as needed
+                _ when k.Length == 1 && char.IsLetterOrDigit(k[0]) => (VirtualKeyCode)Enum.Parse(typeof(VirtualKeyCode), "VK_" + k),
+                _ => VirtualKeyCode.NONAME
+            };
+
+            // Hold modifiers
+            foreach (string mod in modifiers)
+            {
+                VirtualKeyCode vk = ToVk(mod);
+                if (vk != VirtualKeyCode.NONAME)
+                {
+                    inputSimulator.Keyboard.KeyDown(vk);
+                }
+            }
+
+            // Press normal keys
+            foreach (string normal in normalKeys)
+            {
+                VirtualKeyCode vk = ToVk(normal);
+                if (vk != VirtualKeyCode.NONAME)
+                {
+                    inputSimulator.Keyboard.KeyPress(vk);
+                }
+            }
+
+            // Release modifiers
+            foreach (string mod in modifiers.AsEnumerable().Reverse())
+            {
+                VirtualKeyCode vk = ToVk(mod);
+                if (vk != VirtualKeyCode.NONAME)
+                {
+                    inputSimulator.Keyboard.KeyUp(vk);
                 }
             }
         }
 
-        private static void TypeText(string text)
+        private static bool IsModifierKey(string key)
         {
-            if (!string.IsNullOrEmpty(text))
+            return key == "CTRL" || key == "CONTROL" || key == "SHIFT" || key == "ALT";
+        }
+
+        private static async Task TypeTextAsync(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+
+            DocumentView docView = await VS.Documents.GetActiveDocumentViewAsync().ConfigureAwait(true);
+
+            if (docView?.TextBuffer != null)
+            {
+                docView.TextBuffer.Insert(docView.TextView.Caret.Position.BufferPosition.Position, text);
+            }
+            else
             {
                 inputSimulator.Keyboard.TextEntry(text);
             }

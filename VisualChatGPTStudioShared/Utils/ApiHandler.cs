@@ -220,11 +220,11 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
         /// <returns>The task result contains the <see cref="ComputerUseResponse"/> returned from sending the request.</returns>
         public static async Task<ComputerUseResponse> GetComputerUseResponseAsync(OptionPageGridGeneral options,
-                                                                                          string prompt,
-                                                                                          int displayWidth,
-                                                                                          int displayHeight,
-                                                                                          byte[] screenshot,
-                                                                                          CancellationToken cancellationToken = default)
+                                                                                  string prompt,
+                                                                                  int displayWidth,
+                                                                                  int displayHeight,
+                                                                                  byte[] screenshot,
+                                                                                  CancellationToken cancellationToken)
         {
             if (options.MinifyRequests)
             {
@@ -258,23 +258,25 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         }
 
         /// <summary>
-        /// Creates and sends a computer use request with the specified display dimensions, screenshot, and previous call information.
+        /// Asynchronously creates and sends a computer use request with the specified display dimensions, screenshot, and related identifiers.
         /// </summary>
-        /// <param name="options">The options for the request.</param>
+        /// <param name="options">The options for the request configuration.</param>
         /// <param name="displayWidth">The width of the display.</param>
         /// <param name="displayHeight">The height of the display.</param>
         /// <param name="screenshot">A byte array representing the screenshot to include in the request.</param>
-        /// <param name="lastCallId">The identifier of the last call to associate with the request output.</param>
-        /// <param name="previousResponseId">The identifier of the previous response to link the current request.</param>
-        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-        /// <returns>The task result contains the computer use response.</returns>
+        /// <param name="lastCallId">The identifier of the last call to associate with the input.</param>
+        /// <param name="previousResponseId">The identifier of the previous response to link the request.</param>
+        /// <param name="acknowledgeSafetyChecks">A list of safety checks to acknowledge.</param>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>        
+        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="ComputerUseResponse"/> returned from the request.</returns>
         public static async Task<ComputerUseResponse> GetComputerUseResponseAsync(OptionPageGridGeneral options,
                                                                                   int displayWidth,
                                                                                   int displayHeight,
                                                                                   byte[] screenshot,
                                                                                   string lastCallId,
                                                                                   string previousResponseId,
-                                                                                  CancellationToken cancellationToken = default)
+                                                                                  List<ComputerUseSafetyCheck> acknowledgeSafetyChecks,
+                                                                                  CancellationToken cancellationToken)
         {
             ComputerUseTool tool = new()
             {
@@ -288,7 +290,8 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                 {
                     CallId = lastCallId,
                     Type = "computer_call_output",
-                    Output = new ComputerUseContent(screenshot)
+                    Output = new ComputerUseContent(screenshot),
+                    AcknowledgedSafetyChecks = acknowledgeSafetyChecks
                 }
             ];
 

@@ -13,11 +13,19 @@ using WindowsInput.Native;
 
 namespace JeffPires.VisualChatGPTStudio.Utils
 {
+    /// <summary>
+    /// Provides computer usage automations.
+    /// </summary>
     public static class ComputerUse
     {
         private static readonly InputSimulator inputSimulator = new();
         private static Rectangle _screenBounds;
 
+        /// <summary>
+        /// Executes the specified computer use action asynchronously within the given screen bounds.
+        /// </summary>
+        /// <param name="action">The computer use action to perform.</param>
+        /// <param name="screenBounds">The bounds of the screen where the action will be performed.</param>
         public static async Task DoActionAsync(ComputerUseAction action, Rectangle screenBounds)
         {
             _screenBounds = screenBounds;
@@ -54,6 +62,13 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             }
         }
 
+        /// <summary>
+        /// Simulates a mouse click at the specified screen coordinates with the specified mouse button.
+        /// </summary>
+        /// <param name="x">The x-coordinate of the cursor position. If null, the current position is used.</param>
+        /// <param name="y">The y-coordinate of the cursor position. If null, the current position is used.</param>
+        /// <param name="button">The mouse button to click (left or right).</param>
+        /// <param name="doubleClick">Indicates whether to perform a double click instead of a single click.</param>
         private static void MouseClick(int? x, int? y, ComputerUseButton button, bool doubleClick = false)
         {
             SetCursorPosition(x, y);
@@ -86,6 +101,13 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             }
         }
 
+        /// <summary>
+        /// Simulates mouse scrolling at a specified cursor position.
+        /// </summary>
+        /// <param name="x">The optional x-coordinate to set the cursor position before scrolling. If null, the cursor position is not changed horizontally.</param>
+        /// <param name="y">The optional y-coordinate to set the cursor position before scrolling. If null, the cursor position is not changed vertically.</param>
+        /// <param name="scrollX">The amount to scroll horizontally. Positive values scroll right, negative values scroll left.</param>
+        /// <param name="scrollY">The amount to scroll vertically. Positive values scroll up, negative values scroll down.</param>
         private static void MouseScroll(int? x, int? y, int scrollX, int scrollY)
         {
             SetCursorPosition(x, y);
@@ -101,6 +123,10 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             }
         }
 
+        /// <summary>
+        /// Simulates asynchronous key presses for a sequence of keys.
+        /// </summary>
+        /// <param name="keys">An enumerable collection of key strings to be pressed. Supports modifiers and normal keys.</param>
         public static async Task KeyPressAsync(IEnumerable<string> keys)
         {
             if (keys == null)
@@ -197,11 +223,20 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             }
         }
 
+        /// <summary>
+        /// Determines whether the specified key is a modifier key (CTRL, CONTROL, SHIFT, or ALT).
+        /// </summary>
+        /// <param name="key">The key to check.</param>
+        /// <returns>True if the key is a modifier key; otherwise, false.</returns>
         private static bool IsModifierKey(string key)
         {
             return key == "CTRL" || key == "CONTROL" || key == "SHIFT" || key == "ALT";
         }
 
+        /// <summary>
+        /// Types the specified text into the active document view if available, otherwise, simulates keyboard text entry.
+        /// </summary>
+        /// <param name="text">The text to be typed or simulated.</param>
         private static async Task TypeTextAsync(string text)
         {
             if (string.IsNullOrEmpty(text))
@@ -221,6 +256,11 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             }
         }
 
+        /// <summary>
+        /// Sets the cursor position relative to the screen bounds if both x and y coordinates are provided.
+        /// </summary>
+        /// <param name="x">The x-coordinate relative to the screen bounds. If null, the cursor position is not changed.</param>
+        /// <param name="y">The y-coordinate relative to the screen bounds. If null, the cursor position is not changed.</param>
         private static void SetCursorPosition(int? x, int? y)
         {
             if (x.HasValue && y.HasValue)

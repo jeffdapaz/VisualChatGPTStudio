@@ -258,6 +258,56 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         }
 
         /// <summary>
+        /// Creates and sends a computer use request based on the provided options and prompt,
+        /// applying text modifications and display settings, then returns the response.
+        /// </summary>
+        /// <param name="options">The options containing settings for request minification and character removal.</param>
+        /// <param name="prompt">The input prompt text to be processed and sent.</param>
+        /// <param name="displayWidth">The width of the display for the computer use tool.</param>
+        /// <param name="displayHeight">The height of the display for the computer use tool.</param>
+        /// <param name="previousResponseId">The identifier of the previous response to maintain context.</param>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+        /// <returns>A task representing the asynchronous operation, with a ComputerUseResponse result.</returns>
+        public static async Task<ComputerUseResponse> GetComputerUseResponseAsync(OptionPageGridGeneral options,
+                                                                                          string prompt,
+                                                                                          int displayWidth,
+                                                                                          int displayHeight,
+                                                                                          string previousResponseId,
+                                                                                          CancellationToken cancellationToken)
+        {
+            if (options.MinifyRequests)
+            {
+                prompt = TextFormat.MinifyText(prompt, " ");
+            }
+
+            prompt = TextFormat.RemoveCharactersFromText(prompt, options.CharactersToRemoveFromRequests.Split(','));
+
+            ComputerUseTool tool = new()
+            {
+                DisplayWidth = displayWidth,
+                DisplayHeight = displayHeight
+            };
+
+            List<ComputerUseInput> inputList =
+            [
+                new ComputerUseInput
+                {
+                    Role = "user",
+                    Content = [new ComputerUseContent(prompt)]
+                }
+            ];
+
+            ComputerUseRequest request = new()
+            {
+                Tools = [tool],
+                Input = inputList,
+                PreviousResponseId = previousResponseId
+            };
+
+            return await SendComputerUseRequestAsync(options, request, cancellationToken);
+        }
+
+        /// <summary>
         /// Asynchronously creates and sends a computer use request with the specified display dimensions, screenshot, and related identifiers.
         /// </summary>
         /// <param name="options">The options for the request configuration.</param>

@@ -64,6 +64,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private readonly StringBuilder messagesHtml = new();
         private readonly Dictionary<IdentifierEnum, string> base64Images = [];
         private Rectangle screenBounds;
+        private string previousResponseId;
 
         #endregion Properties
 
@@ -187,7 +188,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     return;
                 }
 
-                EnableDisableButtons(false);
+                EnableDisableButtons(false, true);
 
                 byte[] screenshot = ScreenCapturer.CaptureFocusedScreenScreenshot(out screenBounds);
 
@@ -203,7 +204,16 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 cancellationTokenSource = new();
 
-                Task<ComputerUseResponse> task = ApiHandler.GetComputerUseResponseAsync(options, request, screenBounds.Width, screenBounds.Height, screenshot, cancellationTokenSource.Token);
+                Task<ComputerUseResponse> task;
+
+                if (!string.IsNullOrWhiteSpace(previousResponseId))
+                {
+                    task = ApiHandler.GetComputerUseResponseAsync(options, request, screenBounds.Width, screenBounds.Height, previousResponseId, cancellationTokenSource.Token);
+                }
+                else
+                {
+                    task = ApiHandler.GetComputerUseResponseAsync(options, request, screenBounds.Width, screenBounds.Height, screenshot, cancellationTokenSource.Token);
+                }
 
                 await System.Threading.Tasks.Task.WhenAny(task, System.Threading.Tasks.Task.Delay(Timeout.Infinite, cancellationTokenSource.Token));
 
@@ -670,11 +680,21 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         }
 
         /// <summary>
-        /// Enables or disables the buttons based on the given boolean value.
+        /// Enables or disables a set of buttons and updates the UI status message and visibility accordingly.
         /// </summary>
-        /// <param name="enable">Boolean value to enable or disable the buttons.</param>
-        private void EnableDisableButtons(bool enable)
+        /// <param name="enable">If true, buttons are enabled and visible; if false, buttons are disabled and some UI elements are shown.</param>
+        /// <param name="computerCall">If true, indicates the action is triggered by the computer-use, updating the status message accordingly.</param>
+        private void EnableDisableButtons(bool enable, bool computerCall = false)
         {
+            if (computerCall)
+            {
+                lblProgressStatus.Text = "AI is executing actions. Please wait and avoid interaction until completion.";
+            }
+            else
+            {
+                lblProgressStatus.Text = "Waiting API Response.";
+            }
+
             grdProgress.Visibility = enable ? Visibility.Collapsed : Visibility.Visible;
 
             btnAPI.IsEnabled = enable;
@@ -1143,6 +1163,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             while (true)
             {
+                previousResponseId = response.Id;
+
                 // 1. Display messages and reasoning in the UI
                 List<ComputerUseContent> messages = response.Output
                     .Where(o => o.Type == ComputerUseOutputItemType.reasoning && o.Summary != null)

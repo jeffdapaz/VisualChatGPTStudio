@@ -29,6 +29,7 @@ Watch here some examples:
 - [Commands Shortcuts and File/Method References](#8)
 - [Features by `Visual chatGPT Studio Solution Context` tool window](#9)
 - [Features by `Visual chatGPT Studio Code Review` tool window](#10)
+- [Computer Use Automation (Beta)](#20)
 - [Also Check Out](#11)
 - [Authentication](#12)
 	- [By OpenAI](#12-1)
@@ -281,6 +282,31 @@ The Code Review Tool Window feature is designed to enhance the development workf
 - **Streamlined Review Process:** The feature complements the manual code review process, making it more efficient and focused by allowing reviewers to concentrate on more complex and critical aspects of the code.
 - **Enhanced Collaboration:** It fosters a culture of continuous improvement and learning among the development team, as the automated feedback provides valuable insights and learning opportunities.
 
+<a id="20"></a>
+## Computer Use Automation (Beta) 💻
+
+Visual chatGPT Studio now includes an experimental Computer Use feature that allows the AI to perform automated actions inside Visual Studio, such as clicking, typing, scrolling, and more — simulating a user interacting with the IDE.
+
+⚠️ Important: This feature is currently in Beta. The AI's ability to reliably execute commands in Visual Studio is limited, and the delay between commands can be quite long. This feature is intended primarily for testing AI capabilities and for fun experimentation, rather than production use.
+
+### How to Use
+
+- Open the Turbo Chat tool window.
+- Enter your instruction prompt describing the actions you want the AI to perform inside Visual Studio (e.g., "Open the Solution Explorer and search for 'MyClass'").
+- Click the "Computer Use" button to activate the feature.
+- The AI will start executing the requested actions automatically.
+- While the AI is executing, a status message will be displayed: "AI is executing actions. Please wait and avoid interaction until completion."
+- You can cancel the execution anytime by clicking the Cancel button.
+
+### Limitations and Notes
+
+- The AI currently cannot fully understand or reliably control all Visual Studio UI elements.
+- The interval between commands is long, so expect delays during execution.
+- It's recommended to avoid interact with Visual Studio while the AI is performing its actions, as it is based on the current position of the mouse pointer.
+- Because of these limitations, this feature is best used for testing AI capabilities and experimentation.
+- You need use a model compatible with computer-use feature. See OpenAI or Azure OpenAI documentation about this.
+- If you are using Azure OpenAI, it's necessary have a computer-use-preview deployment withing the same resource parametrized through options.
+
 <a id="11"></a>
 ## Also Check Out 🔗
 
@@ -423,6 +449,7 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 - Add the new computer-use beta feature on Turbo Chat.
 - Improved Turbo Chat formatting.
+- Fixed streaming responses on code editor.
 
 ### 5.3.0
 

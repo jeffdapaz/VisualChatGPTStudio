@@ -6,9 +6,9 @@ using System;
 using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Input;
+using System.Windows.Threading;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 using Span = Microsoft.VisualStudio.Text.Span;
-using JeffPires.VisualChatGPTStudio.Utils.API;
 
 namespace JeffPires.VisualChatGPTStudio.Commands
 {
@@ -153,14 +153,14 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         /// Handles the result of a command sent to ChatGPT.
         /// </summary>
         /// <param name="result">The result of the command.</param>
-        private void ResultHandler(string result)
+        private async void ResultHandler(string result)
         {
             try
             {
                 if (CancellationTokenSource.IsCancellationRequested)
                 {
                     return;
-                }
+                }                
 
                 if (firstIteration)
                 {
@@ -219,7 +219,11 @@ namespace JeffPires.VisualChatGPTStudio.Commands
                     result = TextFormat.RemoveCodeTagsFromOpenAIResponses(result);
                 }
 
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
                 docView.TextBuffer?.Insert(position, result);
+
+                docView.TextView.VisualElement.Dispatcher.Invoke(() => { }, DispatcherPriority.Background);
 
                 position += result.Length;
             }

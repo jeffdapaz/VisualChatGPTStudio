@@ -4,6 +4,7 @@
 
 - Add the new computer-use beta feature on Turbo Chat.
 - Improved Turbo Chat formatting.
+- Fixed streaming responses on code editor.
 
 ### 5.3.0
 

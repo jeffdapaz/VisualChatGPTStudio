@@ -122,6 +122,14 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             rowRequest.MaxHeight = parentControl.ActualHeight - 200;
             txtRequest.MaxHeight = rowRequest.MaxHeight - 10;
 
+            WebBrowserCopyHook.Install(webBrowserChat);
+
+            Unloaded += (s, e) =>
+            {
+                WebBrowserCopyHook.Uninstall(webBrowserChat);
+            };
+
+
             txtRequest.TextArea.TextEntering += txtRequest_TextEntering;
             txtRequest.TextArea.TextEntered += txtRequest_TextEntered;
             txtRequest.PreviewKeyDown += AttachImage.TextEditor_PreviewKeyDown;
@@ -941,7 +949,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 content = content
                     .Replace(TAG_IMG, $"<img src='{imgIcon}' style='width:18px; height:18px; vertical-align:top; margin-right:3px;' />")
                     .Replace(TAG_SQL, $"<img src='{sqlIcon}' style='width:18px; height:18px; vertical-align:top; margin-right:3px;' />")
-                    .Replace(TAG_API, $"<img src='{apiIcon}' style='width:18px; height:18px; vertical-align:top; margin-right:3px;' />");                
+                    .Replace(TAG_API, $"<img src='{apiIcon}' style='width:18px; height:18px; vertical-align:top; margin-right:3px;' />");
 
                 htmlContent = content.Replace(Environment.NewLine, "<br />");
             }

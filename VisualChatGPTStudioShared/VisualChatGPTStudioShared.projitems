@@ -64,6 +64,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ucChatHeader.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ucChat.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\TerminalWindowTurboControl.xaml.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\WebBrowserCopyHook.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ApiHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\AttachImage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ComputerUse.cs" />

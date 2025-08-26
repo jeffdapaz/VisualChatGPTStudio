@@ -20,6 +20,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -39,6 +40,14 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
     /// </summary>
     public partial class ucChat : UserControl
     {
+        #region Constants
+
+        private const string TAG_IMG = "#IMG#";
+        private const string TAG_SQL = "#SQL#";
+        private const string TAG_API = "#API#";
+
+        #endregion Constants
+
         #region Properties
 
         public ucChatHeader ChatHeader { get; private set; }
@@ -65,6 +74,13 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private readonly Dictionary<IdentifierEnum, string> base64Images = [];
         private Rectangle screenBounds;
         private string previousResponseId;
+        private readonly string meIcon;
+        private readonly string chatGptIcon;
+        private readonly string apiIcon;
+        private readonly string copyIcon;
+        private readonly string checkIcon;
+        private readonly string sqlIcon;
+        private readonly string imgIcon;
 
         #endregion Properties
 
@@ -95,6 +111,14 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             this.messagesForDatabase = messages;
             this.chatId = chatId;
 
+            meIcon = GetImageBase64(IdentifierEnum.Me);
+            chatGptIcon = GetImageBase64(IdentifierEnum.ChatGPT);
+            apiIcon = GetImageBase64(IdentifierEnum.Api);
+            copyIcon = GetImageBase64(IdentifierEnum.CopyIcon);
+            checkIcon = GetImageBase64(IdentifierEnum.CheckIcon);
+            sqlIcon = GetImageBase64(IdentifierEnum.SqlIcon);
+            imgIcon = GetImageBase64(IdentifierEnum.ImgIcon);
+
             rowRequest.MaxHeight = parentControl.ActualHeight - 200;
             txtRequest.MaxHeight = rowRequest.MaxHeight - 10;
 
@@ -106,7 +130,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             completionManager = new CompletionManager(package, txtRequest);
 
-            markdownPipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().DisableHtml().UseSyntaxHighlighting().ConfigureNewLine("<br />").Build();
+            markdownPipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().DisableHtml().UseSyntaxHighlighting().Build();
 
             StringBuilder segments;
 
@@ -132,7 +156,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 {
                     apiChat.AppendUserInput(message.Segments[0].Content);
                 }
-                else if (message.Segments[0].Author == IdentifierEnum.ApiResult)
+                else if (message.Segments[0].Author == IdentifierEnum.Api)
                 {
                     AddMessagesHtml(message.Segments[0].Author, segments.ToString());
                 }
@@ -397,7 +421,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             SqlServerConnectionInfo connection = (SqlServerConnectionInfo)cbConnection.SelectedItem;
 
-            string requestToShowOnList = "###" + connection.Description + Environment.NewLine + Environment.NewLine + Environment.NewLine + options.SqlServerAgentCommand;
+            string requestToShowOnList = TAG_SQL + connection.Description + Environment.NewLine + Environment.NewLine + options.SqlServerAgentCommand;
 
             messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.FunctionRequest, Content = request }] });
 
@@ -489,7 +513,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             string request = string.Concat(options.APIAgentCommand, Environment.NewLine, "API Name: ", apiDefinition.Name, Environment.NewLine, TextFormat.MinifyText(apiDefinition.Definition, string.Empty));
 
-            string requestToShowOnList = "###" + apiDefinition.Name + Environment.NewLine + Environment.NewLine + Environment.NewLine + options.APIAgentCommand;
+            string requestToShowOnList = TAG_API + apiDefinition.Name + Environment.NewLine + Environment.NewLine + options.APIAgentCommand;
 
             messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.FunctionRequest, Content = request }] });
 
@@ -568,7 +592,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             if (attachedImage != null)
             {
-                requestToShowOnList = "### 🖼️ " + txtImage.Text + Environment.NewLine + Environment.NewLine + requestToShowOnList;
+                requestToShowOnList = TAG_IMG + txtImage.Text + Environment.NewLine + Environment.NewLine + requestToShowOnList;
 
                 List<ChatContentForImage> chatContent = [new(attachedImage)];
 
@@ -815,8 +839,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                     if (!string.IsNullOrWhiteSpace(apiResponse.Item2))
                     {
-                        messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.ApiResult, Content = apiResponse.Item2 }] });
-                        AddMessagesHtml(IdentifierEnum.ApiResult, apiResponse.Item2);
+                        messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.Api, Content = apiResponse.Item2 }] });
+                        AddMessagesHtml(IdentifierEnum.Api, apiResponse.Item2);
                     }
                 }
                 else
@@ -898,11 +922,33 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// Adds a formatted HTML message to the message list, including the author's avatar and the response content converted from Markdown.
         /// </summary>
         /// <param name="author">The author of the message, used to determine the avatar image.</param>
-        /// <param name="response">The message content in Markdown format to be converted and displayed.</param>
-        private void AddMessagesHtml(IdentifierEnum author, string response)
+        /// <param name="content">The message content in Markdown format to be converted and displayed.</param>
+        private void AddMessagesHtml(IdentifierEnum author, string content)
         {
-            string imageBase64 = GetImageBase64(author);
-            string htmlContent = Markdown.ToHtml(response, markdownPipeline);
+            string htmlContent;
+
+            string authorIcon = author switch
+            {
+                IdentifierEnum.Me => meIcon,
+                IdentifierEnum.ChatGPT => chatGptIcon,
+                IdentifierEnum.Api => apiIcon
+            };
+
+            if (author == IdentifierEnum.Me)
+            {
+                content = HighlightSpecialTagsForHtml(content);
+
+                content = content
+                    .Replace(TAG_IMG, $"<img src='{imgIcon}' style='width:18px; height:18px; vertical-align:top; margin-right:3px;' />")
+                    .Replace(TAG_SQL, $"<img src='{sqlIcon}' style='width:18px; height:18px; vertical-align:top; margin-right:3px;' />")
+                    .Replace(TAG_API, $"<img src='{apiIcon}' style='width:18px; height:18px; vertical-align:top; margin-right:3px;' />");                
+
+                htmlContent = content.Replace(Environment.NewLine, "<br />");
+            }
+            else
+            {
+                htmlContent = Markdown.ToHtml(content, markdownPipeline);
+            }
 
             if (htmlContent.EndsWith("<br />"))
             {
@@ -913,7 +959,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             string messageHtml = $@"
                     <div style='position: relative; margin-bottom: 16px; padding-top: 20px;'>
-                        <img src='{imageBase64}' style='display: block; position: absolute; top: 0px; width: 40px; height: 40px;' />
+                        <img src='{authorIcon}' style='display: block; position: absolute; top: 0px; width: 40px; height: 40px;' />
                         <div style='margin-left: 0; margin-top: 20px; border: 1.5px solid #888; border-radius: 12px; padding: 5px 5px 5px 5px; box-sizing: border-box;'>
                             {htmlContent}
                         </div>
@@ -939,9 +985,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             string cssTextColor = ToCssColor(textColor);
             string cssBackgroundColor = ToCssColor(backgroundColor);
             string cssCodeBackgroundColor = ToCssColor(codeBackgroundColor);
-
-            string copyIcon = GetImageBase64(IdentifierEnum.CopyIcon);
-            string checkIcon = GetImageBase64(IdentifierEnum.CheckIcon);
 
             string html = $@"
                     <html>
@@ -1091,9 +1134,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             {
                 IdentifierEnum.Me => "pack://application:,,,/VisualChatGPTStudio;component/Resources/vs.png",
                 IdentifierEnum.ChatGPT => "pack://application:,,,/VisualChatGPTStudio;component/Resources/chatGPT.png",
-                IdentifierEnum.ApiResult => "pack://application:,,,/VisualChatGPTStudio;component/Resources/api.png",
+                IdentifierEnum.Api => "pack://application:,,,/VisualChatGPTStudio;component/Resources/api.png",
                 IdentifierEnum.CopyIcon => "pack://application:,,,/VisualChatGPTStudio;component/Resources/copy.png",
-                IdentifierEnum.CheckIcon => "pack://application:,,,/VisualChatGPTStudio;component/Resources/check.png"
+                IdentifierEnum.CheckIcon => "pack://application:,,,/VisualChatGPTStudio;component/Resources/check.png",
+                IdentifierEnum.SqlIcon => "pack://application:,,,/VisualChatGPTStudio;component/Resources/db.png",
+                IdentifierEnum.ImgIcon => "pack://application:,,,/VisualChatGPTStudio;component/Resources/image.png"
             };
 
             Uri uri = new(imageSource, UriKind.RelativeOrAbsolute);
@@ -1113,6 +1158,37 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             base64Images.Add(identifier, image);
 
             return image;
+        }
+
+        /// <summary>
+        /// Highlights special tags in the input string for HTML.
+        /// </summary>
+        /// <param name="input">The input string containing text with special tags to highlight.</param>
+        /// <returns>
+        /// A string where words starting with '/' are wrapped in a green bold span, and words starting with '@' 
+        /// are wrapped in a purple bold span, suitable for HTML rendering.
+        /// </returns>
+        private string HighlightSpecialTagsForHtml(string input)
+        {
+            // Regex: Find words that start with / or @ and end with a space, comma, newline, or end of string.
+            return Regex.Replace(
+                input,
+                @"(?<=^|[\s,])([/@][^\s,\r\n]*)",
+                match =>
+                {
+                    string word = match.Value;
+                    if (word.StartsWith("/"))
+                    {
+                        return $"<span style='color: #2ecc40; font-weight: bold;'>{word}</span>";
+                    }
+
+                    if (word.StartsWith("@"))
+                    {
+                        return $"<span style='color: #8e44ad; font-weight: bold;'>{word}</span>";
+                    }
+
+                    return word;
+                });
         }
 
         /// <summary>

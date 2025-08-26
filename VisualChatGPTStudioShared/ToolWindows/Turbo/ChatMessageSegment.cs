@@ -33,8 +33,10 @@
         ChatGPTCode,
         FunctionCall,
         FunctionRequest,
-        ApiResult,
+        Api,
         CopyIcon,
-        CheckIcon
+        CheckIcon,
+        SqlIcon,
+        ImgIcon
     }
 }

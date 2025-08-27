@@ -985,9 +985,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             Color backgroundColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.WindowKey]).Color;
 
             Color codeBackgroundColor = Color.FromRgb(
-                (byte)Math.Max(0, backgroundColor.R - 10),
-                (byte)Math.Max(0, backgroundColor.G - 10),
-                (byte)Math.Max(0, backgroundColor.B - 10)
+                (byte)Math.Max(0, backgroundColor.R - 20),
+                (byte)Math.Max(0, backgroundColor.G - 20),
+                (byte)Math.Max(0, backgroundColor.B - 20)
             );
 
             string cssTextColor = ToCssColor(textColor);

@@ -122,14 +122,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             rowRequest.MaxHeight = parentControl.ActualHeight - 200;
             txtRequest.MaxHeight = rowRequest.MaxHeight - 10;
 
-            WebBrowserCopyHook.Install(webBrowserChat);
-
-            Unloaded += (s, e) =>
-            {
-                WebBrowserCopyHook.Uninstall(webBrowserChat);
-            };
-
-
             txtRequest.TextArea.TextEntering += txtRequest_TextEntering;
             txtRequest.TextArea.TextEntered += txtRequest_TextEntered;
             txtRequest.PreviewKeyDown += AttachImage.TextEditor_PreviewKeyDown;

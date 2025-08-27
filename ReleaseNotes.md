@@ -4,7 +4,6 @@
 
 - Add the new computer-use beta feature on Turbo Chat.
 - Improved Turbo Chat formatting.
-- Fixed copy text through CTRL+C on Turbo Chat.
 - Fixed streaming responses on code editor.
 
 ### 5.3.0

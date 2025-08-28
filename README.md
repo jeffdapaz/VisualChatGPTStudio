@@ -447,7 +447,7 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ### 5.4.0
 
-- Add the new computer-use beta feature on Turbo Chat.
+- Added the new computer-use beta feature on Turbo Chat.
 - Improved Turbo Chat formatting.
 - Replaced the WebBrowser component (based on Internet Explorer) with WebView2 (based on Edge) in the Turbo Chat window. This ensures better display and responsiveness, as well as the ability to copy text using CTRL+C.
 - Fixed streaming responses on code editor.

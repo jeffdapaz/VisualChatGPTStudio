@@ -7,6 +7,7 @@
              xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"   
              xmlns:utils="clr-namespace:JeffPires.VisualChatGPTStudio.Utils"             
              xmlns:utils_shared="clr-namespace:VisualChatGPTStudioShared.Utils"
+             xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
              Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
              Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
              mc:Ignorable="d"
@@ -90,7 +91,7 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <WebBrowser x:Name="webBrowserChat" Grid.Row="0"/>
+            <wv2:WebView2 x:Name = "webBrowserChat" Grid.Row="0"/>
 
             <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Background="#FF007ACC" Margin="0,5,0,5"  Visibility="{Binding Visibility, ElementName=dataGridResult}"/>
             <DataGrid 

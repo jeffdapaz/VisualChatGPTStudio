@@ -85,6 +85,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Repositories\Repository.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ScreenCapturer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\TextFormat.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\WebView2BootstrapperHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)VisuallChatGPTStudioPackage.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -1,4 +1,5 @@
 ﻿using JeffPires.VisualChatGPTStudio.Options;
+using JeffPires.VisualChatGPTStudio.Utils;
 using JeffPires.VisualChatGPTStudio.Utils.Repositories;
 using Microsoft.VisualStudio.Shell;
 using System;
@@ -21,6 +22,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private OptionPageGridGeneral options;
         private Package package;
         private readonly List<ChatUserControlsItem> chatUserControlsItems;
+        private bool webView2Installed;
 
         #endregion Properties
 
@@ -76,8 +78,18 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// <summary>
         /// Event handler for the "New Chat" button click. Creates a new chat header and chat user control, adds them to a new tab item, and selects the new tab item.
         /// </summary>
-        private void btnNewChat_Click(object sender, RoutedEventArgs e)
+        private async void btnNewChat_Click(object sender, RoutedEventArgs e)
         {
+            if (!webView2Installed)
+            {
+                webView2Installed = await WebView2BootstrapperHelper.EnsureRuntimeAvailableAsync();
+
+                if (!webView2Installed)
+                {
+                    return;
+                }
+            }
+
             ucChatHeader ucChatHeader = new(this, "New Chat");
 
             string chatId = Guid.NewGuid().ToString();
@@ -294,8 +306,18 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// <summary>
         /// Opens the selected chat from the chat list. If the chat is already opened in a tab, it selects that tab; otherwise, it opens a new tab for the chat.
         /// </summary>
-        private void OpenChat()
+        private async void OpenChat()
         {
+            if (!webView2Installed)
+            {
+                webView2Installed = await WebView2BootstrapperHelper.EnsureRuntimeAvailableAsync();
+
+                if (!webView2Installed)
+                {
+                    return;
+                }
+            }
+
             ChatUserControlsItem chatItem = GetChatItem();
 
             if (chatItem?.TabItem != null && tabChats.Items.Contains(chatItem.TabItem))

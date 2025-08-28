@@ -9,6 +9,7 @@ using JeffPires.VisualChatGPTStudio.Utils.Repositories;
 using Markdig;
 using Markdig.SyntaxHighlighting;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.Web.WebView2.Core;
 using Newtonsoft.Json;
 using OpenAI_API.Chat;
 using OpenAI_API.Functions;
@@ -971,7 +972,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// <summary>
         /// Updates the embedded web browser control with dynamically generated HTML content.
         /// </summary>
-        private void UpdateBrowser()
+        private async void UpdateBrowser()
         {
             Color textColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.WindowTextKey]).Color;
             Color backgroundColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.WindowKey]).Color;
@@ -1113,7 +1114,13 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     </body>
                     </html>";
 
-            webBrowserChat.NavigateToString(html);
+            if (webBrowserChat.CoreWebView2 == null)
+            {
+                CoreWebView2Environment env = await CoreWebView2Environment.CreateAsync(null, Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+                await webBrowserChat.EnsureCoreWebView2Async(env);
+            }
+
+            webBrowserChat.CoreWebView2.NavigateToString(html);
         }
 
         /// <summary>

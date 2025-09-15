@@ -661,15 +661,22 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 cancellationTokenSource = new();
 
-                (string, List<FunctionResult>) result = await SendRequestAsync(cancellationTokenSource);
-
-                if (result.Item2 != null && result.Item2.Any())
+                if (options.CompletionStream)
                 {
-                    await HandleFunctionsCallsAsync(result.Item2, cancellationTokenSource);
+                    await apiChat.StreamResponseFromChatbotAsync(HandleResponseChunk);
                 }
                 else
                 {
-                    HandleResponse(commandType, shiftKeyPressed, result.Item1);
+                    (string, List<FunctionResult>) result = await SendRequestAsync(cancellationTokenSource);
+
+                    if (result.Item2 != null && result.Item2.Any())
+                    {
+                        await HandleFunctionsCallsAsync(result.Item2, cancellationTokenSource);
+                    }
+                    else
+                    {
+                        HandleResponse(commandType, shiftKeyPressed, result.Item1);
+                    }
                 }
 
                 if (firstMessage)
@@ -791,6 +798,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// <summary>
         /// Handles the response based on the command type and shift key state, updating the document view or chat list control items accordingly.
         /// </summary>
+        private void HandleResponseChunk(string response)
+        {
+            HandleResponse(RequestType.Request, false, response);
+        }
         private void HandleResponse(RequestType commandType, bool shiftKeyPressed, string response)
         {
             if (commandType == RequestType.Code && !shiftKeyPressed)
@@ -924,7 +935,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         /// <param name="author">The author of the message, used to determine the avatar image.</param>
         /// <param name="content">The message content in Markdown format to be converted and displayed.</param>
-        private void AddMessagesHtml(IdentifierEnum author, string content)
+        private void AddMessagesHtml(IdentifierEnum author, string content, bool replace = false, bool first = false)
         {
             string htmlContent;
 
@@ -958,7 +969,13 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             htmlContent = htmlContent.Replace("<script", "&lt;script").Replace("</script>", "&lt;/script&gt;");
 
-            string messageHtml = $@"
+            if (replace && messagesHtml.Length > 0)
+            {
+                // TODO
+            }
+            else
+            {
+                string messageHtml = $@"
                     <div style='position: relative; margin-bottom: 16px; padding-top: 20px;'>
                         <img src='{authorIcon}' style='display: block; position: absolute; top: 0px; width: 40px; height: 40px;' />
                         <div style='margin-left: 0; margin-top: 20px; border: 1.5px solid #888; border-radius: 12px; padding: 5px 5px 5px 5px; box-sizing: border-box;'>
@@ -966,7 +983,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                         </div>
                     </div>";
 
-            messagesHtml.AppendLine(messageHtml);
+                messagesHtml.AppendLine(messageHtml);
+            }
         }
 
         /// <summary>

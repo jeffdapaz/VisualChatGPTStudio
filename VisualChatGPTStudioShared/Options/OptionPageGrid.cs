@@ -238,6 +238,18 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DefaultValue("gpt-4.1-mini")]
         public string Model { get; set; } = "gpt-4.1-mini";
 
+        [Category("OpenAI")]
+        [DisplayName("Stream override")]
+        [Description("Change the Stream option if you wish to stream response")]
+        [DefaultValue(false)]
+        public bool CompletionStream { get; set; } = false;
+
+        [Category("OpenAI")]
+        [DisplayName("API Version Override")]
+        [Description("Change the API version to use custom endpoint")]
+        [DefaultValue("")]
+        public string ApiVersion { get; set; } = string.Empty;
+
         #endregion OpenAI
 
         #region Turbo Chat

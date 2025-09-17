@@ -822,8 +822,21 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
             else
             {
-                messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.ChatGPT, Content = response }] });
-                AddMessagesHtml(IdentifierEnum.ChatGPT, response);
+                var last = messagesForDatabase.Last();
+                if (last.Segments.First().Author == IdentifierEnum.ChatGPT)
+                {
+                    string result = last.Segments.First().Content + response;
+                    last.Segments.First().Content = result;
+
+                    AddMessagesHtml(IdentifierEnum.ChatGPT, response, true);
+                }
+                else
+                {
+
+                    messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.ChatGPT, Content = response }] });
+
+                    AddMessagesHtml(IdentifierEnum.ChatGPT, response, false, options.CompletionStream);
+                }
             }
 
             UpdateBrowser();
@@ -935,8 +948,19 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         /// <param name="author">The author of the message, used to determine the avatar image.</param>
         /// <param name="content">The message content in Markdown format to be converted and displayed.</param>
-        private void AddMessagesHtml(IdentifierEnum author, string content, bool replace = false, bool first = false)
+        private void AddMessagesHtml(IdentifierEnum author, string content, bool replace = false, bool streaming = false)
         {
+            if (replace)
+            {
+                messagesHtml.Remove(0, messagesHtml.Length);
+                foreach (var item in messagesForDatabase)
+                {
+                    var segments = item.Segments.First();
+                    AddMessagesHtml(segments.Author, segments.Content);
+                }
+
+                return;
+            }
             string htmlContent;
 
             string authorIcon = author switch
@@ -969,22 +993,15 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             htmlContent = htmlContent.Replace("<script", "&lt;script").Replace("</script>", "&lt;/script&gt;");
 
-            if (replace && messagesHtml.Length > 0)
-            {
-                // TODO
-            }
-            else
-            {
-                string messageHtml = $@"
-                    <div style='position: relative; margin-bottom: 16px; padding-top: 20px;'>
-                        <img src='{authorIcon}' style='display: block; position: absolute; top: 0px; width: 40px; height: 40px;' />
+            string messageHtml = $@"
+                <div style='position: relative; margin-bottom: 16px; padding-top: 20px;'>
+                    <img src='{authorIcon}' style='display: block; position: absolute; top: 0px; width: 40px; height: 40px;' />
                         <div style='margin-left: 0; margin-top: 20px; border: 1.5px solid #888; border-radius: 12px; padding: 5px 5px 5px 5px; box-sizing: border-box;'>
                             {htmlContent}
-                        </div>
-                    </div>";
+                    </div>
+                </div>";
 
-                messagesHtml.AppendLine(messageHtml);
-            }
+            messagesHtml.AppendLine(messageHtml);
         }
 
         /// <summary>

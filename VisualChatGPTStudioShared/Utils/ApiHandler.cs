@@ -436,6 +436,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                     openAiAPI.ApiVersion = options.ApiVersion;
                 }
 
+
                 openAiAPI.HttpClientFactory = chatGPTHttpClient;
             }
             else if (IsOptionsParametersModified(options))

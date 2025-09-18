@@ -238,6 +238,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DefaultValue("gpt-4.1-mini")]
         public string Model { get; set; } = "gpt-4.1-mini";
 
+        [Category("OpenAI")]
+        [DisplayName("API Version Override")]
+        [Description("Change the API version to use custom endpoint")]
+        [DefaultValue("")]
+        public string ApiVersion { get; set; } = string.Empty;
+
         #endregion OpenAI
 
         #region Turbo Chat

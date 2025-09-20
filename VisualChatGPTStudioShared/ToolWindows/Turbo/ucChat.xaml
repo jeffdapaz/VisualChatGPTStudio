@@ -91,7 +91,7 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <wv2:WebView2 x:Name = "webBrowserChat" Grid.Row="0"/>
+            <wv2:WebView2CompositionControl x:Name = "webBrowserChat" Grid.Row="0"/>
 
             <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Background="#FF007ACC" Margin="0,5,0,5"  Visibility="{Binding Visibility, ElementName=dataGridResult}"/>
             <DataGrid 

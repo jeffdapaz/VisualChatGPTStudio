@@ -1,5 +1,10 @@
 ﻿## Release Notes 📜
 
+### 5.4.1
+
+- Added ApiVersion override for Open AI Compatible API. Thanks [IH8E](https://github.com/IH8E).
+- Fixed the Turbo Chat window that was overlapping the native Visual Studio windows.
+
 ### 5.4.0
 
 - Add the new computer-use beta feature on Turbo Chat.

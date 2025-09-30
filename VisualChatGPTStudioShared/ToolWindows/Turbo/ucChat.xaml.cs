@@ -661,15 +661,22 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 cancellationTokenSource = new();
 
-                (string, List<FunctionResult>) result = await SendRequestAsync(cancellationTokenSource);
-
-                if (result.Item2 != null && result.Item2.Any())
+                if (options.CompletionStream)
                 {
-                    await HandleFunctionsCallsAsync(result.Item2, cancellationTokenSource);
+                    await apiChat.StreamResponseFromChatbotAsync(HandleResponseChunk);
                 }
                 else
                 {
-                    HandleResponse(commandType, shiftKeyPressed, result.Item1);
+                    (string, List<FunctionResult>) result = await SendRequestAsync(cancellationTokenSource);
+
+                    if (result.Item2 != null && result.Item2.Any())
+                    {
+                        await HandleFunctionsCallsAsync(result.Item2, cancellationTokenSource);
+                    }
+                    else
+                    {
+                        HandleResponse(commandType, shiftKeyPressed, result.Item1);
+                    }
                 }
 
                 if (firstMessage)
@@ -816,6 +823,36 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
 
             UpdateBrowser();
+        }
+
+        /// <summary>
+        /// Handles the response chunk based on the last saved message
+        /// </summary>
+        private void HandleResponseChunk(string response)
+        {
+            ChatMessageSegment lastSegment = messagesForDatabase.Last().Segments.First();
+            if (lastSegment.Author != IdentifierEnum.ChatGPT)
+            {
+                HandleResponse(RequestType.Request, false, response);
+                return;
+            }
+            lastSegment.Content += response;
+
+            messagesHtml.Remove(0, messagesHtml.Length);
+            foreach (var item in messagesForDatabase)
+            {
+                var segments = item.Segments.First();
+                try
+                {
+                    AddMessagesHtml(segments.Author, segments.Content);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex);
+                }
+            }
+
+            webBrowserChat.CoreWebView2.ExecuteScriptAsync($@"document.body.innerHTML = `{messagesHtml}`");
         }
 
         /// <summary>

@@ -24,6 +24,11 @@ namespace OpenAI_API.Chat
         private readonly List<FunctionRequest> tools;
 
         /// <summary>
+        /// Indicates whether a retry has already been attempted.
+        /// </summary>
+        private bool retryAttempted = false;
+
+        /// <summary>
         /// Allows setting the parameters to use when calling the ChatGPT API.  Can be useful for setting temperature, presence_penalty, and more.  <see href="https://platform.openai.com/docs/api-reference/chat/create">Se  OpenAI documentation for a list of possible parameters to tweak.</see>
         /// </summary>
         public ChatRequest RequestParameters { get; private set; }
@@ -197,9 +202,25 @@ namespace OpenAI_API.Chat
                 {
                     ChatMessage newMsg = res.Choices[0].Message;
 
+                    if (string.IsNullOrWhiteSpace(newMsg?.Content?.ToString()))
+                    {
+                        if (res.Choices[0].FinishReason.Equals("length", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            throw new ArgumentOutOfRangeException("The maximum response length was exceeded. You may want to increase the max_tokens parameter, or reduce the length of your prompt.");
+                        }
+                        else
+                        {
+                            throw new Exception("The response from the API did not contain any message content. This may be due to an error.");
+                        }
+                    }
+
                     AppendMessage(newMsg);
 
                     return newMsg;
+                }
+                else
+                {
+                    throw new Exception("The response from the API did not contain any message content. This may be due to an error.");
                 }
             }
             catch (HttpRequestException ex)
@@ -208,9 +229,24 @@ namespace OpenAI_API.Chat
                 {
                     return await GetResponseFromChatbotAsync();
                 }
+                else
+                {
+                    throw;
+                }
             }
+            catch (OperationCanceledException) //try one more time if the request was canceled
+            {
+                if (retryAttempted)
+                {
+                    throw new Exception("The request was canceled. This may be due to a timeout.");
+                }
+                else
+                {
+                    retryAttempted = true;
 
-            return null;
+                    return await GetResponseFromChatbotAsync();
+                }
+            }
         }
 
         #endregion

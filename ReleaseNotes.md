@@ -1,5 +1,9 @@
 ﻿## Release Notes 📜
 
+### 5.5.0
+
+- Improved feedback messages when API calls fail.
+
 ### 5.4.1
 
 - Added ApiVersion override for Open AI Compatible API. Thanks [IH8E](https://github.com/IH8E).

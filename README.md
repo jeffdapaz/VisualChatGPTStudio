@@ -448,17 +448,11 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 ### 5.5.0
 
 - Improved feedback messages when API calls fail.
+- Fixed the long words that break the layout in the Turbo Chat window.
 
 ### 5.4.1
 
 - Added ApiVersion override for Open AI Compatible API. Thanks [IH8E](https://github.com/IH8E).
 - Fixed the Turbo Chat window that was overlapping the native Visual Studio windows.
-
-### 5.4.0
-
-- Added the new computer-use beta feature on Turbo Chat.
-- Improved Turbo Chat formatting.
-- Replaced the WebBrowser component (based on Internet Explorer) with WebView2 (based on Edge) in the Turbo Chat window. This ensures better display and responsiveness, as well as the ability to copy text using CTRL+C.
-- Fixed streaming responses on code editor.
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

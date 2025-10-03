@@ -3,6 +3,7 @@
 ### 5.5.0
 
 - Improved feedback messages when API calls fail.
+- Fixed the long words that break the layout in the Turbo Chat window.
 
 ### 5.4.1
 

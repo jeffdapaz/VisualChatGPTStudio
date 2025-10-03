@@ -961,7 +961,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             string messageHtml = $@"
                     <div style='position: relative; margin-bottom: 16px; padding-top: 20px;'>
                         <img src='{authorIcon}' style='display: block; position: absolute; top: 0px; width: 40px; height: 40px;' />
-                        <div style='margin-left: 0; margin-top: 20px; border: 1.5px solid #888; border-radius: 12px; padding: 5px 5px 5px 5px; box-sizing: border-box;'>
+                        <div style='margin-left: 0; margin-top: 20px; border: 1.5px solid #888; border-radius: 12px; padding: 5px 5px 5px 5px; box-sizing: border-box; overflow-wrap: anywhere;'>
                             {htmlContent}
                         </div>
                     </div>";

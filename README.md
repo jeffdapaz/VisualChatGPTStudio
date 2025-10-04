@@ -134,8 +134,6 @@ You can also interact with the opened code editor through the `Send Code` button
 - Ask if the class has any bugs;
 - Etc.
 
-By executing this command, you can also hold down the SHIFT key when press the `Send Code` button so that the code will be write directly in the chat window instead of the code editor, in case you want to preserve the original code and/or analyze the response before applying it to the opened code editor.
-
 You will also be able to keep multiple chats open at the same time in different tabs. And each chat is kept in history, allowing you to continue the conversation even if Visual Studio is closed:
 
 <img src="https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/2.4.0/1700946186856/image__8.png" width="60%">
@@ -447,6 +445,7 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 
 ### 5.5.0
 
+- Enhanced Send Code feature on Turbo Chat to apply precise code edits via OpenAI function calls, improving efficiency and accuracy.
 - Improved feedback messages when API calls fail.
 - Fixed the long words that break the layout in the Turbo Chat window.
 

@@ -2,6 +2,7 @@
 
 ### 5.5.0
 
+- Enhanced Send Code feature on Turbo Chat to apply precise code edits via OpenAI function calls, improving efficiency and accuracy.
 - Improved feedback messages when API calls fail.
 - Fixed the long words that break the layout in the Turbo Chat window.
 

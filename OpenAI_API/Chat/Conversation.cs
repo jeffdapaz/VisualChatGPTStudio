@@ -202,7 +202,7 @@ namespace OpenAI_API.Chat
                 {
                     ChatMessage newMsg = res.Choices[0].Message;
 
-                    if (string.IsNullOrWhiteSpace(newMsg?.Content?.ToString()))
+                    if (string.IsNullOrWhiteSpace(newMsg?.Content?.ToString()) && (newMsg?.Functions == null || !newMsg.Functions.Any()))
                     {
                         if (res.Choices[0].FinishReason.Equals("length", StringComparison.InvariantCultureIgnoreCase))
                         {

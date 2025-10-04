@@ -86,7 +86,7 @@ namespace OpenAI_API.Functions
         /// Must be set to false for each object in the parameters
         /// </summary>
         [JsonProperty("additionalProperties")]
-        public bool AdditionalProperties => false;
+        public bool AdditionalProperties => false;        
     }
 
     /// <summary>
@@ -106,5 +106,17 @@ namespace OpenAI_API.Functions
         /// </summary>
         [JsonProperty("description")]
         public string Description { get; set; }
+
+        /// <summary>
+        /// Gets or sets the parameter representing the items for this object.
+        /// </summary>
+        [JsonProperty("items", NullValueHandling = NullValueHandling.Ignore)]
+        public Parameter Items { get; set; }
+
+        /// <summary>
+        /// Parameter properties list
+        /// </summary>
+        [JsonProperty("properties", NullValueHandling = NullValueHandling.Ignore)]
+        public Dictionary<string, Property> Properties { get; set; }
     }
 }

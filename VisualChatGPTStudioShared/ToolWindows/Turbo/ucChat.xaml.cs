@@ -29,6 +29,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using VisualChatGPTStudioShared.Agents.ApiAgent;
+using VisualChatGPTStudioShared.Agents.CodeEditAgent;
 using VisualChatGPTStudioShared.ToolWindows.Turbo;
 using Color = System.Windows.Media.Color;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
@@ -61,7 +62,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private CancellationTokenSource cancellationTokenSource;
         private readonly string chatId;
         private DocumentView docView;
-        private bool shiftKeyPressed;
         private bool selectedContextFilesCodeAppended = false;
         private bool firstMessage = true;
         private readonly CompletionManager completionManager;
@@ -255,7 +255,18 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         public async void SendCode(object sender, RoutedEventArgs e)
         {
-            await RequestAsync(RequestType.Code);
+            FunctionRequest function = CodeEditAgent.GetFunction();
+
+            apiChat.AppendFunctionCall(function);
+
+            messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.FunctionCall, Content = JsonConvert.SerializeObject(function) }] });
+
+            docView = await VS.Documents.GetActiveDocumentViewAsync();
+
+            apiChat.AppendSystemMessage(options.TurboChatCodeCommand);
+            apiChat.AppendUserInput(docView.TextView.TextBuffer.CurrentSnapshot.GetText());
+
+            await RequestAsync();
         }
 
         /// <summary>
@@ -263,7 +274,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         public async void SendRequest(object sender, RoutedEventArgs e)
         {
-            await RequestAsync(RequestType.Request);
+            await RequestAsync();
         }
 
         /// <summary>
@@ -426,7 +437,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.FunctionRequest, Content = request }] });
 
-            await RequestAsync(RequestType.Request, request, requestToShowOnList, false);
+            await RequestAsync(request, requestToShowOnList);
 
             sqlServerConnectionsAlreadyAdded.Add(connection.ConnectionString);
 
@@ -518,7 +529,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.FunctionRequest, Content = request }] });
 
-            await RequestAsync(RequestType.Request, request, requestToShowOnList, false);
+            await RequestAsync(request, requestToShowOnList);
 
             apiDefinitionsAlreadyAdded.Add(apiDefinition.Name);
 
@@ -550,12 +561,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         #region Methods  
 
         /// <summary>
-        /// Handles an asynchronous request based on the specified command type. Validates input, appends context or system messages, processes code or image-related requests, and sends the final request.
+        /// Asynchronously sends a user request to the chat API, including any selected context files and attached images if present.
         /// </summary>
-        private async System.Threading.Tasks.Task RequestAsync(RequestType commandType)
+        private async System.Threading.Tasks.Task RequestAsync()
         {
-            shiftKeyPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
-
             if (!IsReadyToSendRequest())
             {
                 return;
@@ -570,23 +579,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     apiChat.AppendSystemMessage(selectedContextFilesCode);
                     selectedContextFilesCodeAppended = true;
                 }
-            }
-
-            if (commandType == RequestType.Code)
-            {
-                docView = await VS.Documents.GetActiveDocumentViewAsync();
-
-                string originalCode = docView.TextView.TextBuffer.CurrentSnapshot.GetText();
-
-                if (options.MinifyRequests)
-                {
-                    originalCode = TextFormat.MinifyText(originalCode, " ");
-                }
-
-                originalCode = TextFormat.RemoveCharactersFromText(originalCode, options.CharactersToRemoveFromRequests.Split(','));
-
-                apiChat.AppendSystemMessage(options.TurboChatCodeCommand);
-                apiChat.AppendUserInput(originalCode);
             }
 
             string requestToShowOnList = txtRequest.Text;
@@ -604,7 +596,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             txtRequest.Text = string.Empty;
 
-            await RequestAsync(commandType, request, requestToShowOnList, shiftKeyPressed);
+            await RequestAsync(request, requestToShowOnList);
         }
 
         /// <summary>
@@ -635,10 +627,12 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         }
 
         /// <summary>
-        /// Sends an asynchronous request based on the provided command type, processes the response, 
-        /// and updates the UI elements accordingly. Handles exceptions and manages UI state during the operation.
+        /// Sends an asynchronous request to the chat API, handles UI updates, message formatting, request minification, character removal, and manages the response or function calls.
+        /// If it is the first message, updates the chat header with a suggested title; otherwise, notifies the parent control of new chat messages.
         /// </summary>
-        private async System.Threading.Tasks.Task RequestAsync(RequestType commandType, string request, string requestToShowOnList, bool shiftKeyPressed)
+        /// <param name="request">The request string to send to the API (may be minified and have characters removed).</param>
+        /// <param name="requestToShowOnList">The formatted request string to display in the chat UI.</param>
+        private async System.Threading.Tasks.Task RequestAsync(string request, string requestToShowOnList)
         {
             await ExecuteRequestWithCommonHandlingAsync(async () =>
             {
@@ -669,7 +663,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 }
                 else
                 {
-                    HandleResponse(commandType, shiftKeyPressed, result.Item1);
+                    HandleResponse(result.Item1);
                 }
 
                 if (firstMessage)
@@ -789,31 +783,13 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         }
 
         /// <summary>
-        /// Handles the response based on the command type and shift key state, updating the document view or chat list control items accordingly.
+        /// Handles the response from the chatbot by adding the response to the message database, updating the chat UI with the new message, and refreshing the browser display.
         /// </summary>
-        private void HandleResponse(RequestType commandType, bool shiftKeyPressed, string response)
+        private void HandleResponse(string response)
         {
-            if (commandType == RequestType.Code && !shiftKeyPressed)
-            {
-                List<ChatMessageSegment> segments = TextFormat.GetChatTurboResponseSegments(response);
+            messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.ChatGPT, Content = response }] });
 
-                for (int i = 0; i < segments.Count; i++)
-                {
-                    if (segments[i].Author == IdentifierEnum.ChatGPTCode)
-                    {
-                        docView.TextView.TextBuffer.Replace(new Microsoft.VisualStudio.Text.Span(0, docView.TextView.TextBuffer.CurrentSnapshot.Length), segments[i].Content);
-                    }
-                    else
-                    {
-                        AddMessagesHtml(segments[i].Author, segments[i].Content);
-                    }
-                }
-            }
-            else
-            {
-                messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.ChatGPT, Content = response }] });
-                AddMessagesHtml(IdentifierEnum.ChatGPT, response);
-            }
+            AddMessagesHtml(IdentifierEnum.ChatGPT, response);
 
             UpdateBrowser();
         }
@@ -832,7 +808,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             foreach (FunctionResult function in functions)
             {
-                if (ApiAgent.GetApiFunctions().Select(f => f.Function.Name).Any(f => f.Equals(function.Function.Name, StringComparison.InvariantCultureIgnoreCase)))
+                if (function.Function.Name.Equals("edit_code", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    functionResult = await CodeEditAgent.ApplyEditCodeAsync(function.Function.Arguments);
+                }
+                else if (ApiAgent.GetApiFunctions().Select(f => f.Function.Name).Any(f => f.Equals(function.Function.Name, StringComparison.InvariantCultureIgnoreCase)))
                 {
                     (string, string) apiResponse = await ApiAgent.ExecuteFunctionAsync(function, options.LogAPIAgentRequestAndResponses);
 
@@ -873,7 +853,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             if (!responseHandled)
             {
-                HandleResponse(RequestType.Request, false, result.Item1);
+                HandleResponse(result.Item1);
 
                 responseHandled = true;
             }

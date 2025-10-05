@@ -406,6 +406,8 @@ How to Enable the Feature:
 <a id="15"></a>
 ## Disclaimer 👋
 
+- Some features relies on OpenAI Function feature ([https://platform.openai.com/docs/guides/function-calling](https://platform.openai.com/docs/guides/function-calling)), so you need use a model that supports it for better experience.
+
 - As this extension depends on the API provided by OpenAI or Azure, there may be some change by them that affects the operation of this extension without prior notice.
 
 - As this extension depends on the API provided by OpenAI or Azure, there may be generated responses that not be what the expected.

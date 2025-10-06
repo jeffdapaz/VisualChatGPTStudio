@@ -939,7 +939,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             htmlContent = htmlContent.Replace("<script", "&lt;script").Replace("</script>", "&lt;/script&gt;");
 
             string messageHtml = $@"
-                    <div style='position: relative; margin-bottom: 16px; padding-top: 20px;'>
+                    <div class='chat-message' style='position: relative; margin-bottom: 16px; padding-top: 20px;'>
                         <img src='{authorIcon}' style='display: block; position: absolute; top: 0px; width: 40px; height: 40px;' />
                         <div style='margin-left: 0; margin-top: 20px; border: 1.5px solid #888; border-radius: 12px; padding: 5px 5px 5px 5px; box-sizing: border-box; overflow-wrap: anywhere;'>
                             {htmlContent}
@@ -1021,7 +1021,13 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                             var checkIcon = '{checkIcon}';
 
                             window.onload = function() {{
-                                window.scrollTo(0, document.body.scrollHeight);
+                                var msgs = document.getElementsByClassName('chat-message');
+
+                                if (msgs.length > 0) {{
+                                    msgs[msgs.length - 1].scrollIntoView({{behavior: ""auto"", block: ""start""}});
+                                }} else {{
+                                    window.scrollTo(0, document.body.scrollHeight);
+                                }}
                                 
                                 document.body.focus();
 

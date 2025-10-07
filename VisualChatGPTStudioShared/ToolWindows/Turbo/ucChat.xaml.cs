@@ -929,6 +929,12 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             else
             {
                 htmlContent = Markdown.ToHtml(content, markdownPipeline);
+
+                htmlContent = Regex.Replace(htmlContent, @"<div class=""lang-mermaid editor-colors"">(.*?)</div>", m =>
+                {
+                    string inner = m.Groups[1].Value;
+                    return $"<pre><code class=\"language-mermaid\">{System.Net.WebUtility.HtmlEncode(inner)}</code></pre>";
+                }, RegexOptions.Singleline);
             }
 
             if (htmlContent.EndsWith("<br />"))
@@ -988,7 +994,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                                 white-space: pre;
                                 background: {cssCodeBackgroundColor};
                                 color: {cssTextColor};
-                                padding: 8px;
+                                padding: 24px 8px 8px 8px;
                                 font-family: Consolas, 'Courier New', monospace;
                                 font-size: 13px;
                                 margin: 6px 0;

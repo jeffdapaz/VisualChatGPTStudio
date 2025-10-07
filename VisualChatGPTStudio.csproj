@@ -239,6 +239,7 @@
     <Resource Include="Resources\cloud.png" />
     <Resource Include="Resources\api.png" />
     <Resource Include="Resources\computer-use.png" />
+    <Resource Include="Resources\diagram.png" />
     <Content Include="Resources\Icon.png">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>

@@ -83,6 +83,9 @@
     <Resource Include="..\Resources\computer-use.png">
       <Link>Resources\computer-use.png</Link>
     </Resource>
+    <Resource Include="..\Resources\diagram.png">
+      <Link>Resources\diagram.png</Link>
+    </Resource>
     <Content Include="lib\osx-arm64\libgit2-3f4182d.dylib">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>

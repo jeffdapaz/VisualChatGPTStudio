@@ -448,7 +448,7 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 ### 5.5.0
 
 - Enhanced Send Code feature on Turbo Chat to apply precise code edits via OpenAI function calls, improving efficiency and accuracy.
-- Update Turbo Chat to support mermaid code blocks rendering.
+- Update Turbo Chat to support mermaid diagrams rendering. Necessary Visual Studio 2022 version 17.14.16 or higher.
 - Fixed the long words that break the layout in the Turbo Chat window.
 - Improved set scroll position when new messages are added in the Turbo Chat window.
 - Improved feedback messages when API calls fail.

@@ -381,9 +381,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     {
                         string[] lines = code.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
 
-                        string tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"{lines[0]}_{Guid.NewGuid():N}.md");
+                        string tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"{lines[0]}_{DateTime.Now:yyyyMMdd_HHmmss}.md");
 
-                        System.IO.File.WriteAllText(tempPath, code, Encoding.UTF8);
+                        System.IO.File.WriteAllText(tempPath, $"```mermaid\n{code}\n```", Encoding.UTF8);
 
                         await VS.Documents.OpenAsync(tempPath);
                     }
@@ -391,6 +391,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
             catch (Exception ex)
             {
+                MessageBox.Show("Was not possible to preview the diagram.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);
+
                 Logger.Log(ex);
             }
         }

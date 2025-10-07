@@ -80,6 +80,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private readonly string apiIcon;
         private readonly string copyIcon;
         private readonly string checkIcon;
+        private readonly string diagramIcon;
         private readonly string sqlIcon;
         private readonly string imgIcon;
 
@@ -117,6 +118,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             apiIcon = GetImageBase64(IdentifierEnum.Api);
             copyIcon = GetImageBase64(IdentifierEnum.CopyIcon);
             checkIcon = GetImageBase64(IdentifierEnum.CheckIcon);
+            diagramIcon = GetImageBase64(IdentifierEnum.DiagramIcon);
             sqlIcon = GetImageBase64(IdentifierEnum.SqlIcon);
             imgIcon = GetImageBase64(IdentifierEnum.ImgIcon);
 
@@ -350,6 +352,46 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                     e.Handled = true;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Handles the WebMessageReceived event from the webbrowser control.
+        /// Processes incoming JSON messages, and if the message type is "openMermaid",
+        /// extracts the Mermaid code, saves it to a temporary markdown file, and opens it asynchronously in Visual Studio.
+        /// </summary>
+        private async void CoreWebView2_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
+        {
+            try
+            {
+                string message = e.TryGetWebMessageAsString();
+
+                if (string.IsNullOrWhiteSpace(message))
+                {
+                    return;
+                }
+
+                dynamic obj = JsonConvert.DeserializeObject(message);
+
+                if (obj != null && obj.type != null && obj.type.ToString() == "openMermaid")
+                {
+                    string code = obj.code != null ? obj.code.ToString() : string.Empty;
+
+                    if (!string.IsNullOrWhiteSpace(code))
+                    {
+                        string[] lines = code.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
+
+                        string tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"{lines[0]}_{Guid.NewGuid():N}.md");
+
+                        System.IO.File.WriteAllText(tempPath, code, Encoding.UTF8);
+
+                        await VS.Documents.OpenAsync(tempPath);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
             }
         }
 
@@ -1025,6 +1067,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                         <script type='text/javascript'>
                             var copyIcon = '{copyIcon}';
                             var checkIcon = '{checkIcon}';
+                            var diagramIcon = '{diagramIcon}';
 
                             window.onload = function() {{
                                 var msgs = document.getElementsByClassName('chat-message');
@@ -1068,11 +1111,43 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                                     pre.parentNode.insertBefore(wrapper, pre);
                                     wrapper.appendChild(pre);
 
+                                    // If this pre/code block is mermaid, add an extra button to open the mermaid code in VS as a .md file
+                                    var codeEl = pre.getElementsByTagName('code')[0];
+                                    var isMermaid = codeEl && codeEl.className && codeEl.className.indexOf('language-mermaid') !== -1;
+
+                                    if (isMermaid) {{
+                                        var btnMermaid = document.createElement('button');
+                                        btnMermaid.className = 'copy-btn';
+                                        btnMermaid.title = 'Preview Diagram';
+                                        // place it to the left of the copy button
+                                        btnMermaid.style.right = '30px';
+                                        btnMermaid.style.width = '15px';
+                                        btnMermaid.style.height = '15px';
+                                        btnMermaid.style.padding = '0';
+                                        
+                                        var img2 = document.createElement('img');
+                                        img2.src = diagramIcon;
+                                        btnMermaid.appendChild(img2);
+
+                                        btnMermaid.onclick = function() {{
+                                            var codeText = this.parentNode.getElementsByTagName('pre')[0].innerText;
+                                            try {{
+                                                if (window.chrome && window.chrome.webview && window.chrome.webview.postMessage) {{
+                                                    window.chrome.webview.postMessage(JSON.stringify({{ type: 'openMermaid', code: codeText }}));
+                                                }} else if (window.external && window.external.notify) {{
+                                                    window.external.notify(JSON.stringify({{ type: 'openMermaid', code: codeText }}));
+                                                }}
+                                            }} catch(e) {{}}
+                                        }};
+
+                                        wrapper.appendChild(btnMermaid);
+                                    }}
+
                                     wrapper.appendChild(btn);
 
                                     btn.onclick = function() {{
                                         var code = this.parentNode.getElementsByTagName('pre')[0].innerText;
-                                        
+
                                         if (window.clipboardData && window.clipboardData.setData) {{
                                             window.clipboardData.setData('Text', code);
                                         }} else if (navigator.clipboard) {{
@@ -1110,6 +1185,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             {
                 CoreWebView2Environment env = await CoreWebView2Environment.CreateAsync(null, Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
                 await webBrowserChat.EnsureCoreWebView2Async(env);
+
+                webBrowserChat.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
             }
 
             webBrowserChat.CoreWebView2.NavigateToString(html);
@@ -1137,7 +1214,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 IdentifierEnum.CopyIcon => "pack://application:,,,/VisualChatGPTStudio;component/Resources/copy.png",
                 IdentifierEnum.CheckIcon => "pack://application:,,,/VisualChatGPTStudio;component/Resources/check.png",
                 IdentifierEnum.SqlIcon => "pack://application:,,,/VisualChatGPTStudio;component/Resources/db.png",
-                IdentifierEnum.ImgIcon => "pack://application:,,,/VisualChatGPTStudio;component/Resources/image.png"
+                IdentifierEnum.ImgIcon => "pack://application:,,,/VisualChatGPTStudio;component/Resources/image.png",
+                IdentifierEnum.DiagramIcon => "pack://application:,,,/VisualChatGPTStudio;component/Resources/diagram.png"
             };
 
             Uri uri = new(imageSource, UriKind.RelativeOrAbsolute);

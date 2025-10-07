@@ -9,6 +9,8 @@ using JeffPires.VisualChatGPTStudio.Utils.Repositories;
 using Markdig;
 using Markdig.SyntaxHighlighting;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.Web.WebView2.Core;
 using Newtonsoft.Json;
 using OpenAI_API.Chat;
@@ -81,6 +83,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private readonly string copyIcon;
         private readonly string checkIcon;
         private readonly string diagramIcon;
+        private readonly string submitIcon;
         private readonly string sqlIcon;
         private readonly string imgIcon;
 
@@ -119,6 +122,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             copyIcon = GetImageBase64(IdentifierEnum.CopyIcon);
             checkIcon = GetImageBase64(IdentifierEnum.CheckIcon);
             diagramIcon = GetImageBase64(IdentifierEnum.DiagramIcon);
+            submitIcon = GetImageBase64(IdentifierEnum.SubmitIcon);
             sqlIcon = GetImageBase64(IdentifierEnum.SqlIcon);
             imgIcon = GetImageBase64(IdentifierEnum.ImgIcon);
 
@@ -345,9 +349,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         }
 
         /// <summary>
-        /// Handles the WebMessageReceived event from the webbrowser control.
-        /// Processes incoming JSON messages, and if the message type is "openMermaid",
-        /// extracts the Mermaid code, saves it to a temporary markdown file, and opens it asynchronously in Visual Studio.
+        /// Handles the WebMessageReceived event from the CoreWebView2 control.
         /// </summary>
         private async void CoreWebView2_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
@@ -362,29 +364,44 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 dynamic obj = JsonConvert.DeserializeObject(message);
 
-                if (obj != null && obj.type != null && obj.type.ToString() == "openMermaid")
+                if (obj != null && obj.type != null)
                 {
-                    string code = obj.code != null ? obj.code.ToString() : string.Empty;
+                    string type = obj.type.ToString();
 
-                    if (!string.IsNullOrWhiteSpace(code))
+                    if (type == "openMermaid")
                     {
-                        string[] lines = code.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
+                        string code = obj.code != null ? obj.code.ToString() : string.Empty;
 
-                        string tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"{lines[0]}_{DateTime.Now:yyyyMMdd_HHmmss}.md");
+                        if (!string.IsNullOrWhiteSpace(code))
+                        {
+                            string[] lines = code.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
 
-                        System.IO.File.WriteAllText(tempPath, $"```mermaid\n{code}\n```", Encoding.UTF8);
+                            string tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"{lines[0]}_{DateTime.Now:yyyyMMdd_HHmmss}.md");
 
-                        await VS.Documents.OpenAsync(tempPath);
+                            System.IO.File.WriteAllText(tempPath, $"```mermaid\n{code}\n```", Encoding.UTF8);
+
+                            await VS.Documents.OpenAsync(tempPath);
+                        }
+                    }
+                    else if (type == "applyCode")
+                    {
+                        string code = obj.code != null ? obj.code.ToString() : string.Empty;
+
+                        if (!string.IsNullOrWhiteSpace(code))
+                        {
+                            await ApplyCodeToActiveDocumentAsync(code);
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Was not possible to preview the diagram.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);
-
                 Logger.Log(ex);
+
+                MessageBox.Show("Was not possible to execute the action.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);
             }
         }
+
 
         #endregion Event Handlers
 
@@ -1090,6 +1107,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                             var copyIcon = '{copyIcon}';
                             var checkIcon = '{checkIcon}';
                             var diagramIcon = '{diagramIcon}';
+                            var submitIcon = '{submitIcon}';
 
                             window.onload = function() {{
                                 var msgs = document.getElementsByClassName('chat-message');
@@ -1118,40 +1136,29 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                                 for (var i = 0; i < pres.length; i++) {{
                                     var pre = pres[i];
-                                    
-                                    var btn = document.createElement('button');
-                                    btn.className = 'copy-btn';
-                                    btn.title = 'Copy';
-
-                                    var img = document.createElement('img');
-                                    img.src = copyIcon;
-                                    btn.appendChild(img);
-
                                     var wrapper = document.createElement('div');
-                                    wrapper.style.position = 'relative';
-
+                                    wrapper.style.position = 'relative'; 
                                     pre.parentNode.insertBefore(wrapper, pre);
                                     wrapper.appendChild(pre);
 
-                                    // If this pre/code block is mermaid, add an extra button to open the mermaid code in VS as a .md file
                                     var codeEl = pre.getElementsByTagName('code')[0];
                                     var isMermaid = codeEl && codeEl.className && codeEl.className.indexOf('language-mermaid') !== -1;
 
                                     if (isMermaid) {{
-                                        var btnMermaid = document.createElement('button');
-                                        btnMermaid.className = 'copy-btn';
-                                        btnMermaid.title = 'Preview Diagram';
-                                        // place it to the left of the copy button
-                                        btnMermaid.style.right = '30px';
-                                        btnMermaid.style.width = '15px';
-                                        btnMermaid.style.height = '15px';
-                                        btnMermaid.style.padding = '0';
-                                        
-                                        var img2 = document.createElement('img');
-                                        img2.src = diagramIcon;
-                                        btnMermaid.appendChild(img2);
+                                        var btnPreview = document.createElement('button');
+                                        btnPreview.className = 'copy-btn';
+                                        btnPreview.title = 'Preview Diagram';
+                                        btnPreview.style.position = 'absolute';
+                                        btnPreview.style.top = '8px';
+                                        btnPreview.style.right = '56px'; 
+                                        btnPreview.style.width = '15px';
+                                        btnPreview.style.height = '15px';
+                                        btnPreview.style.padding = '0';
+                                        var imgPrev = document.createElement('img');
+                                        imgPrev.src = diagramIcon;
+                                        btnPreview.appendChild(imgPrev);
 
-                                        btnMermaid.onclick = function() {{
+                                        btnPreview.onclick = function() {{
                                             var codeText = this.parentNode.getElementsByTagName('pre')[0].innerText;
                                             try {{
                                                 if (window.chrome && window.chrome.webview && window.chrome.webview.postMessage) {{
@@ -1159,17 +1166,53 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                                                 }} else if (window.external && window.external.notify) {{
                                                     window.external.notify(JSON.stringify({{ type: 'openMermaid', code: codeText }}));
                                                 }}
-                                            }} catch(e) {{}}
+                                            }} catch(e){{}}
                                         }};
 
-                                        wrapper.appendChild(btnMermaid);
+                                        wrapper.appendChild(btnPreview);
                                     }}
 
-                                    wrapper.appendChild(btn);
+                                    var applyBtn = document.createElement('button');
+                                    applyBtn.className = 'copy-btn';
+                                    applyBtn.title = 'Apply';
+                                    applyBtn.style.position = 'absolute';
+                                    applyBtn.style.top = '8px';                                    
+                                    applyBtn.style.right = '32px'; 
+                                    applyBtn.style.width = '15px';
+                                    applyBtn.style.height = '15px';
+                                    applyBtn.style.padding = '0';
+                                    var imgApply = document.createElement('img');
+                                    imgApply.src = submitIcon; 
+                                    applyBtn.appendChild(imgApply);
 
-                                    btn.onclick = function() {{
+                                    applyBtn.onclick = function() {{
+                                        var codeText = this.parentNode.getElementsByTagName('pre')[0].innerText;
+                                        try {{
+                                            if (window.chrome && window.chrome.webview && window.chrome.webview.postMessage) {{
+                                                window.chrome.webview.postMessage(JSON.stringify({{ type: 'applyCode', code: codeText }}));
+                                            }} else if (window.external && window.external.notify) {{
+                                                window.external.notify(JSON.stringify({{ type: 'applyCode', code: codeText }}));
+                                            }}
+                                        }} catch(e){{}}
+                                    }};
+
+                                    wrapper.appendChild(applyBtn);
+                                    
+                                    var btnCopy = document.createElement('button');
+                                    btnCopy.className = 'copy-btn';
+                                    btnCopy.title = 'Copy';
+                                    btnCopy.style.position = 'absolute';
+                                    btnCopy.style.top = '8px';
+                                    btnCopy.style.right = '8px'; 
+                                    btnCopy.style.width = '15px';
+                                    btnCopy.style.height = '15px';
+                                    btnCopy.style.padding = '0';
+                                    var imgCopy = document.createElement('img');
+                                    imgCopy.src = copyIcon;
+                                    btnCopy.appendChild(imgCopy);
+
+                                    btnCopy.onclick = function() {{
                                         var code = this.parentNode.getElementsByTagName('pre')[0].innerText;
-
                                         if (window.clipboardData && window.clipboardData.setData) {{
                                             window.clipboardData.setData('Text', code);
                                         }} else if (navigator.clipboard) {{
@@ -1184,9 +1227,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                                         }}
                                         var img = this.getElementsByTagName('img')[0];
                                         img.src = checkIcon;
-                                        var btn = this;
+                                        var self = this;
                                         setTimeout(function() {{ img.src = copyIcon; }}, 1200);
                                     }};
+
+                                    wrapper.appendChild(btnCopy);
 
                                     pre.addEventListener('wheel', function(e) {{
                                         if (e.shiftKey) {{
@@ -1223,21 +1268,24 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </returns>
         private string GetImageBase64(IdentifierEnum identifier)
         {
+            const string RESOURCE_PATH = "pack://application:,,,/VisualChatGPTStudio;component/Resources/";
+
             if (base64Images.TryGetValue(identifier, out string result))
             {
                 return result;
-            }
+            }            
 
             string imageSource = identifier switch
             {
-                IdentifierEnum.Me => "pack://application:,,,/VisualChatGPTStudio;component/Resources/vs.png",
-                IdentifierEnum.ChatGPT => "pack://application:,,,/VisualChatGPTStudio;component/Resources/chatGPT.png",
-                IdentifierEnum.Api => "pack://application:,,,/VisualChatGPTStudio;component/Resources/api.png",
-                IdentifierEnum.CopyIcon => "pack://application:,,,/VisualChatGPTStudio;component/Resources/copy.png",
-                IdentifierEnum.CheckIcon => "pack://application:,,,/VisualChatGPTStudio;component/Resources/check.png",
-                IdentifierEnum.SqlIcon => "pack://application:,,,/VisualChatGPTStudio;component/Resources/db.png",
-                IdentifierEnum.ImgIcon => "pack://application:,,,/VisualChatGPTStudio;component/Resources/image.png",
-                IdentifierEnum.DiagramIcon => "pack://application:,,,/VisualChatGPTStudio;component/Resources/diagram.png"
+                IdentifierEnum.Me => RESOURCE_PATH + "vs.png",
+                IdentifierEnum.ChatGPT => RESOURCE_PATH + "chatGPT.png",
+                IdentifierEnum.Api => RESOURCE_PATH + "api.png",
+                IdentifierEnum.CopyIcon => RESOURCE_PATH + "copy.png",
+                IdentifierEnum.CheckIcon => RESOURCE_PATH + "check.png",
+                IdentifierEnum.SqlIcon => RESOURCE_PATH + "db.png",
+                IdentifierEnum.ImgIcon => RESOURCE_PATH + "image.png",
+                IdentifierEnum.DiagramIcon => RESOURCE_PATH + "diagram.png",
+                IdentifierEnum.SubmitIcon => RESOURCE_PATH + "submit.png"
             };
 
             Uri uri = new(imageSource, UriKind.RelativeOrAbsolute);
@@ -1399,6 +1447,54 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     computerCall.PendingSafetyChecks,
                     cancellationTokenSource.Token
                 );
+            }
+        }
+
+        /// <summary>
+        /// Applies the specified code to the currently active document in Visual Studio.
+        /// </summary>
+        /// <param name="code">The code to insert or replace in the active document.</param>
+        private async System.Threading.Tasks.Task ApplyCodeToActiveDocumentAsync(string code)
+        {
+            try
+            {
+                docView = await VS.Documents.GetActiveDocumentViewAsync();
+
+                if (docView == null)
+                {
+                    MessageBox.Show("No active document is open to apply the code.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                    return;
+                }
+
+                await docView.TextBuffer.Properties.GetOrCreateSingletonProperty<TaskScheduler>(() => TaskScheduler.FromCurrentSynchronizationContext());
+
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                ITextBuffer textBuffer = docView.TextView.TextBuffer;
+                NormalizedSnapshotSpanCollection selection = docView.TextView.Selection.SelectedSpans;
+
+                using (ITextEdit edit = textBuffer.CreateEdit())
+                {
+                    if (selection.Count > 0 && !selection[0].IsEmpty)
+                    {
+                        edit.Replace(selection[0], code);
+                    }
+                    else
+                    {
+                        int caretPosition = docView.TextView.Caret.Position.BufferPosition.Position;
+
+                        edit.Insert(caretPosition, code);
+                    }
+
+                    edit.Apply();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+
+                MessageBox.Show("Failed to apply the code to the active document.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

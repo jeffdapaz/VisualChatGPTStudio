@@ -75,6 +75,7 @@
     <Content Include="lib\osx-arm64\libgit2-3f4182d.dylib">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Resource Include="Resources\submit.png" />
     <Resource Include="Resources\image.png" />
     <None Include="README-zh.md" />
     <None Include="README.md" />

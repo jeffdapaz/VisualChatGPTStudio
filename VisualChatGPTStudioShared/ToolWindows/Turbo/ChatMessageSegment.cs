@@ -38,6 +38,7 @@
         CheckIcon,
         SqlIcon,
         ImgIcon,
-        DiagramIcon
+        DiagramIcon,
+        SubmitIcon
     }
 }

@@ -186,65 +186,73 @@ namespace OpenAI_API.Chat
         /// </returns>
         private async Task<ChatMessage> GetResponseFromChatbotAsync()
         {
-            try
+            while (true)
             {
-                ChatRequest req = new ChatRequest(RequestParameters)
+                try
                 {
-                    Messages = Messages.ToList(),
-                    Tools = tools.Any() ? tools : null
-                };
-
-                ChatResult res = await endpoint.CreateChatCompletionAsync(req);
-
-                MostRecentApiResult = res;
-
-                if (res.Choices.Count > 0)
-                {
-                    ChatMessage newMsg = res.Choices[0].Message;
-
-                    if (string.IsNullOrWhiteSpace(newMsg?.Content?.ToString()) && (newMsg?.Functions == null || !newMsg.Functions.Any()))
+                    ChatRequest req = new ChatRequest(RequestParameters)
                     {
-                        if (res.Choices[0].FinishReason.Equals("length", StringComparison.InvariantCultureIgnoreCase))
+                        Messages = Messages?.ToList() ?? new List<ChatMessage>(),
+                        Tools = tools != null && tools.Any() ? tools : null
+                    };
+
+                    ChatResult res = await endpoint.CreateChatCompletionAsync(req).ConfigureAwait(false);
+
+                    MostRecentApiResult = res ?? throw new InvalidOperationException("The API returned a null result.");
+
+                    if (res.Choices == null || res.Choices.Count == 0 || res.Choices[0] == null)
+                    {
+                        throw new Exception("The response from the API did not contain any choices. This may be due to an error.");
+                    }
+
+                    ChatChoice choice = res.Choices[0];
+
+                    ChatMessage newMsg = choice.Message ?? throw new Exception("The response from the API did not contain a message. This may be due to an error.");
+
+                    string content = newMsg?.Content?.ToString();
+
+                    bool hasFunctions = newMsg.Functions != null && newMsg.Functions.Any();
+
+                    if (string.IsNullOrWhiteSpace(content) && !hasFunctions)
+                    {
+                        string finishReason = choice.FinishReason ?? string.Empty;
+
+                        if (string.Equals(finishReason, "length", StringComparison.InvariantCultureIgnoreCase))
                         {
+                            if (TruncateContextWhenExceeded())
+                            {
+                                continue;
+                            }
+
                             throw new ArgumentOutOfRangeException("The maximum response length was exceeded. You may want to increase the max_tokens parameter, or reduce the length of your prompt.");
                         }
-                        else
-                        {
-                            throw new Exception("The response from the API did not contain any message content. This may be due to an error.");
-                        }
+
+                        throw new Exception("The response from the API did not contain any message content. This may be due to an error.");
                     }
 
                     AppendMessage(newMsg);
 
                     return newMsg;
                 }
-                else
+                catch (HttpRequestException ex)
                 {
-                    throw new Exception("The response from the API did not contain any message content. This may be due to an error.");
-                }
-            }
-            catch (HttpRequestException ex)
-            {
-                if (TruncateContextWhenExceeded(ex))
-                {
-                    return await GetResponseFromChatbotAsync();
-                }
-                else
-                {
+                    if (TruncateContextWhenExceeded(ex))
+                    {
+                        continue;
+                    }
+
                     throw;
                 }
-            }
-            catch (OperationCanceledException) //try one more time if the request was canceled
-            {
-                if (retryAttempted)
+                catch (OperationCanceledException)
                 {
-                    throw new Exception("The request was canceled. This may be due to a timeout.");
-                }
-                else
-                {
+                    if (retryAttempted)
+                    {
+                        throw new Exception("The request was canceled. This may be due to a timeout.");
+                    }
+
                     retryAttempted = true;
 
-                    return await GetResponseFromChatbotAsync();
+                    continue;
                 }
             }
         }
@@ -370,17 +378,15 @@ namespace OpenAI_API.Chat
         #endregion
 
         /// <summary>
-        /// Truncates the context of the chat messages when the HttpRequestException contains the "context_length_exceeded" code.
+        /// Truncates the chat context by removing the oldest non-system message when needed.
+        /// It scans from the start and removes the first message whose role is not System, then returns true.
+        /// If no non-system message is found, it returns false.
         /// </summary>
-        /// <param name="ex">The HttpRequestException that was thrown.</param>
-        /// <returns>True if the context was truncated, false otherwise.</returns>
-        private bool TruncateContextWhenExceeded(HttpRequestException ex)
+        /// <returns>
+        /// True if a non-system message was removed; otherwise, false.
+        /// </returns>
+        private bool TruncateContextWhenExceeded()
         {
-            if (!ex.Data.Contains("code") || string.IsNullOrWhiteSpace(ex.Data["code"]?.ToString()) || !ex.Data["code"].Equals("context_length_exceeded"))
-            {
-                throw ex;
-            }
-
             for (int i = 0; i < Messages.Count; i++)
             {
                 if (Messages[i].Role != ChatMessageRole.System)
@@ -392,6 +398,21 @@ namespace OpenAI_API.Chat
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Truncates the context of the chat messages when the HttpRequestException contains the "context_length_exceeded" code.
+        /// </summary>
+        /// <param name="ex">The HttpRequestException that was thrown.</param>
+        /// <returns>True if the context was truncated, false otherwise.</returns>
+        private bool TruncateContextWhenExceeded(HttpRequestException ex)
+        {
+            if (!ex.Data.Contains("code") || string.IsNullOrWhiteSpace(ex.Data["code"]?.ToString()) || !ex.Data["code"].Equals("context_length_exceeded"))
+            {
+                throw ex;
+            }
+
+            return TruncateContextWhenExceeded();
         }
     }
 }

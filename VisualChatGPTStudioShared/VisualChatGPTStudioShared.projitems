@@ -12,9 +12,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Agents\ApiAgent\ApiAgent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Agents\ApiAgent\ApiItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Agents\ApiAgent\ApiTagItem.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Agents\CodeEditAgent\CodeEditAgent.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Agents\CodeEditAgent\CodeEditApplyResult.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Agents\CodeEditAgent\CodeEditFunctionPayload.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Agents\SqlServerAgent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AddComments.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AddSummary.cs" />

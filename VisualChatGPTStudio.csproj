@@ -168,7 +168,7 @@
       <Version>13.0.4</Version>
     </PackageReference>
     <PackageReference Include="sqlite-net-pcl">
-      <Version>1.8.116</Version>
+      <Version>1.9.172</Version>
     </PackageReference>
     <PackageReference Include="VsixLogger">
       <Version>1.1.45</Version>

@@ -948,7 +948,20 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
             else
             {
-                htmlContent = Markdown.ToHtml(content, markdownPipeline);
+                var thinkContent = Regex.Match(content, @"^<think>(?<content>.*)<\/think>(?<answer>.*)$", RegexOptions.Singleline);
+                if (!thinkContent.Success)
+                {
+                    htmlContent = Markdown.ToHtml(content, markdownPipeline);
+                }
+                else
+                {
+                    htmlContent = $"""
+                                   <div style='margin: 8px; font-size: 12px; opacity: 0.5;'>
+                                   {Markdown.ToHtml(thinkContent.Groups["content"].Value, markdownPipeline)}
+                                   </div>
+                                   {Markdown.ToHtml(thinkContent.Groups["answer"].Value, markdownPipeline)}
+                                  """;
+                }
             }
 
             if (htmlContent.EndsWith("<br />"))

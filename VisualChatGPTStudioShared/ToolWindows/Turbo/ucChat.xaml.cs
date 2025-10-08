@@ -955,10 +955,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 }
                 else
                 {
+                    var thinkBlock = $"<details><summary>Think</summary>{Markdown.ToHtml(thinkContent.Groups["content"].Value)}</details>";
                     htmlContent = $"""
-                                   <div style='margin: 8px; font-size: 12px; opacity: 0.5;'>
-                                   {Markdown.ToHtml(thinkContent.Groups["content"].Value, markdownPipeline)}
-                                   </div>
+                                   {thinkBlock}
                                    {Markdown.ToHtml(thinkContent.Groups["answer"].Value, markdownPipeline)}
                                   """;
                 }
@@ -1047,6 +1046,20 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                                 width: 15px;
                                 height: 15px;
                                 display: block;
+                            }}
+                            summary {{
+                                cursor: pointer;
+                                user-select: none;
+                                margin - left: 8px;
+                                color: gray;
+                            }}
+                            details {{
+                                padding: 0 8px 8px 8px;
+                                margin: 8px;
+                                overflow: hidden;
+                                transition: height .3s ease;
+                                font-size: 14px;
+                                color: gray;
                             }}
                         </style>
                         <script type='text/javascript'>

@@ -324,7 +324,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             {
                 tabChats.SelectedItem = chatItem.TabItem;
             }
-            else
+            else if (chatItem != null)
             {
                 OpenTab(chatItem);
             }

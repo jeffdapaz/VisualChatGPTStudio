@@ -451,11 +451,13 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 - Update Turbo Chat to support mermaid diagrams rendering. Necessary Visual Studio 2022 version 17.14.16 or higher.
 - Fixed the long words that break the layout in the Turbo Chat window.
 - Improved set scroll position when new messages are added in the Turbo Chat window.
+- Fixed crash on Turbo Chat when double click on empty space. Thanks to [@paymicro](https://github.com/paymicro).
+- Added reasoning block separation on Turbo Chat when the response contains `<think>` blocks. Thanks to [@paymicro](https://github.com/paymicro).
 - Improved feedback messages when API calls fail.
 
 ### 5.4.1
 
-- Added ApiVersion override for Open AI Compatible API. Thanks [IH8E](https://github.com/IH8E).
+- Added ApiVersion override for Open AI Compatible API. Thanks [@IH8E](https://github.com/IH8E).
 - Fixed the Turbo Chat window that was overlapping the native Visual Studio windows.
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

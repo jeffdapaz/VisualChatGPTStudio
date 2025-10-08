@@ -1009,14 +1009,29 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
             else
             {
-                htmlContent = Markdown.ToHtml(content, markdownPipeline);
+                Match thinkContent = Regex.Match(content, @"^<think>(?<content>.*)<\/think>(?<answer>.*)$", RegexOptions.Singleline);
 
+                if (!thinkContent.Success)
+                {
+                    htmlContent = Markdown.ToHtml(content, markdownPipeline);                    
+                }
+                else
+                {
+                    string thinkBlock = $"<details><summary>Think</summary>{Markdown.ToHtml(thinkContent.Groups["content"].Value)}</details>";
+
+                    htmlContent = $"""
+                                   {thinkBlock}
+                                   {Markdown.ToHtml(thinkContent.Groups["answer"].Value, markdownPipeline)}
+                                  """;
+                }
+
+                //Fix Mermaid code blocks
                 htmlContent = Regex.Replace(htmlContent, @"<div class=""lang-mermaid editor-colors"">(.*?)</div>", m =>
                 {
                     string inner = m.Groups[1].Value;
                     return $"<pre><code class=\"language-mermaid\">{System.Net.WebUtility.HtmlEncode(inner)}</code></pre>";
                 }, RegexOptions.Singleline);
-            }
+            }            
 
             if (htmlContent.EndsWith("<br />"))
             {
@@ -1101,6 +1116,20 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                                 width: 15px;
                                 height: 15px;
                                 display: block;
+                            }}
+                            summary {{
+                                cursor: pointer;
+                                user-select: none;
+                                margin - left: 8px;
+                                color: gray;
+                            }}
+                            details {{
+                                padding: 0 8px 8px 8px;
+                                margin: 8px;
+                                overflow: hidden;
+                                transition: height .3s ease;
+                                font-size: 14px;
+                                color: gray;
                             }}
                         </style>
                         <script type='text/javascript'>
@@ -1273,7 +1302,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             if (base64Images.TryGetValue(identifier, out string result))
             {
                 return result;
-            }            
+            }
 
             string imageSource = identifier switch
             {

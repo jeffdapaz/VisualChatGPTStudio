@@ -6,6 +6,8 @@
 - Update Turbo Chat to support mermaid diagrams rendering. Necessary Visual Studio 2022 version 17.14.16 or higher.
 - Fixed the long words that break the layout in the Turbo Chat window.
 - Improved set scroll position when new messages are added in the Turbo Chat window.
+- Fixed crash on Turbo Chat when double click on empty space. Thanks to [@paymicro](https://github.com/paymicro).
+- Added reasoning block separation on Turbo Chat when the response contains `<think>` blocks. Thanks to [@paymicro](https://github.com/paymicro).
 - Improved feedback messages when API calls fail.
 
 ### 5.4.1

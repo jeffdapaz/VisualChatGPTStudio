@@ -778,7 +778,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
             else
             {
-                lblProgressStatus.Text = "Waiting API Response.";
+                lblProgressStatus.Text = "Thinking...";
             }
 
             grdProgress.Visibility = enable ? Visibility.Collapsed : Visibility.Visible;

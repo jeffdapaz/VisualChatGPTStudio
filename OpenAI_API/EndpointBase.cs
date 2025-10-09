@@ -367,15 +367,11 @@ namespace OpenAI_API
 
             try
             {
-                organization = response.Headers.GetValues("Openai-Organization").FirstOrDefault();
                 requestId = response.Headers.GetValues("X-Request-ID").FirstOrDefault();
-                processingTime = TimeSpan.FromMilliseconds(int.Parse(response.Headers.GetValues("Openai-Processing-Ms").First()));
-                openaiVersion = response.Headers.GetValues("Openai-Version").FirstOrDefault();
-                modelFromHeaders = response.Headers.GetValues("Openai-Model").FirstOrDefault();
             }
             catch (Exception e)
             {
-                Debug.Print($"Issue parsing metadata of OpenAi Response.  Url: {url}, Error: {e.ToString()}.  This is probably ignorable.");
+                Debug.Print($"Issue parsing metadata of OpenAi Response. Url: {url}, Error: {e.ToString()}. This is probably ignorable.");
             }
 
             string resultAsString = "";

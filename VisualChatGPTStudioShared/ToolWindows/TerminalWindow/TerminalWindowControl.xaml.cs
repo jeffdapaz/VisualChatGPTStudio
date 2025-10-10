@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -52,7 +53,32 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
             txtRequest.TextArea.TextEntering += txtRequest_TextEntering;
             txtRequest.TextArea.TextEntered += txtRequest_TextEntered;
-            txtRequest.PreviewKeyDown += AttachImage.TextEditor_PreviewKeyDown;
+            txtRequest.PreviewKeyDown += (s, e) =>
+            {
+                if (options.UseEnter && e.Key == Key.Enter)
+                {
+                    if (Keyboard.Modifiers == ModifierKeys.None)
+                    {
+                        e.Handled = true;
+                        var __ = RequestAsync();
+                    }
+                    else if (Keyboard.Modifiers == ModifierKeys.Control)
+                    {
+                        var offset = txtRequest.CaretOffset;
+                        var newLine = Environment.NewLine;
+                        txtRequest.Document.Insert(offset, newLine);
+                        txtRequest.CaretOffset = offset + newLine.Length;
+                    }
+                    else
+                    {
+                        AttachImage.TextEditor_PreviewKeyDown(s, e);
+                    }
+                }
+                else
+                {
+                    AttachImage.TextEditor_PreviewKeyDown(s, e);
+                }
+            };
 
             AttachImage.OnImagePaste += AttachImage_OnImagePaste;
         }
@@ -60,19 +86,28 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         #endregion Constructors
 
         #region Event Handlers
+        protected override void OnPreviewKeyDown(KeyEventArgs e)
+        {
+            // Global send request by "Enter" or "Ctrl+Enter"
+            if (e.Key == Key.Enter &&
+                (options.UseEnter && Keyboard.Modifiers == ModifierKeys.None || !options.UseEnter && Keyboard.Modifiers == ModifierKeys.Control))
+            {
+                _ = RequestAsync();
+                e.Handled = true;
+            }
+            else
+            {
+                base.OnPreviewKeyDown(e);
+            }
+        }
 
         /// <summary>
         /// Handles the KeyDown event for the btnRequestSend control. 
         /// If the Enter key is pressed, it marks the event as handled and triggers the SendRequest method.
         /// </summary>
-        private void btnRequestSend_KeyDown(object sender, KeyEventArgs e)
+        public async void SendRequest(object sender, RoutedEventArgs e)
         {
-            if (e.Key == Key.Enter)
-            {
-                e.Handled = true;
-
-                SendRequest(sender, null);
-            }
+            await RequestAsync();
         }
 
         /// <summary>
@@ -131,7 +166,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         /// <summary>
         /// Handles the Click event of the btnRequestSend control.
         /// </summary>
-        public async void SendRequest(Object sender, ExecutedRoutedEventArgs e)
+        public async Task RequestAsync()
         {
             try
             {

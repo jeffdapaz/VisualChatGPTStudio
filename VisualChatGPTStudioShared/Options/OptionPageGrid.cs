@@ -1,4 +1,4 @@
-﻿using JeffPires.VisualChatGPTStudio.Utils;
+using JeffPires.VisualChatGPTStudio.Utils;
 using Microsoft.VisualStudio.Shell;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
@@ -78,6 +78,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Description("If true, all requests to completion-code will use alternative 'Completion' model and API. Configure 'Completion Parameters' section before. Not works for Azure API.")]
         [DefaultValue(false)]
         public bool UseCompletion { get; set; } = false;
+
+        [Category("Commands")]
+        [DisplayName("Use Enter to send message in chat.")]
+        [Description("If true, command uses Enter to send command instead Ctrl+Enter.")]
+        [DefaultValue(false)]
+        public bool UseEnter { get; set; } = false;
 
         #endregion General
 

@@ -1,18 +1,17 @@
-﻿using Community.VisualStudio.Toolkit;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
+using Community.VisualStudio.Toolkit;
 using ICSharpCode.AvalonEdit;
 using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils;
 using JeffPires.VisualChatGPTStudio.Utils.API;
 using JeffPires.VisualChatGPTStudio.Utils.CodeCompletion;
 using Microsoft.VisualStudio.Shell;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Media;
 using VisualChatGPTStudioShared.Utils;
 using Clipboard = System.Windows.Clipboard;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
@@ -57,8 +56,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             {
                 if (options.UseEnter && e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control)
                 {
-                    var offset = txtRequest.CaretOffset;
-                    var newLine = Environment.NewLine;
+                    int offset = txtRequest.CaretOffset;
+                    string newLine = Environment.NewLine;
                     txtRequest.Document.Insert(offset, newLine);
                     txtRequest.CaretOffset = offset + newLine.Length;
                 }
@@ -154,7 +153,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         /// <summary>
         /// Handles the Click event of the btnRequestSend control.
         /// </summary>
-        public async Task RequestAsync()
+        public async System.Threading.Tasks.Task RequestAsync()
         {
             try
             {

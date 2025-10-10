@@ -1,4 +1,17 @@
-﻿using Community.VisualStudio.Toolkit;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
+using Community.VisualStudio.Toolkit;
 using JeffPires.VisualChatGPTStudio.Agents;
 using JeffPires.VisualChatGPTStudio.Commands;
 using JeffPires.VisualChatGPTStudio.Options;
@@ -17,19 +30,6 @@ using OpenAI_API.Chat;
 using OpenAI_API.Functions;
 using OpenAI_API.ResponsesAPI.Models.Request;
 using OpenAI_API.ResponsesAPI.Models.Response;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Media;
 using VisualChatGPTStudioShared.Agents.ApiAgent;
 using VisualChatGPTStudioShared.ToolWindows.Turbo;
 using Color = System.Windows.Media.Color;
@@ -134,8 +134,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             {
                 if (options.UseEnter && e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control)
                 {
-                    var offset = txtRequest.CaretOffset;
-                    var newLine = Environment.NewLine;
+                    int offset = txtRequest.CaretOffset;
+                    string newLine = Environment.NewLine;
                     txtRequest.Document.Insert(offset, newLine);
                     txtRequest.CaretOffset = offset + newLine.Length;
                 }
@@ -639,7 +639,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// <summary>
         /// Asynchronously sends a user request to the chat API, including any selected context files and attached images if present.
         /// </summary>
-        private async Task RequestAsync(RequestType commandType)
+        private async System.Threading.Tasks.Task RequestAsync(RequestType commandType)
         {
             shiftKeyPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
 
@@ -730,7 +730,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// Sends an asynchronous request based on the provided command type, processes the response, 
         /// and updates the UI elements accordingly. Handles exceptions and manages UI state during the operation.
         /// </summary>
-        private async Task RequestAsync(RequestType commandType, string request, string requestToShowOnList, bool shiftKeyPressed)
+        private async System.Threading.Tasks.Task RequestAsync(RequestType commandType, string request, string requestToShowOnList, bool shiftKeyPressed)
         {
             await ExecuteRequestWithCommonHandlingAsync(async () =>
             {
@@ -1044,7 +1044,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 if (!thinkContent.Success)
                 {
-                    htmlContent = Markdown.ToHtml(content, markdownPipeline);                    
+                    htmlContent = Markdown.ToHtml(content, markdownPipeline);
                 }
                 else
                 {
@@ -1062,7 +1062,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     string inner = m.Groups[1].Value;
                     return $"<pre><code class=\"language-mermaid\">{System.Net.WebUtility.HtmlEncode(inner)}</code></pre>";
                 }, RegexOptions.Singleline);
-            }            
+            }
 
             if (htmlContent.EndsWith("<br />"))
             {

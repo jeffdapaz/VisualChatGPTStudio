@@ -75,9 +75,10 @@ namespace JeffPires.VisualChatGPTStudio.Options
 
         [Category("General")]
         [DisplayName("Use Enter to send request in chat")]
-        [Description("If true, command uses Enter to send command instead Ctrl+Enter.")]
+        [Description("If true, pressing Enter will send the request in chat instead of using Ctrl+Enter.")]
         [DefaultValue(false)]
         public bool UseEnter { get; set; } = false;
+
         #endregion General
 
         #region Model Parameters        

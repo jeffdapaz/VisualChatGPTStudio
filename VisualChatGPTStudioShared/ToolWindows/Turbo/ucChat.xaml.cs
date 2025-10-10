@@ -60,6 +60,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private readonly Package package;
         private readonly List<MessageEntity> messagesForDatabase;
         private readonly Conversation apiChat;
+        private readonly UIElement webBrowser;
         private CancellationTokenSource cancellationTokenSource;
         private readonly string chatId;
         private DocumentView docView;
@@ -114,6 +115,14 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             this.ChatHeader = ucChatHeader;
             this.messagesForDatabase = messages;
             this.chatId = chatId;
+
+#if COPILOT_ENABLED //VS2022
+            webBrowser = new Microsoft.Web.WebView2.Wpf.WebView2CompositionControl() { Name = "webBrowserChat" };
+#else //VS2019
+            webBrowser = new Microsoft.Web.WebView2.Wpf.WebView2() { Name = "webBrowserChat" };    
+#endif
+
+            webHost.Children.Add(webBrowser);
 
             meIcon = GetImageBase64(IdentifierEnum.Me);
             chatGptIcon = GetImageBase64(IdentifierEnum.ChatGPT);
@@ -1308,15 +1317,28 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     </body>
                     </html>";
 
-            if (webBrowserChat.CoreWebView2 == null)
+            if (webBrowser is Microsoft.Web.WebView2.Wpf.WebView2 web)
             {
-                CoreWebView2Environment env = await CoreWebView2Environment.CreateAsync(null, Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
-                await webBrowserChat.EnsureCoreWebView2Async(env);
+                if (web.CoreWebView2 == null)
+                {
+                    CoreWebView2Environment env = await CoreWebView2Environment.CreateAsync(null, Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+                    await web.EnsureCoreWebView2Async(env);
+                    web.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
+                }
 
-                webBrowserChat.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
+                web.CoreWebView2.NavigateToString(html);
             }
+            else if (webBrowser is Microsoft.Web.WebView2.Wpf.WebView2CompositionControl comp)
+            {
+                if (comp.CoreWebView2 == null)
+                {
+                    CoreWebView2Environment env = await CoreWebView2Environment.CreateAsync(null, Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+                    await comp.EnsureCoreWebView2Async(env);
+                    comp.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
+                }
 
-            webBrowserChat.CoreWebView2.NavigateToString(html);
+                comp.CoreWebView2.NavigateToString(html);
+            }
         }
 
         /// <summary>

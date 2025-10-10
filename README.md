@@ -452,6 +452,7 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 - Fixed the long words that break the layout in the Turbo Chat window.
 - Improved set scroll position when new messages are added in the Turbo Chat window.
 - Improved feedback messages when API calls fail.
+- Fixed Turbo Chat invisible on Visual Studio 2019.
 - Fixed crash on Turbo Chat when double click on empty space. Thanks to [@paymicro](https://github.com/paymicro).
 - Added reasoning block separation on Turbo Chat when the response contains `<think>` blocks. Thanks to [@paymicro](https://github.com/paymicro).
 - Added the new extension option 'Use Enter to send request in chat', where if true, pressing Enter will send the request in chat instead of using Ctrl+Enter. Thanks to [@paymicro](https://github.com/paymicro).

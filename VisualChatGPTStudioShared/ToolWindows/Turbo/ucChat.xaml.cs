@@ -126,24 +126,12 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             txtRequest.TextArea.TextEntered += txtRequest_TextEntered;
             txtRequest.PreviewKeyDown += (s, e) =>
             {
-                if (options.UseEnter && e.Key == Key.Enter)
+                if (options.UseEnter && e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control)
                 {
-                    if (Keyboard.Modifiers == ModifierKeys.None)
-                    {
-                        e.Handled = true;
-                        _ = RequestAsync(RequestType.Request);
-                    }
-                    else if (Keyboard.Modifiers == ModifierKeys.Control)
-                    {
-                        var offset = txtRequest.CaretOffset;
-                        var newLine = Environment.NewLine;
-                        txtRequest.Document.Insert(offset, newLine);
-                        txtRequest.CaretOffset = offset + newLine.Length;
-                    }
-                    else
-                    {
-                        AttachImage.TextEditor_PreviewKeyDown(s, e);
-                    }
+                    var offset = txtRequest.CaretOffset;
+                    var newLine = Environment.NewLine;
+                    txtRequest.Document.Insert(offset, newLine);
+                    txtRequest.CaretOffset = offset + newLine.Length;
                 }
                 else
                 {

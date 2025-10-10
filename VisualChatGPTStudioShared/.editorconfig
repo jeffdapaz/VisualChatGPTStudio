@@ -1,0 +1,58 @@
+﻿# To learn more about .editorconfig see https://aka.ms/editorconfigdocs
+# Examples: https://github.com/dotnet/runtime/blob/master/.editorconfig
+# Suppress: EC112
+
+###################################################################################################
+# Common Settings                                                                                 #
+###################################################################################################
+
+# top-most EditorConfig file
+root = true
+
+# Default settings (all files):
+# Use 4 spaces as indentation
+# A newline ending every file
+[*]
+end_of_line = crlf
+charset = utf-8
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+max_line_length = 180
+
+###################################################################################################
+# File Extension Settings                                                                         #
+###################################################################################################
+
+# Code files
+[*.{cs}]
+indent_size = 4
+dotnet_sort_system_directives_first = true
+spelling_languages = en-us
+
+# Xml project files
+[*.{csproj,vcxproj,vcxproj.filters,proj,nativeproj,locproj}]
+indent_size = 2
+
+# Xml files, Xml build files, Xml config files
+[*.{xml,builds,props,targets,ruleset,stylecop,config,nuspec,resx,vsixmanifest,vsct}]
+indent_size = 2
+
+# Json files
+[*.json]
+indent_size = 4
+insert_final_newline = false
+
+## Yaml files
+#[*.{yml,yaml}]
+#indent_size = 2
+
+[*.dotsettings]
+indent_style = tab
+
+[*.md]
+charset = utf-8
+
+[env]
+insert_final_newline = false

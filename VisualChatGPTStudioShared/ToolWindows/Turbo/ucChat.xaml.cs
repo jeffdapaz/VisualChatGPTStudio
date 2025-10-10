@@ -90,7 +90,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         #endregion Properties
 
         #region Constructors
-
         /// <summary>
         /// Initializes a new instance of the ucChat class.
         /// </summary>
@@ -131,7 +130,20 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             txtRequest.TextArea.TextEntering += txtRequest_TextEntering;
             txtRequest.TextArea.TextEntered += txtRequest_TextEntered;
-            txtRequest.PreviewKeyDown += AttachImage.TextEditor_PreviewKeyDown;
+            txtRequest.PreviewKeyDown += (s, e) =>
+            {
+                if (options.UseEnter && e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    var offset = txtRequest.CaretOffset;
+                    var newLine = Environment.NewLine;
+                    txtRequest.Document.Insert(offset, newLine);
+                    txtRequest.CaretOffset = offset + newLine.Length;
+                }
+                else
+                {
+                    AttachImage.TextEditor_PreviewKeyDown(s, e);
+                }
+            };
 
             AttachImage.OnImagePaste += AttachImage_OnImagePaste;
 
@@ -184,6 +196,20 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         #endregion Constructors
 
         #region Event Handlers
+        protected override void OnPreviewKeyDown(KeyEventArgs e)
+        {
+            // Global send request by "Enter" or "Ctrl+Enter"
+            if (e.Key == Key.Enter &&
+                (options.UseEnter && Keyboard.Modifiers == ModifierKeys.None || !options.UseEnter && Keyboard.Modifiers == ModifierKeys.Control))
+            {
+                _ = RequestAsync(RequestType.Request);
+                e.Handled = true;
+            }
+            else
+            {
+                base.OnPreviewKeyDown(e);
+            }
+        }
 
         /// <summary>
         /// Handles the text entered event for the request text box, 
@@ -606,14 +632,14 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             grdCommands.Visibility = Visibility.Visible;
         }
 
-        #endregion API Event Handlers        
+        #endregion API Event Handlers
 
         #region Methods  
 
         /// <summary>
         /// Asynchronously sends a user request to the chat API, including any selected context files and attached images if present.
         /// </summary>
-        private async System.Threading.Tasks.Task RequestAsync(RequestType commandType)
+        private async Task RequestAsync(RequestType commandType)
         {
             shiftKeyPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
 
@@ -637,7 +663,12 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             {
                 docView = await VS.Documents.GetActiveDocumentViewAsync();
 
-                string originalCode = docView.TextView.TextBuffer.CurrentSnapshot.GetText();
+                string originalCode = docView?.TextView?.TextBuffer?.CurrentSnapshot.GetText();
+
+                if (originalCode == null)
+                {
+                    return;
+                }
 
                 if (options.MinifyRequests)
                 {
@@ -699,7 +730,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// Sends an asynchronous request based on the provided command type, processes the response, 
         /// and updates the UI elements accordingly. Handles exceptions and manages UI state during the operation.
         /// </summary>
-        private async System.Threading.Tasks.Task RequestAsync(RequestType commandType, string request, string requestToShowOnList, bool shiftKeyPressed)
+        private async Task RequestAsync(RequestType commandType, string request, string requestToShowOnList, bool shiftKeyPressed)
         {
             await ExecuteRequestWithCommonHandlingAsync(async () =>
             {

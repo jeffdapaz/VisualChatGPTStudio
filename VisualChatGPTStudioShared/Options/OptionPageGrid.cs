@@ -1,4 +1,4 @@
-﻿using JeffPires.VisualChatGPTStudio.Utils;
+using JeffPires.VisualChatGPTStudio.Utils;
 using Microsoft.VisualStudio.Shell;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
@@ -73,12 +73,11 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DefaultValue(false)]
         public bool LogAPIAgentRequestAndResponses { get; set; } = false;
 
-        [Category("Commands")]
-        [DisplayName("Use Completion API for Commands")]
-        [Description("If true, all requests to completion-code will use alternative 'Completion' model and API. Configure 'Completion Parameters' section before. Not works for Azure API.")]
+        [Category("General")]
+        [DisplayName("Use Enter to send request in chat")]
+        [Description("If true, command uses Enter to send command instead Ctrl+Enter.")]
         [DefaultValue(false)]
-        public bool UseCompletion { get; set; } = false;
-
+        public bool UseEnter { get; set; } = false;
         #endregion General
 
         #region Model Parameters        
@@ -259,7 +258,6 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Description("Define the instruction that will send to the assistant when requesting code assistance.")]
         [DefaultValue("Apply the change requested by the user to the code, but rewrite the original code that was not changed")]
         public string TurboChatCodeCommand { get; set; } = "Apply the change requested by the user to the code, but rewrite the original code that was not changed";
-
         #endregion Turbo Chat
 
         #region Copilot
@@ -314,6 +312,11 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DefaultValue("Based on the API's definition provided following, make API calls according to the instructions when requested. Do not include the base URL in the endpoints.")]
         public string APIAgentCommand { get; set; } = "Based on the API's definition provided following, make API calls according to the instructions when requested. Do not include the base URL in the endpoints.";
 
+        [Category("Commands")]
+        [DisplayName("Use Completion API for Commands")]
+        [Description("If true, all requests to completion-code will use alternative 'Completion' model and API. Configure 'Completion Parameters' section before. Not works for Azure API.")]
+        [DefaultValue(false)]
+        public bool UseCompletion { get; set; } = false;
         #endregion Commands
     }
 }

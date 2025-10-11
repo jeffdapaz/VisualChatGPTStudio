@@ -1,4 +1,4 @@
-﻿using System.Windows.Controls;using VisualChatGPTStudioShared.ToolWindows.Turbo;
+using System.Windows.Controls;using VisualChatGPTStudioShared.ToolWindows.Turbo;
 
 namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo{
     /// <summary>
@@ -11,18 +11,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo{
         public ChatEntity Chat { get; set; }
 
         /// <summary>
-        /// Gets or sets the chat header user control.
-        /// </summary>
-        public ucChatHeader Header { get; set; }
-
-        /// <summary>
         /// Gets or sets the TabItem associated with this chat.
         /// </summary>
         public TabItem TabItem { get; set; }
-
-        /// <summary>
-        /// Gets or sets the ucChatItem object representing a chat item in the chat list.
-        /// </summary>
-        public ucChatItem ListItem { get; set; }        /// <summary>
+        /// <summary>
         /// Indicates if this chat item was opened before
         /// </summary>        public bool OpenedBefore { get; set; }    }}

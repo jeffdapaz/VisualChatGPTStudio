@@ -1,4 +1,4 @@
-﻿using JeffPires.VisualChatGPTStudio.Options;
+using JeffPires.VisualChatGPTStudio.Options;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Client.Extensions.Msal;
 using System;
@@ -34,8 +34,6 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Http
             request.Headers.Remove("User-Agent");
 
             request.Headers.Add("User-Agent", Constants.EXTENSION_NAME_UNDERLINED);
-
-            string content;
 
             if (options.LogRequests)
             {

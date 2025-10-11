@@ -112,8 +112,8 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
             // Let the editor process the Tab key first.
             int result = _nextCommandTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
 
-            // After the editor processes the Tab key, format the code.
-            Task.Run(async () => { _predictionManager.OnTabPressedAsync(); });
+			// After the editor processes the Tab key, format the code.
+			_ = Task.Run(_predictionManager.OnTabPressedAsync);
 
             return result;
         }

@@ -59,9 +59,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ChatEntity.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ChatUserControlsItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ChatMessageSegment.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\InverseBooleanConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\TerminalWindowTurbo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ucChatItem.xaml.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ucChatHeader.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ucChat.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\TerminalWindowTurboControl.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ApiHandler.cs" />
@@ -106,14 +105,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindow\TerminalWindowControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ucChatItem.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ucChatHeader.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

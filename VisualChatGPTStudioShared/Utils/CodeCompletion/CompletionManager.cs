@@ -1,4 +1,4 @@
-﻿using Community.VisualStudio.Toolkit;
+using Community.VisualStudio.Toolkit;
 using EnvDTE;
 using ICSharpCode.AvalonEdit.CodeCompletion;
 using ICSharpCode.AvalonEdit.Highlighting;
@@ -116,7 +116,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
         /// If the input is a "@", it calls the ShowFiles method.
         /// </summary>
         /// <param name="e">The event arguments containing the text input.</param>
-        public async System.Threading.Tasks.Task HandleTextEnteredAsync(TextCompositionEventArgs e)
+        public async Task HandleTextEnteredAsync(TextCompositionEventArgs e)
         {
             if (e.Text == SHOW_COMMAND_SHORTCUT)
             {
@@ -193,7 +193,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
         private void RegisterDataFilesAndMethodsUpdateEvents()
         {
             completionDataFilesAndMethodsUpdateTimer = new Timer(10000);
-            completionDataFilesAndMethodsUpdateTimer.Elapsed += async (sender, e) => System.Threading.Tasks.Task.Run(async () => await FillDataFilesAndMethodsAsync());
+            completionDataFilesAndMethodsUpdateTimer.Elapsed += (sender, e) => _ = Task.Run(FillDataFilesAndMethodsAsync);
             completionDataFilesAndMethodsUpdateTimer.AutoReset = true;
             completionDataFilesAndMethodsUpdateTimer.Enabled = true;
 
@@ -213,7 +213,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
         /// <summary>
         /// Asynchronously fills the data files and methods.
         /// </summary>
-        private async System.Threading.Tasks.Task FillDataFilesAndMethodsAsync()
+        private async Task FillDataFilesAndMethodsAsync()
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -265,7 +265,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
         /// <param name="request">The input string containing placeholders to be replaced.</param>
         /// <returns>A task that represents the asynchronous operation, containing the modified request string 
         /// with placeholders replaced by their corresponding content.</returns>
-        private async System.Threading.Tasks.Task<string> ReplaceFilesAndMethodsAsync(string request)
+        private async Task<string> ReplaceFilesAndMethodsAsync(string request)
         {
             if (completionDataFilesAndMethods == null)
             {
@@ -331,7 +331,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
         /// <summary>
         /// Asynchronously displays a completion window for files in the current solution.
         /// </summary>
-        private async System.Threading.Tasks.Task ShowFilesAsync()
+        private async Task ShowFilesAsync()
         {
             if (completionDataFilesAndMethods == null || completionDataFilesAndMethods.Count == 0)
             {
@@ -364,7 +364,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
         /// <param name="items">The project items to populate from.</param>
         /// <param name="solutionName">The name of the solution containing the project.</param>
         /// <param name="projectName">The name of the project being processed.</param>
-        private async System.Threading.Tasks.Task PopulateProjectItemsForCompletionAsync(ProjectItems items, string solutionName, string projectName)
+        private async Task PopulateProjectItemsForCompletionAsync(ProjectItems items, string solutionName, string projectName)
         {
             if (items == null)
             {
@@ -413,7 +413,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
         /// <param name="item">The project item containing the file to be parsed.</param>
         /// <param name="solutionName">The name of the solution containing the project.</param>
         /// <param name="projectName">The name of the project from which the item originates.</param>
-        private async System.Threading.Tasks.Task PopulateMethodsForCompletionAsync(ProjectItem item, string solutionName, string projectName)
+        private async Task PopulateMethodsForCompletionAsync(ProjectItem item, string solutionName, string projectName)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 

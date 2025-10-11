@@ -153,6 +153,9 @@
     <PackageReference Include="Microsoft.Identity.Client.Extensions.Msal">
       <Version>4.71.1</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Imaging">
+      <Version>17.14.40264</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Language">
       <Version>17.14.249</Version>
     </PackageReference>

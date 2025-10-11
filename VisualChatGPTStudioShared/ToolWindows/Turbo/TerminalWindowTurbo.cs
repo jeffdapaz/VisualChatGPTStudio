@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell;
 using System.Runtime.InteropServices;
 
 namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo

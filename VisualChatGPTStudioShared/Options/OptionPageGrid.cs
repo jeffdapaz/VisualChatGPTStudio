@@ -1,7 +1,7 @@
-using JeffPires.VisualChatGPTStudio.Utils;
-using Microsoft.VisualStudio.Shell;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using JeffPires.VisualChatGPTStudio.Utils;
+using Microsoft.VisualStudio.Shell;
 
 namespace JeffPires.VisualChatGPTStudio.Options
 {
@@ -283,6 +283,19 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DefaultValue(700)]
         public int CopilotSuggestionInterval { get; set; } = 700;
 
+        [Category("Copilot")]
+        [DisplayName("Copilot Model Option")]
+        [Description("Select which model to use for inline suggestions: default chat model, completion model, or a specific chat model.")]
+        [DefaultValue(CopilotModelOption.Default)]
+        [TypeConverter(typeof(EnumConverter))]
+        public CopilotModelOption CopilotModelOption { get; set; } = CopilotModelOption.Default;
+
+        [Category("Copilot")]
+        [DisplayName("Copilot Specific Model")]
+        [Description("Specify the model name or Azure deployment name to use for inline suggestions when 'Specific Chat Model' is selected.")]
+        [DefaultValue("")]
+        public string CopilotSpecificModel { get; set; } = string.Empty;
+
 #endif
 
         #endregion Copilot
@@ -324,6 +337,7 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Description("If true, all requests to completion-code will use alternative 'Completion' model and API. Configure 'Completion Parameters' section before. Not works for Azure API.")]
         [DefaultValue(false)]
         public bool UseCompletion { get; set; } = false;
+
         #endregion Commands
     }
 }

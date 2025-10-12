@@ -87,9 +87,18 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
                     return;
                 }
 
-                string prediction = options.UseCompletion && options.Service == OpenAIService.OpenAI
-                    ? await ApiHandler.GetCompletionResponseAsync(options, systemMessage, code, null, cancellationTokenSource.Token)
-                    : await ApiHandler.GetResponseAsync(options, systemMessage, code, null, cancellationTokenSource.Token);
+                string prediction;
+
+                if (options.CopilotModelOption == CopilotModelOption.Completion && options.Service == OpenAIService.OpenAI)
+                {
+                    prediction = await ApiHandler.GetCompletionResponseAsync(options, systemMessage, code, null, cancellationTokenSource.Token);
+                }
+                else
+                {
+                    string modelOverride = options.CopilotModelOption == CopilotModelOption.Specific ? options.CopilotSpecificModel : null;
+
+                    prediction = await ApiHandler.GetResponseAsync(options, systemMessage, code, null, cancellationTokenSource.Token, null, modelOverride);
+                }
 
                 if (cancellationTokenSource.Token.IsCancellationRequested || string.IsNullOrWhiteSpace(prediction))
                 {

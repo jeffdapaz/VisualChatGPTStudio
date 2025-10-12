@@ -277,6 +277,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DefaultValue("Please complete.")]
         public string CopilotCommand { get; set; } = "Please complete.";
 
+        [Category("Copilot")]
+        [DisplayName("Copilot Suggestion Interval (ms)")]
+        [Description("Time between suggestions in milliseconds (interval control between suggestions).")]
+        [DefaultValue(700)]
+        public int CopilotSuggestionInterval { get; set; } = 700;
+
 #endif
 
         #endregion Copilot

@@ -1255,7 +1255,17 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                                     applyBtn.appendChild(imgApply);
 
                                     applyBtn.onclick = function() {{
-                                        var codeText = this.parentNode.getElementsByTagName('pre')[0].innerText;
+                                        var pre = this.parentNode.getElementsByTagName('pre')[0];
+                                        var selectedText = '';
+                                        var selection = window.getSelection();
+                                        if (selection.rangeCount > 0) {{
+                                            var range = selection.getRangeAt(0);
+                                            
+                                            if (pre.contains(range.commonAncestorContainer)) {{
+                                                selectedText = selection.toString();
+                                            }}
+                                        }}
+                                        var codeText = selectedText.length > 0 ? selectedText : pre.innerText;
                                         try {{
                                             if (window.chrome && window.chrome.webview && window.chrome.webview.postMessage) {{
                                                 window.chrome.webview.postMessage(JSON.stringify({{ type: 'applyCode', code: codeText }}));

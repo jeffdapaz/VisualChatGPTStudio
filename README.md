@@ -445,6 +445,11 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 <a id="18"></a>
 ## Release Notes 📜
 
+### 5.6.0
+
+- Improvements on copilot feature to suggests completions more often.
+- The "Apply" button in Turbo Chat now can applies only the selected code block when a selection is present; otherwise, it applies the entire code.
+
 ### 5.5.0
 
 - Added the "Apply" button in the Turbo Chat window. This button allows you to apply the changes suggested by the AI directly to the code editor, without needing to copy and paste the response manually.
@@ -456,10 +461,5 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 - Fixed crash on Turbo Chat when double click on empty space. Thanks to [@paymicro](https://github.com/paymicro).
 - Added reasoning block separation on Turbo Chat when the response contains `<think>` blocks. Thanks to [@paymicro](https://github.com/paymicro).
 - Added the new extension option 'Use Enter to send request in chat', where if true, pressing Enter will send the request in chat instead of using Ctrl+Enter. Thanks to [@paymicro](https://github.com/paymicro).
-
-### 5.4.1
-
-- Added ApiVersion override for Open AI Compatible API. Thanks [@IH8E](https://github.com/IH8E).
-- Fixed the Turbo Chat window that was overlapping the native Visual Studio windows.
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

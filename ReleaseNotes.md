@@ -4,6 +4,7 @@
 
 - Improvements on copilot feature to suggests completions more often.
 - The "Apply" button in Turbo Chat now can applies only the selected code block when a selection is present; otherwise, it applies the entire code.
+- Added the "Apply" button in the "Visual chatGPT Studio" window.
 
 ### 5.5.0
 

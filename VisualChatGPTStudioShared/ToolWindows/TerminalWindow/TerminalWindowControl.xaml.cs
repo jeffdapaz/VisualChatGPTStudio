@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using Community.VisualStudio.Toolkit;
@@ -416,6 +417,51 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
                 e.Handled = true;
 
                 btnResponseCopy_Click(sender, null);
+            }
+        }
+
+        /// <summary> 
+        /// Applies the content of the Response to the current editor. 
+        /// </summary>
+        private void btnResponseApply_Click(object sender, RoutedEventArgs e)
+        {
+            string code = txtResponse.Selection?.Text;
+
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                List<TextEditor> textEditors = FindMarkDownCodeTextEditors(txtResponse);
+
+                if (textEditors != null)
+                {
+                    foreach (TextEditor textEditor in textEditors)
+                    {
+                        code = textEditor.SelectedText;
+
+                        if (!string.IsNullOrWhiteSpace(code))
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                code = txtResponse.Markdown;
+            }
+
+            TerminalWindowHelper.ApplyCodeToActiveDocumentAsync(code);
+        }
+
+        /// <summary>
+        /// Handles the <see cref="KeyDown"/> event for the "Response Apply" button.
+        /// </summary>
+        private void btnResponseApply_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                e.Handled = true;
+                btnResponseApply_Click(sender, null);
             }
         }
 

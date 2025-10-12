@@ -22,7 +22,6 @@ using JeffPires.VisualChatGPTStudio.Utils.Repositories;
 using Markdig;
 using Markdig.SyntaxHighlighting;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.Web.WebView2.Core;
 using Newtonsoft.Json;
@@ -415,17 +414,14 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                             System.IO.File.WriteAllText(tempPath, $"```mermaid\n{code}\n```", Encoding.UTF8);
 
-                            await VS.Documents.OpenAsync(tempPath);
+                            VS.Documents.OpenAsync(tempPath);
                         }
                     }
                     else if (type == "applyCode")
                     {
                         string code = obj.code != null ? obj.code.ToString() : string.Empty;
 
-                        if (!string.IsNullOrWhiteSpace(code))
-                        {
-                            await ApplyCodeToActiveDocumentAsync(code);
-                        }
+                        TerminalWindowHelper.ApplyCodeToActiveDocumentAsync(code);
                     }
                 }
             }
@@ -436,7 +432,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 MessageBox.Show("Was not possible to execute the action.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);
             }
         }
-
 
         #endregion Event Handlers
 
@@ -1539,54 +1534,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     computerCall.PendingSafetyChecks,
                     cancellationTokenSource.Token
                 );
-            }
-        }
-
-        /// <summary>
-        /// Applies the specified code to the currently active document in Visual Studio.
-        /// </summary>
-        /// <param name="code">The code to insert or replace in the active document.</param>
-        private async System.Threading.Tasks.Task ApplyCodeToActiveDocumentAsync(string code)
-        {
-            try
-            {
-                docView = await VS.Documents.GetActiveDocumentViewAsync();
-
-                if (docView == null)
-                {
-                    MessageBox.Show("No active document is open to apply the code.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
-
-                    return;
-                }
-
-                await docView.TextBuffer.Properties.GetOrCreateSingletonProperty<TaskScheduler>(() => TaskScheduler.FromCurrentSynchronizationContext());
-
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-                ITextBuffer textBuffer = docView.TextView.TextBuffer;
-                NormalizedSnapshotSpanCollection selection = docView.TextView.Selection.SelectedSpans;
-
-                using (ITextEdit edit = textBuffer.CreateEdit())
-                {
-                    if (selection.Count > 0 && !selection[0].IsEmpty)
-                    {
-                        edit.Replace(selection[0], code);
-                    }
-                    else
-                    {
-                        int caretPosition = docView.TextView.Caret.Position.BufferPosition.Position;
-
-                        edit.Insert(caretPosition, code);
-                    }
-
-                    edit.Apply();
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-
-                MessageBox.Show("Failed to apply the code to the active document.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="JeffPires.VisualChatGPTStudio.ToolWindows.TerminalWindowControl"
+<UserControl x:Class="JeffPires.VisualChatGPTStudio.ToolWindows.TerminalWindowControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -275,18 +275,33 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" HorizontalAlignment="Left" FontWeight="Bold" FontSize="14">Response</TextBlock>
-                <Image 
-                    Grid.Column="2" 
-                    Height="20" 
-                    Width="20" 
-                    HorizontalAlignment="Left" 
-                    Name="btnResponseCopy" 
-                    MouseDown="btnResponseCopy_Click" 
-                    KeyDown="btnResponseCopy_KeyDown"
-                    ToolTip="Copy" 
-                    AutomationProperties.HelpText="Copy"
+                <Image
+                    Grid.Column="2"
+                    Height="20"
+                    Width="20"
+                    HorizontalAlignment="Left"
+                    Name="btnResponseApply"
+                    MouseDown="btnResponseApply_Click"
+                    KeyDown="btnResponseApply_KeyDown"
+                    ToolTip="Apply"
+                    AutomationProperties.HelpText="Apply"
                     Style="{StaticResource ImageHandCursorStyle}"
                     KeyboardNavigation.TabIndex="7"
+                    KeyboardNavigation.IsTabStop="True"
+                    Focusable="True"
+                    Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/submit.png"/>
+                <Image
+                    Grid.Column="4"
+                    Height="20"
+                    Width="20"
+                    HorizontalAlignment="Left"
+                    Name="btnResponseCopy"
+                    MouseDown="btnResponseCopy_Click"
+                    KeyDown="btnResponseCopy_KeyDown"
+                    ToolTip="Copy"
+                    AutomationProperties.HelpText="Copy"
+                    Style="{StaticResource ImageHandCursorStyle}"
+                    KeyboardNavigation.TabIndex="8"
                     KeyboardNavigation.IsTabStop="True"
                     Focusable="True"
                     Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/copy.png"/>

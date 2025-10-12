@@ -298,14 +298,6 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
         {
             typingTimer.Stop();
 
-            await TriggerSuggestionAsync();
-        }
-
-        /// <summary>
-        /// Triggers the suggestion mechanism asynchronously if it is not already active.
-        /// </summary>
-        private async Task TriggerSuggestionAsync()
-        {
             if (!showingAutoComplete)
             {
                 await ShowAutocompleteAsync();

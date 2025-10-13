@@ -41,10 +41,13 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
             this.options = options;
             this.view = view;
 
-            typingTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(options.CopilotSuggestionInterval) };
-            typingTimer.Tick += TypingTimer_Tick;
+            if (options.CopilotEnabled)
+            {
+                typingTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(options.CopilotSuggestionInterval) };
+                typingTimer.Tick += TypingTimer_Tick;
 
-            this.view.TextBuffer.Changed += TextBuffer_Changed;
+                this.view.TextBuffer.Changed += TextBuffer_Changed;
+            }            
         }
 
         /// <summary>

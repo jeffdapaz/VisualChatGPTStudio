@@ -144,6 +144,7 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
             ReloadChats();
             ApplyFilter();
             SelectedChat = AllChats.LastOrDefault();
+            SelectedChat!.Messages = [];
         }
 
         public void LoadChat(string id = "")

@@ -37,7 +37,7 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
         /// <summary>
         /// Chat Messages
         /// </summary>
-        public List<MessageEntity> Messages { get; set; }
+        public List<MessageEntity> Messages { get; set; } = [];
     }
 
     /// <summary>

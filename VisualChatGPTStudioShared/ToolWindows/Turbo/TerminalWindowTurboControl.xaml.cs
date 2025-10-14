@@ -138,15 +138,16 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             AttachImage.OnImagePaste += AttachImage_OnImagePaste;
 
             completionManager = new CompletionManager(package, txtRequest);
-
-            markdownPipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().DisableHtml().UseSyntaxHighlighting().Build();
-
-            apiChat = ApiHandler.CreateConversation(options, options.TurboChatBehavior);
-
-            AddMessagesFromModel();
+            markdownPipeline = new MarkdownPipelineBuilder()
+                .UseAdvancedExtensions()
+                .DisableHtml()
+                .UseSyntaxHighlighting()
+                .Build();
 
             sqlServerConnectionsAlreadyAdded = ChatRepository.GetSqlServerConnections(chatId);
             apiDefinitionsAlreadyAdded = ChatRepository.GetApiDefinitions(chatId);
+
+            UpdateBrowser();
         }
 
         private void AddMessagesFromModel()
@@ -240,6 +241,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             var env = await CoreWebView2Environment.CreateAsync(null,
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
             await _webView.EnsureCoreWebView2Async(env);
+
+            apiChat = ApiHandler.CreateConversation(options, options.TurboChatBehavior);
+            AddMessagesFromModel();
 
             UpdateBrowser();
         }
@@ -369,18 +373,32 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 Application.Current.Dispatcher.Invoke(() => { EnableDisableButtons(false); });
 
                 _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.Me, Content = requestToShowOnList });
+                HandleResponseChunk("");
 
                 cancellationTokenSource = new();
 
-                (string, List<FunctionResult>) result = await SendRequestAsync(cancellationTokenSource);
-
-                if (result.Item2 != null && result.Item2.Any())
+                var stream = true;
+                if (stream)
                 {
-                    await HandleFunctionsCallsAsync(result.Item2, cancellationTokenSource);
+                    _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.ChatGPT });
+                    var chatResponces = apiChat.StreamResponseEnumerableFromChatbotAsync();
+                    await foreach (var fragment in chatResponces)
+                    {
+                        HandleResponseChunk(fragment);
+                    }
                 }
                 else
                 {
-                    HandleResponse(commandType, shiftKeyPressed, result.Item1);
+                    (string, List<FunctionResult>) result = await SendRequestAsync(cancellationTokenSource);
+
+                    if (result.Item2 != null && result.Item2.Any())
+                    {
+                        await HandleFunctionsCallsAsync(result.Item2, cancellationTokenSource);
+                    }
+                    else
+                    {
+                        HandleResponse(commandType, shiftKeyPressed, result.Item1);
+                    }
                 }
 
                 if (firstMessage)
@@ -392,10 +410,64 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 }
                 else
                 {
-                    // _viewModel.SelectedChat.Name = ChatHeader;
-                    // ChatRepository.UpdateChat(_viewModel.SelectedChat);
+                    ChatRepository.UpdateChat(_viewModel.SelectedChat);
                 }
             });
+        }
+
+        /// <summary>
+        /// Handles the response chunk based on the last saved message
+        /// </summary>
+        // private void HandleResponseChunk(string response)
+        // {
+        //     var lastSegment = _viewModel.Messages.Last().Segments.First();
+        //     if (lastSegment.Author != IdentifierEnum.ChatGPT)
+        //     {
+        //         HandleResponse(RequestType.Request, false, response);
+        //         return;
+        //     }
+        //     lastSegment.Content += response;
+        //
+        //     messagesHtml.Remove(0, messagesHtml.Length);
+        //     foreach (var item in _viewModel.Messages)
+        //     {
+        //         var segments = item.Segments.First();
+        //         try
+        //         {
+        //             AddMessagesHtml(segments.Author, segments.Content);
+        //         }
+        //         catch (Exception ex)
+        //         {
+        //             Logger.Log(ex);
+        //         }
+        //     }
+        //
+        //     _webView?.ExecuteScriptAsync($@"document.body.innerHTML = `{messagesHtml}`");
+        // }
+
+        private static string JsString(string s)
+            => s.Replace(@"\", @"\\").Replace("`", @"\`").Replace("\r", "").Replace("\n", "\\n");
+
+        private void HandleResponseChunk(string chunk)
+        {
+            var lastMsg = _viewModel.Messages.LastOrDefault();
+            if (lastMsg == null) return;
+
+            var seg = lastMsg.Segments.First();
+            seg.Content += chunk;
+
+            if (seg.Author == IdentifierEnum.ChatGPT)
+            {
+                string html = seg.Content;
+                string script = $"updateLastGpt(`{JsString(html)}`);";
+                _ = _webView.ExecuteScriptAsync(script);
+            }
+            else
+            {
+                string html = seg.Content;
+                string script = $"addMsg('user', `{JsString(html)}`);";
+                _ = _webView.ExecuteScriptAsync(script);
+            }
         }
 
         /// <summary>
@@ -623,20 +695,24 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         }
 
         /// <summary>
-        /// Closes the current tab by invoking the CloseTab method on the parent control.
-        /// </summary>
-        public void CloseTab(Object sender, ExecutedRoutedEventArgs e)
-        {
-            // parentControl.CloseTab(this);
-        }
-
-        /// <summary>
         /// Adds a formatted HTML message to the message list, including the author's avatar and the response content converted from Markdown.
         /// </summary>
         /// <param name="author">The author of the message, used to determine the avatar image.</param>
         /// <param name="content">The message content in Markdown format to be converted and displayed.</param>
         private void AddMessagesHtml(IdentifierEnum author, string content)
         {
+            if (author == IdentifierEnum.Me)
+            {
+                string script = $"addMsg('user', `{JsString(content)}`);";
+                _ = _webView.ExecuteScriptAsync(script);
+            }
+            else
+            {
+                string script = $"updateLastGpt(`{JsString(content)}`);";
+                _ = _webView.ExecuteScriptAsync(script);
+            }
+            return;
+
             string htmlContent;
 
             string authorIcon = author switch
@@ -716,155 +792,115 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             string cssBackgroundColor = ToCssColor(backgroundColor);
             string cssCodeBackgroundColor = ToCssColor(codeBackgroundColor);
 
-            string html = $@"
-                  <html>
-                  <head>
-                      <meta http-equiv='X-UA-Compatible' content='IE=edge' />
-                      <meta charset='UTF-8'>
-                      <style>
-                          body {{
-                              font-family: Segoe UI, Tahoma, Geneva, Verdana, sans-serif;
-                              margin: 10px;
-                              background-color: {cssBackgroundColor};
-                              color: {cssTextColor};
-                          }}
-                          p {{
-                              margin-top: 1px;
-                              margin-bottom: 1px;
-                          }}
-                          pre {{
-                              overflow-x: auto;
-                              white-space: pre;
-                              background: {cssCodeBackgroundColor};
-                              color: {cssTextColor};
-                              padding: 8px;
-                              font-family: Consolas, 'Courier New', monospace;
-                              font-size: 13px;
-                              margin: 6px 0;
-                          }}
-                          code {{
-                              font-family: Consolas, 'Courier New', monospace;
-                              font-size: 13px;
-                              color: {cssTextColor};
-                          }}
-                          .copy-btn {{
-                              position: absolute;
-                              right: 8px;
-                              top: 6px;
-                              width: 15px;
-                              height: 15px;
-                              background: none;
-                              border: none;
-                              padding: 0;
-                              cursor: pointer;
-                              outline: none;
-                          }}
-                          .copy-btn img {{
-                              width: 15px;
-                              height: 15px;
-                              display: block;
-                          }}
-                          summary {{
-                              cursor: pointer;
-                              user-select: none;
-                              margin - left: 8px;
-                              color: gray;
-                          }}
-                          details {{
-                              padding: 0 8px 8px 8px;
-                              margin: 8px;
-                              overflow: hidden;
-                              transition: height .3s ease;
-                              font-size: 14px;
-                              color: gray;
-                          }}
-                          details summary {{
-                              cursor: pointer;
-                              transition: margin 150ms ease-out;
-                          }}
-                          details[open] summary {{
-                              margin-bottom: 10px;
-                          }}
-                      </style>
-                      <script type='text/javascript'>
-                          var copyIcon = '{copyIcon}';
-                          var checkIcon = '{checkIcon}';
+            var html2 = $$"""
+                          <!doctype html>
+                          <html>
+                          <head>
+                            <meta charset="utf-8"/>
+                            <meta http-equiv='X-UA-Compatible' content='IE=edge' />
+                            <style>
+                              body {
+                                  font-family: Segoe UI, Tahoma, Geneva, Verdana, sans-serif;
+                                  margin: 10px;
+                                  background-color: {{cssBackgroundColor}};
+                                  color: {{cssTextColor}};
+                              }
+                              p {
+                                  margin-top: 1px;
+                                  margin-bottom: 1px;
+                              }
+                              pre {
+                                  overflow-x: auto;
+                                  white-space: pre;
+                                  background: {{cssCodeBackgroundColor}};
+                                  color: {{cssTextColor}};
+                                  padding: 8px;
+                                  font-family: Consolas, 'Courier New', monospace;
+                                  font-size: 13px;
+                                  margin: 6px 0;
+                              }
+                              code {
+                                  font-family: Consolas, 'Courier New', monospace;
+                                  font-size: 13px;
+                                  color: {{cssTextColor}};
+                              }
+                              .copy-btn {
+                                  position: absolute;
+                                  right: 8px;
+                                  top: 6px;
+                                  width: 15px;
+                                  height: 15px;
+                                  background: none;
+                                  border: none;
+                                  padding: 0;
+                                  cursor: pointer;
+                                  outline: none;
+                              }
+                              .copy-btn img {
+                                  width: 15px;
+                                  height: 15px;
+                                  display: block;
+                              }
+                              summary {
+                                  cursor: pointer;
+                                  user-select: none;
+                                  margin - left: 8px;
+                                  color: gray;
+                              }
+                              details {
+                                  padding: 0 8px 8px 8px;
+                                  margin: 8px;
+                                  overflow: hidden;
+                                  transition: height .3s ease;
+                                  font-size: 14px;
+                                  color: gray;
+                              }
+                              details summary {
+                                  cursor: pointer;
+                                  transition: margin 150ms ease-out;
+                              }
+                              details[open] summary {
+                                  margin-bottom: 10px;
+                              }
+                              .msg { margin:.4rem 0; display:flex; }
+                              .user  { justify-content:flex-end; }
+                              .gpt   { justify-content:flex-start; }
+                              .bubble { max-width:70%; padding:.6rem .9rem; border-radius:1rem; }
+                              .user .bubble { background:#0078d4; color:#fff; }
+                              .gpt  .bubble { background:#f1f1f1; color:#000; }
+                            </style>
+                          </head>
+                          <body>
+                            <div id="chat"></div>
+                            <script>
+                              function addMsg(role, html){
+                                const wrap = document.createElement('div');
+                                wrap.className = 'msg ' + role;
+                                wrap.innerHTML = '<div class="bubble">' + html + '</div>';
+                                document.getElementById('chat').appendChild(wrap);
+                                scrollToBottom();
+                              }
 
-                          window.onload = function() {{
-                              window.scrollTo(0, document.body.scrollHeight);
+                              function updateLastGpt(html){
+                                const last = document.querySelector('#chat .gpt:last-child .bubble');
+                                if(last) last.innerHTML = html;
+                                else addMsg('gpt', html);
+                                scrollToBottom();
+                              }
 
-                              document.body.focus();
+                              function scrollToBottom(){
+                                window.scrollTo(0, document.body.scrollHeight);
+                              }
 
-                              document.body.addEventListener('keydown', function(e) {{
-                                  var amount = 40;
-                                  switch (e.key) {{
-                                      case 'ArrowDown': window.scrollBy(0, amount); e.preventDefault(); break;
-                                      case 'ArrowUp': window.scrollBy(0, -amount); e.preventDefault(); break;
-                                      case 'PageDown': window.scrollBy(0, window.innerHeight - 40); e.preventDefault(); break;
-                                      case 'PageUp': window.scrollBy(0, -window.innerHeight + 40); e.preventDefault(); break;
-                                      case 'Home': window.scrollTo(0, 0); e.preventDefault(); break;
-                                      case 'End': window.scrollTo(0, document.body.scrollHeight); e.preventDefault(); break;
-                                  }}
-                              }});
+                              function clearChat(){
+                                document.getElementById('chat').innerHTML = '';
+                              }
+                            </script>
+                          </body>
+                          </html>
+                          """;
 
-                              var pres = document.getElementsByTagName('pre');
-
-                              for (var i = 0; i < pres.length; i++) {{
-                                  var pre = pres[i];
-
-                                  var btn = document.createElement('button');
-                                  btn.className = 'copy-btn';
-                                  btn.title = 'Copy';
-
-                                  var img = document.createElement('img');
-                                  img.src = copyIcon;
-                                  btn.appendChild(img);
-
-                                  var wrapper = document.createElement('div');
-                                  wrapper.style.position = 'relative';
-
-                                  pre.parentNode.insertBefore(wrapper, pre);
-                                  wrapper.appendChild(pre);
-
-                                  wrapper.appendChild(btn);
-
-                                  btn.onclick = function() {{
-                                      var code = this.parentNode.getElementsByTagName('pre')[0].innerText;
-
-                                      if (window.clipboardData && window.clipboardData.setData) {{
-                                          window.clipboardData.setData('Text', code);
-                                      }} else if (navigator.clipboard) {{
-                                          navigator.clipboard.writeText(code);
-                                      }} else {{
-                                          var textarea = document.createElement('textarea');
-                                          textarea.value = code;
-                                          document.body.appendChild(textarea);
-                                          textarea.select();
-                                          try {{ document.execCommand('copy'); }} catch(e) {{}}
-                                          document.body.removeChild(textarea);
-                                      }}
-                                      var img = this.getElementsByTagName('img')[0];
-                                      img.src = checkIcon;
-                                      var btn = this;
-                                      setTimeout(function() {{ img.src = copyIcon; }}, 1200);
-                                  }};
-
-                                  pre.addEventListener('wheel', function(e) {{
-                                      if (e.shiftKey) {{
-                                          this.scrollLeft += (e.deltaY || e.detail || e.wheelDelta) > 0 ? 40 : -40;
-                                          e.preventDefault();
-                                      }}
-                                  }});
-                              }}
-                          }};
-                      </script>
-                  </head>
-                  <body tabindex=""0"">
-                      {messagesHtml}
-                  </body>
-                  </html>";
-
-            _webView?.CoreWebView2.NavigateToString(html);
+            _webView?.CoreWebView2.NavigateToString(html2);
         }
 
         /// <summary>
@@ -1432,8 +1468,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             _viewModel.CreateNewChat();
             messagesHtml.Clear();
             apiChat.ClearConversation();
-            AddMessagesFromModel();
-            UpdateBrowser();
+            _ = _webView?.ExecuteScriptAsync("clearChat()");
         }
 
         private void ToggleHistory_Click(object sender, RoutedEventArgs e)
@@ -1471,8 +1506,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                         _viewModel.LoadChat(selectedItem.Id);
                         messagesHtml.Clear();
                         apiChat.ClearConversation();
+                        _ = _webView?.ExecuteScriptAsync("clearChat()");
                         AddMessagesFromModel();
-                        UpdateBrowser();
                     }
                     catch (Exception ex)
                     {

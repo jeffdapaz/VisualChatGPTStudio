@@ -7,16 +7,15 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using JeffPires.VisualChatGPTStudio.ToolWindows.Turbo;
 using JeffPires.VisualChatGPTStudio.Utils.Repositories;
-using OpenAI_API.Chat;
 
 namespace VisualChatGPTStudioShared.ToolWindows.Turbo
 {
     public sealed class TerminalTurboViewModel : INotifyPropertyChanged
     {
-        private string _search = string.Empty;
-        private List<ChatEntity> _filtered = [];
-        private int _page = 0;
-        private const int _pageSize = 10;
+        private string search = string.Empty;
+        private List<ChatEntity> filtered = [];
+        private int page = 0;
+        private const int PageSize = 10;
 
         public TerminalTurboViewModel()
         {
@@ -28,6 +27,8 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
             {
                 CreateNewChat();
             }
+
+            ApplyFilter();
         }
 
         public List<ChatEntity> AllChats { get; private set; } = [];
@@ -38,34 +39,36 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
 
         public ObservableCollection<ChatEntity> Chats { get; } = [];
 
-        public int PageNumber => _page + 1;
+        public int PageNumber => page + 1;
 
-        public int TotalPages => (int)Math.Ceiling((double)AllChats.Count / _pageSize);
+        public int TotalPages => Math.Max(1, (int)Math.Ceiling((filtered?.Count ?? 0.0) / PageSize));
 
-        public bool CanGoPrev => _page > 0;
+        public string CurrentPageView => $"{PageNumber} / {TotalPages}";
 
-        public bool CanGoNext => _page < TotalPages - 1;
+        public bool CanGoPrev => page > 0;
+
+        public bool CanGoNext => page < TotalPages - 1;
 
         public ICommand NextCmd => new RelayCommand(() =>
             {
-                _page++;
+                page++;
                 ReloadChats();
             },
             () => CanGoNext);
 
         public ICommand PrevCmd => new RelayCommand(() =>
             {
-                _page--;
+                page--;
                 ReloadChats();
             },
             () => CanGoPrev);
 
         public string Search
         {
-            get => _search;
+            get => search;
             set
             {
-                if (SetField(ref _search, value))
+                if (SetField(ref search, value))
                     ApplyFilter();
             }
         }
@@ -74,27 +77,38 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
         {
             if (!string.IsNullOrEmpty(Search))
             {
-                _filtered = AllChats
+                filtered = AllChats
                     .Where(c => c.Name.ToLower().Contains(Search.ToLower()))
                     .OrderBy(c  => c.Name)
                     .ToList();
             }
             else
             {
-                _filtered = AllChats;
+                filtered = AllChats;
             }
 
-            _page = 0;
-            ReloadChats();
+            page = 0;
+            ReloadChats(true);
         }
 
-        private void ReloadChats()
+        private void ReloadChats(bool onlyFilter = false)
         {
-            AllChats = ChatRepository.GetChats();
-            Chats.Clear();
-            if (_filtered != null)
+            if (!onlyFilter)
             {
-                foreach (var c in _filtered)
+                AllChats = ChatRepository.GetChats();
+            }
+
+            Chats.Clear();
+            if (filtered != null)
+            {
+                var itemsOnPage = filtered;
+                if (itemsOnPage.Count > PageSize)
+                {
+                    var itemsToSkip = page * PageSize;
+                    itemsOnPage = filtered.Skip(itemsToSkip).Take(PageSize).ToList();
+                }
+
+                foreach (var c in itemsOnPage)
                 {
                     Chats.Add(c);
                 }
@@ -102,6 +116,7 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
 
             OnPropertyChanged(nameof(PageNumber));
             OnPropertyChanged(nameof(TotalPages));
+            OnPropertyChanged(nameof(CurrentPageView));
             OnPropertyChanged(nameof(CanGoPrev));
             OnPropertyChanged(nameof(CanGoNext));
         }

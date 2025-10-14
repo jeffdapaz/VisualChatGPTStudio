@@ -141,44 +141,45 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             markdownPipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().DisableHtml().UseSyntaxHighlighting().Build();
 
-            StringBuilder segments;
-
             apiChat = ApiHandler.CreateConversation(options, options.TurboChatBehavior);
 
-            foreach (var message in _viewModel.Messages.OrderBy(m => m.Order))
-            {
-                firstMessage = false;
-                segments = new();
-
-                message.Segments = message.Segments.OrderBy(s => s.SegmentOrderStart).ToList();
-
-                for (int i = 0; i < message.Segments.Count; i++)
-                {
-                    segments.AppendLine(message.Segments[i].Content);
-                }
-
-                if (message.Segments[0].Author == IdentifierEnum.FunctionCall)
-                {
-                    apiChat.AppendFunctionCall(JsonConvert.DeserializeObject<FunctionRequest>(message.Segments[0].Content));
-                }
-                else if (message.Segments[0].Author == IdentifierEnum.FunctionRequest)
-                {
-                    apiChat.AppendUserInput(message.Segments[0].Content);
-                }
-                else if (message.Segments[0].Author == IdentifierEnum.Api)
-                {
-                    AddMessagesHtml(message.Segments[0].Author, segments.ToString());
-                }
-                else
-                {
-                    AddMessagesHtml(message.Segments[0].Author, segments.ToString());
-
-                    apiChat.AppendUserInput(segments.ToString());
-                }
-            }
+            AddMessagesFromModel();
 
             sqlServerConnectionsAlreadyAdded = ChatRepository.GetSqlServerConnections(chatId);
             apiDefinitionsAlreadyAdded = ChatRepository.GetApiDefinitions(chatId);
+        }
+
+        private void AddMessagesFromModel()
+        {
+            foreach (var message in _viewModel.Messages.OrderBy(m => m.Order))
+            {
+                firstMessage = false;
+                StringBuilder segments = new();
+
+                message.Segments = message.Segments.OrderBy(s => s.SegmentOrderStart).ToList();
+
+                foreach (var t in message.Segments)
+                {
+                    segments.AppendLine(t.Content);
+                }
+
+                switch (message.Segments[0].Author)
+                {
+                    case IdentifierEnum.FunctionCall:
+                        apiChat.AppendFunctionCall(JsonConvert.DeserializeObject<FunctionRequest>(message.Segments[0].Content));
+                        break;
+                    case IdentifierEnum.FunctionRequest:
+                        apiChat.AppendUserInput(message.Segments[0].Content);
+                        break;
+                    case IdentifierEnum.Api:
+                        AddMessagesHtml(message.Segments[0].Author, segments.ToString());
+                        break;
+                    default:
+                        AddMessagesHtml(message.Segments[0].Author, segments.ToString());
+                        apiChat.AppendUserInput(segments.ToString());
+                        break;
+                }
+            }
         }
 
         private void OnTxtRequestOnPreviewKeyDown(object s, KeyEventArgs e)
@@ -493,7 +494,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 chatName = string.Concat(words[0], " ", words[1]);
             }
 
-            // TODO update chat name in DB
             _viewModel.UpdateChatHeader(chatName);
 
             firstMessage = false;
@@ -1465,19 +1465,15 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     {
                         CloseHistory();
                         _viewModel.LoadChat(selectedItem.Id);
-
-                        // await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(default(CancellationToken));
-                        // if (this.ChatHistory.Items.Count > 0)
-                        // {
-                        //     this.ChatHistory.ScrollIntoView(this.ChatHistory.Items[this.ChatHistory.Items.Count - 1]);
-                        // }
-                        // if (selectedItem.Config != null)
-                        // {
-                        //     this.LoadConfig(selectedItem.Config);
-                        // }
+                        messagesHtml.Clear();
+                        apiChat.ClearConversation();
+                        AddMessagesFromModel();
+                        UpdateBrowser();
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        Logger.Log(ex);
+                        MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);
                     }
                 }
             }

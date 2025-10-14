@@ -79,7 +79,7 @@ Padding="8" CornerRadius="4">
     <UserControl.InputBindings>
     </UserControl.InputBindings>
 
-    <Grid Name="TurboRoot" Margin="5">
+    <Grid Margin="5">
         <Grid.Triggers>
             <EventTrigger RoutedEvent="FrameworkElement.Loaded">
                 <BeginStoryboard Storyboard="{StaticResource FadeIn}"/>
@@ -90,6 +90,7 @@ Padding="8" CornerRadius="4">
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto" x:Name="rowRequest" />
         </Grid.RowDefinitions>
+        <!-- Toolbar -->
         <Border Grid.Row="0" Background="{DynamicResource {x:Static vsshell:VsBrushes.CommandBarGradientKey}}"
     BorderThickness="0,0,0,1"
     BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.CommandBarBorderKey}}" Padding="8,4">
@@ -109,15 +110,15 @@ Padding="8" CornerRadius="4">
                         <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.ClearWindowContent}" Width="16"
                         Height="16" Margin="0,0,4,0"
                         Opacity="1"/>
-                        <TextBlock Text="Clear Chat" VerticalAlignment="Center"/>
+                        <TextBlock Text="Clear Chat (todo)" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
                 <Button Click="ToggleHistory_Click" Style="{StaticResource ToolbarButtonStyle}" ToolTip="Chat History"
         IsEnabled="{Binding IsProcessing, Converter={StaticResource InverseBooleanConverter}}">
                     <StackPanel Orientation="Horizontal">
                         <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.History}" FrameworkElement.Width="16"
-                        FrameworkElement.Height="16" FrameworkElement.Margin="0,0,4,0"
-                        UIElement.Opacity="1"/>
+                        Height="16" Margin="0,0,4,0"
+                        Opacity="1"/>
                         <TextBlock Text="History" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
@@ -127,11 +128,12 @@ Padding="8" CornerRadius="4">
                         <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Settings}" Width="16"
                         Height="16" Margin="0,0,4,0"
                         Opacity="1"/>
-                        <TextBlock Text="Settings" VerticalAlignment="Center"/>
+                        <TextBlock Text="Settings (todo)" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
             </StackPanel>
         </Border>
+        <!-- Chat -->
         <Grid Name="grdChat" Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
@@ -141,6 +143,7 @@ Padding="8" CornerRadius="4">
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
+            <!-- WebView -->
             <ContentPresenter x:Name="WebViewHost"/>
 
             <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Background="#FF007ACC" Margin="0,5,0,5"  Visibility="{Binding Visibility, ElementName=dataGridResult}"/>
@@ -158,6 +161,7 @@ Padding="8" CornerRadius="4">
                 <TextBlock x:Name="lblProgressStatus" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Black" />
             </Grid>
         </Grid>
+        <!-- Request textbox area -->
         <Grid Name="grdRequest" Grid.Row="2" Margin="8,4,8,8">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -196,6 +200,7 @@ Padding="8" CornerRadius="4">
                 Visibility="{Binding Visibility, ElementName=grdAPI}"
                 DisplayMemberPath="Name"
                 SelectedValuePath="Name" />
+            <!-- Request textBox -->
             <Border Grid.Row="2" CornerRadius="4" BorderBrush="DarkGray" BorderThickness="1" Padding="4"
                     Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}">
                 <avalonEdit:TextEditor
@@ -217,6 +222,7 @@ Padding="8" CornerRadius="4">
                     </avalonEdit:TextEditor.ContextMenu>
                 </avalonEdit:TextEditor>
             </Border>
+            <!-- Request commands -->
             <Grid Name="grdCommands" Grid.Row="4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -375,6 +381,7 @@ Padding="8" CornerRadius="4">
                 </Button>
             </Grid>
         </Grid>
+        <!-- Sidebars -->
         <Border x:Name="Overlay" Grid.RowSpan="3"
             Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" Opacity="0.5"
             Visibility="Collapsed">
@@ -511,6 +518,23 @@ Padding="8" CornerRadius="4">
                                     </ControlTemplate>
                                 </Setter.Value>
                             </Setter>
+                            <Setter Property="LayoutTransform">
+                                <Setter.Value>
+                                    <ScaleTransform x:Name="transform" />
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <EventTrigger RoutedEvent="Loaded">
+                                    <EventTrigger.Actions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" Duration="0:0:.3" />
+                                                <DoubleAnimation Storyboard.TargetProperty="LayoutTransform.ScaleY" From="0" Duration="0:0:.2"/>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger.Actions>
+                                </EventTrigger>
+                            </Style.Triggers>
                         </Style>
                     </ItemsControl.ItemContainerStyle>
                               <ItemsControl.ItemTemplate>
@@ -557,7 +581,7 @@ Padding="8" CornerRadius="4">
                                 Width="28" Height="28" Padding="6">
                             <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Previous}" UIElement.Opacity="0.9"/>
                         </Button>
-                        <TextBlock Text="{Binding TotalPages}" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"
+                        <TextBlock Text="{Binding CurrentPageView}" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"
                    Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
                         <Button Command="{Binding NextCmd}" Grid.Column="2"
                                 Style="{StaticResource ToolbarButtonStyle}" Width="28" Height="28" Padding="6">

@@ -357,5 +357,11 @@ namespace OpenAI_API.Chat
 
             return false;
         }
+
+        public void ClearConversation()
+        {
+            _Messages.Clear();
+            tools.Clear();
+        }
     }
 }

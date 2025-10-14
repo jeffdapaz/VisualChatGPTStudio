@@ -57,17 +57,17 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ChatEntity.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ChatUserControlsItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ChatMessageSegment.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\BooleanToVisibilityConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\InverseBooleanConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\TerminalWindowTurbo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ucChat.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\TerminalWindowTurboControl.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ApiHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\AttachImage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ComputerUse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Enums.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Http\HttpLogs.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\RelayCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Repositories\ApiAgentRepository.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Repositories\ChatRepository.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\CodeCompletion\CompletionManager.cs" />
@@ -85,6 +85,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ScreenCapturer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\TextFormat.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\WebView2BootstrapperHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\TerminalTurboViewModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)VisuallChatGPTStudioPackage.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -105,10 +106,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindow\TerminalWindowControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ucChat.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

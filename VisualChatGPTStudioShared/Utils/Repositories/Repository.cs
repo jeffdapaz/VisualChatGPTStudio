@@ -13,7 +13,7 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
         #region Methods
 
         /// <summary>
-        /// Creates and initializes a SQLite database connection. Ensures the database file is located in a specific folder within the local application data directory. 
+        /// Creates and initializes a SQLite database connection. Ensures the database file is located in a specific folder within the local application data directory.
         /// If the folder does not exist, it is created.
         /// </summary>
         /// <returns>
@@ -22,7 +22,6 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
         public static SQLiteConnection CreateDataBaseAndConnection()
         {
             string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Constants.EXTENSION_NAME);
-
             string filePath = Path.Combine(folder, "VisualChatGptStudio.db");
 
             if (!Directory.Exists(folder))

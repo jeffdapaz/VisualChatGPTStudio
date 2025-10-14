@@ -3,34 +3,32 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity" 
-             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"   
+             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:catalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              xmlns:utils="clr-namespace:JeffPires.VisualChatGPTStudio.Utils"
-             xmlns:utils_shared="clr-namespace:VisualChatGPTStudioShared.Utils"
-             xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+             xmlns:vm="clr-namespace:VisualChatGPTStudioShared.ToolWindows.Turbo"
              Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
              Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
              mc:Ignorable="d"
-             d:DesignHeight="300" d:DesignWidth="300"
-             Name="TurboChatToolWindow"
-             xmlns:uc="clr-namespace:JeffPires.VisualChatGPTStudio.ToolWindows.Turbo">
+             d:DesignHeight="400" d:DesignWidth="400"
+             Name="TurboChatToolWindow">
 
     <UserControl.Resources>
-        <RoutedUICommand x:Key="sendCode" Text="Text" />
-        <RoutedUICommand x:Key="cancelCommand" Text="Text" />
-        <RoutedUICommand x:Key="closeTab" Text="Text" />
-        <utils:HighlightingDefinitionConverter x:Key="HighlightingDefinitionConverter" />
+        <vm:TerminalTurboViewModel x:Key="Vm"/>
         <utils:InverseBooleanConverter x:Key="InverseBooleanConverter" />
         <Style TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Control.Background}"
+BorderThickness="{TemplateBinding Control.BorderThickness}"
+Padding="8" CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsFocused" Value="True">
                                 <Setter Value="{DynamicResource {x:Static vsshell:VsBrushes.CommandBarHoverKey}}" Property="Control.Background"/>
@@ -44,12 +42,12 @@
             </Setter>
         </Style>
         <Style x:Key="ToolbarButtonStyle" TargetType="{x:Type Button}">
-            <Setter Property="Control.Background" Value="Transparent"/>
-            <Setter Property="Control.BorderThickness" Value="0"/>
-            <Setter Property="FrameworkElement.Margin" Value="4,0"/>
-            <Setter Property="Control.Padding" Value="8,4"/>
-            <Setter Property="Control.Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
-            <Setter Property="Control.Template">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Margin" Value="4,0"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
+            <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Button}">
                         <Border x:Name="border" Background="{TemplateBinding Control.Background}"
@@ -72,35 +70,31 @@
         </Storyboard>
     </UserControl.Resources>
 
-    <UserControl.CommandBindings>
-        <CommandBinding Command="{StaticResource sendCode}" Executed="SendCode" />
-        <CommandBinding Command="{StaticResource cancelCommand}" Executed="CancelRequest" />
-        <CommandBinding Command="{StaticResource closeTab}" Executed="CloseTab" />
-    </UserControl.CommandBindings>
+    <UserControl.DataContext>
+        <StaticResource ResourceKey="Vm"/>
+    </UserControl.DataContext>
 
+    <UserControl.CommandBindings>
+    </UserControl.CommandBindings>
     <UserControl.InputBindings>
-        <KeyBinding Key="Enter" Modifiers="Ctrl+Alt" Command="{StaticResource sendCode}" />
-        <KeyBinding Key="Enter" Modifiers="Ctrl+Alt+Shift" Command="{StaticResource sendCode}" />
-        <KeyBinding Key="Q" Modifiers="Alt" Command="{StaticResource cancelCommand}" />
-        <KeyBinding Key="W" Modifiers="Ctrl" Command="{StaticResource closeTab}"/>
     </UserControl.InputBindings>
 
-    <Grid Name="turboRoot" Margin="5">
+    <Grid Name="TurboRoot" Margin="5">
         <Grid.Triggers>
             <EventTrigger RoutedEvent="FrameworkElement.Loaded">
                 <BeginStoryboard Storyboard="{StaticResource FadeIn}"/>
             </EventTrigger>
         </Grid.Triggers>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" MinHeight="65"/>
+            <RowDefinition Height="Auto" MinHeight="40"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto" MinHeight="115" x:Name="rowRequest" />
+            <RowDefinition Height="Auto" x:Name="rowRequest" />
         </Grid.RowDefinitions>
         <Border Grid.Row="0" Background="{DynamicResource {x:Static vsshell:VsBrushes.CommandBarGradientKey}}"
     BorderThickness="0,0,0,1"
     BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.CommandBarBorderKey}}" Padding="8,4">
             <StackPanel Orientation="Horizontal">
-                <Button Style="{StaticResource ToolbarButtonStyle}" ToolTip="New Chat"
+                <Button Click="NewChat_Click" Style="{StaticResource ToolbarButtonStyle}" ToolTip="New Chat"
         IsEnabled="{Binding IsProcessing, Converter={StaticResource InverseBooleanConverter}}">
                     <StackPanel Orientation="Horizontal">
                         <imaging:CrispImage Width="16" Height="16" Margin="0,0,4,0"
@@ -112,13 +106,13 @@
                 <Button Style="{StaticResource ToolbarButtonStyle}" ToolTip="Clear Chat"
         IsEnabled="{Binding IsProcessing, Converter={StaticResource InverseBooleanConverter}}">
                     <StackPanel Orientation="Horizontal">
-                        <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.ClearWindowContent}" FrameworkElement.Width="16"
-                        FrameworkElement.Height="16" FrameworkElement.Margin="0,0,4,0"
-                        UIElement.Opacity="1"/>
+                        <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.ClearWindowContent}" Width="16"
+                        Height="16" Margin="0,0,4,0"
+                        Opacity="1"/>
                         <TextBlock Text="Clear Chat" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
-                <Button Style="{StaticResource ToolbarButtonStyle}" ToolTip="Chat History"
+                <Button Click="ToggleHistory_Click" Style="{StaticResource ToolbarButtonStyle}" ToolTip="Chat History"
         IsEnabled="{Binding IsProcessing, Converter={StaticResource InverseBooleanConverter}}">
                     <StackPanel Orientation="Horizontal">
                         <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.History}" FrameworkElement.Width="16"
@@ -130,9 +124,9 @@
                 <Button Style="{StaticResource ToolbarButtonStyle}" ToolTip="Settings"
         IsEnabled="{Binding IsProcessing, Converter={StaticResource InverseBooleanConverter}}">
                     <StackPanel Orientation="Horizontal">
-                        <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Settings}" FrameworkElement.Width="16"
-                        FrameworkElement.Height="16" FrameworkElement.Margin="0,0,4,0"
-                        UIElement.Opacity="1"/>
+                        <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Settings}" Width="16"
+                        Height="16" Margin="0,0,4,0"
+                        Opacity="1"/>
                         <TextBlock Text="Settings" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
@@ -147,16 +141,16 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <wv2:WebView2CompositionControl x:Name = "webBrowserChat" Grid.Row="0"/>
+            <ContentPresenter x:Name="WebViewHost"/>
 
             <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Background="#FF007ACC" Margin="0,5,0,5"  Visibility="{Binding Visibility, ElementName=dataGridResult}"/>
-            <DataGrid 
+            <DataGrid
                 Grid.Row="2"
                 Visibility="Collapsed"
-                Name="dataGridResult" 
-                AutoGenerateColumns="True" 
-                IsReadOnly="True"   
-                HorizontalScrollBarVisibility="Auto" 
+                Name="dataGridResult"
+                AutoGenerateColumns="True"
+                IsReadOnly="True"
+                HorizontalScrollBarVisibility="Auto"
                 VerticalScrollBarVisibility="Auto"
                 PreviewMouseWheel="DataGridResult_PreviewMouseWheel"/>
             <Grid Name="grdProgress" Grid.Row="4" Visibility="Collapsed">
@@ -170,59 +164,59 @@
                 <RowDefinition Height="5"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="5"/>
-                <RowDefinition Height="20"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <StackPanel Name="spImage" Grid.Row="0" Orientation="Horizontal" Visibility="Collapsed">
-                <TextBlock                 
-                Name="txtImage" 
-                HorizontalAlignment="Left" 
-                VerticalAlignment="Center" 
+                <TextBlock
+                Name="txtImage"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
                 Height="20"
                 Margin="0,0,10,0"
                 Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}" />
-                <Button 
-                Height="10" 
-                Width="10" 
-                HorizontalAlignment="Left" 
-                VerticalAlignment="Center" 
-                Name="btnDeleteImage" 
+                <Button
+                Height="10"
+                Width="10"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Name="btnDeleteImage"
                 Click="btnDeleteImage_Click">
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/close.png"/>
                 </Button>
             </StackPanel>
-            <ComboBox 
+            <ComboBox
                 Grid.Row="0"
-                x:Name="cbConnection"  
+                x:Name="cbConnection"
                 Visibility="{Binding Visibility, ElementName=grdSQL}"
                 DisplayMemberPath="Description"
                 SelectedValuePath="ConnectionString" />
-            <ComboBox 
+            <ComboBox
                 Grid.Row="0"
-                x:Name="cbAPIs"  
+                x:Name="cbAPIs"
                 Visibility="{Binding Visibility, ElementName=grdAPI}"
                 DisplayMemberPath="Name"
                 SelectedValuePath="Name" />
-            <avalonEdit:TextEditor        
-                xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit" 
-                BorderBrush="DarkGray" 
-                BorderThickness="1"
-                Name="txtRequest" 
-                Grid.Row="2" 
-                FontSize="14"
-                HorizontalScrollBarVisibility="Disabled" 
-                VerticalScrollBarVisibility="Auto" 
-                ShowLineNumbers="false"          
-                TabIndex="1"
-                IsTabStop="True"
-                Focusable="True"
-                Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
-                Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}">
-                <avalonEdit:TextEditor.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem Command="Paste" />
-                    </ContextMenu>
-                </avalonEdit:TextEditor.ContextMenu>
-            </avalonEdit:TextEditor>
+            <Border Grid.Row="2" CornerRadius="4" BorderBrush="DarkGray" BorderThickness="1" Padding="4"
+                    Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}">
+                <avalonEdit:TextEditor
+                    xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
+                    Name="txtRequest"
+                    FontSize="14"
+                    HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Auto"
+                    ShowLineNumbers="false"
+                    TabIndex="1"
+                    IsTabStop="True"
+                    Focusable="True"
+                    Background="Transparent"
+                    Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}">
+                    <avalonEdit:TextEditor.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Command="Paste" />
+                        </ContextMenu>
+                    </avalonEdit:TextEditor.ContextMenu>
+                </avalonEdit:TextEditor>
+            </Border>
             <Grid Name="grdCommands" Grid.Row="4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -238,98 +232,87 @@
                     <ColumnDefinition Width="15"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Button 
-                Grid.Column="1"
-                Height="20" 
-                Width="20" 
-                x:Name="btnAPI" 
-                ToolTip="Add context to an API" 
-                AutomationProperties.HelpText="Add context to an API"
-                Click="btnAPI_Click" 
-                TabIndex="2"
-                IsTabStop="True"
-                Focusable="True"
-                Margin="10,0,0,0">
-                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Cloud}" Width="16" Height="16" Margin="0,0,4,0" Opacity="1"/>
+                <Button
+                    Grid.Column="1"
+                    x:Name="btnAPI"
+                    ToolTip="Add context to an API"
+                    AutomationProperties.HelpText="Add context to an API"
+                    Click="btnAPI_Click"
+                    TabIndex="2"
+                    IsTabStop="True"
+                    Focusable="True"
+                    Margin="10,0,0,0">
+                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Cloud}" />
                 </Button>
-                <Button 
-                Grid.Column="3"
-                Height="20" 
-                Width="20" 
-                x:Name="btnSql" 
-                ToolTip="Add context to a database" 
-                AutomationProperties.HelpText="Add context to a database"
-                TabIndex="3"
-                IsTabStop="True"
-                Focusable="True"
-                Click="btnSql_Click" >
-                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Database}" Width="16" Height="16" Margin="0,0,4,0" Opacity="1"/>
+                <Button
+                    Grid.Column="3"
+                    x:Name="btnSql"
+                    ToolTip="Add context to a database"
+                    AutomationProperties.HelpText="Add context to a database"
+                    TabIndex="3"
+                    IsTabStop="True"
+                    Focusable="True"
+                    Click="btnSql_Click" >
+                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Database}" />
                 </Button>
-                <Button 
-                Grid.Column="5"
-                Height="20" 
-                Width="20" 
-                x:Name="btnAttachImage" 
-                ToolTip="Attach an image"
-                AutomationProperties.HelpText="Attach an image"
-                TabIndex="4"
-                IsTabStop="True"
-                Focusable="True"
-                Click="btnAttachImage_Click">
-                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Attach}" Width="16" Height="16" Margin="0,0,4,0" Opacity="1"/>
+                <Button
+                    Grid.Column="5"
+                    x:Name="btnAttachImage"
+                    ToolTip="Attach an image"
+                    AutomationProperties.HelpText="Attach an image"
+                    TabIndex="4"
+                    IsTabStop="True"
+                    Focusable="True"
+                    Click="btnAttachImage_Click">
+                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Attach}" />
                 </Button>
-                <Button 
-                Grid.Column="7"
-                Width="20" 
-                x:Name="btnComputerUse" 
-                ToolTip="Computer-Use: Let the AI take control of Visual Studio to execute your instruction" 
-                AutomationProperties.HelpText="Computer-Use: Let the AI take control of Visual Studio to execute your instruction"
-                TabIndex="5"
-                IsTabStop="True"
-                Focusable="True"
-                Click="btnComputerUse_Click" >
-                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Control}" Width="16" Height="16" Margin="0,0,4,0" Opacity="1"/>
+                <Button
+                    Grid.Column="7"
+                    x:Name="btnComputerUse"
+                    ToolTip="Computer-Use: Let the AI take control of Visual Studio to execute your instruction"
+                    AutomationProperties.HelpText="Computer-Use: Let the AI take control of Visual Studio to execute your instruction"
+                    TabIndex="5"
+                    IsTabStop="True"
+                    Focusable="True"
+                    Click="btnComputerUse_Click" >
+                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Aggregate}" />
                 </Button>
-                <Button 
-                Grid.Column="9"
-                Width="20" 
-                x:Name="btnRequestCode" 
-                ToolTip="Send Code (Ctrl+Alt+Enter)" 
-                AutomationProperties.HelpText="Send Code (Ctrl+Alt+Enter)"
-                TabIndex="6"
-                IsTabStop="True"
-                Focusable="True"
-                Click="SendCode" >
-                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Code}" Width="16" Height="16" Margin="0,0,4,0" Opacity="1"/>
+                <Button
+                    Grid.Column="9"
+                    x:Name="btnRequestCode"
+                    ToolTip="Send Code (Ctrl+Alt+Enter)"
+                    AutomationProperties.HelpText="Send Code (Ctrl+Alt+Enter)"
+                    TabIndex="6"
+                    IsTabStop="True"
+                    Focusable="True"
+                    Click="SendCode" >
+                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Code}" />
                 </Button>
-                <Button 
-                Grid.Column="11"
-                Width="20" 
-                x:Name="btnRequestSend" 
-                ToolTip="Send (Ctrl+Enter)" 
-                AutomationProperties.HelpText="Send (Ctrl+Enter)"
-                TabIndex="7"
-                IsTabStop="True"
-                Focusable="True"
-                Click="SendRequest" >
-                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Send}" Width="16" Height="16" Margin="0,0,4,0" Opacity="1"/>
+                <Button
+                    Grid.Column="11"
+                    x:Name="btnRequestSend"
+                    ToolTip="Send (Ctrl+Enter)"
+                    AutomationProperties.HelpText="Send (Ctrl+Enter)"
+                    TabIndex="7"
+                    IsTabStop="True"
+                    Focusable="True"
+                    Click="SendRequest" >
+                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Send}" />
                 </Button>
-                <Button 
-                Grid.Column="13"
-                Width="20" 
-                x:Name="btnCancel" 
-                ToolTip="Cancel (Alt+Q)" 
-                AutomationProperties.HelpText="Cancel (Alt+Q)"
-                Click="CancelRequest" 
-                Visibility="Collapsed" 
-                TabIndex="8"
-                IsTabStop="True"
-                Focusable="True"
-                IsEnabled="False" >
-                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Cancel}" Width="16" Height="16" Margin="0,0,4,0" Opacity="1"/>
+                <Button
+                    Grid.Column="13"
+                    x:Name="btnCancel"
+                    ToolTip="Cancel (Alt+Q)"
+                    AutomationProperties.HelpText="Cancel (Alt+Q)"
+                    Click="CancelRequest"
+                    Visibility="Collapsed"
+                    TabIndex="8"
+                    IsTabStop="True"
+                    Focusable="True"
+                    IsEnabled="False" >
+                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Cancel}" />
                 </Button>
             </Grid>
-
             <Grid Name="grdSQL" Grid.Row="4" Visibility="Collapsed">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -337,32 +320,29 @@
                     <ColumnDefinition Width="15"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Button 
-                Grid.Column="1"
-                Width="20" 
-                x:Name="btnSqlCancel" 
-                ToolTip="Cancel" 
-                AutomationProperties.HelpText="Cancel"
-                TabIndex="8"
-                IsTabStop="True"
-                Focusable="True"
-                Click="btnSqlCancel_Click" >
-                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Cancel}" Width="16" Height="16" Margin="0,0,4,0" Opacity="1"/>
+                <Button
+                    Grid.Column="1"
+                    x:Name="btnSqlCancel"
+                    ToolTip="Cancel"
+                    AutomationProperties.HelpText="Cancel"
+                    TabIndex="8"
+                    IsTabStop="True"
+                    Focusable="True"
+                    Click="btnSqlCancel_Click" >
+                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Cancel}" />
                 </Button>
-                <Button 
-                Grid.Column="3"
-                Width="20" 
-                x:Name="btnSqlSend" 
-                ToolTip="Send Context Database to the AI" 
-                AutomationProperties.HelpText="Send Context Database to the AI"
-                TabIndex="9"
-                IsTabStop="True"
-                Focusable="True"
-                Click="btnSqlSend_Click" >
-                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Send}" Width="16" Height="16" Margin="0,0,4,0" Opacity="1"/>
+                <Button
+                    Grid.Column="3"
+                    x:Name="btnSqlSend"
+                    ToolTip="Send Context Database to the AI"
+                    AutomationProperties.HelpText="Send Context Database to the AI"
+                    TabIndex="9"
+                    IsTabStop="True"
+                    Focusable="True"
+                    Click="btnSqlSend_Click" >
+                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Send}" />
                 </Button>
             </Grid>
-
             <Grid Name="grdAPI" Grid.Row="4" Visibility="Collapsed">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -370,31 +350,222 @@
                     <ColumnDefinition Width="15"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Button 
-                Grid.Column="1"
-                Width="20" 
-                x:Name="btnApiCancel" 
-                ToolTip="Cancel" 
-                AutomationProperties.HelpText="Cancel"
-                TabIndex="10"
-                IsTabStop="True"
-                Focusable="True"
-                Click="btnApiCancel_Click" >
-                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Cancel}" Width="16" Height="16" Margin="0,0,4,0" Opacity="1"/>
+                <Button
+                    Grid.Column="1"
+                    Width="20"
+                    x:Name="btnApiCancel"
+                    ToolTip="Cancel"
+                    AutomationProperties.HelpText="Cancel"
+                    TabIndex="10"
+                    IsTabStop="True"
+                    Focusable="True"
+                    Click="btnApiCancel_Click" >
+                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Cancel}" />
                 </Button>
-                <Button 
-                Grid.Column="3"
-                Width="20" 
-                x:Name="btnApiSend" 
-                ToolTip="Send Context API to the AI" 
-                AutomationProperties.HelpText="Send Context API to the AI"
-                TabIndex="11"
-                IsTabStop="True"
-                Focusable="True"
-                Click="btnApiSend_Click" >
-                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Send}" Width="16" Height="16" Margin="0,0,4,0" Opacity="1"/>
+                <Button
+                    Grid.Column="3"
+                    x:Name="btnApiSend"
+                    ToolTip="Send Context API to the AI"
+                    AutomationProperties.HelpText="Send Context API to the AI"
+                    TabIndex="11"
+                    IsTabStop="True"
+                    Focusable="True"
+                    Click="btnApiSend_Click" >
+                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Send}" />
                 </Button>
             </Grid>
         </Grid>
+        <Border x:Name="Overlay" Grid.RowSpan="3"
+            Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" Opacity="0.5"
+            Visibility="Collapsed">
+            <FrameworkElement.Style>
+                <Style TargetType="{x:Type Border}">
+                    <Style.Triggers>
+                        <Trigger Property="UIElement.Visibility" Value="Visible">
+                            <TriggerBase.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="0.5" Duration="0:0:0.2"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </TriggerBase.EnterActions>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </FrameworkElement.Style>
+        </Border>
+        <Border x:Name="HistorySidebar" Grid.RowSpan="3"
+            Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
+            BorderThickness="1,0,0,0"
+            BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBorderKey}}" Width="360"
+            HorizontalAlignment="Right" Visibility="Collapsed">
+            <FrameworkElement.Style>
+                <Style TargetType="{x:Type Border}">
+                    <Style.Triggers>
+                        <Trigger Property="UIElement.Visibility" Value="Visible">
+                            <TriggerBase.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ThicknessAnimation Storyboard.TargetProperty="Margin" From="360,0,-360,0" To="0" Duration="0:0:0.2">
+                                            <ThicknessAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut"/>
+                                            </ThicknessAnimation.EasingFunction>
+                                        </ThicknessAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </TriggerBase.EnterActions>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </FrameworkElement.Style>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Border Grid.Row="0" Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTabGradientKey}}"
+            BorderThickness="0,0,0,1"
+            BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBorderKey}}">
+                    <Grid Margin="16,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Chat History" FontSize="16" FontWeight="SemiBold"
+                     Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
+                            <TextBlock Text="Your previous conversations" Margin="0,4,0,0"
+                     Foreground="{DynamicResource {x:Static vsshell:VsBrushes.GrayTextKey}}" />
+                        </StackPanel>
+                        <Button Click="CloseHistoryButton_Click" Grid.Column="1" Style="{StaticResource ToolbarButtonStyle}"
+                Width="28" Height="28" Padding="6" VerticalAlignment="Top">
+                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Close}" UIElement.Opacity="0.9"/>
+                        </Button>
+                    </Grid>
+                </Border>
+                <Border Grid.Row="1" Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
+            Padding="16,12">
+                    <Grid>
+                        <TextBox Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}" Height="32">
+                            <FrameworkElement.Style>
+                                <Style TargetType="{x:Type TextBox}">
+                                    <Setter Property="Background"
+                      Value="{DynamicResource {x:Static vsshell:VsBrushes.SearchBoxBackgroundKey}}"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
+                                    <Setter Property="BorderBrush"
+                      Value="{DynamicResource {x:Static vsshell:VsBrushes.SearchBoxBorderKey}}"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="{x:Type TextBox}">
+                                                <Border Background="{TemplateBinding Control.Background}"
+                            BorderBrush="{TemplateBinding Control.BorderBrush}" BorderThickness="1" CornerRadius="4">
+                                                    <Grid>
+                                                        <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Search}" Width="16"
+                                            Height="16" HorizontalAlignment="Left"
+                                            Margin="8,0,0,0" Opacity="0.6"/>
+                                                        <ScrollViewer x:Name="PART_ContentHost" Margin="32,6,8,6" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Search conversations..." Margin="32,6,8,6"
+                                   Foreground="{DynamicResource {x:Static vsshell:VsBrushes.GrayTextKey}}" VerticalAlignment="Center"
+                                   Visibility="{Binding Text.IsEmpty, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                                    </Grid>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </FrameworkElement.Style>
+                        </TextBox>
+                    </Grid>
+                </Border>
+                <ListBox Grid.Row="2"
+                         MouseDoubleClick="HistoryList_MouseDoubleClick"
+                         ItemsSource="{Binding Chats}"
+                         Background="Transparent" BorderThickness="0" Margin="0" Padding="16,8"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled" VirtualizingPanel.IsVirtualizing="true"
+                         VirtualizingPanel.VirtualizationMode="Recycling">
+                    <ItemsControl.ItemContainerStyle>
+                        <Style TargetType="{x:Type ListBoxItem}">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Margin" Value="0,4"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                                        <Border x:Name="Border" Background="Transparent" SnapsToDevicePixels="true">
+                                            <ContentPresenter/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="UIElement.IsMouseOver" Value="true">
+                                                <Setter TargetName="Border"
+                        Value="{DynamicResource {x:Static vsshell:VsBrushes.CommandBarMouseOverBackgroundGradientKey}}"
+                        Property="Border.Background"/>
+                                            </Trigger>
+                                            <Trigger Property="ListBoxItem.IsSelected" Value="true">
+                                                <Setter TargetName="Border" Value="{DynamicResource {x:Static vsshell:VsBrushes.CommandBarSelectedKey}}"
+                        Property="Border.Background"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ItemsControl.ItemContainerStyle>
+                              <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                  <Border x:Name="HistoryItemBorder"
+                                          Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
+                                          BorderThickness="1"
+                                          BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBorderKey}}" CornerRadius="4"
+                                          Margin="0,2" Padding="12,8">
+                                    <Grid>
+                                      <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                      </Grid.ColumnDefinitions>
+                                      <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                        <TextBlock TextTrimming="CharacterEllipsis" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}" Text="{Binding Name}"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                          <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Calendar}" Width="12"
+                                                              Height="12" Margin="0,0,4,0" Opacity="0.7"/>
+                                          <TextBlock Foreground="{DynamicResource {x:Static vsshell:VsBrushes.GrayTextKey}}" FontSize="11"
+                                                     VerticalAlignment="Center"
+                                                     Text="{Binding Date,TargetNullValue='–',StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"/>
+                                        </StackPanel>
+                                      </StackPanel>
+                                      <Button Grid.Column="1" ToolTip="Delete chat history" VerticalAlignment="Center">
+                                        <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.DeleteListItem}" Opacity="0.9"/>
+                                      </Button>
+                                    </Grid>
+                                  </Border>
+                                </DataTemplate>
+                              </ItemsControl.ItemTemplate>
+                </ListBox>
+                <Border Grid.Row="3" Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTabGradientKey}}"
+            BorderThickness="0,1,0,0"
+            BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBorderKey}}">
+                    <Grid Margin="16,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Command="{Binding PrevCmd}" Style="{StaticResource ToolbarButtonStyle}"
+                                Width="28" Height="28" Padding="6">
+                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Previous}" UIElement.Opacity="0.9"/>
+                        </Button>
+                        <TextBlock Text="{Binding TotalPages}" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"
+                   Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
+                        <Button Command="{Binding NextCmd}" Grid.Column="2"
+                                Style="{StaticResource ToolbarButtonStyle}" Width="28" Height="28" Padding="6">
+                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Next}" UIElement.Opacity="0.9"/>
+                        </Button>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
     </Grid>
 </UserControl>

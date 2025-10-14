@@ -1,20 +1,3 @@
-using Community.VisualStudio.Toolkit;
-using JeffPires.VisualChatGPTStudio.Agents;
-using JeffPires.VisualChatGPTStudio.Commands;
-using JeffPires.VisualChatGPTStudio.Options;
-using JeffPires.VisualChatGPTStudio.Utils;
-using JeffPires.VisualChatGPTStudio.Utils.API;
-using JeffPires.VisualChatGPTStudio.Utils.CodeCompletion;
-using JeffPires.VisualChatGPTStudio.Utils.Repositories;
-using Markdig;
-using Markdig.SyntaxHighlighting;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.Web.WebView2.Core;
-using Newtonsoft.Json;
-using OpenAI_API.Chat;
-using OpenAI_API.Functions;
-using OpenAI_API.ResponsesAPI.Models.Request;
-using OpenAI_API.ResponsesAPI.Models.Response;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -28,18 +11,37 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Community.VisualStudio.Toolkit;
+using JeffPires.VisualChatGPTStudio.Agents;
+using JeffPires.VisualChatGPTStudio.Commands;
+using JeffPires.VisualChatGPTStudio.Options;
+using JeffPires.VisualChatGPTStudio.Utils;
+using JeffPires.VisualChatGPTStudio.Utils.API;
+using JeffPires.VisualChatGPTStudio.Utils.CodeCompletion;
+using JeffPires.VisualChatGPTStudio.Utils.Repositories;
+using Markdig;
+using Markdig.SyntaxHighlighting;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.Web.WebView2.Core;
+using Microsoft.Web.WebView2.Wpf;
+using Newtonsoft.Json;
+using OpenAI_API.Chat;
+using OpenAI_API.Functions;
+using OpenAI_API.ResponsesAPI.Models.Request;
+using OpenAI_API.ResponsesAPI.Models.Response;
 using VisualChatGPTStudioShared.Agents.ApiAgent;
 using VisualChatGPTStudioShared.ToolWindows.Turbo;
 using Color = System.Windows.Media.Color;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 using MessageBox = System.Windows.MessageBox;
+using Task = System.Threading.Tasks.Task;
 
 namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 {
     /// <summary>
     /// Interaction logic for TerminalWindowTurboControl.
     /// </summary>
-    public partial class TerminalWindowTurboControl : UserControl
+    public partial class TerminalWindowTurboControl : UserControl, IDisposable
     {
         #region Constants
 
@@ -53,17 +55,16 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
         private OptionPageGridGeneral options;
         private Package package;
-        private readonly List<ChatUserControlsItem> chatUserControlsItems;
         private bool webView2Installed;
+        private TerminalTurboViewModel _viewModel = new();
+        private WebView2CompositionControl? _webView;
 
-
-        private List<MessageEntity> messagesForDatabase;
         private Conversation apiChat;
         private CancellationTokenSource cancellationTokenSource;
         private string chatId;
         private DocumentView docView;
         private bool shiftKeyPressed;
-        private bool selectedContextFilesCodeAppended = false;
+        private bool selectedContextFilesCodeAppended;
         private bool firstMessage = true;
         private CompletionManager completionManager;
         private byte[] attachedImage;
@@ -84,6 +85,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private string sqlIcon;
         private string imgIcon;
 
+        private bool _isConfigOpen;
         #endregion Properties
 
         #region Constructors
@@ -93,18 +95,15 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         public TerminalWindowTurboControl()
         {
-            this.InitializeComponent();
+            InitializeComponent();
 
-            ChatRepository.CreateDataBase();
+            Loaded += OnLoaded;
+            Unloaded += OnUnloaded;
 
-            chatUserControlsItems = [];
+            DataContext = _viewModel;
         }
 
         #endregion Constructors
-
-        #region Event Handlers
-
-        #endregion Event Handlers
 
         #region Methods
 
@@ -113,42 +112,28 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         /// <param name="options">The options.</param>
         /// <param name="package">The package.</param>
-        public void StartControl(OptionPageGridGeneral options, Package package)
+        public async void StartControl(OptionPageGridGeneral options, Package package)
         {
             this.options = options;
             this.package = package;
 
-            List<ChatEntity> chats = ChatRepository.GetChats();
+            if (!webView2Installed)
+            {
+                webView2Installed = await WebView2BootstrapperHelper.EnsureRuntimeAvailableAsync();
 
-            var messages = chats.FirstOrDefault()?.Messages ?? [];
-
-            messagesForDatabase = messages;
+                if (!webView2Installed)
+                {
+                    return;
+                }
+            }
 
             meIcon = GetImageBase64(IdentifierEnum.Me);
             chatGptIcon = GetImageBase64(IdentifierEnum.ChatGPT);
-            apiIcon = GetImageBase64(IdentifierEnum.Api);
-            copyIcon = GetImageBase64(IdentifierEnum.CopyIcon);
-            checkIcon = GetImageBase64(IdentifierEnum.CheckIcon);
-            sqlIcon = GetImageBase64(IdentifierEnum.SqlIcon);
-            imgIcon = GetImageBase64(IdentifierEnum.ImgIcon);
 
             txtRequest.MaxHeight = rowRequest.MaxHeight - 10;
             txtRequest.TextArea.TextEntering += txtRequest_TextEntering;
             txtRequest.TextArea.TextEntered += txtRequest_TextEntered;
-            txtRequest.PreviewKeyDown += (s, e) =>
-            {
-                if (options.UseEnter && e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control)
-                {
-                    var offset = txtRequest.CaretOffset;
-                    var newLine = Environment.NewLine;
-                    txtRequest.Document.Insert(offset, newLine);
-                    txtRequest.CaretOffset = offset + newLine.Length;
-                }
-                else
-                {
-                    AttachImage.TextEditor_PreviewKeyDown(s, e);
-                }
-            };
+            txtRequest.PreviewKeyDown += OnTxtRequestOnPreviewKeyDown;
 
             AttachImage.OnImagePaste += AttachImage_OnImagePaste;
 
@@ -160,7 +145,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             apiChat = ApiHandler.CreateConversation(options, options.TurboChatBehavior);
 
-            foreach (MessageEntity message in messages.OrderBy(m => m.Order))
+            foreach (var message in _viewModel.Messages.OrderBy(m => m.Order))
             {
                 firstMessage = false;
                 segments = new();
@@ -192,399 +177,85 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 }
             }
 
-            UpdateBrowser();
-
             sqlServerConnectionsAlreadyAdded = ChatRepository.GetSqlServerConnections(chatId);
             apiDefinitionsAlreadyAdded = ChatRepository.GetApiDefinitions(chatId);
         }
 
-        #endregion Methods
-
-        #region Event Handlers
-        protected override void OnPreviewKeyDown(KeyEventArgs e)
+        private void OnTxtRequestOnPreviewKeyDown(object s, KeyEventArgs e)
         {
-            // Global send request by "Enter" or "Ctrl+Enter"
-            if (e.Key == Key.Enter &&
-                (options.UseEnter && Keyboard.Modifiers == ModifierKeys.None || !options.UseEnter && Keyboard.Modifiers == ModifierKeys.Control))
+            if (e.Key == Key.Enter && !completionManager.IsShowed)
             {
-                _ = RequestAsync(RequestType.Request);
-                e.Handled = true;
+                if (options.UseEnter)
+                {
+                    switch (Keyboard.Modifiers)
+                    {
+                        case ModifierKeys.Control:
+                            // add new line
+                            txtRequest.AppendText(Environment.NewLine);
+                            e.Handled = true;
+                            break;
+                        case ModifierKeys.None:
+                            // send Request by Enter
+                            e.Handled = true;
+                            _ = RequestAsync(RequestType.Request);
+                            break;
+                    }
+                }
+                else if (Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    // send Request by Ctrl+Enter
+                    e.Handled = true;
+                    _ = RequestAsync(RequestType.Request);
+                }
             }
             else
             {
-                base.OnPreviewKeyDown(e);
+                AttachImage.TextEditor_PreviewKeyDown(s, e);
             }
         }
 
-        /// <summary>
-        /// Handles the text entered event for the request text box, 
-        /// passing the entered text to the CompletionManager for processing.
-        /// </summary>
-        /// <param name="sender">The source of the event, typically the text box.</param>
-        /// <param name="e">The event data containing the text that was entered.</param>
-        private async void txtRequest_TextEntered(object sender, TextCompositionEventArgs e)
+        private async void OnLoaded(object sender, RoutedEventArgs e)
         {
-            await completionManager.HandleTextEnteredAsync(e);
-        }
-
-        /// <summary>
-        /// Handles the text entering event for the request text box, delegating the processing to the CompletionManager.
-        /// </summary>
-        /// <param name="sender">The source of the event, typically the text box.</param>
-        /// <param name="e">The event data containing information about the text composition.</param>
-        private void txtRequest_TextEntering(object sender, TextCompositionEventArgs e)
-        {
-            completionManager.HandleTextEntering(e);
-        }
-
-        /// <summary>
-        /// Handles the click event of the btnComputerUse button. 
-        /// Captures a screenshot of the focused screen, sends a request asynchronously to the API with the captured image and user input.
-        /// </summary>
-        private async void btnComputerUse_Click(object sender, RoutedEventArgs e)
-        {
-            await ExecuteRequestWithCommonHandlingAsync(async () =>
+            if (!webView2Installed)
             {
-                if (!IsReadyToSendRequest())
+                webView2Installed = await WebView2BootstrapperHelper.EnsureRuntimeAvailableAsync();
+
+                if (!webView2Installed)
                 {
                     return;
                 }
-
-                EnableDisableButtons(false, true);
-
-                byte[] screenshot = ScreenCapturer.CaptureFocusedScreenScreenshot(out screenBounds);
-
-                string request = txtRequest.Text;
-
-                txtRequest.Text = string.Empty;
-
-                AddMessagesHtml(IdentifierEnum.Me, request);
-
-                UpdateBrowser();
-
-                messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.Me, Content = request }] });
-
-                cancellationTokenSource = new();
-
-                Task<ComputerUseResponse> task;
-
-                if (!string.IsNullOrWhiteSpace(previousResponseId))
-                {
-                    task = ApiHandler.GetComputerUseResponseAsync(options, request, screenBounds.Width, screenBounds.Height, previousResponseId, cancellationTokenSource.Token);
-                }
-                else
-                {
-                    task = ApiHandler.GetComputerUseResponseAsync(options, request, screenBounds.Width, screenBounds.Height, screenshot, cancellationTokenSource.Token);
-                }
-
-                await System.Threading.Tasks.Task.WhenAny(task, System.Threading.Tasks.Task.Delay(Timeout.Infinite, cancellationTokenSource.Token));
-
-                cancellationTokenSource.Token.ThrowIfCancellationRequested();
-
-                ComputerUseResponse response = await task;
-
-                await ProcessComputerUseResponseAsync(response);
-            });
-        }
-
-        /// <summary>
-        /// Handles the Click event of the btnRequestCode control.
-        /// </summary>
-        public async void SendCode(object sender, RoutedEventArgs e)
-        {
-            await RequestAsync(RequestType.Code);
-        }
-
-        /// <summary>
-        /// Handles the Click event of the btnRequestSend control.
-        /// </summary>
-        public async void SendRequest(object sender, RoutedEventArgs e)
-        {
-            await RequestAsync(RequestType.Request);
-        }
-
-        /// <summary>
-        /// Cancels the request.
-        /// </summary>
-        public async void CancelRequest(object sender, RoutedEventArgs e)
-        {
-            EnableDisableButtons(true);
-
-            cancellationTokenSource?.Cancel();
-        }
-
-        /// <summary>
-        /// Handles the click event of the button to attach an image. 
-        /// Opens a file dialog to select an image file, validates the file extension, 
-        /// and reads the selected image file into a byte array if valid.
-        /// </summary>
-        private void btnAttachImage_Click(object sender, RoutedEventArgs e)
-        {
-            if (AttachImage.ShowDialog(out attachedImage, out string imageName))
-            {
-                txtImage.Text = imageName;
-
-                spImage.Visibility = Visibility.Visible;
-            }
-        }
-
-        /// <summary>
-        /// Handles the click event for the delete image button. 
-        /// Hides the image display and the attach image button, 
-        /// and clears the attached image reference.
-        /// </summary>
-        private void btnDeleteImage_Click(object sender, RoutedEventArgs e)
-        {
-            spImage.Visibility = Visibility.Collapsed;
-
-            attachedImage = null;
-        }
-
-        /// <summary>
-        /// Handles the event when an image is pasted, attaching the image and updating the UI with the file name.
-        /// </summary>
-        /// <param name="attachedImage">The byte array representing the pasted image.</param>
-        /// <param name="fileName">The name of the pasted image file.</param>
-        private void AttachImage_OnImagePaste(byte[] attachedImage, string fileName)
-        {
-            this.attachedImage = attachedImage;
-
-            txtImage.Text = fileName;
-
-            spImage.Visibility = Visibility.Visible;
-        }
-
-        /// <summary>
-        /// Handles the PreviewMouseWheel event for a DataGrid to enable horizontal scrolling when the Shift key is pressed.
-        /// </summary>
-        private void DataGridResult_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
-            {
-                ScrollViewer scrollViewer = FindVisualChild<ScrollViewer>(sender as DataGrid);
-
-                if (scrollViewer != null)
-                {
-                    if (e.Delta > 0)
-                    {
-                        scrollViewer.LineLeft();
-                    }
-                    else
-                    {
-                        scrollViewer.LineRight();
-                    }
-
-                    e.Handled = true;
-                }
-            }
-        }
-
-        #endregion Event Handlers
-
-        #region SQL Event Handlers
-
-        /// <summary>
-        /// Handles the SQL button click event and populates the connection dropdown.
-        /// </summary>
-        private async void btnSql_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                sqlServerConnections = SqlServerAgent.GetConnections();
-
-                if (sqlServerConnections == null || sqlServerConnections.Count == 0)
-                {
-                    MessageBox.Show("No SQL Server connections were found. Please add connections first through the Server Explorer window.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                sqlServerConnections = sqlServerConnections.Where(c1 => !sqlServerConnectionsAlreadyAdded.Any(c2 => c2 == c1.ConnectionString)).ToList();
-
-                if (sqlServerConnections == null || sqlServerConnections.Count == 0)
-                {
-                    MessageBox.Show("All available connections have been added to the context.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Information);
-                    return;
-                }
-
-                cbConnection.ItemsSource = sqlServerConnections;
-
-                cbConnection.SelectedIndex = 0;
-
-                grdCommands.Visibility = Visibility.Collapsed;
-                grdSQL.Visibility = Visibility.Visible;
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-
-                MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);
-            }
-        }
-
-        /// <summary>
-        /// Handles the SQL send button click event. Retrieves the database schema, processes SQL functions, 
-        /// and sends a request asynchronously. Displays error messages and toggles UI visibility in case of exceptions.
-        /// </summary>
-        private async void btnSqlSend_Click(object sender, RoutedEventArgs e)
-        {
-            string dataBaseSchema;
-
-            try
-            {
-                dataBaseSchema = SqlServerAgent.GetDataBaseSchema(cbConnection.SelectedValue.ToString());
-            }
-            catch (Exception ex)
-            {
-                EnableDisableButtons(true);
-
-                grdSQL.Visibility = Visibility.Collapsed;
-                grdCommands.Visibility = Visibility.Visible;
-
-                Logger.Log(ex);
-
-                MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);
-
-                return;
             }
 
-            List<FunctionRequest> sqlFunctions = SqlServerAgent.GetSqlFunctions();
-
-            foreach (FunctionRequest function in sqlFunctions)
+            if (_webView != null)
             {
-                apiChat.AppendFunctionCall(function);
-                messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.FunctionCall, Content = JsonConvert.SerializeObject(function) }] });
+                WebViewHost.Content = null;
+                _webView.Dispose();
+                _webView = null;
             }
 
-            string request = options.SqlServerAgentCommand + Environment.NewLine + dataBaseSchema + Environment.NewLine;
+            _webView = new WebView2CompositionControl();
+            WebViewHost.Content = _webView;
 
-            SqlServerConnectionInfo connection = (SqlServerConnectionInfo)cbConnection.SelectedItem;
+            var env = await CoreWebView2Environment.CreateAsync(null,
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+            await _webView.EnsureCoreWebView2Async(env);
 
-            string requestToShowOnList = TAG_SQL + connection.Description + Environment.NewLine + Environment.NewLine + options.SqlServerAgentCommand;
-
-            messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.FunctionRequest, Content = request }] });
-
-            await RequestAsync(RequestType.Request, request, requestToShowOnList, false);
-
-            sqlServerConnectionsAlreadyAdded.Add(connection.ConnectionString);
-
-            ChatRepository.AddSqlServerConnection(chatId, connection.ConnectionString);
-
-            sqlServerConnections.Remove(connection);
-
-            cbConnection.ItemsSource = sqlServerConnections;
-
-            cbConnection.SelectedIndex = 0;
-
-            grdSQL.Visibility = Visibility.Collapsed;
-            grdCommands.Visibility = Visibility.Visible;
+            UpdateBrowser();
         }
 
-        /// <summary>
-        /// Handles the click event for the SQL Cancel button. Cancels the current request and toggles the visibility of the SQL and Commands grids.
-        /// </summary>
-        private async void btnSqlCancel_Click(object sender, RoutedEventArgs e)
+        private void OnUnloaded(object sender, RoutedEventArgs e)
         {
-            CancelRequest(sender, e);
-
-            grdSQL.Visibility = Visibility.Collapsed;
-            grdCommands.Visibility = Visibility.Visible;
+            WebViewHost.Content = null;
+            _webView?.Dispose();
+            _webView = null;
+            webView2Installed = false;
         }
 
-        #endregion SQL Event Handlers
-
-        #region API Event Handlers
-
-        /// <summary>
-        /// Handles the click event for the API button. Retrieves API definitions, filters out already added definitions, 
-        /// and updates the UI to display the remaining APIs. Displays appropriate messages if no APIs are found or all are already added.
-        /// </summary>
-        private async void btnAPI_Click(object sender, RoutedEventArgs e)
+        public void Dispose()
         {
-            try
-            {
-                apiDefinitions = ApiAgent.GetAPIsDefinitions();
-
-                if (apiDefinitions == null || apiDefinitions.Count == 0)
-                {
-                    MessageBox.Show("No API definitions were found. Please add API definitions first through the extension's options window.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                apiDefinitions = apiDefinitions.Where(c1 => !apiDefinitionsAlreadyAdded.Any(c2 => c2 == c1.Name)).ToList();
-
-                if (apiDefinitions == null || apiDefinitions.Count == 0)
-                {
-                    MessageBox.Show("All available APIs have been added to the context.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Information);
-                    return;
-                }
-
-                cbAPIs.ItemsSource = apiDefinitions;
-
-                cbAPIs.SelectedIndex = 0;
-
-                grdCommands.Visibility = Visibility.Collapsed;
-                grdAPI.Visibility = Visibility.Visible;
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-
-                MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);
-            }
+            OnUnloaded(this, new RoutedEventArgs());
         }
 
-        /// <summary>
-        /// Handles the click event for the API send button. Sends API function calls, updates the chat and message list, 
-        /// processes the selected API definition, and updates the UI accordingly.
-        /// </summary>
-        private async void btnApiSend_Click(object sender, RoutedEventArgs e)
-        {
-            List<FunctionRequest> apiFunctions = ApiAgent.GetApiFunctions();
-
-            foreach (FunctionRequest function in apiFunctions)
-            {
-                apiChat.AppendFunctionCall(function);
-                messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.FunctionCall, Content = JsonConvert.SerializeObject(function) }] });
-            }
-
-            ApiItem apiDefinition = (ApiItem)cbAPIs.SelectedItem;
-
-            string request = string.Concat(options.APIAgentCommand, Environment.NewLine, "API Name: ", apiDefinition.Name, Environment.NewLine, TextFormat.MinifyText(apiDefinition.Definition, string.Empty));
-
-            string requestToShowOnList = TAG_API + apiDefinition.Name + Environment.NewLine + Environment.NewLine + options.APIAgentCommand;
-
-            messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.FunctionRequest, Content = request }] });
-
-            await RequestAsync(RequestType.Request, request, requestToShowOnList, false);
-
-            apiDefinitionsAlreadyAdded.Add(apiDefinition.Name);
-
-            ChatRepository.AddApiDefinition(chatId, apiDefinition.Name);
-
-            apiDefinitions.Remove(apiDefinition);
-
-            cbAPIs.ItemsSource = apiDefinitions;
-
-            cbAPIs.SelectedIndex = 0;
-
-            grdAPI.Visibility = Visibility.Collapsed;
-            grdCommands.Visibility = Visibility.Visible;
-        }
-
-        /// <summary>
-        /// Handles the click event for the API cancel button. Cancels the current request and updates the UI by hiding the API grid and showing the commands grid.
-        /// </summary>
-        private async void btnApiCancel_Click(object sender, RoutedEventArgs e)
-        {
-            CancelRequest(sender, e);
-
-            grdAPI.Visibility = Visibility.Collapsed;
-            grdCommands.Visibility = Visibility.Visible;
-        }
-
-        #endregion API Event Handlers
-
-        #region Methods  
 
         /// <summary>
         /// Handles an asynchronous request based on the specified command type. Validates input, appends context or system messages, processes code or image-related requests, and sends the final request.
@@ -677,7 +348,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         }
 
         /// <summary>
-        /// Sends an asynchronous request based on the provided command type, processes the response, 
+        /// Sends an asynchronous request based on the provided command type, processes the response,
         /// and updates the UI elements accordingly. Handles exceptions and manages UI state during the operation.
         /// </summary>
         private async Task RequestAsync(RequestType commandType, string request, string requestToShowOnList, bool shiftKeyPressed)
@@ -694,12 +365,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 apiChat.AppendUserInput(request);
 
-                Application.Current.Dispatcher.Invoke(new Action(() =>
-                {
-                    EnableDisableButtons(false);
-                }));
+                Application.Current.Dispatcher.Invoke(() => { EnableDisableButtons(false); });
 
-                messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.Me, Content = requestToShowOnList }] });
+                _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.Me, Content = requestToShowOnList });
 
                 cancellationTokenSource = new();
 
@@ -716,20 +384,22 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 if (firstMessage)
                 {
-                    string request = "Please suggest a concise and relevant title for my first message based on its context, using up to three words and in the same language as my first message.";
+                    var request =
+                        "Please suggest a concise and relevant title for my first message based on its context, using up to three words and in the same language as my first message.";
 
                     await UpdateHeaderAsync(request, cancellationTokenSource);
                 }
                 else
                 {
-                    // parentControl.NotifyNewChatMessagesAdded(ChatHeader, messagesForDatabase);
+                    // _viewModel.SelectedChat.Name = ChatHeader;
+                    // ChatRepository.UpdateChat(_viewModel.SelectedChat);
                 }
             });
         }
 
         /// <summary>
-        /// Sends an asynchronous request and waits for the response or cancellation. 
-        /// If the operation is canceled, a cancellation exception is thrown. 
+        /// Sends an asynchronous request and waits for the response or cancellation.
+        /// If the operation is canceled, a cancellation exception is thrown.
         /// Returns a tuple containing a string and a list of FunctionResult objects upon successful completion.
         /// </summary>
         /// <returns>
@@ -739,7 +409,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             Task<(string, List<FunctionResult>)> task = apiChat.GetResponseContentAndFunctionAsync();
 
-            await System.Threading.Tasks.Task.WhenAny(task, System.Threading.Tasks.Task.Delay(Timeout.Infinite, cancellationTokenSource.Token));
+            await Task.WhenAny(task, Task.Delay(Timeout.Infinite, cancellationTokenSource.Token));
 
             cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
@@ -784,7 +454,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
         /// <summary>
         /// Asynchronously gets the code of the selected context items.
-        /// </summary>  
+        /// </summary>
         /// <returns>The code of the selected context items as a string.</returns>
         private static async Task<string> GetSelectedContextItemsCodeAsync()
         {
@@ -806,7 +476,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         /// <param name="request">The user's input request to be sent and processed.</param>
         /// <param name="cancellationToken">The cancellation token source to cancel the asynchronous operation if needed.</param>
-        private async System.Threading.Tasks.Task UpdateHeaderAsync(string request, CancellationTokenSource cancellationToken)
+        private async Task UpdateHeaderAsync(string request, CancellationTokenSource cancellationToken)
         {
             apiChat.AppendUserInput(request);
 
@@ -823,9 +493,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 chatName = string.Concat(words[0], " ", words[1]);
             }
 
-            // ChatHeader.UpdateChatName(chatName);
-
-            // parentControl.NotifyNewChatCreated(ChatHeader, chatName, messagesForDatabase);
+            // TODO update chat name in DB
+            _viewModel.UpdateChatHeader(chatName);
 
             firstMessage = false;
         }
@@ -837,23 +506,23 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             if (commandType == RequestType.Code && !shiftKeyPressed)
             {
-                List<ChatMessageSegment> segments = TextFormat.GetChatTurboResponseSegments(response);
+                var segments = TextFormat.GetChatTurboResponseSegments(response);
 
-                for (int i = 0; i < segments.Count; i++)
+                foreach (var t in segments)
                 {
-                    if (segments[i].Author == IdentifierEnum.ChatGPTCode)
+                    if (t.Author == IdentifierEnum.ChatGPTCode && docView?.TextView != null)
                     {
-                        docView.TextView.TextBuffer.Replace(new Microsoft.VisualStudio.Text.Span(0, docView.TextView.TextBuffer.CurrentSnapshot.Length), segments[i].Content);
+                        docView.TextView.TextBuffer.Replace(new Microsoft.VisualStudio.Text.Span(0, docView.TextView.TextBuffer.CurrentSnapshot.Length), t.Content);
                     }
                     else
                     {
-                        AddMessagesHtml(segments[i].Author, segments[i].Content);
+                        AddMessagesHtml(t.Author, t.Content);
                     }
                 }
             }
             else
             {
-                messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.ChatGPT, Content = response }] });
+                _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.ChatGPT, Content = response });
                 AddMessagesHtml(IdentifierEnum.ChatGPT, response);
             }
 
@@ -868,7 +537,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// <returns>
         /// A boolean indicating whether the response was successfully handled.
         /// </returns>
-        private async System.Threading.Tasks.Task<bool> HandleFunctionsCallsAsync(List<FunctionResult> functions, CancellationTokenSource cancellationToken)
+        private async Task<bool> HandleFunctionsCallsAsync(List<FunctionResult> functions, CancellationTokenSource cancellationToken)
         {
             string functionResult;
 
@@ -882,7 +551,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                     if (!string.IsNullOrWhiteSpace(apiResponse.Item2))
                     {
-                        messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.Api, Content = apiResponse.Item2 }] });
+                        _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.Api, Content = apiResponse.Item2 });
                         AddMessagesHtml(IdentifierEnum.Api, apiResponse.Item2);
                     }
                 }
@@ -1000,9 +669,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 {
                     var thinkBlock = $"<details><summary>Think</summary>{Markdown.ToHtml(thinkContent.Groups["content"].Value)}</details>";
                     htmlContent = $"""
-                                   {thinkBlock}
-                                   {Markdown.ToHtml(thinkContent.Groups["answer"].Value, markdownPipeline)}
-                                  """;
+                                    {thinkBlock}
+                                    {Markdown.ToHtml(thinkContent.Groups["answer"].Value, markdownPipeline)}
+                                   """;
                 }
             }
 
@@ -1013,13 +682,13 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             htmlContent = htmlContent.Replace("<script", "&lt;script").Replace("</script>", "&lt;/script&gt;");
 
-            string messageHtml = $@"
-                    <div style='position: relative; margin-bottom: 16px; padding-top: 20px;'>
-                        <img src='{authorIcon}' style='display: block; position: absolute; top: 0px; width: 40px; height: 40px;' />
-                        <div style='margin-left: 0; margin-top: 20px; border: 1.5px solid #888; border-radius: 12px; padding: 5px 5px 5px 5px; box-sizing: border-box;'>
-                            {htmlContent}
-                        </div>
-                    </div>";
+            var messageHtml = $@"
+                  <div style='position: relative; margin-bottom: 16px; padding-top: 20px;'>
+                      <img src='{authorIcon}' style='display: block; position: absolute; top: 0px; width: 40px; height: 40px;' />
+                      <div style='margin-left: 0; margin-top: 20px; border: 1.5px solid #888; border-radius: 12px; padding: 5px 5px 5px 5px; box-sizing: border-box;'>
+                          {htmlContent}
+                      </div>
+                  </div>";
 
             messagesHtml.AppendLine(messageHtml);
         }
@@ -1027,8 +696,13 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// <summary>
         /// Updates the embedded web browser control with dynamically generated HTML content.
         /// </summary>
-        private async void UpdateBrowser()
+        private void UpdateBrowser()
         {
+            if (!webView2Installed)
+            {
+                return;
+            }
+
             Color textColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.WindowTextKey]).Color;
             Color backgroundColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.WindowKey]).Color;
 
@@ -1043,153 +717,154 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             string cssCodeBackgroundColor = ToCssColor(codeBackgroundColor);
 
             string html = $@"
-                    <html>
-                    <head>
-                        <meta http-equiv='X-UA-Compatible' content='IE=edge' />
-                        <meta charset='UTF-8'>
-                        <style>
-                            body {{
-                                font-family: Segoe UI, Tahoma, Geneva, Verdana, sans-serif;
-                                margin: 10px;
-                                background-color: {cssBackgroundColor};
-                                color: {cssTextColor};
-                            }}
-                            p {{
-                                margin-top: 1px;
-                                margin-bottom: 1px;
-                            }}
-                            pre {{
-                                overflow-x: auto;
-                                white-space: pre;
-                                background: {cssCodeBackgroundColor};
-                                color: {cssTextColor};
-                                padding: 8px;
-                                font-family: Consolas, 'Courier New', monospace;
-                                font-size: 13px;
-                                margin: 6px 0;
-                            }}
-                            code {{
-                                font-family: Consolas, 'Courier New', monospace;
-                                font-size: 13px;
-                                color: {cssTextColor};
-                            }}
-                            .copy-btn {{
-                                position: absolute;
-                                right: 8px;
-                                top: 6px;
-                                width: 15px;
-                                height: 15px;
-                                background: none;
-                                border: none;
-                                padding: 0;
-                                cursor: pointer;
-                                outline: none;
-                            }}
-                            .copy-btn img {{
-                                width: 15px;
-                                height: 15px;
-                                display: block;
-                            }}
-                            summary {{
-                                cursor: pointer;
-                                user-select: none;
-                                margin - left: 8px;
-                                color: gray;
-                            }}
-                            details {{
-                                padding: 0 8px 8px 8px;
-                                margin: 8px;
-                                overflow: hidden;
-                                transition: height .3s ease;
-                                font-size: 14px;
-                                color: gray;
-                            }}
-                        </style>
-                        <script type='text/javascript'>
-                            var copyIcon = '{copyIcon}';
-                            var checkIcon = '{checkIcon}';
+                  <html>
+                  <head>
+                      <meta http-equiv='X-UA-Compatible' content='IE=edge' />
+                      <meta charset='UTF-8'>
+                      <style>
+                          body {{
+                              font-family: Segoe UI, Tahoma, Geneva, Verdana, sans-serif;
+                              margin: 10px;
+                              background-color: {cssBackgroundColor};
+                              color: {cssTextColor};
+                          }}
+                          p {{
+                              margin-top: 1px;
+                              margin-bottom: 1px;
+                          }}
+                          pre {{
+                              overflow-x: auto;
+                              white-space: pre;
+                              background: {cssCodeBackgroundColor};
+                              color: {cssTextColor};
+                              padding: 8px;
+                              font-family: Consolas, 'Courier New', monospace;
+                              font-size: 13px;
+                              margin: 6px 0;
+                          }}
+                          code {{
+                              font-family: Consolas, 'Courier New', monospace;
+                              font-size: 13px;
+                              color: {cssTextColor};
+                          }}
+                          .copy-btn {{
+                              position: absolute;
+                              right: 8px;
+                              top: 6px;
+                              width: 15px;
+                              height: 15px;
+                              background: none;
+                              border: none;
+                              padding: 0;
+                              cursor: pointer;
+                              outline: none;
+                          }}
+                          .copy-btn img {{
+                              width: 15px;
+                              height: 15px;
+                              display: block;
+                          }}
+                          summary {{
+                              cursor: pointer;
+                              user-select: none;
+                              margin - left: 8px;
+                              color: gray;
+                          }}
+                          details {{
+                              padding: 0 8px 8px 8px;
+                              margin: 8px;
+                              overflow: hidden;
+                              transition: height .3s ease;
+                              font-size: 14px;
+                              color: gray;
+                          }}
+                          details summary {{
+                              cursor: pointer;
+                              transition: margin 150ms ease-out;
+                          }}
+                          details[open] summary {{
+                              margin-bottom: 10px;
+                          }}
+                      </style>
+                      <script type='text/javascript'>
+                          var copyIcon = '{copyIcon}';
+                          var checkIcon = '{checkIcon}';
 
-                            window.onload = function() {{
-                                window.scrollTo(0, document.body.scrollHeight);
-                                
-                                document.body.focus();
+                          window.onload = function() {{
+                              window.scrollTo(0, document.body.scrollHeight);
 
-                                document.body.addEventListener('keydown', function(e) {{
-                                    var amount = 40;
-                                    switch (e.key) {{
-                                        case 'ArrowDown': window.scrollBy(0, amount); e.preventDefault(); break;
-                                        case 'ArrowUp': window.scrollBy(0, -amount); e.preventDefault(); break;
-                                        case 'PageDown': window.scrollBy(0, window.innerHeight - 40); e.preventDefault(); break;
-                                        case 'PageUp': window.scrollBy(0, -window.innerHeight + 40); e.preventDefault(); break;
-                                        case 'Home': window.scrollTo(0, 0); e.preventDefault(); break;
-                                        case 'End': window.scrollTo(0, document.body.scrollHeight); e.preventDefault(); break;
-                                    }}
-                                }});     
+                              document.body.focus();
 
-                                var pres = document.getElementsByTagName('pre');
+                              document.body.addEventListener('keydown', function(e) {{
+                                  var amount = 40;
+                                  switch (e.key) {{
+                                      case 'ArrowDown': window.scrollBy(0, amount); e.preventDefault(); break;
+                                      case 'ArrowUp': window.scrollBy(0, -amount); e.preventDefault(); break;
+                                      case 'PageDown': window.scrollBy(0, window.innerHeight - 40); e.preventDefault(); break;
+                                      case 'PageUp': window.scrollBy(0, -window.innerHeight + 40); e.preventDefault(); break;
+                                      case 'Home': window.scrollTo(0, 0); e.preventDefault(); break;
+                                      case 'End': window.scrollTo(0, document.body.scrollHeight); e.preventDefault(); break;
+                                  }}
+                              }});
 
-                                for (var i = 0; i < pres.length; i++) {{
-                                    var pre = pres[i];
-                                    
-                                    var btn = document.createElement('button');
-                                    btn.className = 'copy-btn';
-                                    btn.title = 'Copy';
+                              var pres = document.getElementsByTagName('pre');
 
-                                    var img = document.createElement('img');
-                                    img.src = copyIcon;
-                                    btn.appendChild(img);
+                              for (var i = 0; i < pres.length; i++) {{
+                                  var pre = pres[i];
 
-                                    var wrapper = document.createElement('div');
-                                    wrapper.style.position = 'relative';
+                                  var btn = document.createElement('button');
+                                  btn.className = 'copy-btn';
+                                  btn.title = 'Copy';
 
-                                    pre.parentNode.insertBefore(wrapper, pre);
-                                    wrapper.appendChild(pre);
+                                  var img = document.createElement('img');
+                                  img.src = copyIcon;
+                                  btn.appendChild(img);
 
-                                    wrapper.appendChild(btn);
+                                  var wrapper = document.createElement('div');
+                                  wrapper.style.position = 'relative';
 
-                                    btn.onclick = function() {{
-                                        var code = this.parentNode.getElementsByTagName('pre')[0].innerText;
-                                        
-                                        if (window.clipboardData && window.clipboardData.setData) {{
-                                            window.clipboardData.setData('Text', code);
-                                        }} else if (navigator.clipboard) {{
-                                            navigator.clipboard.writeText(code);
-                                        }} else {{
-                                            var textarea = document.createElement('textarea');
-                                            textarea.value = code;
-                                            document.body.appendChild(textarea);
-                                            textarea.select();
-                                            try {{ document.execCommand('copy'); }} catch(e) {{}}
-                                            document.body.removeChild(textarea);
-                                        }}
-                                        var img = this.getElementsByTagName('img')[0];
-                                        img.src = checkIcon;
-                                        var btn = this;
-                                        setTimeout(function() {{ img.src = copyIcon; }}, 1200);
-                                    }};
+                                  pre.parentNode.insertBefore(wrapper, pre);
+                                  wrapper.appendChild(pre);
 
-                                    pre.addEventListener('wheel', function(e) {{
-                                        if (e.shiftKey) {{
-                                            this.scrollLeft += (e.deltaY || e.detail || e.wheelDelta) > 0 ? 40 : -40;
-                                            e.preventDefault();
-                                        }}
-                                    }});
-                                }}
-                            }};
-                        </script>
-                    </head>
-                    <body tabindex=""0"">
-                        {messagesHtml}
-                    </body>
-                    </html>";
+                                  wrapper.appendChild(btn);
 
-            if (webBrowserChat.CoreWebView2 == null)
-            {
-                CoreWebView2Environment env = await CoreWebView2Environment.CreateAsync(null, Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
-                await webBrowserChat.EnsureCoreWebView2Async(env);
-            }
+                                  btn.onclick = function() {{
+                                      var code = this.parentNode.getElementsByTagName('pre')[0].innerText;
 
-            webBrowserChat.CoreWebView2.NavigateToString(html);
+                                      if (window.clipboardData && window.clipboardData.setData) {{
+                                          window.clipboardData.setData('Text', code);
+                                      }} else if (navigator.clipboard) {{
+                                          navigator.clipboard.writeText(code);
+                                      }} else {{
+                                          var textarea = document.createElement('textarea');
+                                          textarea.value = code;
+                                          document.body.appendChild(textarea);
+                                          textarea.select();
+                                          try {{ document.execCommand('copy'); }} catch(e) {{}}
+                                          document.body.removeChild(textarea);
+                                      }}
+                                      var img = this.getElementsByTagName('img')[0];
+                                      img.src = checkIcon;
+                                      var btn = this;
+                                      setTimeout(function() {{ img.src = copyIcon; }}, 1200);
+                                  }};
+
+                                  pre.addEventListener('wheel', function(e) {{
+                                      if (e.shiftKey) {{
+                                          this.scrollLeft += (e.deltaY || e.detail || e.wheelDelta) > 0 ? 40 : -40;
+                                          e.preventDefault();
+                                      }}
+                                  }});
+                              }}
+                          }};
+                      </script>
+                  </head>
+                  <body tabindex=""0"">
+                      {messagesHtml}
+                  </body>
+                  </html>";
+
+            _webView?.CoreWebView2.NavigateToString(html);
         }
 
         /// <summary>
@@ -1201,7 +876,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </returns>
         private string GetImageBase64(IdentifierEnum identifier)
         {
-            if (base64Images.TryGetValue(identifier, out string result))
+            if (base64Images.TryGetValue(identifier, out var result))
             {
                 return result;
             }
@@ -1220,11 +895,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             Uri uri = new(imageSource, UriKind.RelativeOrAbsolute);
 
-            System.Windows.Resources.StreamResourceInfo streamResourceInfo = Application.GetResourceStream(uri);
+            var streamResourceInfo = Application.GetResourceStream(uri);
 
             string image;
 
-            using (System.IO.Stream stream = streamResourceInfo.Stream)
+            using (var stream = streamResourceInfo.Stream)
             {
                 byte[] buffer = new byte[stream.Length];
                 stream.Read(buffer, 0, buffer.Length);
@@ -1242,7 +917,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         /// <param name="input">The input string containing text with special tags to highlight.</param>
         /// <returns>
-        /// A string where words starting with '/' are wrapped in a green bold span, and words starting with '@' 
+        /// A string where words starting with '/' are wrapped in a green bold span, and words starting with '@'
         /// are wrapped in a purple bold span, suitable for HTML rendering.
         /// </returns>
         private string HighlightSpecialTagsForHtml(string input)
@@ -1272,7 +947,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// Executes the specified asynchronous operation with common exception handling for requests.
         /// </summary>
         /// <param name="requestOperation">The asynchronous operation to execute.</param>
-        private async System.Threading.Tasks.Task ExecuteRequestWithCommonHandlingAsync(Func<System.Threading.Tasks.Task> requestOperation)
+        private async Task ExecuteRequestWithCommonHandlingAsync(Func<Task> requestOperation)
         {
             try
             {
@@ -1302,7 +977,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// <returns>
         /// A string representing the color in CSS hexadecimal format.
         /// </returns>
-        private static string ToCssColor(System.Windows.Media.Color color)
+        private static string ToCssColor(Color color)
         {
             return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
         }
@@ -1331,11 +1006,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 {
                     AddMessagesHtml(IdentifierEnum.ChatGPT, message.Text);
 
-                    messagesForDatabase.Add(new()
-                    {
-                        Order = messagesForDatabase.Count + 1,
-                        Segments = [new() { Author = IdentifierEnum.ChatGPT, Content = message.Text }]
-                    });
+                    _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.ChatGPT, Content = message.Text });
                 }
 
                 UpdateBrowser();
@@ -1348,7 +1019,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     // No more actions to perform
                     if (firstMessage)
                     {
-                        string request = $"Please suggest a concise and relevant title for the message \"{messagesForDatabase[0].Segments[0].Content}\", based on its context, using up to three words and in the same language as the message.";
+                        string request =
+                            $"Please suggest a concise and relevant title for the message \"{_viewModel.Messages[0].Segments[0].Content}\", based on its context, using up to three words and in the same language as the message.";
 
                         await UpdateHeaderAsync(request, cancellationTokenSource);
                     }
@@ -1380,6 +1052,440 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
         }
 
-        #endregion Methods   
+        #endregion Methods
+
+        #region Event Handlers
+
+        /// <summary>
+        /// Handles the text entered event for the request text box,
+        /// passing the entered text to the CompletionManager for processing.
+        /// </summary>
+        /// <param name="sender">The source of the event, typically the text box.</param>
+        /// <param name="e">The event data containing the text that was entered.</param>
+        private async void txtRequest_TextEntered(object sender, TextCompositionEventArgs e)
+        {
+            await completionManager.HandleTextEnteredAsync(e);
+        }
+
+        /// <summary>
+        /// Handles the text entering event for the request text box, delegating the processing to the CompletionManager.
+        /// </summary>
+        /// <param name="sender">The source of the event, typically the text box.</param>
+        /// <param name="e">The event data containing information about the text composition.</param>
+        private void txtRequest_TextEntering(object sender, TextCompositionEventArgs e)
+        {
+            completionManager.HandleTextEntering(e);
+        }
+
+        /// <summary>
+        /// Handles the click event of the btnComputerUse button.
+        /// Captures a screenshot of the focused screen, sends a request asynchronously to the API with the captured image and user input.
+        /// </summary>
+        private async void btnComputerUse_Click(object sender, RoutedEventArgs e)
+        {
+            await ExecuteRequestWithCommonHandlingAsync(async () =>
+            {
+                if (!IsReadyToSendRequest())
+                {
+                    return;
+                }
+
+                EnableDisableButtons(false, true);
+
+                byte[] screenshot = ScreenCapturer.CaptureFocusedScreenScreenshot(out screenBounds);
+
+                string request = txtRequest.Text;
+
+                txtRequest.Text = string.Empty;
+
+                AddMessagesHtml(IdentifierEnum.Me, request);
+
+                UpdateBrowser();
+
+                _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.Me, Content = request });
+
+                cancellationTokenSource = new();
+
+                Task<ComputerUseResponse> task;
+
+                if (!string.IsNullOrWhiteSpace(previousResponseId))
+                {
+                    task = ApiHandler.GetComputerUseResponseAsync(options, request, screenBounds.Width, screenBounds.Height, previousResponseId, cancellationTokenSource.Token);
+                }
+                else
+                {
+                    task = ApiHandler.GetComputerUseResponseAsync(options, request, screenBounds.Width, screenBounds.Height, screenshot, cancellationTokenSource.Token);
+                }
+
+                await Task.WhenAny(task, Task.Delay(Timeout.Infinite, cancellationTokenSource.Token));
+
+                cancellationTokenSource.Token.ThrowIfCancellationRequested();
+
+                ComputerUseResponse response = await task;
+
+                await ProcessComputerUseResponseAsync(response);
+            });
+        }
+
+        /// <summary>
+        /// Handles the Click event of the btnRequestCode control.
+        /// </summary>
+        public async void SendCode(object sender, RoutedEventArgs e)
+        {
+            await RequestAsync(RequestType.Code);
+        }
+
+        /// <summary>
+        /// Handles the Click event of the btnRequestSend control.
+        /// </summary>
+        public async void SendRequest(object sender, RoutedEventArgs e)
+        {
+            await RequestAsync(RequestType.Request);
+        }
+
+        /// <summary>
+        /// Cancels the request.
+        /// </summary>
+        public void CancelRequest(object sender, RoutedEventArgs e)
+        {
+            EnableDisableButtons(true);
+
+            cancellationTokenSource?.Cancel();
+        }
+
+        /// <summary>
+        /// Handles the click event of the button to attach an image.
+        /// Opens a file dialog to select an image file, validates the file extension,
+        /// and reads the selected image file into a byte array if valid.
+        /// </summary>
+        private void btnAttachImage_Click(object sender, RoutedEventArgs e)
+        {
+            if (AttachImage.ShowDialog(out attachedImage, out string imageName))
+            {
+                txtImage.Text = imageName;
+
+                spImage.Visibility = Visibility.Visible;
+            }
+        }
+
+        /// <summary>
+        /// Handles the click event for the delete image button.
+        /// Hides the image display and the attach image button,
+        /// and clears the attached image reference.
+        /// </summary>
+        private void btnDeleteImage_Click(object sender, RoutedEventArgs e)
+        {
+            spImage.Visibility = Visibility.Collapsed;
+
+            attachedImage = null;
+        }
+
+        /// <summary>
+        /// Handles the event when an image is pasted, attaching the image and updating the UI with the file name.
+        /// </summary>
+        /// <param name="attachedImage">The byte array representing the pasted image.</param>
+        /// <param name="fileName">The name of the pasted image file.</param>
+        private void AttachImage_OnImagePaste(byte[] attachedImage, string fileName)
+        {
+            this.attachedImage = attachedImage;
+
+            txtImage.Text = fileName;
+
+            spImage.Visibility = Visibility.Visible;
+        }
+
+        /// <summary>
+        /// Handles the PreviewMouseWheel event for a DataGrid to enable horizontal scrolling when the Shift key is pressed.
+        /// </summary>
+        private void DataGridResult_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+            {
+                ScrollViewer scrollViewer = FindVisualChild<ScrollViewer>(sender as DataGrid);
+
+                if (scrollViewer != null)
+                {
+                    if (e.Delta > 0)
+                    {
+                        scrollViewer.LineLeft();
+                    }
+                    else
+                    {
+                        scrollViewer.LineRight();
+                    }
+
+                    e.Handled = true;
+                }
+            }
+        }
+
+        #endregion Event Handlers
+
+        #region SQL Event Handlers
+
+        /// <summary>
+        /// Handles the SQL button click event and populates the connection dropdown.
+        /// </summary>
+        private void btnSql_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                sqlServerConnections = SqlServerAgent.GetConnections();
+
+                if (sqlServerConnections == null || sqlServerConnections.Count == 0)
+                {
+                    MessageBox.Show("No SQL Server connections were found. Please add connections first through the Server Explorer window.", Constants.EXTENSION_NAME,
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                sqlServerConnections = sqlServerConnections.Where(c1 => !sqlServerConnectionsAlreadyAdded.Any(c2 => c2 == c1.ConnectionString)).ToList();
+
+                if (sqlServerConnections == null || sqlServerConnections.Count == 0)
+                {
+                    MessageBox.Show("All available connections have been added to the context.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                cbConnection.ItemsSource = sqlServerConnections;
+
+                cbConnection.SelectedIndex = 0;
+
+                grdCommands.Visibility = Visibility.Collapsed;
+                grdSQL.Visibility = Visibility.Visible;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+
+                MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);
+            }
+        }
+
+        /// <summary>
+        /// Handles the SQL send button click event. Retrieves the database schema, processes SQL functions,
+        /// and sends a request asynchronously. Displays error messages and toggles UI visibility in case of exceptions.
+        /// </summary>
+        private async void btnSqlSend_Click(object sender, RoutedEventArgs e)
+        {
+            string dataBaseSchema;
+
+            try
+            {
+                dataBaseSchema = SqlServerAgent.GetDataBaseSchema(cbConnection.SelectedValue.ToString());
+            }
+            catch (Exception ex)
+            {
+                EnableDisableButtons(true);
+
+                grdSQL.Visibility = Visibility.Collapsed;
+                grdCommands.Visibility = Visibility.Visible;
+
+                Logger.Log(ex);
+
+                MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);
+
+                return;
+            }
+
+            List<FunctionRequest> sqlFunctions = SqlServerAgent.GetSqlFunctions();
+
+            foreach (FunctionRequest function in sqlFunctions)
+            {
+                apiChat.AppendFunctionCall(function);
+                _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.FunctionCall, Content = JsonConvert.SerializeObject(function) });
+            }
+
+            string request = options.SqlServerAgentCommand + Environment.NewLine + dataBaseSchema + Environment.NewLine;
+
+            SqlServerConnectionInfo connection = (SqlServerConnectionInfo)cbConnection.SelectedItem;
+
+            string requestToShowOnList = TAG_SQL + connection.Description + Environment.NewLine + Environment.NewLine + options.SqlServerAgentCommand;
+
+            _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.FunctionRequest, Content = request });
+
+            await RequestAsync(RequestType.Request, request, requestToShowOnList, false);
+
+            sqlServerConnectionsAlreadyAdded.Add(connection.ConnectionString);
+
+            ChatRepository.AddSqlServerConnection(chatId, connection.ConnectionString);
+
+            sqlServerConnections.Remove(connection);
+
+            cbConnection.ItemsSource = sqlServerConnections;
+
+            cbConnection.SelectedIndex = 0;
+
+            grdSQL.Visibility = Visibility.Collapsed;
+            grdCommands.Visibility = Visibility.Visible;
+        }
+
+        /// <summary>
+        /// Handles the click event for the SQL Cancel button. Cancels the current request and toggles the visibility of the SQL and Commands grids.
+        /// </summary>
+        private void btnSqlCancel_Click(object sender, RoutedEventArgs e)
+        {
+            CancelRequest(sender, e);
+
+            grdSQL.Visibility = Visibility.Collapsed;
+            grdCommands.Visibility = Visibility.Visible;
+        }
+
+        #endregion SQL Event Handlers
+
+        #region API Event Handlers
+
+        /// <summary>
+        /// Handles the click event for the API button. Retrieves API definitions, filters out already added definitions,
+        /// and updates the UI to display the remaining APIs. Displays appropriate messages if no APIs are found or all are already added.
+        /// </summary>
+        private void btnAPI_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                apiDefinitions = ApiAgent.GetAPIsDefinitions();
+
+                if (apiDefinitions == null || apiDefinitions.Count == 0)
+                {
+                    MessageBox.Show("No API definitions were found. Please add API definitions first through the extension's options window.", Constants.EXTENSION_NAME,
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                apiDefinitions = apiDefinitions.Where(c1 => !apiDefinitionsAlreadyAdded.Any(c2 => c2 == c1.Name)).ToList();
+
+                if (apiDefinitions == null || apiDefinitions.Count == 0)
+                {
+                    MessageBox.Show("All available APIs have been added to the context.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                cbAPIs.ItemsSource = apiDefinitions;
+
+                cbAPIs.SelectedIndex = 0;
+
+                grdCommands.Visibility = Visibility.Collapsed;
+                grdAPI.Visibility = Visibility.Visible;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+
+                MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);
+            }
+        }
+
+        /// <summary>
+        /// Handles the click event for the API send button. Sends API function calls, updates the chat and message list,
+        /// processes the selected API definition, and updates the UI accordingly.
+        /// </summary>
+        private async void btnApiSend_Click(object sender, RoutedEventArgs e)
+        {
+            List<FunctionRequest> apiFunctions = ApiAgent.GetApiFunctions();
+
+            foreach (FunctionRequest function in apiFunctions)
+            {
+                apiChat.AppendFunctionCall(function);
+                _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.FunctionCall, Content = JsonConvert.SerializeObject(function) });
+            }
+
+            ApiItem apiDefinition = (ApiItem)cbAPIs.SelectedItem;
+
+            string request = string.Concat(options.APIAgentCommand, Environment.NewLine, "API Name: ", apiDefinition.Name, Environment.NewLine,
+                TextFormat.MinifyText(apiDefinition.Definition, string.Empty));
+
+            string requestToShowOnList = TAG_API + apiDefinition.Name + Environment.NewLine + Environment.NewLine + options.APIAgentCommand;
+
+            _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.FunctionRequest, Content = request });
+
+            await RequestAsync(RequestType.Request, request, requestToShowOnList, false);
+
+            apiDefinitionsAlreadyAdded.Add(apiDefinition.Name);
+
+            ChatRepository.AddApiDefinition(chatId, apiDefinition.Name);
+
+            apiDefinitions.Remove(apiDefinition);
+
+            cbAPIs.ItemsSource = apiDefinitions;
+
+            cbAPIs.SelectedIndex = 0;
+
+            grdAPI.Visibility = Visibility.Collapsed;
+            grdCommands.Visibility = Visibility.Visible;
+        }
+
+        /// <summary>
+        /// Handles the click event for the API cancel button. Cancels the current request and updates the UI by hiding the API grid and showing the commands grid.
+        /// </summary>
+        private void btnApiCancel_Click(object sender, RoutedEventArgs e)
+        {
+            CancelRequest(sender, e);
+
+            grdAPI.Visibility = Visibility.Collapsed;
+            grdCommands.Visibility = Visibility.Visible;
+        }
+
+        #endregion API Event Handlers
+
+        private void NewChat_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.CreateNewChat();
+        }
+
+        private void ToggleHistory_Click(object sender, RoutedEventArgs e)
+        {
+            if (HistorySidebar.Visibility == Visibility.Visible)
+            {
+                CloseHistory();
+                return;
+            }
+
+            OpenHistory();
+        }
+
+        private void OpenHistory()
+        {
+            HistorySidebar.Visibility = Visibility.Visible;
+            Overlay.Visibility = Visibility.Visible;
+        }
+
+        private void CloseHistory()
+        {
+            HistorySidebar.Visibility = Visibility.Collapsed;
+            Overlay.Visibility = Visibility.Collapsed;
+        }
+
+        private void HistoryList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (_viewModel != null && sender is ListBox listBox)
+            {
+                if (listBox.SelectedItem is ChatEntity selectedItem)
+                {
+                    try
+                    {
+                        CloseHistory();
+                        _viewModel.LoadChat(selectedItem.Id);
+
+                        // await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(default(CancellationToken));
+                        // if (this.ChatHistory.Items.Count > 0)
+                        // {
+                        //     this.ChatHistory.ScrollIntoView(this.ChatHistory.Items[this.ChatHistory.Items.Count - 1]);
+                        // }
+                        // if (selectedItem.Config != null)
+                        // {
+                        //     this.LoadConfig(selectedItem.Config);
+                        // }
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+            }
+        }
+
+        private void CloseHistoryButton_Click(object sender, RoutedEventArgs e)
+        {
+            CloseHistory();
+        }
     }
 }

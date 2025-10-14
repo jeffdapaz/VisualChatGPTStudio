@@ -19,6 +19,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using TextEditor = ICSharpCode.AvalonEdit.TextEditor;
+using Task = System.Threading.Tasks.Task;
 
 namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
 {
@@ -47,6 +48,8 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
                 return ((VisuallChatGPTStudioPackage)package).OptionsCommands;
             }
         }
+
+        public bool IsShowed => completionWindowForCommands?.IsVisible == true || completionWindowForFiles?.IsVisible == true;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CompletionManager"/> class.
@@ -130,7 +133,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
 
         /// <summary>
         /// Handles the TextEntering event for the txtRequest control.
-        /// Inserts the currently selected completion item if a non-letter or non-digit character is typed 
+        /// Inserts the currently selected completion item if a non-letter or non-digit character is typed
         /// while the completion window is open.
         /// </summary>
         /// <param name="e">The event arguments containing the text composition information.</param>
@@ -258,12 +261,12 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
         }
 
         /// <summary>
-        /// Replaces placeholders in the request string with the corresponding file contents or method definitions 
-        /// based on the completion data available. It searches for placeholders prefixed with '@' and replaces 
+        /// Replaces placeholders in the request string with the corresponding file contents or method definitions
+        /// based on the completion data available. It searches for placeholders prefixed with '@' and replaces
         /// them with the actual content retrieved from the specified file or method.
         /// </summary>
         /// <param name="request">The input string containing placeholders to be replaced.</param>
-        /// <returns>A task that represents the asynchronous operation, containing the modified request string 
+        /// <returns>A task that represents the asynchronous operation, containing the modified request string
         /// with placeholders replaced by their corresponding content.</returns>
         private async Task<string> ReplaceFilesAndMethodsAsync(string request)
         {
@@ -306,7 +309,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
         }
 
         /// <summary>
-        /// Displays a completion window for available commands in the editor, populating it with various command options 
+        /// Displays a completion window for available commands in the editor, populating it with various command options
         /// such as "Complete", "Add Tests", "Find Bugs", and others, each associated with an icon and retrieved asynchronously.
         /// </summary>
         private void ShowCommands()
@@ -357,8 +360,8 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
 
         /// <summary>
         /// Asynchronously populates a list of completion data for project items in a solution.
-        /// This method iterates through the provided project items, checking their types and 
-        /// adding valid files to the completion data list. It also recursively processes folders 
+        /// This method iterates through the provided project items, checking their types and
+        /// adding valid files to the completion data list. It also recursively processes folders
         /// and sub-projects to gather all relevant items.
         /// </summary>
         /// <param name="items">The project items to populate from.</param>

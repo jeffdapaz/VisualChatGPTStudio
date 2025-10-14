@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.Shell;
 using System.Runtime.InteropServices;
+using JeffPires.VisualChatGPTStudio.Utils.Repositories;
 
 namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 {
@@ -23,6 +24,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         public TerminalWindowTurbo() : base(null)
         {
             this.Caption = "Visual chatGPT Studio Turbo";
+
+            ChatRepository.CreateDataBase();
 
             // This is the user control hosted by the tool window; Note that, even if this class implements IDisposable,
             // we are not calling Dispose on this object. This is because ToolWindowPane calls Dispose on

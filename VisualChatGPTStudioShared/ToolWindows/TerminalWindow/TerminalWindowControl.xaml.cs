@@ -8,7 +8,6 @@ using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -18,6 +17,7 @@ using Clipboard = System.Windows.Clipboard;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 using MessageBox = System.Windows.MessageBox;
 using UserControl = System.Windows.Controls.UserControl;
+using Task = System.Threading.Tasks.Task;
 
 namespace JeffPires.VisualChatGPTStudio.ToolWindows
 {
@@ -49,7 +49,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
             //It is necessary for the MdXaml library load successfully
             MdXaml.MarkdownScrollViewer _ = new();
 
-            this.InitializeComponent();
+            InitializeComponent();
 
             txtRequest.TextArea.TextEntering += txtRequest_TextEntering;
             txtRequest.TextArea.TextEntered += txtRequest_TextEntered;
@@ -90,7 +90,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         }
 
         /// <summary>
-        /// Handles the KeyDown event for the btnRequestSend control. 
+        /// Handles the KeyDown event for the btnRequestSend control.
         /// If the Enter key is pressed, it marks the event as handled and triggers the SendRequest method.
         /// </summary>
         public async void SendRequest(object sender, RoutedEventArgs e)
@@ -99,7 +99,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         }
 
         /// <summary>
-        /// Handles the text entered event for the request text box, 
+        /// Handles the text entered event for the request text box,
         /// passing the entered text to the CompletionManager for processing.
         /// </summary>
         /// <param name="sender">The source of the event, typically the text box.</param>
@@ -211,8 +211,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         }
 
         /// <summary>
-        /// Handles the click event of the button to attach an image. 
-        /// Opens a file dialog to select an image file, validates the file extension, 
+        /// Handles the click event of the button to attach an image.
+        /// Opens a file dialog to select an image file, validates the file extension,
         /// and reads the selected image file into a byte array if valid.
         /// </summary>
         private async void btnAttachImage_Click(object sender, RoutedEventArgs e)
@@ -225,7 +225,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         }
 
         /// <summary>
-        /// Handles the KeyDown event for the btnAttachImage control. 
+        /// Handles the KeyDown event for the btnAttachImage control.
         /// If the Enter key is pressed, marks the event as handled and triggers the btnAttachImage_Click event handler again.
         /// </summary>
         private void btnAttachImage_KeyDown(object sender, KeyEventArgs e)
@@ -239,7 +239,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         }
 
         /// <summary>
-        /// Handles the click event for the delete image button. 
+        /// Handles the click event for the delete image button.
         /// Collapses the image grid and clears the attached image reference.
         /// </summary>
         private async void btnDeleteImage_Click(object sender, RoutedEventArgs e)
@@ -327,7 +327,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         }
 
         /// <summary>
-        /// Handles the KeyDown event for the cancel button. 
+        /// Handles the KeyDown event for the cancel button.
         /// If the Enter key is pressed, marks the event as handled and triggers the CancelRequest command.
         /// </summary>
         private void btnCancel_KeyDown(object sender, KeyEventArgs e)
@@ -355,7 +355,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         }
 
         /// <summary>
-        /// Handles the KeyDown event for the btnRequestPast control. 
+        /// Handles the KeyDown event for the btnRequestPast control.
         /// If the Enter key is pressed, it marks the event as handled and triggers the btnRequestPast_Click event handler.
         /// </summary>
         private void btnRequestPast_KeyDown(object sender, KeyEventArgs e)
@@ -383,7 +383,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         }
 
         /// <summary>
-        /// Handles the KeyDown event for the btnRequestClear control. 
+        /// Handles the KeyDown event for the btnRequestClear control.
         /// If the Enter key is pressed, marks the event as handled and triggers the btnRequestClear_Click event handler.
         /// </summary>
         private void btnRequestClear_KeyDown(object sender, KeyEventArgs e)
@@ -407,7 +407,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
         }
 
         /// <summary>
-        /// Handles the KeyDown event for the btnResponseCopy control. 
+        /// Handles the KeyDown event for the btnResponseCopy control.
         /// If the Enter key is pressed, it marks the event as handled and triggers the btnResponseCopy_Click event handler.
         /// </summary>
         private void btnResponseCopy_KeyDown(object sender, KeyEventArgs e)
@@ -594,6 +594,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
             return foundChildren;
         }
-        #endregion Methods        
+        #endregion Methods
     }
 }

@@ -19,8 +19,6 @@ using JeffPires.VisualChatGPTStudio.Utils;
 using JeffPires.VisualChatGPTStudio.Utils.API;
 using JeffPires.VisualChatGPTStudio.Utils.CodeCompletion;
 using JeffPires.VisualChatGPTStudio.Utils.Repositories;
-using Markdig;
-using Markdig.SyntaxHighlighting;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
@@ -61,7 +59,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
         private Conversation apiChat;
         private CancellationTokenSource cancellationTokenSource;
-        private string chatId;
         private DocumentView docView;
         private bool shiftKeyPressed;
         private bool selectedContextFilesCodeAppended;
@@ -72,8 +69,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private List<ApiItem> apiDefinitions;
         private List<string> sqlServerConnectionsAlreadyAdded = [];
         private List<string> apiDefinitionsAlreadyAdded = [];
-        private MarkdownPipeline markdownPipeline;
-        private StringBuilder messagesHtml = new();
         private Dictionary<IdentifierEnum, string> base64Images = [];
         private Rectangle screenBounds;
         private string previousResponseId;
@@ -138,16 +133,56 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             AttachImage.OnImagePaste += AttachImage_OnImagePaste;
 
             completionManager = new CompletionManager(package, txtRequest);
-            markdownPipeline = new MarkdownPipelineBuilder()
-                .UseAdvancedExtensions()
-                .DisableHtml()
-                .UseSyntaxHighlighting()
-                .Build();
-
-            sqlServerConnectionsAlreadyAdded = ChatRepository.GetSqlServerConnections(chatId);
-            apiDefinitionsAlreadyAdded = ChatRepository.GetApiDefinitions(chatId);
 
             UpdateBrowser();
+        }
+
+        private async void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            if (!webView2Installed)
+            {
+                webView2Installed = await WebView2BootstrapperHelper.EnsureRuntimeAvailableAsync();
+
+                if (!webView2Installed)
+                {
+                    return;
+                }
+            }
+
+            if (_webView != null)
+            {
+                WebViewHost.Content = null;
+                _webView.Dispose();
+                _webView = null;
+            }
+
+            _webView = new WebView2CompositionControl();
+            WebViewHost.Content = _webView;
+
+            var env = await CoreWebView2Environment.CreateAsync(null,
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+            await _webView.EnsureCoreWebView2Async(env);
+
+            apiChat = ApiHandler.CreateConversation(options, options.TurboChatBehavior);
+            AddMessagesFromModel();
+
+            sqlServerConnectionsAlreadyAdded = ChatRepository.GetSqlServerConnections(_viewModel.ChatId);
+            apiDefinitionsAlreadyAdded = ChatRepository.GetApiDefinitions(_viewModel.ChatId);
+
+            UpdateBrowser();
+        }
+
+        private void OnUnloaded(object sender, RoutedEventArgs e)
+        {
+            WebViewHost.Content = null;
+            _webView?.Dispose();
+            _webView = null;
+            webView2Installed = false;
+        }
+
+        public void Dispose()
+        {
+            OnUnloaded(this, new RoutedEventArgs());
         }
 
         private void AddMessagesFromModel()
@@ -216,52 +251,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
         }
 
-        private async void OnLoaded(object sender, RoutedEventArgs e)
-        {
-            if (!webView2Installed)
-            {
-                webView2Installed = await WebView2BootstrapperHelper.EnsureRuntimeAvailableAsync();
-
-                if (!webView2Installed)
-                {
-                    return;
-                }
-            }
-
-            if (_webView != null)
-            {
-                WebViewHost.Content = null;
-                _webView.Dispose();
-                _webView = null;
-            }
-
-            _webView = new WebView2CompositionControl();
-            WebViewHost.Content = _webView;
-
-            var env = await CoreWebView2Environment.CreateAsync(null,
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
-            await _webView.EnsureCoreWebView2Async(env);
-
-            apiChat = ApiHandler.CreateConversation(options, options.TurboChatBehavior);
-            AddMessagesFromModel();
-
-            UpdateBrowser();
-        }
-
-        private void OnUnloaded(object sender, RoutedEventArgs e)
-        {
-            WebViewHost.Content = null;
-            _webView?.Dispose();
-            _webView = null;
-            webView2Installed = false;
-        }
-
-        public void Dispose()
-        {
-            OnUnloaded(this, new RoutedEventArgs());
-        }
-
-
         /// <summary>
         /// Handles an asynchronous request based on the specified command type. Validates input, appends context or system messages, processes code or image-related requests, and sends the final request.
         /// </summary>
@@ -276,7 +265,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             if (!selectedContextFilesCodeAppended)
             {
-                string selectedContextFilesCode = await GetSelectedContextItemsCodeAsync();
+                var selectedContextFilesCode = await GetSelectedContextItemsCodeAsync();
 
                 if (!string.IsNullOrWhiteSpace(selectedContextFilesCode))
                 {
@@ -289,7 +278,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             {
                 docView = await VS.Documents.GetActiveDocumentViewAsync();
 
-                string originalCode = docView?.TextView?.TextBuffer?.CurrentSnapshot.GetText();
+                var originalCode = docView?.TextView?.TextBuffer?.CurrentSnapshot.GetText();
 
                 if (originalCode == null)
                 {
@@ -307,7 +296,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 apiChat.AppendUserInput(originalCode);
             }
 
-            string requestToShowOnList = txtRequest.Text;
+            var requestToShowOnList = txtRequest.Text;
 
             if (attachedImage != null)
             {
@@ -318,7 +307,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 apiChat.AppendUserInput(chatContent);
             }
 
-            string request = await completionManager.ReplaceReferencesAsync(txtRequest.Text);
+            var request = await completionManager.ReplaceReferencesAsync(txtRequest.Text);
 
             txtRequest.Text = string.Empty;
 
@@ -362,8 +351,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             {
                 AddMessagesHtml(IdentifierEnum.Me, requestToShowOnList);
 
-                UpdateBrowser();
-
                 request = options.MinifyRequests ? TextFormat.MinifyText(request, " ") : request;
 
                 request = TextFormat.RemoveCharactersFromText(request, options.CharactersToRemoveFromRequests.Split(','));
@@ -373,18 +360,19 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 Application.Current.Dispatcher.Invoke(() => { EnableDisableButtons(false); });
 
                 _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.Me, Content = requestToShowOnList });
-                HandleResponseChunk("");
 
                 cancellationTokenSource = new();
 
                 var stream = true;
                 if (stream)
                 {
-                    _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.ChatGPT });
-                    var chatResponces = apiChat.StreamResponseEnumerableFromChatbotAsync();
-                    await foreach (var fragment in chatResponces)
+                    var gptMessage = _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.ChatGPT });
+                    var chatResponses = apiChat.StreamResponseEnumerableFromChatbotAsync();
+                    await foreach (var fragment in chatResponses)
                     {
-                        HandleResponseChunk(fragment);
+                        var seg = gptMessage.Segments.First();
+                        seg.Content += fragment;
+                        await _webView?.ExecuteScriptAsync($"updateLastGpt(`{JsString(seg.Content)}`);")!;
                     }
                 }
                 else
@@ -415,36 +403,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             });
         }
 
-        /// <summary>
-        /// Handles the response chunk based on the last saved message
-        /// </summary>
-        // private void HandleResponseChunk(string response)
-        // {
-        //     var lastSegment = _viewModel.Messages.Last().Segments.First();
-        //     if (lastSegment.Author != IdentifierEnum.ChatGPT)
-        //     {
-        //         HandleResponse(RequestType.Request, false, response);
-        //         return;
-        //     }
-        //     lastSegment.Content += response;
-        //
-        //     messagesHtml.Remove(0, messagesHtml.Length);
-        //     foreach (var item in _viewModel.Messages)
-        //     {
-        //         var segments = item.Segments.First();
-        //         try
-        //         {
-        //             AddMessagesHtml(segments.Author, segments.Content);
-        //         }
-        //         catch (Exception ex)
-        //         {
-        //             Logger.Log(ex);
-        //         }
-        //     }
-        //
-        //     _webView?.ExecuteScriptAsync($@"document.body.innerHTML = `{messagesHtml}`");
-        // }
-
         private static string JsString(string s)
             => s.Replace(@"\", @"\\").Replace("`", @"\`").Replace("\r", "").Replace("\n", "\\n");
 
@@ -458,15 +416,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             if (seg.Author == IdentifierEnum.ChatGPT)
             {
-                string html = seg.Content;
-                string script = $"updateLastGpt(`{JsString(html)}`);";
-                _ = _webView.ExecuteScriptAsync(script);
+                _ = _webView?.ExecuteScriptAsync($"updateLastGpt(`{JsString(seg.Content)}`);");
             }
             else
             {
-                string html = seg.Content;
-                string script = $"addMsg('user', `{JsString(html)}`);";
-                _ = _webView.ExecuteScriptAsync(script);
+                _ = _webView?.ExecuteScriptAsync($"addMsg('user', `{JsString(seg.Content)}`);");
             }
         }
 
@@ -597,8 +551,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.ChatGPT, Content = response });
                 AddMessagesHtml(IdentifierEnum.ChatGPT, response);
             }
-
-            UpdateBrowser();
         }
 
         /// <summary>
@@ -711,62 +663,61 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 string script = $"updateLastGpt(`{JsString(content)}`);";
                 _ = _webView.ExecuteScriptAsync(script);
             }
+
             return;
 
-            string htmlContent;
-
-            string authorIcon = author switch
-            {
-                IdentifierEnum.Me => meIcon,
-                IdentifierEnum.ChatGPT => chatGptIcon,
-                IdentifierEnum.Api => apiIcon,
-                _ => throw new NotImplementedException()
-            };
-
-            if (author == IdentifierEnum.Me)
-            {
-                content = HighlightSpecialTagsForHtml(content);
-
-                content = content
-                    .Replace(TAG_IMG, $"<img src='{imgIcon}' style='width:18px; height:18px; vertical-align:top; margin-right:3px;' />")
-                    .Replace(TAG_SQL, $"<img src='{sqlIcon}' style='width:18px; height:18px; vertical-align:top; margin-right:3px;' />")
-                    .Replace(TAG_API, $"<img src='{apiIcon}' style='width:18px; height:18px; vertical-align:top; margin-right:3px;' />");
-
-                htmlContent = content.Replace(Environment.NewLine, "<br />");
-            }
-            else
-            {
-                var thinkContent = Regex.Match(content, @"^<think>(?<content>.*)<\/think>(?<answer>.*)$", RegexOptions.Singleline);
-                if (!thinkContent.Success)
-                {
-                    htmlContent = Markdown.ToHtml(content, markdownPipeline);
-                }
-                else
-                {
-                    var thinkBlock = $"<details><summary>Think</summary>{Markdown.ToHtml(thinkContent.Groups["content"].Value)}</details>";
-                    htmlContent = $"""
-                                    {thinkBlock}
-                                    {Markdown.ToHtml(thinkContent.Groups["answer"].Value, markdownPipeline)}
-                                   """;
-                }
-            }
-
-            if (htmlContent.EndsWith("<br />"))
-            {
-                htmlContent = htmlContent.Substring(0, htmlContent.Length - 6);
-            }
-
-            htmlContent = htmlContent.Replace("<script", "&lt;script").Replace("</script>", "&lt;/script&gt;");
-
-            var messageHtml = $@"
-                  <div style='position: relative; margin-bottom: 16px; padding-top: 20px;'>
-                      <img src='{authorIcon}' style='display: block; position: absolute; top: 0px; width: 40px; height: 40px;' />
-                      <div style='margin-left: 0; margin-top: 20px; border: 1.5px solid #888; border-radius: 12px; padding: 5px 5px 5px 5px; box-sizing: border-box;'>
-                          {htmlContent}
-                      </div>
-                  </div>";
-
-            messagesHtml.AppendLine(messageHtml);
+//             string htmlContent;
+//
+//             string authorIcon = author switch
+//             {
+//                 IdentifierEnum.Me => meIcon,
+//                 IdentifierEnum.ChatGPT => chatGptIcon,
+//                 IdentifierEnum.Api => apiIcon,
+//                 _ => throw new NotImplementedException()
+//             };
+//
+//             if (author == IdentifierEnum.Me)
+//             {
+//                 content = HighlightSpecialTagsForHtml(content);
+//
+//                 content = content
+//                     .Replace(TAG_IMG, $"<img src='{imgIcon}' style='width:18px; height:18px; vertical-align:top; margin-right:3px;' />")
+//                     .Replace(TAG_SQL, $"<img src='{sqlIcon}' style='width:18px; height:18px; vertical-align:top; margin-right:3px;' />")
+//                     .Replace(TAG_API, $"<img src='{apiIcon}' style='width:18px; height:18px; vertical-align:top; margin-right:3px;' />");
+//
+//                 htmlContent = content.Replace(Environment.NewLine, "<br />");
+//             }
+//             else
+//             {
+//                 var thinkContent = Regex.Match(content, @"^<think>(?<content>.*)<\/think>(?<answer>.*)$", RegexOptions.Singleline);
+//                 if (!thinkContent.Success)
+//                 {
+//                     htmlContent = Markdown.ToHtml(content, markdownPipeline);
+//                 }
+//                 else
+//                 {
+//                     var thinkBlock = $"<details><summary>Think</summary>{Markdown.ToHtml(thinkContent.Groups["content"].Value)}</details>";
+//                     htmlContent = $"""
+//                                     {thinkBlock}
+//                                     {Markdown.ToHtml(thinkContent.Groups["answer"].Value, markdownPipeline)}
+//                                    """;
+//                 }
+//             }
+//
+//             if (htmlContent.EndsWith("<br />"))
+//             {
+//                 htmlContent = htmlContent.Substring(0, htmlContent.Length - 6);
+//             }
+//
+//             htmlContent = htmlContent.Replace("<script", "&lt;script").Replace("</script>", "&lt;/script&gt;");
+//
+//             var messageHtml = $@"
+//                   <div style='position: relative; margin-bottom: 16px; padding-top: 20px;'>
+//                       <img src='{authorIcon}' style='display: block; position: absolute; top: 0px; width: 40px; height: 40px;' />
+//                       <div style='margin-left: 0; margin-top: 20px; border: 1.5px solid #888; border-radius: 12px; padding: 5px 5px 5px 5px; box-sizing: border-box;'>
+//                           {htmlContent}
+//                       </div>
+//                   </div>";
         }
 
         /// <summary>
@@ -779,18 +730,22 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 return;
             }
 
-            Color textColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.WindowTextKey]).Color;
-            Color backgroundColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.WindowKey]).Color;
+            var textColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.WindowTextKey]).Color;
+            var backgroundColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.WindowKey]).Color;
+            var gptTextColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.InfoTextKey]).Color;
+            var gptBubbleColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.InfoBackgroundKey]).Color;
 
-            Color codeBackgroundColor = Color.FromRgb(
+            var codeBackgroundColor = Color.FromRgb(
                 (byte)Math.Max(0, backgroundColor.R - 20),
                 (byte)Math.Max(0, backgroundColor.G - 20),
                 (byte)Math.Max(0, backgroundColor.B - 20)
             );
 
-            string cssTextColor = ToCssColor(textColor);
-            string cssBackgroundColor = ToCssColor(backgroundColor);
-            string cssCodeBackgroundColor = ToCssColor(codeBackgroundColor);
+            var cssTextColor = ToCssColor(textColor);
+            var cssBackgroundColor = ToCssColor(backgroundColor);
+            var cssGptTextColor = ToCssColor(gptTextColor);
+            var cssGptBackgroundColor = ToCssColor(gptBubbleColor);
+            var cssCodeBackgroundColor = ToCssColor(codeBackgroundColor);
 
             var html2 = $$"""
                           <!doctype html>
@@ -865,37 +820,87 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                               .msg { margin:.4rem 0; display:flex; }
                               .user  { justify-content:flex-end; }
                               .gpt   { justify-content:flex-start; }
-                              .bubble { max-width:70%; padding:.6rem .9rem; border-radius:1rem; }
-                              .user .bubble { background:#0078d4; color:#fff; }
-                              .gpt  .bubble { background:#f1f1f1; color:#000; }
+                              .bubble { max-width:85%; padding:.6rem .9rem; border-radius:1rem; }
+                              .user .bubble { background:#193; color:{{cssTextColor}}; }
+                              .gpt  .bubble { background:{{cssGptTextColor}}; color:{{cssGptBackgroundColor}}; }
+
+                              .think-box{background:#e8e8e8;border-left:4px solid #999;margin:.5rem 0;padding:.4rem .6rem;font-size:12px}
+                              .think-hdr{cursor:pointer;color:#555;user-select:none}
+                              .think-body{
+                                display:none;
+                                margin-top:.3rem;
+                               }
+                              .think-body.open{
+                                display:block;
+                                margin-bottom: 10px;
+                              }
                             </style>
                           </head>
                           <body>
                             <div id="chat"></div>
-                            <script>
-                              function addMsg(role, html){
-                                const wrap = document.createElement('div');
-                                wrap.className = 'msg ' + role;
-                                wrap.innerHTML = '<div class="bubble">' + html + '</div>';
-                                document.getElementById('chat').appendChild(wrap);
-                                scrollToBottom();
-                              }
 
-                              function updateLastGpt(html){
-                                const last = document.querySelector('#chat .gpt:last-child .bubble');
-                                if(last) last.innerHTML = html;
-                                else addMsg('gpt', html);
-                                scrollToBottom();
+                          <!-- Markdown -->
+                          <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+                          <script>
+                            /* --------- think + markdown --------- */
+                            function splitThink(text){
+                              const parts = [];
+                              const thinkRegex = /<think>([\s\S]*?)<\/think>/gi;
+                              let lastIdx = 0;
+                              let m;
+                              while((m = thinkRegex.exec(text)) !== null){
+                                if(m.index > lastIdx){
+                                  parts.push({type:'md', text:text.slice(lastIdx, m.index)});
+                                }
+                                parts.push({type:'think', text:m[1]});
+                                lastIdx = thinkRegex.lastIndex;
                               }
+                              if(lastIdx < text.length) parts.push({type:'md', text:text.slice(lastIdx)});
+                              return parts;
+                            }
 
-                              function scrollToBottom(){
-                                window.scrollTo(0, document.body.scrollHeight);
+                            function renderFrag(f){
+                              if(f.type === 'think'){
+                                const id = 'think-' + Math.random().toString(36).slice(2);
+                                return `
+                                  <div class="think-box">
+                                    <div class="think-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
+                                      ▶ thinking…
+                                    </div>
+                                    <div id="${id}" class="think-body">
+                                      <pre>${f.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>
+                                    </div>
+                                  </div>`;
                               }
+                              return marked.parse(f.text);
+                            }
 
-                              function clearChat(){
-                                document.getElementById('chat').innerHTML = '';
-                              }
-                            </script>
+                            function addMsg(role, rawText){
+                              const wrap = document.createElement('div');
+                              wrap.className = 'msg ' + role;
+                              const bubble = document.createElement('div');
+                              bubble.className = 'bubble';
+                              bubble.innerHTML = splitThink(rawText).map(renderFrag).join('');
+                              wrap.appendChild(bubble);
+                              document.getElementById('chat').appendChild(wrap);
+                              scrollToBottom();
+                            }
+
+                            function updateLastGpt(rawText){
+                              const last = document.querySelector('#chat .gpt:last-child .bubble');
+                              if(last) last.innerHTML = splitThink(rawText).map(renderFrag).join('');
+                              else addMsg('gpt', rawText);
+                              scrollToBottom();
+                            }
+
+                            function clearChat(){
+                              document.getElementById('chat').innerHTML = '';
+                            }
+
+                            function scrollToBottom(){
+                              window.scrollTo(0, document.body.scrollHeight);
+                            }
+                          </script>
                           </body>
                           </html>
                           """;
@@ -1045,8 +1050,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.ChatGPT, Content = message.Text });
                 }
 
-                UpdateBrowser();
-
                 // 2. Find the next computer_call action
                 ComputerUseOutputItem computerCall = response.Output.FirstOrDefault(o => o.Type == ComputerUseOutputItemType.computer_call);
 
@@ -1135,8 +1138,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 txtRequest.Text = string.Empty;
 
                 AddMessagesHtml(IdentifierEnum.Me, request);
-
-                UpdateBrowser();
 
                 _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.Me, Content = request });
 
@@ -1344,7 +1345,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             sqlServerConnectionsAlreadyAdded.Add(connection.ConnectionString);
 
-            ChatRepository.AddSqlServerConnection(chatId, connection.ConnectionString);
+            ChatRepository.AddSqlServerConnection(_viewModel.ChatId, connection.ConnectionString);
 
             sqlServerConnections.Remove(connection);
 
@@ -1438,7 +1439,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             apiDefinitionsAlreadyAdded.Add(apiDefinition.Name);
 
-            ChatRepository.AddApiDefinition(chatId, apiDefinition.Name);
+            ChatRepository.AddApiDefinition(_viewModel.ChatId, apiDefinition.Name);
 
             apiDefinitions.Remove(apiDefinition);
 
@@ -1466,7 +1467,14 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private void NewChat_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.CreateNewChat();
-            messagesHtml.Clear();
+            apiChat.ClearConversation();
+            _ = _webView?.ExecuteScriptAsync("clearChat()");
+        }
+
+        private void DeleteChat_Click(object sender, RoutedEventArgs e)
+        {
+            ChatRepository.DeleteChat(_viewModel.ChatId);
+            _viewModel.CreateNewChat();
             apiChat.ClearConversation();
             _ = _webView?.ExecuteScriptAsync("clearChat()");
         }
@@ -1504,7 +1512,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     {
                         CloseHistory();
                         _viewModel.LoadChat(selectedItem.Id);
-                        messagesHtml.Clear();
                         apiChat.ClearConversation();
                         _ = _webView?.ExecuteScriptAsync("clearChat()");
                         AddMessagesFromModel();

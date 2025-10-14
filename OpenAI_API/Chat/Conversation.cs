@@ -283,6 +283,36 @@ namespace OpenAI_API.Chat
                 {
                     streamError = true;
                 }
+
+                if (enumerator?.Current == null)
+                {
+                    break;
+                }
+
+                do
+                {
+                    var res = enumerator.Current;
+
+                    if (res.Choices.FirstOrDefault()?.Delta is { } delta)
+                    {
+                        if (delta.Role != null)
+                        {
+                            responseRole = delta.Role;
+                        }
+
+                        var deltaTextContent = delta.Content?.ToString();
+
+                        if (!string.IsNullOrWhiteSpace(deltaTextContent))
+                        {
+                            responseStringBuilder.Append(deltaTextContent);
+
+                            yield return deltaTextContent;
+                        }
+                    }
+
+                    MostRecentApiResult = res;
+
+                } while (await enumerator.MoveNextAsync());
             }
 
             //In case of an error reading the stream, it returns a single response.
@@ -299,32 +329,7 @@ namespace OpenAI_API.Chat
             {
                 throw new Exception("The chat result stream is null, but it shouldn't be");
             }
-
-            do
-            {
-                ChatResult res = enumerator.Current;
-
-                if (res.Choices.FirstOrDefault()?.Delta is ChatMessage delta)
-                {
-                    if (delta.Role != null)
-                    {
-                        responseRole = delta.Role;
-                    }
-
-                    string deltaTextContent = delta.Content?.ToString();
-
-                    if (!string.IsNullOrWhiteSpace(deltaTextContent))
-                    {
-                        responseStringBuilder.Append(deltaTextContent);
-
-                        yield return deltaTextContent;
-                    }
-                }
-
-                MostRecentApiResult = res;
-
-            } while (await enumerator.MoveNextAsync());
-
+            
             if (responseRole != null)
             {
                 AppendMessage(responseRole, responseStringBuilder.ToString());
@@ -358,6 +363,9 @@ namespace OpenAI_API.Chat
             return false;
         }
 
+        /// <summary>
+        /// Clear messages and tolls for current conversation.
+        /// </summary>
         public void ClearConversation()
         {
             _Messages.Clear();

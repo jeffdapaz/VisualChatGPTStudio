@@ -35,7 +35,9 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
 
         public ChatEntity SelectedChat { get; private set; }
 
-        public List<MessageEntity> Messages => SelectedChat.Messages ?? [];
+        public string ChatId => SelectedChat.Id;
+
+        public List<MessageEntity> Messages => SelectedChat.Messages;
 
         public ObservableCollection<ChatEntity> Chats { get; } = [];
 
@@ -63,6 +65,15 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
             },
             () => CanGoPrev);
 
+        public ICommand DeleteCmd =>
+            new RelayCommand<ChatEntity>(entity =>
+            {
+                if (entity == null) return;
+                ChatRepository.DeleteChat(entity.Id);
+                AllChats.Remove(entity);
+                ApplyFilter();
+            });
+
         public string Search
         {
             get => search;
@@ -87,9 +98,9 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
                 filtered = AllChats;
             }
 
-            if (page > TotalPages)
+            if (page >= TotalPages)
             {
-                page = TotalPages;
+                page = TotalPages - 1;
             }
 
             Chats.Clear();
@@ -120,9 +131,11 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
             AllChats = ChatRepository.GetChats();
         }
 
-        public void AddMessageSegment(ChatMessageSegment segment)
+        public MessageEntity AddMessageSegment(ChatMessageSegment segment)
         {
-            Messages.Add(new MessageEntity { Order = Messages.Count + 1, Segments = [ segment ]});
+            var mes = new MessageEntity { Order = Messages.Count + 1, Segments = [segment] };
+            Messages.Add(mes);
+            return mes;
         }
 
         public void UpdateChatHeader(string header)

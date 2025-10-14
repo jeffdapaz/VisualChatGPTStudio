@@ -104,13 +104,13 @@ Padding="8" CornerRadius="4">
                         <TextBlock Text="New Chat" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
-                <Button Style="{StaticResource ToolbarButtonStyle}" ToolTip="Clear Chat"
-        IsEnabled="{Binding IsProcessing, Converter={StaticResource InverseBooleanConverter}}">
+                <Button Click="DeleteChat_Click"  Style="{StaticResource ToolbarButtonStyle}" ToolTip="Delete Chat"
+                        IsEnabled="{Binding IsProcessing, Converter={StaticResource InverseBooleanConverter}}">
                     <StackPanel Orientation="Horizontal">
-                        <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.ClearWindowContent}" Width="16"
+                        <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.DeleteEntity}" Width="16"
                         Height="16" Margin="0,0,4,0"
                         Opacity="1"/>
-                        <TextBlock Text="Clear Chat (todo)" VerticalAlignment="Center"/>
+                        <TextBlock Text="Delete Chat" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
                 <Button Click="ToggleHistory_Click" Style="{StaticResource ToolbarButtonStyle}" ToolTip="Chat History"
@@ -560,7 +560,8 @@ Padding="8" CornerRadius="4">
                                                      Text="{Binding Date,TargetNullValue='–',StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"/>
                                         </StackPanel>
                                       </StackPanel>
-                                      <Button Grid.Column="1" ToolTip="Delete chat history" VerticalAlignment="Center">
+                                      <Button Command="{Binding DataContext.DeleteCmd, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                              CommandParameter="{Binding}" Grid.Column="1" ToolTip="Delete chat history" VerticalAlignment="Center">
                                         <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.DeleteListItem}" Opacity="0.9"/>
                                       </Button>
                                     </Grid>

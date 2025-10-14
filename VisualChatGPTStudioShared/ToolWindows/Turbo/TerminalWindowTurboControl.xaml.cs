@@ -1430,6 +1430,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private void NewChat_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.CreateNewChat();
+            messagesHtml.Clear();
+            apiChat.ClearConversation();
+            AddMessagesFromModel();
+            UpdateBrowser();
         }
 
         private void ToggleHistory_Click(object sender, RoutedEventArgs e)

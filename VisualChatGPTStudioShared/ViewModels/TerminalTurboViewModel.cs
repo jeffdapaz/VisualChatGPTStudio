@@ -52,14 +52,14 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
         public ICommand NextCmd => new RelayCommand(() =>
             {
                 page++;
-                ReloadChats();
+                ApplyFilter();
             },
             () => CanGoNext);
 
         public ICommand PrevCmd => new RelayCommand(() =>
             {
                 page--;
-                ReloadChats();
+                ApplyFilter();
             },
             () => CanGoPrev);
 
@@ -87,15 +87,9 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
                 filtered = AllChats;
             }
 
-            page = 0;
-            ReloadChats(true);
-        }
-
-        private void ReloadChats(bool onlyFilter = false)
-        {
-            if (!onlyFilter)
+            if (page > TotalPages)
             {
-                AllChats = ChatRepository.GetChats();
+                page = TotalPages;
             }
 
             Chats.Clear();
@@ -121,6 +115,11 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
             OnPropertyChanged(nameof(CanGoNext));
         }
 
+        private void ReloadChats()
+        {
+            AllChats = ChatRepository.GetChats();
+        }
+
         public void AddMessageSegment(ChatMessageSegment segment)
         {
             Messages.Add(new MessageEntity { Order = Messages.Count + 1, Segments = [ segment ]});
@@ -143,6 +142,7 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
             });
             AllChats = ChatRepository.GetChats();
             ReloadChats();
+            ApplyFilter();
             SelectedChat = AllChats.LastOrDefault();
         }
 

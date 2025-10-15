@@ -676,7 +676,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             var textColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.WindowTextKey]).Color;
             var backgroundColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.WindowKey]).Color;
-            var gptBubbleColor = ((GradientBrush)Application.Current.Resources[VsBrushes.CommandBarGradientKey]).GradientStops.First().Color;
+            var gptBubbleColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.ScrollBarBackgroundKey]).Color;
 
             var codeBackgroundColor = Color.FromRgb(
                 (byte)Math.Max(0, backgroundColor.R - 20),

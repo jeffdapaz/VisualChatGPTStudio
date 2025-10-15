@@ -80,7 +80,7 @@ namespace JeffPires.VisualChatGPTStudio.Options
         public bool UseEnter { get; set; } = false;
         #endregion General
 
-        #region Model Parameters        
+        #region Model Parameters
 
         [Category("Model Parameters")]
         [DisplayName("Max Tokens")]
@@ -113,7 +113,7 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DefaultValue("")]
         public string StopSequences { get; set; } = string.Empty;
 
-        #endregion Model Parameters   
+        #endregion Model Parameters
 
         #region Completion Parameters
 
@@ -242,6 +242,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Description("Change the API version to use custom endpoint")]
         [DefaultValue("")]
         public string ApiVersion { get; set; } = string.Empty;
+
+        [Category("OpenAI")]
+        [DisplayName("Stream")]
+        [Description("Change the Stream option if you wish to stream response")]
+        [DefaultValue(false)]
+        public bool CompletionStream { get; set; } = false;
 
         #endregion OpenAI
 

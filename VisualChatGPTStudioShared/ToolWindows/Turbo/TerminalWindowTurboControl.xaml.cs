@@ -363,8 +363,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 cancellationTokenSource = new();
 
-                var stream = true;
-                if (stream)
+                if (options.CompletionStream)
                 {
                     var gptMessage = _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.ChatGPT });
                     var chatResponses = apiChat.StreamResponseEnumerableFromChatbotAsync();
@@ -663,61 +662,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 string script = $"updateLastGpt(`{JsString(content)}`);";
                 _ = _webView.ExecuteScriptAsync(script);
             }
-
-            return;
-
-//             string htmlContent;
-//
-//             string authorIcon = author switch
-//             {
-//                 IdentifierEnum.Me => meIcon,
-//                 IdentifierEnum.ChatGPT => chatGptIcon,
-//                 IdentifierEnum.Api => apiIcon,
-//                 _ => throw new NotImplementedException()
-//             };
-//
-//             if (author == IdentifierEnum.Me)
-//             {
-//                 content = HighlightSpecialTagsForHtml(content);
-//
-//                 content = content
-//                     .Replace(TAG_IMG, $"<img src='{imgIcon}' style='width:18px; height:18px; vertical-align:top; margin-right:3px;' />")
-//                     .Replace(TAG_SQL, $"<img src='{sqlIcon}' style='width:18px; height:18px; vertical-align:top; margin-right:3px;' />")
-//                     .Replace(TAG_API, $"<img src='{apiIcon}' style='width:18px; height:18px; vertical-align:top; margin-right:3px;' />");
-//
-//                 htmlContent = content.Replace(Environment.NewLine, "<br />");
-//             }
-//             else
-//             {
-//                 var thinkContent = Regex.Match(content, @"^<think>(?<content>.*)<\/think>(?<answer>.*)$", RegexOptions.Singleline);
-//                 if (!thinkContent.Success)
-//                 {
-//                     htmlContent = Markdown.ToHtml(content, markdownPipeline);
-//                 }
-//                 else
-//                 {
-//                     var thinkBlock = $"<details><summary>Think</summary>{Markdown.ToHtml(thinkContent.Groups["content"].Value)}</details>";
-//                     htmlContent = $"""
-//                                     {thinkBlock}
-//                                     {Markdown.ToHtml(thinkContent.Groups["answer"].Value, markdownPipeline)}
-//                                    """;
-//                 }
-//             }
-//
-//             if (htmlContent.EndsWith("<br />"))
-//             {
-//                 htmlContent = htmlContent.Substring(0, htmlContent.Length - 6);
-//             }
-//
-//             htmlContent = htmlContent.Replace("<script", "&lt;script").Replace("</script>", "&lt;/script&gt;");
-//
-//             var messageHtml = $@"
-//                   <div style='position: relative; margin-bottom: 16px; padding-top: 20px;'>
-//                       <img src='{authorIcon}' style='display: block; position: absolute; top: 0px; width: 40px; height: 40px;' />
-//                       <div style='margin-left: 0; margin-top: 20px; border: 1.5px solid #888; border-radius: 12px; padding: 5px 5px 5px 5px; box-sizing: border-box;'>
-//                           {htmlContent}
-//                       </div>
-//                   </div>";
         }
 
         /// <summary>
@@ -732,8 +676,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             var textColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.WindowTextKey]).Color;
             var backgroundColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.WindowKey]).Color;
-            var gptTextColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.InfoTextKey]).Color;
-            var gptBubbleColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.InfoBackgroundKey]).Color;
+            var gptBubbleColor = ((GradientBrush)Application.Current.Resources[VsBrushes.CommandBarGradientKey]).GradientStops.First().Color;
 
             var codeBackgroundColor = Color.FromRgb(
                 (byte)Math.Max(0, backgroundColor.R - 20),
@@ -743,7 +686,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             var cssTextColor = ToCssColor(textColor);
             var cssBackgroundColor = ToCssColor(backgroundColor);
-            var cssGptTextColor = ToCssColor(gptTextColor);
             var cssGptBackgroundColor = ToCssColor(gptBubbleColor);
             var cssCodeBackgroundColor = ToCssColor(codeBackgroundColor);
 
@@ -820,28 +762,45 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                               .msg { margin:.4rem 0; display:flex; }
                               .user  { justify-content:flex-end; }
                               .gpt   { justify-content:flex-start; }
-                              .bubble { max-width:85%; padding:.6rem .9rem; border-radius:1rem; }
+                              .bubble { max-width:85%; padding:.6rem .9rem; border-radius:1rem; box-shadow: 0px 0px 2px {{cssCodeBackgroundColor}}; }
                               .user .bubble { background:#193; color:{{cssTextColor}}; }
-                              .gpt  .bubble { background:{{cssGptTextColor}}; color:{{cssGptBackgroundColor}}; }
-
-                              .think-box{background:#e8e8e8;border-left:4px solid #999;margin:.5rem 0;padding:.4rem .6rem;font-size:12px}
-                              .think-hdr{cursor:pointer;color:#555;user-select:none}
-                              .think-body{
-                                display:none;
-                                margin-top:.3rem;
-                               }
-                              .think-body.open{
-                                display:block;
-                                margin-bottom: 10px;
-                              }
+                              .gpt  .bubble { background:{{cssGptBackgroundColor}}; color:{{cssTextColor}}; }
                             </style>
                           </head>
                           <body>
                             <div id="chat"></div>
 
                           <!-- Markdown -->
+                          <!-- TODO: move to local resource -->
                           <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+                          <script src="https://cdn.jsdelivr.net/npm/marked-highlight/lib/index.umd.min.js"></script>
+
+                          <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+                          <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+                          <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+
+                          <!-- code theme -->
+                          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+
                           <script>
+                              /* csharpusing → csharp */
+                              function cleanLang(lang){
+                                return lang ? lang.replace(/^(\w+?)\w*$/, '$1') : '';
+                              }
+
+                              const highlightExt = markedHighlight.markedHighlight({
+                                langPrefix: 'language-',
+                                highlight: (code, lang) => {
+                                  const l = cleanLang(lang);
+                                  if(l && hljs.getLanguage(l)){
+                                    return hljs.highlight(code, {language: l}).value;
+                                  }
+                                  return hljs.highlightAuto(code).value;
+                                }
+                              });
+
+                              marked.use(highlightExt);
+
                             /* --------- think + markdown --------- */
                             function splitThink(text){
                               const parts = [];
@@ -861,16 +820,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                             function renderFrag(f){
                               if(f.type === 'think'){
-                                const id = 'think-' + Math.random().toString(36).slice(2);
                                 return `
-                                  <div class="think-box">
-                                    <div class="think-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
-                                      ▶ thinking…
-                                    </div>
-                                    <div id="${id}" class="think-body">
-                                      <pre>${f.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>
-                                    </div>
-                                  </div>`;
+                                  <details><summary>thinking…</summary>
+                                      ${f.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+                                  </details>`;
                               }
                               return marked.parse(f.text);
                             }

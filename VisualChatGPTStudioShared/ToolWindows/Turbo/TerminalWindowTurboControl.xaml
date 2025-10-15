@@ -74,11 +74,6 @@ Padding="8" CornerRadius="4">
         <StaticResource ResourceKey="Vm"/>
     </UserControl.DataContext>
 
-    <UserControl.CommandBindings>
-    </UserControl.CommandBindings>
-    <UserControl.InputBindings>
-    </UserControl.InputBindings>
-
     <Grid Margin="5">
         <Grid.Triggers>
             <EventTrigger RoutedEvent="FrameworkElement.Loaded">
@@ -529,7 +524,6 @@ Padding="8" CornerRadius="4">
                                         <BeginStoryboard>
                                             <Storyboard>
                                                 <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" Duration="0:0:.3" />
-                                                <DoubleAnimation Storyboard.TargetProperty="LayoutTransform.ScaleY" From="0" Duration="0:0:.2"/>
                                             </Storyboard>
                                         </BeginStoryboard>
                                     </EventTrigger.Actions>
@@ -537,37 +531,37 @@ Padding="8" CornerRadius="4">
                             </Style.Triggers>
                         </Style>
                     </ItemsControl.ItemContainerStyle>
-                              <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                  <Border x:Name="HistoryItemBorder"
-                                          Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
-                                          BorderThickness="1"
-                                          BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBorderKey}}" CornerRadius="4"
-                                          Margin="0,2" Padding="12,8">
-                                    <Grid>
-                                      <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                      </Grid.ColumnDefinitions>
-                                      <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                                        <TextBlock TextTrimming="CharacterEllipsis" FontWeight="SemiBold"
-                                                   Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}" Text="{Binding Name}"/>
-                                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                          <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Calendar}" Width="12"
-                                                              Height="12" Margin="0,0,4,0" Opacity="0.7"/>
-                                          <TextBlock Foreground="{DynamicResource {x:Static vsshell:VsBrushes.GrayTextKey}}" FontSize="11"
-                                                     VerticalAlignment="Center"
-                                                     Text="{Binding Date,TargetNullValue='–',StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"/>
-                                        </StackPanel>
-                                      </StackPanel>
-                                      <Button Command="{Binding DataContext.DeleteCmd, RelativeSource={RelativeSource AncestorType=ListBox}}"
-                                              CommandParameter="{Binding}" Grid.Column="1" ToolTip="Delete chat history" VerticalAlignment="Center">
-                                        <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.DeleteListItem}" Opacity="0.9"/>
-                                      </Button>
-                                    </Grid>
-                                  </Border>
-                                </DataTemplate>
-                              </ItemsControl.ItemTemplate>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <Border x:Name="HistoryItemBorder"
+                                  Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
+                                  BorderThickness="1"
+                                  BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBorderKey}}" CornerRadius="4"
+                                  Margin="0,2" Padding="12,8">
+                            <Grid>
+                              <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                              </Grid.ColumnDefinitions>
+                              <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                <TextBlock TextTrimming="CharacterEllipsis" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}" Text="{Binding Name}"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                  <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Calendar}" Width="12"
+                                                      Height="12" Margin="0,0,4,0" Opacity="0.7"/>
+                                  <TextBlock Foreground="{DynamicResource {x:Static vsshell:VsBrushes.GrayTextKey}}" FontSize="11"
+                                             VerticalAlignment="Center"
+                                             Text="{Binding Date,TargetNullValue='–',StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"/>
+                                </StackPanel>
+                              </StackPanel>
+                              <Button Command="{Binding DataContext.DeleteCmd, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                      CommandParameter="{Binding}" Grid.Column="1" ToolTip="Delete chat history" VerticalAlignment="Center">
+                                <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.DeleteListItem}" Opacity="0.9"/>
+                              </Button>
+                            </Grid>
+                          </Border>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
                 </ListBox>
                 <Border Grid.Row="3" Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTabGradientKey}}"
             BorderThickness="0,1,0,0"

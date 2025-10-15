@@ -1437,22 +1437,21 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             if (HistorySidebar.Visibility == Visibility.Visible)
             {
                 CloseHistory();
-                return;
             }
-
-            OpenHistory();
+            else
+            {
+                OpenHistory();
+            }
         }
 
         private void OpenHistory()
         {
-            HistorySidebar.Visibility = Visibility.Visible;
-            Overlay.Visibility = Visibility.Visible;
+            HistorySidebar.Visibility = Overlay.Visibility = Visibility.Visible;
         }
 
         private void CloseHistory()
         {
-            HistorySidebar.Visibility = Visibility.Collapsed;
-            Overlay.Visibility = Visibility.Collapsed;
+            HistorySidebar.Visibility = Overlay.Visibility = Visibility.Collapsed;
         }
 
         private void HistoryList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -1478,9 +1477,30 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
         }
 
-        private void CloseHistoryButton_Click(object sender, RoutedEventArgs e)
+        private void CloseHistoryButton_Click(object sender, RoutedEventArgs e) => CloseHistory();
+
+        private void ToggleSettings_Click(object sender, RoutedEventArgs e)
         {
-            CloseHistory();
+            if (SettingsSidebar.Visibility == Visibility.Visible)
+            {
+                CloseSettings();
+            }
+            else
+            {
+                OpenSettings();
+            }
         }
+
+        private void OpenSettings()
+        {
+            SettingsSidebar.Visibility = Overlay.Visibility = Visibility.Visible;
+        }
+
+        private void CloseSettings()
+        {
+            SettingsSidebar.Visibility = Overlay.Visibility = Visibility.Collapsed;
+        }
+
+        private void CloseSettingsButton_Click(object sender, RoutedEventArgs e) => CloseSettings();
     }
 }

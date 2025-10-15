@@ -64,7 +64,23 @@ Padding="8" CornerRadius="4">
                 </Setter.Value>
             </Setter>
         </Style>
-
+        <Style x:Key="SlideBarStyle" TargetType="{x:Type Border}">
+            <Style.Triggers>
+                <Trigger Property="UIElement.Visibility" Value="Visible">
+                    <TriggerBase.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <ThicknessAnimation Storyboard.TargetProperty="Margin" From="360,0,-360,0" To="0" Duration="0:0:0.2">
+                                    <ThicknessAnimation.EasingFunction>
+                                        <CubicEase EasingMode="EaseOut"/>
+                                    </ThicknessAnimation.EasingFunction>
+                                </ThicknessAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </TriggerBase.EnterActions>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
         <Storyboard x:Key="FadeIn">
             <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.5"/>
         </Storyboard>
@@ -117,13 +133,13 @@ Padding="8" CornerRadius="4">
                         <TextBlock Text="History" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
-                <Button Style="{StaticResource ToolbarButtonStyle}" ToolTip="Settings"
-        IsEnabled="{Binding IsProcessing, Converter={StaticResource InverseBooleanConverter}}">
+                <Button Click="ToggleSettings_Click"  Style="{StaticResource ToolbarButtonStyle}" ToolTip="Settings"
+                        IsEnabled="{Binding IsProcessing, Converter={StaticResource InverseBooleanConverter}}">
                     <StackPanel Orientation="Horizontal">
                         <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Settings}" Width="16"
                         Height="16" Margin="0,0,4,0"
                         Opacity="1"/>
-                        <TextBlock Text="Settings (todo)" VerticalAlignment="Center"/>
+                        <TextBlock Text="Settings" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
             </StackPanel>
@@ -396,30 +412,11 @@ Padding="8" CornerRadius="4">
                 </Style>
             </FrameworkElement.Style>
         </Border>
-        <Border x:Name="HistorySidebar" Grid.RowSpan="3"
+        <Border x:Name="HistorySidebar" Grid.RowSpan="3" Style="{StaticResource SlideBarStyle}"
             Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
             BorderThickness="1,0,0,0"
             BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBorderKey}}" Width="360"
             HorizontalAlignment="Right" Visibility="Collapsed">
-            <FrameworkElement.Style>
-                <Style TargetType="{x:Type Border}">
-                    <Style.Triggers>
-                        <Trigger Property="UIElement.Visibility" Value="Visible">
-                            <TriggerBase.EnterActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <ThicknessAnimation Storyboard.TargetProperty="Margin" From="360,0,-360,0" To="0" Duration="0:0:0.2">
-                                            <ThicknessAnimation.EasingFunction>
-                                                <CubicEase EasingMode="EaseOut"/>
-                                            </ThicknessAnimation.EasingFunction>
-                                        </ThicknessAnimation>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </TriggerBase.EnterActions>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </FrameworkElement.Style>
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -581,6 +578,40 @@ Padding="8" CornerRadius="4">
                         <Button Command="{Binding NextCmd}" Grid.Column="2"
                                 Style="{StaticResource ToolbarButtonStyle}" Width="28" Height="28" Padding="6">
                             <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Next}" UIElement.Opacity="0.9"/>
+                        </Button>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+        <Border x:Name="SettingsSidebar" Grid.RowSpan="3" Style="{StaticResource SlideBarStyle}"
+                Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
+                BorderThickness="1,0,0,0"
+                BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBorderKey}}" Width="360"
+                HorizontalAlignment="Right" Visibility="Collapsed">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Border Grid.Row="0" Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTabGradientKey}}"
+            BorderThickness="0,0,0,1"
+            BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBorderKey}}">
+                    <Grid Margin="16,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Settings" FontSize="16" FontWeight="SemiBold"
+                     Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
+                            <TextBlock Text="Basic model settings" Margin="0,4,0,0"
+                     Foreground="{DynamicResource {x:Static vsshell:VsBrushes.GrayTextKey}}" />
+                        </StackPanel>
+                        <Button Click="CloseSettingsButton_Click" Grid.Column="1" Style="{StaticResource ToolbarButtonStyle}"
+                Width="28" Height="28" Padding="6" VerticalAlignment="Top">
+                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Close}" Opacity="0.9"/>
                         </Button>
                     </Grid>
                 </Border>

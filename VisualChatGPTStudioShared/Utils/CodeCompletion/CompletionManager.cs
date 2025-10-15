@@ -176,17 +176,24 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
         {
             completionDataCommands = [];
 
-            completionDataCommands.Add(new CompletionData("Complete", OptionsCommands.GetCommandAsync(CommandsType.Complete).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/complete.png"));
-            completionDataCommands.Add(new CompletionData("Add_Tests", OptionsCommands.GetCommandAsync(CommandsType.AddTests).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/addTests.png"));
-            completionDataCommands.Add(new CompletionData("Find_Bugs", OptionsCommands.GetCommandAsync(CommandsType.FindBugs).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/findBugs.png"));
-            completionDataCommands.Add(new CompletionData("Optimize", OptionsCommands.GetCommandAsync(CommandsType.Optimize).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/optimize.png"));
-            completionDataCommands.Add(new CompletionData("Explain", OptionsCommands.GetCommandAsync(CommandsType.Explain).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/explain.png"));
-            completionDataCommands.Add(new CompletionData("Add_Comments", OptionsCommands.GetCommandAsync(CommandsType.AddCommentsForLines).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/addComments.png"));
-            completionDataCommands.Add(new CompletionData("Add_Summary", OptionsCommands.GetCommandAsync(CommandsType.AddSummary).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/addSummary.png"));
-            completionDataCommands.Add(new CompletionData("Translate", OptionsCommands.GetCommandAsync(CommandsType.Translate).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/translate.png"));
-            completionDataCommands.Add(new CompletionData("Custom_Before", OptionsCommands.GetCommandAsync(CommandsType.CustomBefore).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/customBefore.png"));
-            completionDataCommands.Add(new CompletionData("Custom_After", OptionsCommands.GetCommandAsync(CommandsType.CustomAfter).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/customAfter.png"));
-            completionDataCommands.Add(new CompletionData("Custom_Replace", OptionsCommands.GetCommandAsync(CommandsType.CustomReplace).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/customReplace.png"));
+            try
+            {
+                completionDataCommands.Add(new CompletionData("Complete", OptionsCommands.GetCommandAsync(CommandsType.Complete).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/complete.png"));
+                completionDataCommands.Add(new CompletionData("Add_Tests", OptionsCommands.GetCommandAsync(CommandsType.AddTests).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/addTests.png"));
+                completionDataCommands.Add(new CompletionData("Find_Bugs", OptionsCommands.GetCommandAsync(CommandsType.FindBugs).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/findBugs.png"));
+                completionDataCommands.Add(new CompletionData("Optimize", OptionsCommands.GetCommandAsync(CommandsType.Optimize).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/optimize.png"));
+                completionDataCommands.Add(new CompletionData("Explain", OptionsCommands.GetCommandAsync(CommandsType.Explain).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/explain.png"));
+                completionDataCommands.Add(new CompletionData("Add_Comments", OptionsCommands.GetCommandAsync(CommandsType.AddCommentsForLines).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/addComments.png"));
+                completionDataCommands.Add(new CompletionData("Add_Summary", OptionsCommands.GetCommandAsync(CommandsType.AddSummary).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/addSummary.png"));
+                completionDataCommands.Add(new CompletionData("Translate", OptionsCommands.GetCommandAsync(CommandsType.Translate).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/translate.png"));
+                completionDataCommands.Add(new CompletionData("Custom_Before", OptionsCommands.GetCommandAsync(CommandsType.CustomBefore).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/customBefore.png"));
+                completionDataCommands.Add(new CompletionData("Custom_After", OptionsCommands.GetCommandAsync(CommandsType.CustomAfter).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/customAfter.png"));
+                completionDataCommands.Add(new CompletionData("Custom_Replace", OptionsCommands.GetCommandAsync(CommandsType.CustomReplace).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/customReplace.png"));
+            }
+            catch (Exception e)
+            {
+                Logger.Log(e);
+            }
         }
 
         /// <summary>

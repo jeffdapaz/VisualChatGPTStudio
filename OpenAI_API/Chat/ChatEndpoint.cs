@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace OpenAI_API.Chat
@@ -165,10 +166,10 @@ namespace OpenAI_API.Chat
 		/// </summary>
 		/// <param name="request">The request to send to the API.  This does not fall back to default values specified in <see cref="DefaultChatRequestArgs"/>.</param>
 		/// <returns>An async enumerable with each of the results as they come in.  See <see href="https://docs.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-8#asynchronous-streams"/> for more details on how to consume an async enumerable.</returns>
-		public IAsyncEnumerable<ChatResult> StreamChatEnumerableAsync(ChatRequest request)
+		public IAsyncEnumerable<ChatResult> StreamChatEnumerableAsync(ChatRequest request, CancellationToken cancellationToken = default)
 		{
 			request = new ChatRequest(request) { Stream = true };
-			return HttpStreamingRequest<ChatResult>(Url, HttpMethod.Post, request);
+			return HttpStreamingRequest<ChatResult>(Url, HttpMethod.Post, request, cancellationToken);
 		}
 
 		/// <summary>

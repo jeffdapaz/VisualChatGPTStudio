@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Authentication;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace OpenAI_API
@@ -355,7 +356,11 @@ namespace OpenAI_API
         /// <param name="postData">(optional) A json-serializable object to include in the request body.</param>
         /// <returns>The HttpResponseMessage of the response, which is confirmed to be successful.</returns>
         /// <exception cref="HttpRequestException">Throws an exception if a non-success HTTP response was returned</exception>
-        protected async IAsyncEnumerable<T> HttpStreamingRequest<T>(string url = null, HttpMethod verb = null, object postData = null) where T : ApiResultBase
+        protected async IAsyncEnumerable<T> HttpStreamingRequest<T>(
+            string url = null,
+            HttpMethod verb = null,
+            object postData = null,
+            CancellationToken cancellationToken = default) where T : ApiResultBase
         {
             HttpResponseMessage response = await HttpRequestRaw(url, verb, postData, true);
 
@@ -380,7 +385,7 @@ namespace OpenAI_API
             using (StreamReader reader = new StreamReader(stream))
             {
                 string line;
-                while ((line = await reader.ReadLineAsync()) != null)
+                while ((line = await reader.ReadLineAsync()) != null && !cancellationToken.IsCancellationRequested)
                 {
                     resultAsString += line + Environment.NewLine;
 

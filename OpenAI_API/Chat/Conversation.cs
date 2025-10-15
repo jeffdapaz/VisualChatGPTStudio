@@ -3,7 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace OpenAI_API.Chat
@@ -249,7 +251,7 @@ namespace OpenAI_API.Chat
         /// If you are not using C# 8 supporting async enumerables or if you are using the .NET Framework, you may need to use <see cref="StreamResponseFromChatbotAsync(Action{string})"/> instead.
         /// </summary>
         /// <returns>An async enumerable with each of the results as they come in.  See <see href="https://docs.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-8#asynchronous-streams"/> for more details on how to consume an async enumerable.</returns>
-        public async IAsyncEnumerable<string> StreamResponseEnumerableFromChatbotAsync()
+        public async IAsyncEnumerable<string> StreamResponseEnumerableFromChatbotAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             ChatRequest request;
 
@@ -263,14 +265,14 @@ namespace OpenAI_API.Chat
             ChatResult firstStreamedResult;
             IAsyncEnumerator<ChatResult> enumerator = null;
 
-            while (retrying)
+            while (retrying && !cancellationToken.IsCancellationRequested)
             {
                 retrying = false;
                 request = new ChatRequest(RequestParameters) { Messages = Messages.ToList() };
 
                 try
                 {
-                    resStream = endpoint.StreamChatEnumerableAsync(request);
+                    resStream = endpoint.StreamChatEnumerableAsync(request, cancellationToken);
                     enumerator = resStream.GetAsyncEnumerator();
                     await enumerator.MoveNextAsync();
                     firstStreamedResult = enumerator.Current;
@@ -293,26 +295,21 @@ namespace OpenAI_API.Chat
                 {
                     var res = enumerator.Current;
 
-                    if (res.Choices.FirstOrDefault()?.Delta is { } delta)
+                    if (res.Choices.FirstOrDefault()?.Delta is { Content: { } } delta)
                     {
                         if (delta.Role != null)
                         {
                             responseRole = delta.Role;
                         }
 
-                        var deltaTextContent = delta.Content?.ToString();
-
-                        if (!string.IsNullOrWhiteSpace(deltaTextContent))
-                        {
-                            responseStringBuilder.Append(deltaTextContent);
-
-                            yield return deltaTextContent;
-                        }
+                        var deltaTextContent = delta.Content.ToString();
+                        responseStringBuilder.Append(deltaTextContent);
+                        yield return deltaTextContent;
                     }
 
                     MostRecentApiResult = res;
 
-                } while (await enumerator.MoveNextAsync());
+                } while (await enumerator.MoveNextAsync() && !cancellationToken.IsCancellationRequested);
             }
 
             //In case of an error reading the stream, it returns a single response.

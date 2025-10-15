@@ -1,5 +1,17 @@
 ﻿## Release Notes 📜
 
+### 5.5.0
+
+- Added the "Apply" button in the Turbo Chat window. This button allows you to apply the changes suggested by the AI directly to the code editor, without needing to copy and paste the response manually.
+- Update Turbo Chat to support mermaid diagrams rendering. Necessary Visual Studio 2022 version 17.14.16 or higher.
+- Fixed the long words that break the layout in the Turbo Chat window.
+- Improved set scroll position when new messages are added in the Turbo Chat window.
+- Improved feedback messages when API calls fail.
+- Fixed Turbo Chat invisible on Visual Studio 2019.
+- Fixed crash on Turbo Chat when double click on empty space. Thanks to [@paymicro](https://github.com/paymicro).
+- Added reasoning block separation on Turbo Chat when the response contains `<think>` blocks. Thanks to [@paymicro](https://github.com/paymicro).
+- Added the new extension option 'Use Enter to send request in chat', where if true, pressing Enter will send the request in chat instead of using Ctrl+Enter. Thanks to [@paymicro](https://github.com/paymicro).
+
 ### 5.4.1
 
 - Added ApiVersion override for Open AI Compatible API. Thanks [IH8E](https://github.com/IH8E).

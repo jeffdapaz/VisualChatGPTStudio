@@ -37,6 +37,8 @@
         CopyIcon,
         CheckIcon,
         SqlIcon,
-        ImgIcon
+        ImgIcon,
+        DiagramIcon,
+        SubmitIcon
     }
 }

@@ -134,8 +134,6 @@ You can also interact with the opened code editor through the `Send Code` button
 - Ask if the class has any bugs;
 - Etc.
 
-By executing this command, you can also hold down the SHIFT key when press the `Send Code` button so that the code will be write directly in the chat window instead of the code editor, in case you want to preserve the original code and/or analyze the response before applying it to the opened code editor.
-
 You will also be able to keep multiple chats open at the same time in different tabs. And each chat is kept in history, allowing you to continue the conversation even if Visual Studio is closed:
 
 <img src="https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/2.4.0/1700946186856/image__8.png" width="60%">
@@ -408,6 +406,8 @@ How to Enable the Feature:
 <a id="15"></a>
 ## Disclaimer 👋
 
+- Some features relies on OpenAI Function feature ([https://platform.openai.com/docs/guides/function-calling](https://platform.openai.com/docs/guides/function-calling)), so you need use a model that supports it for better experience.
+
 - As this extension depends on the API provided by OpenAI or Azure, there may be some change by them that affects the operation of this extension without prior notice.
 
 - As this extension depends on the API provided by OpenAI or Azure, there may be generated responses that not be what the expected.
@@ -445,16 +445,21 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 <a id="18"></a>
 ## Release Notes 📜
 
+### 5.5.0
+
+- Added the "Apply" button in the Turbo Chat window. This button allows you to apply the changes suggested by the AI directly to the code editor, without needing to copy and paste the response manually.
+- Update Turbo Chat to support mermaid diagrams rendering. Necessary Visual Studio 2022 version 17.14.16 or higher.
+- Fixed the long words that break the layout in the Turbo Chat window.
+- Improved set scroll position when new messages are added in the Turbo Chat window.
+- Improved feedback messages when API calls fail.
+- Fixed Turbo Chat invisible on Visual Studio 2019.
+- Fixed crash on Turbo Chat when double click on empty space. Thanks to [@paymicro](https://github.com/paymicro).
+- Added reasoning block separation on Turbo Chat when the response contains `<think>` blocks. Thanks to [@paymicro](https://github.com/paymicro).
+- Added the new extension option 'Use Enter to send request in chat', where if true, pressing Enter will send the request in chat instead of using Ctrl+Enter. Thanks to [@paymicro](https://github.com/paymicro).
+
 ### 5.4.1
 
-- Added ApiVersion override for Open AI Compatible API. Thanks [IH8E](https://github.com/IH8E).
+- Added ApiVersion override for Open AI Compatible API. Thanks [@IH8E](https://github.com/IH8E).
 - Fixed the Turbo Chat window that was overlapping the native Visual Studio windows.
-
-### 5.4.0
-
-- Added the new computer-use beta feature on Turbo Chat.
-- Improved Turbo Chat formatting.
-- Replaced the WebBrowser component (based on Internet Explorer) with WebView2 (based on Edge) in the Turbo Chat window. This ensures better display and responsiveness, as well as the ability to copy text using CTRL+C.
-- Fixed streaming responses on code editor.
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

@@ -249,6 +249,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                         break;
                 }
             }
+
+            _webView?.ExecuteScriptAsync("renderMermaid()");
         }
 
         private void OnTxtRequestOnPreviewKeyDown(object s, KeyEventArgs e)
@@ -408,7 +410,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     }
 
                     var functionResults = apiChat.GetLastFunctionResults();
-                    await HandleFunctionsCallsAsync(functionResults, cancellationTokenSource);
+                    if (functionResults.Any())
+                    {
+                        await HandleFunctionsCallsAsync(functionResults, cancellationTokenSource);
+                    }
                 }
                 else
                 {
@@ -423,6 +428,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                         HandleResponse(commandType, shiftKeyPressed, result.Item1);
                     }
                 }
+
+                // TODO: render realtime
+                await _webView?.ExecuteScriptAsync("renderMermaid()")!;
 
                 if (firstMessage)
                 {
@@ -823,6 +831,15 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                           }
                           .hljs{background:transparent !important}
 
+                          .mermaid-box{
+                            display:flex;
+                            justify-content:center;
+                            padding:1rem;
+                            background: {{cssCodeBackgroundColor}};
+                            border-radius:6px;
+                            margin:.6rem 0;
+                          }
+
                             </style>
                           </head>
                           <body>
@@ -839,6 +856,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                           <!-- code theme -->
                           <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+
+                          <!-- mermaid -->
+                          <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
 
                           <script>
                               const highlightExt = markedHighlight.markedHighlight({
@@ -882,6 +902,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                               const renderer = new marked.Renderer();
 
                               renderer.code = function ({ text, lang }) {
+                                  if (lang?.toLowerCase() === 'mermaid') {
+                                    const id = 'mmd-' + Math.random().toString(36).slice(2);
+                                    return `<div class="mermaid-box" id="${id}" data-mermaid="${text.replace(/"/g,'&quot;')}"></div>`;
+                                  }
+
                                 const highlighted = lang && hljs.getLanguage(lang)
                                   ? hljs.highlight(text, { language: lang }).value
                                   : hljs.highlightAuto(text).value;
@@ -890,6 +915,24 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                               };
 
                               marked.use({ renderer });
+
+                              mermaid.initialize({ startOnLoad: false, suppressErrorRendering: true, theme: 'dark' });
+
+                              /* --- Mermaid --- */
+                              function renderMermaid(){
+                                document
+                                  .querySelectorAll('.mermaid-box:not(.processed)')
+                                  .forEach(box => {
+                                    box.classList.add('processed');
+                                    const def = box.getAttribute('data-mermaid');
+                                    mermaid.render('svg-' + box.id, def)
+                                      .then(({ svg }) => {
+                                         box.innerHTML = svg;
+                                       })
+                                      .catch(err => { box.innerHTML = '<pre style="color:red">mermaid: ' + err + '</pre>'; })
+                                  });
+
+                              }
 
                             /* --------- think + markdown --------- */
                             function splitThink(text){

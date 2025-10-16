@@ -377,6 +377,10 @@ namespace OpenAI_API.Chat
             }
         }
 
+        public List<FunctionResult> GetLastFunctionResults()
+            => MostRecentApiResult?.Choices?.FirstOrDefault()?.Message?.Functions.ToList()
+               ?? Enumerable.Empty<FunctionResult>().ToList();
+
         #endregion
 
         /// <summary>

@@ -137,7 +137,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
 
             string messages = command.ExecuteScalar<string>();
 
-            return JsonConvert.DeserializeObject<List<MessageEntity>>(messages);
+            return messages == null ? [] : JsonConvert.DeserializeObject<List<MessageEntity>>(messages);
         }
 
         /// <summary>

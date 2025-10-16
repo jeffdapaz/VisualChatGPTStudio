@@ -4,6 +4,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +23,6 @@ using JeffPires.VisualChatGPTStudio.Utils.Repositories;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
-using Newtonsoft.Json;
 using OpenAI_API.Chat;
 using OpenAI_API.Functions;
 using OpenAI_API.ResponsesAPI.Models.Request;
@@ -31,6 +31,7 @@ using VisualChatGPTStudioShared.Agents.ApiAgent;
 using VisualChatGPTStudioShared.ToolWindows.Turbo;
 using Color = System.Windows.Media.Color;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
+using JsonElement = System.Text.Json.JsonElement;
 using MessageBox = System.Windows.MessageBox;
 using Task = System.Threading.Tasks.Task;
 
@@ -55,7 +56,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private Package package;
         private bool webView2Installed;
         private TerminalTurboViewModel _viewModel = new();
-        private WebView2CompositionControl? _webView;
+        private IWebView2? _webView;
 
         private Conversation apiChat;
         private CancellationTokenSource cancellationTokenSource;
@@ -156,7 +157,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 _webView = null;
             }
 
+#if COPILOT_ENABLED //VS2022
             _webView = new WebView2CompositionControl();
+#else //VS2019
+            _webView = new Microsoft.Web.WebView2.Wpf.WebView2();
+#endif
             WebViewHost.Content = _webView;
 
             var env = await CoreWebView2Environment.CreateAsync(null,
@@ -170,6 +175,28 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             apiDefinitionsAlreadyAdded = ChatRepository.GetApiDefinitions(_viewModel.ChatId);
 
             UpdateBrowser();
+
+            _webView.WebMessageReceived += (_, webMessage) =>
+            {
+                if (webMessage?.WebMessageAsJson == null)
+                    return;
+
+                var msg = JsonSerializer.Deserialize<JsonElement>(webMessage.WebMessageAsJson);
+                var action = msg.GetProperty("action").GetString();
+                var code = msg.GetProperty("code").GetString();
+                if (code == null)
+                    return;
+
+                switch (action)
+                {
+                    case "copy":
+                        Clipboard.SetText(code);
+                        break;
+                    case "apply":
+                        ApplyCodeToDocument(code);
+                        break;
+                }
+            };
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -183,6 +210,12 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         public void Dispose()
         {
             OnUnloaded(this, new RoutedEventArgs());
+        }
+
+        private void ApplyCodeToDocument(string code)
+        {
+            // TODO
+            Logger.Log(code);
         }
 
         private void AddMessagesFromModel()
@@ -202,7 +235,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 switch (message.Segments[0].Author)
                 {
                     case IdentifierEnum.FunctionCall:
-                        apiChat.AppendFunctionCall(JsonConvert.DeserializeObject<FunctionRequest>(message.Segments[0].Content));
+                        apiChat.AppendFunctionCall(JsonSerializer.Deserialize<FunctionRequest>(message.Segments[0].Content));
                         break;
                     case IdentifierEnum.FunctionRequest:
                         apiChat.AppendUserInput(message.Segments[0].Content);
@@ -366,13 +399,16 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 if (options.CompletionStream)
                 {
                     var gptMessage = _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.ChatGPT });
-                    var chatResponses = apiChat.StreamResponseEnumerableFromChatbotAsync();
+                    var chatResponses = apiChat.StreamResponseEnumerableFromChatbotAsync(cancellationTokenSource.Token);
                     await foreach (var fragment in chatResponses)
                     {
                         var seg = gptMessage.Segments.First();
                         seg.Content += fragment;
                         await _webView?.ExecuteScriptAsync($"updateLastGpt(`{JsString(seg.Content)}`);")!;
                     }
+
+                    var functionResults = apiChat.GetLastFunctionResults();
+                    await HandleFunctionsCallsAsync(functionResults, cancellationTokenSource);
                 }
                 else
                 {
@@ -404,24 +440,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
         private static string JsString(string s)
             => s.Replace(@"\", @"\\").Replace("`", @"\`").Replace("\r", "").Replace("\n", "\\n");
-
-        private void HandleResponseChunk(string chunk)
-        {
-            var lastMsg = _viewModel.Messages.LastOrDefault();
-            if (lastMsg == null) return;
-
-            var seg = lastMsg.Segments.First();
-            seg.Content += chunk;
-
-            if (seg.Author == IdentifierEnum.ChatGPT)
-            {
-                _ = _webView?.ExecuteScriptAsync($"updateLastGpt(`{JsString(seg.Content)}`);");
-            }
-            else
-            {
-                _ = _webView?.ExecuteScriptAsync($"addMsg('user', `{JsString(seg.Content)}`);");
-            }
-        }
 
         /// <summary>
         /// Sends an asynchronous request and waits for the response or cancellation.
@@ -508,9 +526,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             (string, List<FunctionResult>) result = await SendRequestAsync(cancellationToken);
 
-            string chatName = result.Item1;
+            string chatName = Regex.Replace(result.Item1, @"^<think>.*<\/think>", "", RegexOptions.Singleline);
 
-            chatName = TextFormat.RemoveCharactersFromText(chatName, "\r\n", "\n", "\r", ".", ",", ":", ";", "'", "\"");
+            chatName = TextFormat.RemoveCharactersFromText(chatName, "\r\n", "\n", "\r", ".", ",", ":", ";", "'", "\"").Trim('*');
 
             string[] words = chatName.Split(' ');
 
@@ -763,8 +781,48 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                               .user  { justify-content:flex-end; }
                               .gpt   { justify-content:flex-start; }
                               .bubble { max-width:85%; padding:.6rem .9rem; border-radius:1rem; box-shadow: 0px 0px 2px {{cssCodeBackgroundColor}}; }
-                              .user .bubble { background:#193; color:{{cssTextColor}}; }
+                              .user .bubble { background:{{cssGptBackgroundColor}}; color:{{cssTextColor}}; }
                               .gpt  .bubble { background:{{cssGptBackgroundColor}}; color:{{cssTextColor}}; }
+
+                              pre{margin:0 !important;border-radius:0}
+                              .hljs{padding:1rem !important}
+
+                          .code-box{
+                            position:relative;
+                            margin:.6rem 0;
+                            border-radius:6px;
+                            overflow:hidden;
+                            background: {{cssCodeBackgroundColor}};
+                          }
+                          .code-box header{
+                            display:flex;
+                            align-items:center;
+                            justify-content:space-between;
+                            background:#2d2d2d;
+                            color:#ccc;
+                            padding:.3rem .5rem;
+                            font-size:12px;
+                            text-transform:uppercase;
+                          }
+                          .code-box header span{user-select:none}
+                          .code-box header button{
+                            margin-left:.4rem;
+                            padding:.2rem .5rem;
+                            border:none;
+                            border-radius:3px;
+                            background:#0e639c;
+                            color:#fff;
+                            cursor:pointer;
+                            font-size:11px;
+                          }
+                          .code-box header button:hover{background:#1177bb}
+                          .code-box pre{
+                            margin:0 !important;
+                            padding:1rem;
+                            overflow-x:auto;
+                          }
+                          .hljs{background:transparent !important}
+
                             </style>
                           </head>
                           <body>
@@ -783,23 +841,55 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                           <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 
                           <script>
-                              /* csharpusing → csharp */
-                              function cleanLang(lang){
-                                return lang ? lang.replace(/^(\w+?)\w*$/, '$1') : '';
-                              }
-
                               const highlightExt = markedHighlight.markedHighlight({
                                 langPrefix: 'language-',
-                                highlight: (code, lang) => {
-                                  const l = cleanLang(lang);
-                                  if(l && hljs.getLanguage(l)){
-                                    return hljs.highlight(code, {language: l}).value;
-                                  }
-                                  return hljs.highlightAuto(code).value;
+                                langPrefix: 'hljs language-',
+                                highlight(code, lang, info) {
+                                    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                                    return hljs.highlight(code, { language }).value;
                                 }
                               });
 
-                              marked.use(highlightExt);
+                              function rawCode(el){
+                                return el.getAttribute('data-raw') || el.textContent;
+                              }
+
+                              function buildCodeBlock(lang, highlightedHtml, raw){
+                                const id = 'cb-' + Math.random().toString(36).slice(2);
+                                const langUp = (lang || 'text').toUpperCase();
+                                return `
+                                  <div class="code-box">
+                                    <header>
+                                      <span>${langUp}</span>
+                                      <div>
+                                        <button onclick="sendCode('${id}','copy')">Copy</button>
+                                        <button onclick="sendCode('${id}','apply')">Apply</button>
+                                      </div>
+                                    </header>
+                                    <pre><code id="${id}" class="language-${lang}" data-raw="${raw.replace(/"/g,'&quot;')}">${highlightedHtml}</code></pre>
+                                  </div>`;
+                              }
+
+                              /* send messages to WebView2 */
+                              function sendCode(id, action){
+                                const raw = document.getElementById(id).getAttribute('data-raw');
+                                window.chrome?.webview?.postMessage({
+                                  action:action,
+                                  code:raw
+                                });
+                              }
+
+                              const renderer = new marked.Renderer();
+
+                              renderer.code = function ({ text, lang }) {
+                                const highlighted = lang && hljs.getLanguage(lang)
+                                  ? hljs.highlight(text, { language: lang }).value
+                                  : hljs.highlightAuto(text).value;
+
+                                return buildCodeBlock(lang, highlighted, text);
+                              };
+
+                              marked.use({ renderer });
 
                             /* --------- think + markdown --------- */
                             function splitThink(text){
@@ -1283,7 +1373,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             foreach (FunctionRequest function in sqlFunctions)
             {
                 apiChat.AppendFunctionCall(function);
-                _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.FunctionCall, Content = JsonConvert.SerializeObject(function) });
+                _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.FunctionCall, Content = JsonSerializer.Serialize(function) });
             }
 
             string request = options.SqlServerAgentCommand + Environment.NewLine + dataBaseSchema + Environment.NewLine;
@@ -1376,7 +1466,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             foreach (FunctionRequest function in apiFunctions)
             {
                 apiChat.AppendFunctionCall(function);
-                _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.FunctionCall, Content = JsonConvert.SerializeObject(function) });
+                _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.FunctionCall, Content = JsonSerializer.Serialize(function) });
             }
 
             ApiItem apiDefinition = (ApiItem)cbAPIs.SelectedItem;
@@ -1426,8 +1516,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
         private void DeleteChat_Click(object sender, RoutedEventArgs e)
         {
-            ChatRepository.DeleteChat(_viewModel.ChatId);
-            _viewModel.CreateNewChat();
+            _viewModel.DeleteChat(_viewModel.SelectedChat);
             apiChat.ClearConversation();
             _ = _webView?.ExecuteScriptAsync("clearChat()");
         }
@@ -1446,6 +1535,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
         private void OpenHistory()
         {
+            _viewModel.ForceReloadChats();
             HistorySidebar.Visibility = Overlay.Visibility = Visibility.Visible;
         }
 

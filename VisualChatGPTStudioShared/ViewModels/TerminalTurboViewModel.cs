@@ -33,7 +33,7 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
 
         public List<ChatEntity> AllChats { get; private set; } = [];
 
-        public ChatEntity SelectedChat { get; private set; }
+        public ChatEntity SelectedChat { get; set; }
 
         public string ChatId => SelectedChat.Id;
 
@@ -66,13 +66,20 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
             () => CanGoPrev);
 
         public ICommand DeleteCmd =>
-            new RelayCommand<ChatEntity>(entity =>
+            new RelayCommand<ChatEntity>(DeleteChat);
+
+        public void DeleteChat(ChatEntity chat)
+        {
+            if (chat == null) return;
+            ChatRepository.DeleteChat(chat.Id);
+            AllChats.Remove(chat);
+            ApplyFilter();
+
+            if (chat.Id == SelectedChat.Id)
             {
-                if (entity == null) return;
-                ChatRepository.DeleteChat(entity.Id);
-                AllChats.Remove(entity);
-                ApplyFilter();
-            });
+                SelectedChat = null;
+            }
+        }
 
         public string Search
         {
@@ -133,6 +140,10 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
 
         public MessageEntity AddMessageSegment(ChatMessageSegment segment)
         {
+            if (SelectedChat == null)
+            {
+                CreateNewChat();
+            }
             var mes = new MessageEntity { Order = Messages.Count + 1, Segments = [segment] };
             Messages.Add(mes);
             return mes;
@@ -154,8 +165,7 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
                 Name = "New chat"
             });
             AllChats = ChatRepository.GetChats();
-            ReloadChats();
-            ApplyFilter();
+            ForceReloadChats();
             SelectedChat = AllChats.LastOrDefault();
             SelectedChat!.Messages = [];
         }
@@ -170,6 +180,12 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
             {
                 SelectedChat.Messages = ChatRepository.GetMessages(SelectedChat.Id);
             }
+        }
+
+        public void ForceReloadChats()
+        {
+            ReloadChats();
+            ApplyFilter();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

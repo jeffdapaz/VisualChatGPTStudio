@@ -244,12 +244,6 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [DefaultValue("")]
         public string ApiVersion { get; set; } = string.Empty;
 
-        [Category("OpenAI")]
-        [DisplayName("Stream")]
-        [Description("Change the Stream option if you wish to stream response")]
-        [DefaultValue(false)]
-        public bool CompletionStream { get; set; } = false;
-
         #endregion OpenAI
 
         #region Turbo Chat
@@ -265,6 +259,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Description("Define the instruction that will send to the assistant when requesting code assistance.")]
         [DefaultValue("Apply the change requested by the user to the code, but rewrite the original code that was not changed")]
         public string TurboChatCodeCommand { get; set; } = "Apply the change requested by the user to the code, but rewrite the original code that was not changed";
+
+        [Category("Turbo Chat")]
+        [DisplayName("Stream")]
+        [Description("If you wish to stream response")]
+        [DefaultValue(false)]
+        public bool CompletionStream { get; set; } = true;
         #endregion Turbo Chat
 
         #region Copilot

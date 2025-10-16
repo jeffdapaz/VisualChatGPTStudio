@@ -26,6 +26,11 @@ namespace OpenAI_API.Chat
         private readonly List<FunctionRequest> tools;
 
         /// <summary>
+        /// Indicates whether a retry has already been attempted.
+        /// </summary>
+        private bool retryAttempted = false;
+        
+        /// <summary>
         /// Allows setting the parameters to use when calling the ChatGPT API.  Can be useful for setting temperature, presence_penalty, and more.  <see href="https://platform.openai.com/docs/api-reference/chat/create">Se  OpenAI documentation for a list of possible parameters to tweak.</see>
         /// </summary>
         public ChatRequest RequestParameters { get; private set; }
@@ -183,36 +188,75 @@ namespace OpenAI_API.Chat
         /// </returns>
         private async Task<ChatMessage> GetResponseFromChatbotAsync()
         {
-            try
+            while (true)
             {
-                ChatRequest req = new ChatRequest(RequestParameters)
+                try
                 {
-                    Messages = Messages.ToList(),
-                    Tools = tools.Any() ? tools : null
-                };
+                    ChatRequest req = new ChatRequest(RequestParameters)
+                    {
+                        Messages = Messages?.ToList() ?? new List<ChatMessage>(),
+                        Tools = tools != null && tools.Any() ? tools : null
+                    };
 
-                ChatResult res = await endpoint.CreateChatCompletionAsync(req);
+                    ChatResult res = await endpoint.CreateChatCompletionAsync(req).ConfigureAwait(false);
 
-                MostRecentApiResult = res;
+                    MostRecentApiResult = res ?? throw new InvalidOperationException("The API returned a null result.");
 
-                if (res.Choices.Count > 0)
-                {
-                    ChatMessage newMsg = res.Choices[0].Message;
+                    if (res.Choices == null || res.Choices.Count == 0 || res.Choices[0] == null)
+                    {
+                        throw new Exception("The response from the API did not contain any choices. This may be due to an error.");
+                    }
+
+                    ChatChoice choice = res.Choices[0];
+
+                    ChatMessage newMsg = choice.Message ?? throw new Exception("The response from the API did not contain a message. This may be due to an error.");
+
+                    string content = newMsg?.Content?.ToString();
+
+                    bool hasFunctions = newMsg.Functions != null && newMsg.Functions.Any();
+
+                    if (string.IsNullOrWhiteSpace(content) && !hasFunctions)
+                    {
+                        string finishReason = choice.FinishReason ?? string.Empty;
+
+                        if (string.Equals(finishReason, "length", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            if (TruncateContextWhenExceeded())
+                            {
+                                continue;
+                            }
+
+                            throw new ArgumentOutOfRangeException("The maximum response length was exceeded. You may want to increase the max_tokens parameter, or reduce the length of your prompt.");
+                        }
+
+                        throw new Exception("The response from the API did not contain any message content. This may be due to an error.");
+                    }
 
                     AppendMessage(newMsg);
 
                     return newMsg;
                 }
-            }
-            catch (HttpRequestException ex)
-            {
-                if (TruncateContextWhenExceeded(ex))
+                catch (HttpRequestException ex)
                 {
-                    return await GetResponseFromChatbotAsync();
+                    if (TruncateContextWhenExceeded(ex))
+                    {
+                        continue;
+                    }
+
+                    throw;
+                }
+                catch (OperationCanceledException)
+                {
+                    if (retryAttempted)
+                    {
+                        throw new Exception("The request was canceled. This may be due to a timeout.");
+                    }
+
+                    retryAttempted = true;
+
+                    continue;
                 }
             }
-
-            return null;
         }
 
         #endregion
@@ -336,6 +380,27 @@ namespace OpenAI_API.Chat
         #endregion
 
         /// <summary>
+        /// Truncates the chat context by removing the oldest non-system message when needed.
+        /// It scans from the start and removes the first message whose role is not System, then returns true.
+        /// If no non-system message is found, it returns false.
+        /// </summary>
+        /// <returns>
+        /// True if a non-system message was removed; otherwise, false.
+        /// </returns>
+        private bool TruncateContextWhenExceeded()
+        {
+            for (int i = 0; i < Messages.Count; i++)
+            {
+                if (Messages[i].Role != ChatMessageRole.System)
+                {
+                    Messages.RemoveAt(i);
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        /// <summary>
         /// Truncates the context of the chat messages when the HttpRequestException contains the "context_length_exceeded" code.
         /// </summary>
         /// <param name="ex">The HttpRequestException that was thrown.</param>
@@ -347,17 +412,7 @@ namespace OpenAI_API.Chat
                 throw ex;
             }
 
-            for (int i = 0; i < Messages.Count; i++)
-            {
-                if (Messages[i].Role != ChatMessageRole.System)
-                {
-                    Messages.RemoveAt(i);
-
-                    return true;
-                }
-            }
-
-            return false;
+            return TruncateContextWhenExceeded();
         }
 
         /// <summary>

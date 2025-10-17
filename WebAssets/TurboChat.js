@@ -86,7 +86,7 @@ function renderMermaid(){
 /* --------- think + markdown --------- */
 function splitThink(text){
     const parts = [];
-    const thinkRegex = /<think>([\s\S]*?)<\/think>/gi;
+    const thinkRegex = /^<think>([\s\S]*?)(<\/think>|$)/gi;
     let lastIdx = 0;
     let m;
     while((m = thinkRegex.exec(text)) !== null){

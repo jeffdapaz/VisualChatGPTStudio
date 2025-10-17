@@ -70,6 +70,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>VSCommandTable.vsct</DependentUpon>
     </Compile>
+    <Resource Include="WebAssets\TurboChat.js" />
+    <Resource Include="WebAssets\TurboChat.css" />
+    <Resource Include="WebAssets\TurboChat.html" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="lib\osx-arm64\libgit2-3f4182d.dylib">

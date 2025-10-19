@@ -395,6 +395,7 @@ Padding="8" CornerRadius="4">
         <!-- Sidebars -->
         <Border x:Name="Overlay" Grid.RowSpan="3"
             Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" Opacity="0.5"
+            MouseDown="Overlay_OnMouseDown"
             Visibility="Collapsed">
             <FrameworkElement.Style>
                 <Style TargetType="{x:Type Border}">

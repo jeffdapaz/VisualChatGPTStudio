@@ -17,8 +17,8 @@ function buildCodeBlock(lang, highlightedHtml, raw) {
         <header>
           <span>${lang}</span>
           <div>
-            <button onclick="sendCode('${id}','copy')">Copy</button>
             <button onclick="sendCode('${id}','apply')">Apply</button>
+            <button onclick="sendCode('${id}','copy')">Copy</button>
           </div>
         </header>
         <pre><code id="${id}" class="language-${lang}" data-raw="${raw.replace(/"/g, '&quot;')}">${highlightedHtml}</code></pre>
@@ -163,7 +163,7 @@ let shouldAutoScroll = true;
 const chat = document.scrollingElement;
 
 function isScrolledToBottom() {
-    return chat.scrollHeight - chat.scrollTop - chat.clientHeight <= 2;
+    return chat.scrollHeight - chat.scrollTop - chat.clientHeight <= 10;
 }
 
 function updateShouldScrollFlag() {

@@ -58,25 +58,22 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             ToggleWebViewVisibility();
         }
 
-        private void HistoryList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private async void HistoryList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (_viewModel != null && sender is ListBox listBox)
+            if (_viewModel != null && sender is ListBox { SelectedItem: ChatEntity selectedItem })
             {
-                if (listBox.SelectedItem is ChatEntity selectedItem)
+                try
                 {
-                    try
-                    {
-                        CloseHistory();
-                        _viewModel.LoadChat(selectedItem.Id);
-                        apiChat.ClearConversation();
-                        _ = _webView?.ExecuteScriptAsync(ClearChatScript);
-                        AddMessagesFromModel();
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
-                        MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                    }
+                    CloseHistory();
+                    _viewModel.LoadChat(selectedItem.Id);
+                    apiChat.ClearConversation();
+                    await _webView!.ExecuteScriptAsync(ClearChatScript);
+                    await AddMessagesFromModelAsync();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex);
+                    MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 }
             }
         }
@@ -116,6 +113,12 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             var tb = (TextBox)sender;
             tb.Focus();
             tb.SelectAll();
+        }
+
+        private void Overlay_OnMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            CloseHistory();
+            CloseSettings();
         }
     }
 }

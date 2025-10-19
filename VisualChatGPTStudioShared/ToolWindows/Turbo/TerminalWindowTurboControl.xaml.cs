@@ -43,7 +43,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
     /// <summary>
     /// Interaction logic for TerminalWindowTurboControl.
     /// </summary>
-    public partial class TerminalWindowTurboControl : UserControl, IDisposable
+    public partial class TerminalWindowTurboControl : IDisposable
     {
         #region Constants
 
@@ -75,8 +75,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private Dictionary<IdentifierEnum, string> base64Images = [];
         private Rectangle screenBounds;
         private string previousResponseId;
-        private string meIcon;
-        private string chatGptIcon;
         private string apiIcon;
         private string copyIcon;
         private string checkIcon;
@@ -125,9 +123,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 }
             }
 
-            meIcon = GetImageBase64(IdentifierEnum.Me);
-            chatGptIcon = GetImageBase64(IdentifierEnum.ChatGPT);
-
             txtRequest.MaxHeight = rowRequest.MaxHeight - 10;
             txtRequest.TextArea.TextEntering += txtRequest_TextEntering;
             txtRequest.TextArea.TextEntered += txtRequest_TextEntered;
@@ -166,7 +161,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             _webView.NavigationCompleted += (o, args) =>
             {
                 _viewModel.LoadChat();
-                AddMessagesFromModel();
+                _ = AddMessagesFromModelAsync();
             };
 
             WebViewHost.Content = _webView;
@@ -301,7 +296,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
         }
 
-        private void AddMessagesFromModel()
+        private async Task AddMessagesFromModelAsync()
         {
             foreach (var message in _viewModel.Messages.OrderBy(m => m.Order))
             {
@@ -323,16 +318,16 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                         apiChat.AppendUserInput(message.Segments[0].Content);
                         break;
                     case IdentifierEnum.Api:
-                        AddMessagesHtml(message.Segments[0].Author, segments.ToString());
+                        await AddMessagesHtmlAsync(message.Segments[0].Author, segments.ToString());
                         break;
                     default:
-                        AddMessagesHtml(message.Segments[0].Author, segments.ToString());
+                        await AddMessagesHtmlAsync(message.Segments[0].Author, segments.ToString());
                         apiChat.AppendUserInput(segments.ToString());
                         break;
                 }
             }
 
-            _webView?.ExecuteScriptAsync("renderMermaid()");
+            await _webView!.ExecuteScriptAsync("renderMermaid()");
         }
 
         private void OnTxtRequestOnPreviewKeyDown(object s, KeyEventArgs e)
@@ -467,7 +462,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             var firstMessage = !_viewModel.Messages.Any();
             await ExecuteRequestWithCommonHandlingAsync(async () =>
             {
-                AddMessagesHtml(IdentifierEnum.Me, requestToShowOnList);
+                await AddMessagesHtmlAsync(IdentifierEnum.Me, requestToShowOnList);
 
                 request = options.MinifyRequests ? TextFormat.MinifyText(request, " ") : request;
 
@@ -632,7 +627,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// <summary>
         /// Handles the response based on the command type and shift key state, updating the document view or chat list control items accordingly.
         /// </summary>
-        private void HandleResponse(RequestType commandType, bool shiftKeyPressed, string response)
+        private async void HandleResponse(RequestType commandType, bool shiftKeyPressed, string response)
         {
             if (commandType == RequestType.Code && !shiftKeyPressed)
             {
@@ -646,14 +641,14 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     }
                     else
                     {
-                        AddMessagesHtml(t.Author, t.Content);
+                        await AddMessagesHtmlAsync(t.Author, t.Content);
                     }
                 }
             }
             else
             {
                 _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.ChatGPT, Content = response });
-                AddMessagesHtml(IdentifierEnum.ChatGPT, response);
+                await AddMessagesHtmlAsync(IdentifierEnum.ChatGPT, response);
             }
         }
 
@@ -680,7 +675,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     if (!string.IsNullOrWhiteSpace(apiResponse.Item2))
                     {
                         _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.Api, Content = apiResponse.Item2 });
-                        AddMessagesHtml(IdentifierEnum.Api, apiResponse.Item2);
+                        await AddMessagesHtmlAsync(IdentifierEnum.Api, apiResponse.Item2);
                     }
                 }
                 else
@@ -755,18 +750,12 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         /// <param name="author">The author of the message, used to determine the avatar image.</param>
         /// <param name="content">The message content in Markdown format to be converted and displayed.</param>
-        private void AddMessagesHtml(IdentifierEnum author, string content)
+        private async Task AddMessagesHtmlAsync(IdentifierEnum author, string content)
         {
-            if (author == IdentifierEnum.Me)
-            {
-                string script = $"addMsg('user', `{JsString(content)}`);";
-                _ = _webView.ExecuteScriptAsync(script);
-            }
-            else
-            {
-                string script = $"updateLastGpt(`{JsString(content)}`);";
-                _ = _webView.ExecuteScriptAsync(script);
-            }
+            var script = author == IdentifierEnum.Me
+                ? $"addMsg('user', `{JsString(content)}`);"
+                : $"updateLastGpt(`{JsString(content)}`);";
+            await _webView!.ExecuteScriptAsync(script);
         }
 
         /// <summary>
@@ -902,7 +891,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 foreach (ComputerUseContent message in messages)
                 {
-                    AddMessagesHtml(IdentifierEnum.ChatGPT, message.Text);
+                    await AddMessagesHtmlAsync(IdentifierEnum.ChatGPT, message.Text);
 
                     _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.ChatGPT, Content = message.Text });
                 }
@@ -990,7 +979,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 txtRequest.Text = string.Empty;
 
-                AddMessagesHtml(IdentifierEnum.Me, request);
+                await AddMessagesHtmlAsync(IdentifierEnum.Me, request);
 
                 _viewModel.AddMessageSegment(new() { Author = IdentifierEnum.Me, Content = request });
 
@@ -1041,6 +1030,19 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             EnableDisableButtons(true);
 
             cancellationTokenSource?.Cancel();
+        }
+
+        public void CancelCommand(object sender, RoutedEventArgs e)
+        {
+            if (Overlay.IsVisible)
+            {
+                CloseHistory();
+                CloseSettings();
+            }
+            else if (cancellationTokenSource != null)
+            {
+                CancelRequest(sender, e);
+            }
         }
 
         /// <summary>

@@ -20,12 +20,10 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
         public TerminalTurboViewModel()
         {
             ReloadChats();
-            LoadChat();
-
-            // Create first chat
-            if (SelectedChat == null)
+            var lastChat = AllChats.LastOrDefault();
+            if (lastChat != null)
             {
-                CreateNewChat();
+                LoadChat(lastChat.Id);
             }
 
             ApplyFilter();
@@ -33,11 +31,9 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
 
         public List<ChatEntity> AllChats { get; private set; } = [];
 
-        public ChatEntity SelectedChat { get; set; }
+        public string ChatId { get; private set; }
 
-        public string ChatId => SelectedChat.Id;
-
-        public List<MessageEntity> Messages => SelectedChat.Messages;
+        public List<MessageEntity> Messages { get; set; }
 
         public ObservableCollection<ChatEntity> Chats { get; } = [];
 
@@ -66,18 +62,43 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
             () => CanGoPrev);
 
         public ICommand DeleteCmd =>
-            new RelayCommand<ChatEntity>(DeleteChat);
+            new RelayCommand<ChatEntity>(chat => DeleteChat(chat.Id));
 
-        public void DeleteChat(ChatEntity chat)
+        public ICommand StartRenameCmd =>
+            new RelayCommand<ChatEntity>(chat =>
+            {
+                if (chat == null) return;
+                chat.EditName = chat.Name;
+                chat.IsEditing = !chat.IsEditing;
+            });
+
+        public ICommand RenameChatCmd =>
+            new RelayCommand<ChatEntity>(chat =>
+            {
+                if (chat?.Name == null || chat.EditName == null)
+                {
+                    return;
+                }
+
+                if (!string.Equals(chat.Name, chat.EditName, StringComparison.Ordinal))
+                {
+                    chat.Name = chat.EditName;
+                    ChatRepository.UpdateChatName(chat.Id, chat.Name);
+                }
+                chat.IsEditing = false;
+            });
+
+        public void DeleteChat(string delId)
         {
-            if (chat == null) return;
-            ChatRepository.DeleteChat(chat.Id);
-            AllChats.Remove(chat);
+            if (string.IsNullOrEmpty(delId)) return;
+            ChatRepository.DeleteChat(delId);
+            AllChats.Remove(AllChats.FirstOrDefault(c => c.Id == delId));
             ApplyFilter();
 
-            if (chat.Id == SelectedChat.Id)
+            if (delId == ChatId)
             {
-                SelectedChat = null;
+                ChatId = string.Empty;
+                Messages.Clear();
             }
         }
 
@@ -97,7 +118,6 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
             {
                 filtered = AllChats
                     .Where(c => c.Name.ToLower().Contains(Search.ToLower()))
-                    .OrderBy(c  => c.Name)
                     .ToList();
             }
             else
@@ -136,11 +156,15 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
         private void ReloadChats()
         {
             AllChats = ChatRepository.GetChats();
+            foreach (var c in AllChats)
+            {
+                c.IsSelected = ChatId == c.Id;
+            }
         }
 
         public MessageEntity AddMessageSegment(ChatMessageSegment segment)
         {
-            if (SelectedChat == null)
+            if (string.IsNullOrEmpty(ChatId))
             {
                 CreateNewChat();
             }
@@ -151,8 +175,9 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
 
         public void UpdateChatHeader(string header)
         {
-            SelectedChat.Name = header;
-            ChatRepository.UpdateChat(SelectedChat);
+            ChatRepository.UpdateChatName(ChatId, header);
+            var entity = Chats.FirstOrDefault(c => c.Id == ChatId);
+            if (entity != null) entity.Name = header;
         }
 
         public void CreateNewChat()
@@ -162,24 +187,20 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
                 Id = Guid.NewGuid().ToString(),
                 Date = DateTime.Now,
                 Messages = [],
-                Name = "New chat"
+                Name = $"New chat {AllChats.Count + 1}"
             });
-            AllChats = ChatRepository.GetChats();
             ForceReloadChats();
-            SelectedChat = AllChats.LastOrDefault();
-            SelectedChat!.Messages = [];
+            LoadChat();
         }
 
         public void LoadChat(string id = "")
         {
-            SelectedChat = string.IsNullOrEmpty(id)
-                ? AllChats.LastOrDefault()
+            var selectedChat = string.IsNullOrEmpty(id)
+                ? AllChats.FirstOrDefault()
                 : AllChats.FirstOrDefault(c => c.Id == id);
 
-            if (SelectedChat != null)
-            {
-                SelectedChat.Messages = ChatRepository.GetMessages(SelectedChat.Id);
-            }
+            ChatId = selectedChat?.Id ?? string.Empty;
+            Messages = !string.IsNullOrEmpty(ChatId) ? ChatRepository.GetMessages(ChatId) : [];
         }
 
         public void ForceReloadChats()

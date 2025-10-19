@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -21,7 +20,10 @@ using JeffPires.VisualChatGPTStudio.Utils;
 using JeffPires.VisualChatGPTStudio.Utils.API;
 using JeffPires.VisualChatGPTStudio.Utils.CodeCompletion;
 using JeffPires.VisualChatGPTStudio.Utils.Repositories;
+using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
 using OpenAI_API.Chat;
@@ -64,7 +66,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private DocumentView docView;
         private bool shiftKeyPressed;
         private bool selectedContextFilesCodeAppended;
-        private bool firstMessage = true;
         private CompletionManager completionManager;
         private byte[] attachedImage;
         private List<SqlServerConnectionInfo> sqlServerConnections;
@@ -135,8 +136,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             AttachImage.OnImagePaste += AttachImage_OnImagePaste;
 
             completionManager = new CompletionManager(package, txtRequest);
-
-            UpdateBrowser();
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -161,8 +160,15 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 #if COPILOT_ENABLED //VS2022
             _webView = new WebView2CompositionControl();
 #else //VS2019
-            _webView = new Microsoft.Web.WebView2.Wpf.WebView2();
+            _webView = new WebView2();
 #endif
+            _webView.CoreWebView2InitializationCompleted += CoreWebView2InitializationCompleted;
+            _webView.NavigationCompleted += (o, args) =>
+            {
+                _viewModel.LoadChat();
+                AddMessagesFromModel();
+            };
+
             WebViewHost.Content = _webView;
 
             var env = await CoreWebView2Environment.CreateAsync(null,
@@ -170,12 +176,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             await _webView.EnsureCoreWebView2Async(env);
 
             apiChat = ApiHandler.CreateConversation(options, options.TurboChatBehavior);
-            AddMessagesFromModel();
 
             sqlServerConnectionsAlreadyAdded = ChatRepository.GetSqlServerConnections(_viewModel.ChatId);
             apiDefinitionsAlreadyAdded = ChatRepository.GetApiDefinitions(_viewModel.ChatId);
-
-            UpdateBrowser();
 
             _webView.WebMessageReceived += (_, webMessage) =>
             {
@@ -194,10 +197,45 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                         Clipboard.SetText(code);
                         break;
                     case "apply":
-                        ApplyCodeToDocument(code);
+                        var __ = ApplyCodeToActiveDocumentAsync(code);
                         break;
                 }
             };
+        }
+
+        private void CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
+        {
+            if (!e.IsSuccess)
+            {
+                Logger.Log($"WebView error: {e.InitializationException}");
+                return;
+            }
+            _webView.CoreWebView2.Settings.AreDefaultScriptDialogsEnabled = true;
+            _webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
+#if !DEBUG
+            _webView.CoreWebView2.Settings.AreDevToolsEnabled = false;
+#else
+            _webView.CoreWebView2.Settings.AreDevToolsEnabled = true;
+#endif
+            _webView.CoreWebView2.Settings.AreHostObjectsAllowed = true;
+            _webView.CoreWebView2.Settings.IsPasswordAutosaveEnabled = true;
+            _webView.CoreWebView2.Settings.IsGeneralAutofillEnabled = true;
+            _webView.CoreWebView2.Settings.IsBuiltInErrorPageEnabled = true;
+            _webView.CoreWebView2.Settings.IsScriptEnabled = true;
+            _webView.CoreWebView2.Settings.IsZoomControlEnabled = true;
+            _webView.CoreWebView2.Settings.IsWebMessageEnabled = true;
+            _webView.DefaultBackgroundColor = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBackgroundBrushKey);
+            _webView.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = true;
+            _webView.CoreWebView2.Settings.AreHostObjectsAllowed = true;
+            try
+            {
+                _webView.CoreWebView2.MemoryUsageTargetLevel = CoreWebView2MemoryUsageTargetLevel.Low;
+            }
+            catch
+            {
+            }
+
+            UpdateBrowser();
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -213,17 +251,60 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             OnUnloaded(this, new RoutedEventArgs());
         }
 
-        private void ApplyCodeToDocument(string code)
+        /// <summary>
+        /// Applies the specified code to the currently active document in Visual Studio.
+        /// </summary>
+        /// <param name="code">The code to insert or replace in the active document.</param>
+        private async Task ApplyCodeToActiveDocumentAsync(string code)
         {
-            // TODO
-            Logger.Log(code);
+            try
+            {
+                docView = await VS.Documents.GetActiveDocumentViewAsync();
+
+                if (docView?.TextBuffer == null)
+                {
+                    MessageBox.Show("No active document is open to apply the code.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                await docView.TextBuffer.Properties.GetOrCreateSingletonProperty(() => TaskScheduler.FromCurrentSynchronizationContext());
+
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                var textBuffer = docView.TextView?.TextBuffer;
+                if (textBuffer == null)
+                {
+                    MessageBox.Show("In active document TextBuffer in null.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                var selection = docView.TextView.Selection.SelectedSpans;
+
+                using var edit = textBuffer.CreateEdit();
+                if (selection.Count > 0 && !selection[0].IsEmpty)
+                {
+                    edit.Replace(selection[0], code);
+                }
+                else
+                {
+                    var caretPosition = docView.TextView.Caret.Position.BufferPosition.Position;
+
+                    edit.Insert(caretPosition, code);
+                }
+
+                edit.Apply();
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+
+                MessageBox.Show("Failed to apply the code to the active document.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void AddMessagesFromModel()
         {
             foreach (var message in _viewModel.Messages.OrderBy(m => m.Order))
             {
-                firstMessage = false;
                 StringBuilder segments = new();
 
                 message.Segments = message.Segments.OrderBy(s => s.SegmentOrderStart).ToList();
@@ -383,6 +464,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         private async Task RequestAsync(RequestType commandType, string request, string requestToShowOnList, bool shiftKeyPressed)
         {
+            var firstMessage = !_viewModel.Messages.Any();
             await ExecuteRequestWithCommonHandlingAsync(async () =>
             {
                 AddMessagesHtml(IdentifierEnum.Me, requestToShowOnList);
@@ -440,10 +522,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                     await UpdateHeaderAsync(request, cancellationTokenSource);
                 }
-                else
-                {
-                    ChatRepository.UpdateChat(_viewModel.SelectedChat);
-                }
+
+                ChatRepository.UpdateMessages(_viewModel.ChatId, _viewModel.Messages);
             });
         }
 
@@ -547,8 +627,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
 
             _viewModel.UpdateChatHeader(chatName);
-
-            firstMessage = false;
         }
 
         /// <summary>
@@ -564,7 +642,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 {
                     if (t.Author == IdentifierEnum.ChatGPTCode && docView?.TextView != null)
                     {
-                        docView.TextView.TextBuffer.Replace(new Microsoft.VisualStudio.Text.Span(0, docView.TextView.TextBuffer.CurrentSnapshot.Length), t.Content);
+                        docView.TextView.TextBuffer.Replace(new Span(0, docView.TextView.TextBuffer.CurrentSnapshot.Length), t.Content);
                     }
                     else
                     {
@@ -764,37 +842,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         }
 
         /// <summary>
-        /// Highlights special tags in the input string for HTML.
-        /// </summary>
-        /// <param name="input">The input string containing text with special tags to highlight.</param>
-        /// <returns>
-        /// A string where words starting with '/' are wrapped in a green bold span, and words starting with '@'
-        /// are wrapped in a purple bold span, suitable for HTML rendering.
-        /// </returns>
-        private string HighlightSpecialTagsForHtml(string input)
-        {
-            // Regex: Find words that start with / or @ and end with a space, comma, newline, or end of string.
-            return Regex.Replace(
-                input,
-                @"(?<=^|[\s,])([/@][^\s,\r\n]*)",
-                match =>
-                {
-                    string word = match.Value;
-                    if (word.StartsWith("/"))
-                    {
-                        return $"<span style='color: #2ecc40; font-weight: bold;'>{word}</span>";
-                    }
-
-                    if (word.StartsWith("@"))
-                    {
-                        return $"<span style='color: #8e44ad; font-weight: bold;'>{word}</span>";
-                    }
-
-                    return word;
-                });
-        }
-
-        /// <summary>
         /// Executes the specified asynchronous operation with common exception handling for requests.
         /// </summary>
         /// <param name="requestOperation">The asynchronous operation to execute.</param>
@@ -838,7 +885,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// capturing screenshots, and sending subsequent requests until no further actions are available.
         /// </summary>
         /// <param name="response">The initial ComputerUseResponse containing output items to process.</param>
-        private async Task ProcessComputerUseResponseAsync(ComputerUseResponse response)
+        private async Task ProcessComputerUseResponseAsync(ComputerUseResponse response, bool firstMessage)
         {
             while (true)
             {
@@ -873,11 +920,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                         await UpdateHeaderAsync(request, cancellationTokenSource);
                     }
-                    else
-                    {
-                        // parentControl.NotifyNewChatMessagesAdded(ChatHeader, messagesForDatabase);
-                    }
-
                     break;
                 }
 
@@ -932,6 +974,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         private async void btnComputerUse_Click(object sender, RoutedEventArgs e)
         {
+            var firstMessage = !_viewModel.Messages.Any();
             await ExecuteRequestWithCommonHandlingAsync(async () =>
             {
                 if (!IsReadyToSendRequest())
@@ -970,7 +1013,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 ComputerUseResponse response = await task;
 
-                await ProcessComputerUseResponseAsync(response);
+                await ProcessComputerUseResponseAsync(response, firstMessage);
             });
         }
 
@@ -1273,91 +1316,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         }
 
         #endregion API Event Handlers
-
-        private void NewChat_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.CreateNewChat();
-            apiChat.ClearConversation();
-            _ = _webView?.ExecuteScriptAsync("clearChat()");
-        }
-
-        private void DeleteChat_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.DeleteChat(_viewModel.SelectedChat);
-            apiChat.ClearConversation();
-            _ = _webView?.ExecuteScriptAsync("clearChat()");
-        }
-
-        private void ToggleHistory_Click(object sender, RoutedEventArgs e)
-        {
-            if (HistorySidebar.Visibility == Visibility.Visible)
-            {
-                CloseHistory();
-            }
-            else
-            {
-                OpenHistory();
-            }
-        }
-
-        private void OpenHistory()
-        {
-            _viewModel.ForceReloadChats();
-            HistorySidebar.Visibility = Overlay.Visibility = Visibility.Visible;
-        }
-
-        private void CloseHistory()
-        {
-            HistorySidebar.Visibility = Overlay.Visibility = Visibility.Collapsed;
-        }
-
-        private void HistoryList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            if (_viewModel != null && sender is ListBox listBox)
-            {
-                if (listBox.SelectedItem is ChatEntity selectedItem)
-                {
-                    try
-                    {
-                        CloseHistory();
-                        _viewModel.LoadChat(selectedItem.Id);
-                        apiChat.ClearConversation();
-                        _ = _webView?.ExecuteScriptAsync("clearChat()");
-                        AddMessagesFromModel();
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
-                        MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                    }
-                }
-            }
-        }
-
-        private void CloseHistoryButton_Click(object sender, RoutedEventArgs e) => CloseHistory();
-
-        private void ToggleSettings_Click(object sender, RoutedEventArgs e)
-        {
-            if (SettingsSidebar.Visibility == Visibility.Visible)
-            {
-                CloseSettings();
-            }
-            else
-            {
-                OpenSettings();
-            }
-        }
-
-        private void OpenSettings()
-        {
-            SettingsSidebar.Visibility = Overlay.Visibility = Visibility.Visible;
-        }
-
-        private void CloseSettings()
-        {
-            SettingsSidebar.Visibility = Overlay.Visibility = Visibility.Collapsed;
-        }
-
-        private void CloseSettingsButton_Click(object sender, RoutedEventArgs e) => CloseSettings();
     }
 }
+

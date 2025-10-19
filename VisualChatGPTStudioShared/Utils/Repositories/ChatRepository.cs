@@ -121,7 +121,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
                 return [];
             }
 
-            SQLiteCommand command = connection.CreateCommand("SELECT ID AS Id, NAME AS name, DATE AS dateRaw FROM CHATS");
+            SQLiteCommand command = connection.CreateCommand("SELECT ID AS Id, NAME AS name, DATE AS dateRaw FROM CHATS ORDER BY DATE DESC");
 
             return command.ExecuteQuery<ChatEntity>();
         }
@@ -138,6 +138,23 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
             string messages = command.ExecuteScalar<string>();
 
             return messages == null ? [] : JsonConvert.DeserializeObject<List<MessageEntity>>(messages);
+        }
+
+        public static void UpdateMessages(string chatId, List<MessageEntity> messages)
+        {
+            string query = $@"UPDATE
+                                CHATS
+                            SET
+                                MESSAGES = {PARAMETER_MESSAGES}
+                            WHERE
+                                ID = {PARAMETER_ID}";
+
+            SQLiteCommand command = connection.CreateCommand(query);
+
+            command.Bind(PARAMETER_ID, chatId);
+            command.Bind(PARAMETER_MESSAGES, JsonConvert.SerializeObject(messages));
+
+            command.ExecuteNonQuery();
         }
 
         /// <summary>

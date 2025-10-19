@@ -67,22 +67,6 @@ marked.use({ renderer });
 
 mermaid.initialize({ startOnLoad: false, suppressErrorRendering: true, theme: 'dark' });
 
-/* --- Mermaid --- */
-function renderMermaid(){
-    document
-        .querySelectorAll('.mermaid-box:not(.processed)')
-        .forEach(box => {
-            box.classList.add('processed');
-            const def = box.getAttribute('data-raw');
-            mermaid.render('svg-' + box.id, def)
-                .then(({ svg }) => {
-                    box.innerHTML = svg;
-                })
-                .catch(err => { box.innerHTML = '<pre style="color:red">mermaid: ' + err + '</pre>'; })
-        });
-    scrollToBottom();
-}
-
 /* --------- think + markdown --------- */
 function splitThink(text){
     const parts = [];
@@ -100,6 +84,21 @@ function splitThink(text){
     return parts;
 }
 
+function highlightSpecialTags(text) {
+    return text.replace(
+        /(?<=^|[\s,>])([/@][^\s,\r\n]*)/g,
+        (match) => {
+            if (match.startsWith('/')) {
+                return `<span class="command">${match}</span>`;
+            }
+            if (match.startsWith('@')) {
+                return `<span class="context">${match}</span>`;
+            }
+            return match;
+        }
+    );
+}
+
 function renderFrag(f){
     if(f.type === 'think'){
         return `<details><summary>thinking…</summary>
@@ -109,28 +108,73 @@ function renderFrag(f){
     return marked.parse(f.text);
 }
 
+/* ---------- Functions called from C# ---------- */
 function addMsg(role, rawText){
+    updateShouldScrollFlag();
     const wrap = document.createElement('div');
     wrap.className = 'msg ' + role;
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
-    bubble.innerHTML = splitThink(rawText).map(renderFrag).join('');
+    bubble.innerHTML = highlightSpecialTags(
+        splitThink(rawText).map(renderFrag).join('')
+    );
     wrap.appendChild(bubble);
     document.getElementById('chat').appendChild(wrap);
-    scrollToBottom();
+    scrollToBottomIfNeeded();
 }
 
-function updateLastGpt(rawText){
+function updateLastGpt(rawText) {
+    updateShouldScrollFlag();
     const last = document.querySelector('#chat .gpt:last-child .bubble');
-    if(last) last.innerHTML = splitThink(rawText).map(renderFrag).join('');
-    else addMsg('gpt', rawText);
-    scrollToBottom();
+    if (last) {
+        last.innerHTML = splitThink(rawText).map(renderFrag).join('');
+    } else {
+        addMsg('gpt', rawText);
+    }
+    scrollToBottomIfNeeded();
 }
 
 function clearChat(){
     document.getElementById('chat').innerHTML = '';
 }
 
-function scrollToBottom(){
-    window.scrollTo(0, document.body.scrollHeight);
+function renderMermaid() {
+    updateShouldScrollFlag();
+    document
+        .querySelectorAll('.mermaid-box:not(.processed)')
+        .forEach(box => {
+            box.classList.add('processed');
+            const def = box.getAttribute('data-raw');
+            mermaid.render('svg-' + box.id, def)
+                .then(({svg}) => {
+                    box.innerHTML = svg;
+                    scrollToBottomIfNeeded();
+                })
+                .catch(err => {
+                    box.innerHTML = '<pre style="color:red">mermaid: ' + err + '</pre>';
+                    scrollToBottomIfNeeded();
+                })
+        });
 }
+
+/* ---------- Scroll ---------- */
+let shouldAutoScroll = true;
+
+const chat = document.scrollingElement;
+
+function isScrolledToBottom() {
+    return chat.scrollHeight - chat.scrollTop - chat.clientHeight <= 2;
+}
+
+function updateShouldScrollFlag() {
+    shouldAutoScroll = isScrolledToBottom();
+}
+
+function scrollToBottomIfNeeded() {
+    if (shouldAutoScroll) {
+        window.scrollTo(0, chat.scrollHeight);
+    }
+}
+
+chat.addEventListener('scroll', updateShouldScrollFlag);
+window.addEventListener('resize', updateShouldScrollFlag);

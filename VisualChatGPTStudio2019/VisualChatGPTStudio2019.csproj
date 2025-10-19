@@ -362,9 +362,6 @@
     <Resource Include="..\Resources\check.png">
       <Link>Resources\check.png</Link>
     </Resource>
-    <Resource Include="..\Resources\check.png">
-      <Link>Resources\check.png</Link>
-    </Resource>
     <Resource Include="..\WebAssets\TurboChat.css">
       <Link>WebAssets\TurboChat.css</Link>
     </Resource>

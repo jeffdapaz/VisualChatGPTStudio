@@ -226,8 +226,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             {
                 _webView.CoreWebView2.MemoryUsageTargetLevel = CoreWebView2MemoryUsageTargetLevel.Low;
             }
-            catch
+            catch (Exception ex)
             {
+                Logger.Log($"WebView MemoryUsageTargetLevel error: {ex}");
             }
 
             UpdateBrowser();
@@ -318,16 +319,17 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                         apiChat.AppendUserInput(message.Segments[0].Content);
                         break;
                     case IdentifierEnum.Api:
-                        await AddMessagesHtmlAsync(message.Segments[0].Author, segments.ToString());
+                        await AddMessagesHtmlAsync(message.Segments[0].Author, segments.ToString(), false);
                         break;
                     default:
-                        await AddMessagesHtmlAsync(message.Segments[0].Author, segments.ToString());
+                        await AddMessagesHtmlAsync(message.Segments[0].Author, segments.ToString(), false);
                         apiChat.AppendUserInput(segments.ToString());
                         break;
                 }
             }
 
             await _webView!.ExecuteScriptAsync("renderMermaid()");
+            await _webView!.ExecuteScriptAsync("scrollToLastResponse();");
         }
 
         private void OnTxtRequestOnPreviewKeyDown(object s, KeyEventArgs e)
@@ -487,11 +489,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                         await _webView?.ExecuteScriptAsync($"updateLastGpt(`{JsString(seg.Content)}`);")!;
                     }
 
-                    var functionResults = apiChat.GetLastFunctionResults();
-                    if (functionResults.Any())
-                    {
-                        await HandleFunctionsCallsAsync(functionResults, cancellationTokenSource);
-                    }
+                    await HandleFunctionsCallsAsync(apiChat.StreamFunctionResults, cancellationTokenSource);
                 }
                 else
                 {
@@ -664,6 +662,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             string functionResult;
 
+            if (functions.Count == 0)
+            {
+                return false;
+            }
+
             foreach (FunctionResult function in functions)
             {
                 if (ApiAgent.GetApiFunctions().Select(f => f.Function.Name).Any(f => f.Equals(function.Function.Name, StringComparison.InvariantCultureIgnoreCase)))
@@ -750,11 +753,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         /// <param name="author">The author of the message, used to determine the avatar image.</param>
         /// <param name="content">The message content in Markdown format to be converted and displayed.</param>
-        private async Task AddMessagesHtmlAsync(IdentifierEnum author, string content)
+        private async Task AddMessagesHtmlAsync(IdentifierEnum author, string content, bool scroolToButtom = true)
         {
             var script = author == IdentifierEnum.Me
-                ? $"addMsg('user', `{JsString(content)}`);"
-                : $"updateLastGpt(`{JsString(content)}`);";
+                ? $"addMsg('user', `{JsString(content)}`, {scroolToButtom.ToString().ToLower()});"
+                : $"updateLastGpt(`{JsString(content)}`, {scroolToButtom.ToString().ToLower()});";
             await _webView!.ExecuteScriptAsync(script);
         }
 
@@ -771,63 +774,20 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             var textColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.WindowTextKey]).Color;
             var backgroundColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.WindowKey]).Color;
             var gptBubbleColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.ScrollBarBackgroundKey]).Color;
-            var codeBackgroundColor = Color.FromRgb(
-                (byte)Math.Max(0, backgroundColor.R - 20),
-                (byte)Math.Max(0, backgroundColor.G - 20),
-                (byte)Math.Max(0, backgroundColor.B - 20)
-            );
+            var highlightColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.HighlightKey]).Color;
+            var codeBackgroundColor = "#1f1f1f";
+            var codeHeaderColor = "#2c303d";
+            var codeBorderColor = "#424654";
 
             WebAsset.DeployTheme(
                 ToCssColor(textColor),
                 ToCssColor(backgroundColor),
-                ToCssColor(codeBackgroundColor),
-                ToCssColor(gptBubbleColor));
+                ToCssColor(gptBubbleColor),
+                codeBackgroundColor,
+                codeHeaderColor,
+                codeBorderColor,
+                ToCssColor(highlightColor));
             _webView?.CoreWebView2.Navigate(WebAsset.GetTurboPath());
-        }
-
-        /// <summary>
-        /// Retrieves the Base64-encoded string representation of an image associated with the specified <paramref name="identifier"/>.
-        /// </summary>
-        /// <param name="identifier">The identifier enum value representing the image to retrieve.</param>
-        /// <returns>
-        /// A string containing the Base64-encoded image data prefixed with the appropriate data URI scheme.
-        /// </returns>
-        private string GetImageBase64(IdentifierEnum identifier)
-        {
-            if (base64Images.TryGetValue(identifier, out var result))
-            {
-                return result;
-            }
-
-            string imageSource = identifier switch
-            {
-                IdentifierEnum.Me => "pack://application:,,,/VisualChatGPTStudio;component/Resources/vs.png",
-                IdentifierEnum.ChatGPT => "pack://application:,,,/VisualChatGPTStudio;component/Resources/chatGPT.png",
-                IdentifierEnum.Api => "pack://application:,,,/VisualChatGPTStudio;component/Resources/api.png",
-                IdentifierEnum.CopyIcon => "pack://application:,,,/VisualChatGPTStudio;component/Resources/copy.png",
-                IdentifierEnum.CheckIcon => "pack://application:,,,/VisualChatGPTStudio;component/Resources/check.png",
-                IdentifierEnum.SqlIcon => "pack://application:,,,/VisualChatGPTStudio;component/Resources/db.png",
-                IdentifierEnum.ImgIcon => "pack://application:,,,/VisualChatGPTStudio;component/Resources/image.png",
-                _ => "pack://application:,,,/VisualChatGPTStudio;component/Resources/vs.png"
-            };
-
-            Uri uri = new(imageSource, UriKind.RelativeOrAbsolute);
-
-            var streamResourceInfo = Application.GetResourceStream(uri);
-
-            string image;
-
-            using (var stream = streamResourceInfo.Stream)
-            {
-                byte[] buffer = new byte[stream.Length];
-                stream.Read(buffer, 0, buffer.Length);
-                string base64 = Convert.ToBase64String(buffer);
-                image = $"data:image/png;base64,{base64}";
-            }
-
-            base64Images.Add(identifier, image);
-
-            return image;
         }
 
         /// <summary>

@@ -7,6 +7,9 @@ namespace OpenAI_API.Functions
     /// </summary>
     public class FunctionResult
     {
+        [JsonProperty("index")]
+        public int Index { get; set; }
+        
         /// <summary>
         /// Used later to submit the function result back to the AI.
         /// </summary>

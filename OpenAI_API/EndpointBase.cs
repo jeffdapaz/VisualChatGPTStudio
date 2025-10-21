@@ -376,47 +376,45 @@ namespace OpenAI_API
             }
             catch (Exception e)
             {
-                Debug.Print($"Issue parsing metadata of OpenAi Response. Url: {url}, Error: {e.ToString()}. This is probably ignorable.");
+                Debug.Print($"Issue parsing metadata of OpenAi Response. Url: {url}, Error: {e}. This is probably ignorable.");
             }
 
-            string resultAsString = "";
+            var resultAsString = "";
 
-            using (Stream stream = await response.Content.ReadAsStreamAsync())
-            using (StreamReader reader = new StreamReader(stream))
+            using var stream = await response.Content.ReadAsStreamAsync();
+            using var reader = new StreamReader(stream);
+            while (await reader.ReadLineAsync() is { } line && !cancellationToken.IsCancellationRequested)
             {
-                string line;
-                while ((line = await reader.ReadLineAsync()) != null && !cancellationToken.IsCancellationRequested)
+                resultAsString += line + Environment.NewLine;
+
+                if (line.StartsWith("data:"))
                 {
-                    resultAsString += line + Environment.NewLine;
+                    line = line.Substring("data:".Length);
+                }
 
-                    if (line.StartsWith("data:"))
+                line = line.TrimStart();
+
+                if (line == "[DONE]")
+                {
+                    yield break;
+                }
+
+                if (line.StartsWith(":"))
+                { }
+                else if (!string.IsNullOrWhiteSpace(line))
+                {
+                    T res = JsonConvert.DeserializeObject<T>(line);
+
+                    res.Organization = organization;
+                    res.RequestId = requestId;
+                    res.ProcessingTime = processingTime;
+                    res.OpenaiVersion = openaiVersion;
+                    if (string.IsNullOrEmpty(res.Model))
                     {
-                        line = line.Substring("data:".Length);
+                        res.Model = modelFromHeaders;
                     }
 
-                    line = line.TrimStart();
-
-                    if (line == "[DONE]")
-                    {
-                        yield break;
-                    }
-                    else if (line.StartsWith(":"))
-                    { }
-                    else if (!string.IsNullOrWhiteSpace(line))
-                    {
-                        T res = JsonConvert.DeserializeObject<T>(line);
-
-                        res.Organization = organization;
-                        res.RequestId = requestId;
-                        res.ProcessingTime = processingTime;
-                        res.OpenaiVersion = openaiVersion;
-                        if (string.IsNullOrEmpty(res.Model))
-                        {
-                            res.Model = modelFromHeaders;
-                        }
-
-                        yield return res;
-                    }
+                    yield return res;
                 }
             }
         }
@@ -429,6 +427,7 @@ namespace OpenAI_API
             [JsonProperty("error")]
             public ApiErrorResponseError Error { get; set; }
         }
+        
         internal class ApiErrorResponseError
         {
             /// <summary>

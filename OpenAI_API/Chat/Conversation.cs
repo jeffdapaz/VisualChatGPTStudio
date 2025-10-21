@@ -289,6 +289,27 @@ namespace OpenAI_API.Chat
                 resultHandler(index++, res);
             }
         }
+        
+        private sealed class PendingToolCall
+        {
+            public string Id, Name, Arguments = "";
+            public PendingToolCall(string id, string name)
+                => (Id, Name) = (id, name);
+            public void AppendArgs(string delta) => Arguments += delta;
+
+            public FunctionResult Convert()
+                => new FunctionResult()
+                {
+                    Id = Id,
+                    Function = new FunctionToCall()
+                    {
+                        Name = Name,
+                        Arguments = Arguments,
+                    }
+                };
+        }
+
+        public List<FunctionResult> StreamFunctionResults { get; private set; } = new List<FunctionResult>();
 
         /// <summary>
         /// Calls the API to get a response, which is appended to the current chat's <see cref="Messages"/> as an <see cref="ChatMessageRole.Assistant"/> <see cref="ChatMessage"/>, and streams the results as they come in. <br/>
@@ -309,10 +330,32 @@ namespace OpenAI_API.Chat
             ChatResult firstStreamedResult;
             IAsyncEnumerator<ChatResult> enumerator = null;
 
+            var tools2 = new List<FunctionRequest>
+            {
+                new FunctionRequest
+                {
+                    Function = new Function
+                    {
+                        Description = "Погода в городе",
+                        Name = "getWeather",
+                        Parameters = new Parameter
+                        {
+                            Properties = new Dictionary<string, Property> {
+                                        { "apiName", new Property { Types = new List<string> { "string" }, Description = "The API's name." } }, 
+                            }
+                        }
+                    }
+                }
+            };
+
             while (retrying && !cancellationToken.IsCancellationRequested)
             {
                 retrying = false;
-                request = new ChatRequest(RequestParameters) { Messages = Messages.ToList() };
+                request = new ChatRequest(RequestParameters)
+                {
+                    Messages = Messages.ToList(),
+                    Tools = tools != null && tools.Any() ? tools : tools2
+                };
 
                 try
                 {
@@ -324,34 +367,66 @@ namespace OpenAI_API.Chat
                 catch (HttpRequestException ex)
                 {
                     retrying = TruncateContextWhenExceeded(ex);
+                    continue;
                 }
                 catch (ArgumentException)
                 {
                     streamError = true;
-                }
-
-                if (enumerator?.Current == null)
-                {
                     break;
                 }
 
+                if (enumerator?.Current == null) break;
+                
+                var toolCalls = new Dictionary<int, PendingToolCall>();
+                StreamFunctionResults.Clear();
+
+                // ========== streaming ==========
                 do
                 {
                     var res = enumerator.Current;
 
-                    if (res.Choices.FirstOrDefault()?.Delta is { Content: { } } delta)
-                    {
-                        if (delta.Role != null)
-                        {
-                            responseRole = delta.Role;
-                        }
+                    var choice = res.Choices.FirstOrDefault();
+                    var delta = choice?.Delta;
+                    var finish = choice?.FinishReason;
 
-                        var deltaTextContent = delta.Content.ToString();
-                        responseStringBuilder.Append(deltaTextContent);
-                        yield return deltaTextContent;
+                    if (delta?.Role != null) responseRole = delta.Role;
+
+                    // 1) text
+                    var deltaText = delta?.Content?.ToString();
+                    if (!string.IsNullOrEmpty(deltaText))
+                    {
+                        responseStringBuilder.Append(deltaText);
+                        yield return deltaText;
                     }
 
-                    MostRecentApiResult = res;
+                    // build functions
+                    if (delta?.Functions != null)
+                    {
+                        foreach (var tc in delta.Functions)
+                        {
+                            var idx = tc.Index;
+                            if (!toolCalls.TryGetValue(idx, out var pending))
+                            {
+                                pending = new PendingToolCall(tc.Id, tc.Function.Name);
+                                toolCalls[idx] = pending;
+                            }
+
+                            if (!string.IsNullOrEmpty(tc.Function.Arguments))
+                            {
+                                pending.AppendArgs(tc.Function.Arguments);
+                            }
+                        }
+                    }
+
+                    // 3) finish – tool_calls
+                    if (finish == "tool_calls" && toolCalls.Count > 0)
+                    {
+                        StreamFunctionResults.Clear();
+                        foreach (var pendingToolCall in toolCalls)
+                        {
+                            StreamFunctionResults.Add(pendingToolCall.Value.Convert());
+                        }
+                    }
 
                 } while (await enumerator.MoveNextAsync() && !cancellationToken.IsCancellationRequested);
             }
@@ -376,10 +451,6 @@ namespace OpenAI_API.Chat
                 AppendMessage(responseRole, responseStringBuilder.ToString());
             }
         }
-
-        public List<FunctionResult> GetLastFunctionResults()
-            => MostRecentApiResult?.Choices?.FirstOrDefault()?.Message?.Functions.ToList()
-               ?? Enumerable.Empty<FunctionResult>().ToList();
 
         #endregion
 

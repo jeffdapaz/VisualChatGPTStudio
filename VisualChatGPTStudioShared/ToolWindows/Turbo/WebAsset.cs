@@ -47,13 +47,16 @@ public static class WebAsset
         return $"file:///{target.Replace('\\', '/')}";
     }
 
-    public static void DeployTheme(string text, string back, string code, string gpt)
+    public static void DeployTheme(string text, string back, string gpt, string code,  string codeHeader, string codeBorder, string highlight)
     {
         var css = @$":root {{
           --bg-color: {back};
           --text-color: {text};
-          --code-bg-color: {code};
           --gpt-bg-color: {gpt};
+          --code-bg-color: {code};
+          --code-header-color: {codeHeader};
+          --code-border-color: {codeBorder};
+          --highlight-color: {highlight};
         }}";
         File.WriteAllText(Path.Combine(_root, "theme.css"), css);
     }

@@ -159,6 +159,7 @@ namespace OpenAI_API.Chat
             this.FrequencyPenalty = basedOn.FrequencyPenalty;
             this.PresencePenalty = basedOn.PresencePenalty;
             this.LogitBias = basedOn.LogitBias;
+            this.Tools = basedOn.Tools;
         }
     }
 }

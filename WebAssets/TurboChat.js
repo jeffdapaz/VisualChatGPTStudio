@@ -17,8 +17,8 @@ function buildCodeBlock(lang, highlightedHtml, raw) {
         <header>
           <span>${lang}</span>
           <div>
-            <button onclick="sendCode('${id}','apply')">Apply</button>
-            <button onclick="sendCode('${id}','copy')">Copy</button>
+            <button onclick="sendCode('${id}','apply')"><i class="fa-solid fa-terminal"></i></i><span>Apply</span></button>
+            <button id="${id}-copy" class="copy-button" onclick="sendCode('${id}','copy')"><i class="fa-regular fa-copy"></i></button>
           </div>
         </header>
         <pre><code id="${id}" class="language-${lang}" data-raw="${raw.replace(/"/g, '&quot;')}">${highlightedHtml}</code></pre>
@@ -29,14 +29,14 @@ function buildMermaidBlock(lang, text)
 {
     const id = 'mmd-' + Math.random().toString(36).slice(2);
     return `
-      <div class="mmd-box">
+      <div class="code-box">
         <header>
           <span>${lang}</span>
           <div>
-            <button onclick="sendCode('${id}','copy')">Copy</button>
+            <button id="${id}-copy" class="copy-button" onclick="sendCode('${id}','copy')"><i class="fa-regular fa-copy"></i></button>
           </div>
         </header>
-        <div class="mermaid-box" id="${id}" data-raw="${text.replace(/"/g,'&quot;')}">
+        <div class="mermaid-box" id="${id}" data-raw="${text.replace(/"/g,'&quot;')}"></div>
       </div>`
 }
 
@@ -47,6 +47,15 @@ function sendCode(id, action){
         action:action,
         code:raw
     });
+    if (action === 'copy') {
+        let popup = document.getElementById("popup");
+        if (!popup.classList.contains('show')) {
+            popup.classList.add('show');
+            setTimeout(() => {
+                popup.classList.remove('show');
+            }, 2000);
+        }
+    }
 }
 
 const renderer = new marked.Renderer();
@@ -109,7 +118,7 @@ function renderFrag(f){
 }
 
 /* ---------- Functions called from C# ---------- */
-function addMsg(role, rawText){
+function addMsg(role, rawText, scrollTo = true){
     updateShouldScrollFlag();
     const wrap = document.createElement('div');
     wrap.className = 'msg ' + role;
@@ -120,18 +129,22 @@ function addMsg(role, rawText){
     );
     wrap.appendChild(bubble);
     document.getElementById('chat').appendChild(wrap);
-    scrollToBottomIfNeeded();
+    if (scrollTo) {
+        scrollToBottomIfNeeded();
+    }
 }
 
-function updateLastGpt(rawText) {
+function updateLastGpt(rawText, scrollTo = true) {
     updateShouldScrollFlag();
     const last = document.querySelector('#chat .gpt:last-child .bubble');
     if (last) {
         last.innerHTML = splitThink(rawText).map(renderFrag).join('');
     } else {
-        addMsg('gpt', rawText);
+        addMsg('gpt', rawText, scrollTo);
     }
-    scrollToBottomIfNeeded();
+    if (scrollTo) {
+        scrollToBottomIfNeeded();
+    }
 }
 
 function clearChat(){
@@ -174,6 +187,20 @@ function scrollToBottomIfNeeded() {
     if (shouldAutoScroll) {
         window.scrollTo(0, chat.scrollHeight);
     }
+}
+
+function scrollToLastResponse() {
+    document.querySelector('#chat .gpt:last-child .bubble')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+    });
+}
+
+function scrollToLastRequest() {
+    document.querySelector('#chat .user:last-child .bubble')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+    });
 }
 
 chat.addEventListener('scroll', updateShouldScrollFlag);

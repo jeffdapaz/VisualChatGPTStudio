@@ -330,31 +330,13 @@ namespace OpenAI_API.Chat
             ChatResult firstStreamedResult;
             IAsyncEnumerator<ChatResult> enumerator = null;
 
-            var tools2 = new List<FunctionRequest>
-            {
-                new FunctionRequest
-                {
-                    Function = new Function
-                    {
-                        Description = "Погода в городе",
-                        Name = "getWeather",
-                        Parameters = new Parameter
-                        {
-                            Properties = new Dictionary<string, Property> {
-                                        { "apiName", new Property { Types = new List<string> { "string" }, Description = "The API's name." } }, 
-                            }
-                        }
-                    }
-                }
-            };
-
             while (retrying && !cancellationToken.IsCancellationRequested)
             {
                 retrying = false;
                 request = new ChatRequest(RequestParameters)
                 {
                     Messages = Messages.ToList(),
-                    Tools = tools != null && tools.Any() ? tools : tools2
+                    Tools = tools != null && tools.Any() ? tools : null
                 };
 
                 try

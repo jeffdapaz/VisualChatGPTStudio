@@ -1,5 +1,12 @@
 ﻿## Release Notes 📜
 
+### 5.6.0
+
+- Improvements on copilot feature to suggests completions more often.
+- Added option to configure a dedicated Copilot model (or Azure deployment) for inline suggestions, with selectable Default / Completion / Specific-Chat modes.
+- The "Apply" button in Turbo Chat now can applies only the selected code block when a selection is present; otherwise, it applies the entire code.
+- Added the "Apply" button in the "Visual chatGPT Studio" window.
+
 ### 5.5.0
 
 - Added the "Apply" button in the Turbo Chat window. This button allows you to apply the changes suggested by the AI directly to the code editor, without needing to copy and paste the response manually.

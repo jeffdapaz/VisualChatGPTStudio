@@ -93,7 +93,7 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
         /// <param name="pvaOut">Pointer to output arguments.</param>
         private void ProcessEnterKey(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
         {
-            Task.Run(async () => await _predictionManager.OnEnterPressed(_options));
+            _predictionManager.ShowAutocompleteAsync();
         }
 
         /// <summary>

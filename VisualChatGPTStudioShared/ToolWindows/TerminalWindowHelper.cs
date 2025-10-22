@@ -1,8 +1,14 @@
-﻿using System;
+using System;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
+using Community.VisualStudio.Toolkit;
+using JeffPires.VisualChatGPTStudio.Utils;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 
 namespace JeffPires.VisualChatGPTStudio.ToolWindows
 {
@@ -42,6 +48,59 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
                 timer.Enabled = false;
                 timer.Dispose();
             };
+        }
+
+        /// <summary>
+        /// Applies the specified code to the currently active document in Visual Studio.
+        /// </summary>
+        /// <param name="code">The code to insert or replace in the active document.</param>
+        public static async System.Threading.Tasks.Task ApplyCodeToActiveDocumentAsync(string code)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(code))
+                {
+                    return;
+                }
+
+                DocumentView docView = await VS.Documents.GetActiveDocumentViewAsync();
+
+                if (docView == null)
+                {
+                    System.Windows.MessageBox.Show("No active document is open to apply the code.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                    return;
+                }
+
+                await docView.TextBuffer.Properties.GetOrCreateSingletonProperty<TaskScheduler>(() => TaskScheduler.FromCurrentSynchronizationContext());
+
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                ITextBuffer textBuffer = docView.TextView.TextBuffer;
+                NormalizedSnapshotSpanCollection selection = docView.TextView.Selection.SelectedSpans;
+
+                using (ITextEdit edit = textBuffer.CreateEdit())
+                {
+                    if (selection.Count > 0 && !selection[0].IsEmpty)
+                    {
+                        edit.Replace(selection[0], code);
+                    }
+                    else
+                    {
+                        int caretPosition = docView.TextView.Caret.Position.BufferPosition.Position;
+
+                        edit.Insert(caretPosition, code);
+                    }
+
+                    edit.Apply();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+
+                System.Windows.MessageBox.Show("Failed to apply the code to the active document.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }

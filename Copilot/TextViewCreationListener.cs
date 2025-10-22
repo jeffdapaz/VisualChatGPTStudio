@@ -42,7 +42,7 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
                 return;
             }
 
-            InlinePredictionManager predictionManager = new(view);
+            InlinePredictionManager predictionManager = new(package.OptionsGeneral, view);
 
             CommandFilter commandFilter = new(view, predictionManager, package.OptionsGeneral);
             commandFilter.AttachToView(textViewAdapter);

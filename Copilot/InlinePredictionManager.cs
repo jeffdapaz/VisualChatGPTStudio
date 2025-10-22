@@ -13,6 +13,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 
 namespace JeffPires.VisualChatGPTStudio.Copilot
@@ -22,18 +23,31 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
     /// </summary>
     internal class InlinePredictionManager
     {
+        private readonly OptionPageGridGeneral options;
         private readonly IWpfTextView view;
         private readonly ConcurrentDictionary<string, string> cache = new();
         private CancellationTokenSource cancellationTokenSource;
         private bool showingAutoComplete = false;
 
+        private readonly DispatcherTimer typingTimer;
+
         /// <summary>
         /// Initializes a new instance of the InlinePredictionManager class with the specified text view.
         /// </summary>
+        /// <param name="options">Extension's general options.</param>
         /// <param name="view">The IWpfTextView instance to be managed by the InlinePredictionManager.</param>
-        public InlinePredictionManager(IWpfTextView view)
+        public InlinePredictionManager(OptionPageGridGeneral options, IWpfTextView view)
         {
+            this.options = options;
             this.view = view;
+
+            if (options.CopilotEnabled)
+            {
+                typingTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(options.CopilotSuggestionInterval) };
+                typingTimer.Tick += TypingTimer_Tick;
+
+                this.view.TextBuffer.Changed += TextBuffer_Changed;
+            }            
         }
 
         /// <summary>
@@ -42,14 +56,12 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
         /// It then sends a request to ChatGPT for a code prediction, processes the prediction, and displays
         /// the autocomplete suggestion in the editor.
         /// </summary>
-        public async Task OnEnterPressed(OptionPageGridGeneral options)
+        public async Task ShowAutocompleteAsync()
         {
             const string MARKER = "\n **AUTOCOMPLETE HERE** \n";
 
             try
             {
-                await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_WAITING_COPILOT, 1, 2);
-
                 cancellationTokenSource?.Cancel();
                 cancellationTokenSource = new();
 
@@ -78,9 +90,18 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
                     return;
                 }
 
-                string prediction = options.UseCompletion && options.Service == OpenAIService.OpenAI
-                    ? await ApiHandler.GetCompletionResponseAsync(options, systemMessage, code, null, cancellationTokenSource.Token)
-                    : await ApiHandler.GetResponseAsync(options, systemMessage, code, null, cancellationTokenSource.Token);
+                string prediction;
+
+                if (options.CopilotModelOption == CopilotModelOption.Completion && options.Service == OpenAIService.OpenAI)
+                {
+                    prediction = await ApiHandler.GetCompletionResponseAsync(options, systemMessage, code, null, cancellationTokenSource.Token);
+                }
+                else
+                {
+                    string modelOverride = options.CopilotModelOption == CopilotModelOption.Specific ? options.CopilotSpecificModel : null;
+
+                    prediction = await ApiHandler.GetResponseAsync(options, systemMessage, code, null, cancellationTokenSource.Token, null, modelOverride);
+                }
 
                 if (cancellationTokenSource.Token.IsCancellationRequested || string.IsNullOrWhiteSpace(prediction))
                 {
@@ -103,10 +124,6 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
             {
                 showingAutoComplete = false;
                 Logger.Log(ex);
-            }
-            finally
-            {
-                await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_WAITING_COPILOT, 2, 2);
             }
         }
 
@@ -274,6 +291,28 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
                 {
                     cache.TryRemove(key, out _);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Handles the event triggered when the text buffer changes.
+        /// </summary>
+        private void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
+        {
+            typingTimer.Stop();
+            typingTimer.Start();
+        }
+
+        /// <summary>
+        /// Handles the tick event of the typing timer, stopping the timer and triggering a suggestion asynchronously.
+        /// </summary>
+        private async void TypingTimer_Tick(object sender, EventArgs e)
+        {
+            typingTimer.Stop();
+
+            if (!showingAutoComplete)
+            {
+                await ShowAutocompleteAsync();
             }
         }
     }

@@ -1,4 +1,10 @@
-﻿using JeffPires.VisualChatGPTStudio.Commands;
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using JeffPires.VisualChatGPTStudio.Commands;
 using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils.Http;
 using OpenAI_API;
@@ -7,12 +13,6 @@ using OpenAI_API.Completions;
 using OpenAI_API.ResponsesAPI;
 using OpenAI_API.ResponsesAPI.Models.Request;
 using OpenAI_API.ResponsesAPI.Models.Response;
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace JeffPires.VisualChatGPTStudio.Utils
 {
@@ -80,10 +80,17 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <param name="stopSequences">An array of sequences that will stop the chatbot's response generation.</param>
         /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
         /// <param name="image">An optional byte array representing an image to be included in the conversation.</param>
+        /// <param name="modelOrAzureDeploymentOverride">An optional parameter to specify the model name or Azure deployment name to override the option's parameters.</param>
         /// <returns>A task that represents the asynchronous operation, containing the chatbot's response as a string.</returns>
-        public static async Task<string> GetResponseAsync(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences, CancellationToken cancellationToken, byte[] image = null)
+        public static async Task<string> GetResponseAsync(OptionPageGridGeneral options,
+                                                          string systemMessage,
+                                                          string userInput,
+                                                          string[] stopSequences,
+                                                          CancellationToken cancellationToken,
+                                                          byte[] image = null,
+                                                          string modelOrAzureDeploymentOverride = "")
         {
-            Conversation chat = CreateConversationForCompletions(options, systemMessage, userInput, stopSequences, image);
+            Conversation chat = CreateConversationForCompletions(options, systemMessage, userInput, stopSequences, image, modelOrAzureDeploymentOverride);
 
             string selectedContextFilesCode = await GetSelectedContextItemsCodeAsync();
 
@@ -144,8 +151,9 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// </summary>
         /// <param name="options">The options to use for the conversation.</param>
         /// <param name="systemMessage">The system message to append to the conversation.</param>
+        /// <param name="modelOrAzureDeploymentOverride">An optional parameter to specify the model name or Azure deployment name to override the option's parameters.</param>
         /// <returns>The created conversation.</returns>
-        public static Conversation CreateConversation(OptionPageGridGeneral options, string systemMessage)
+        public static Conversation CreateConversation(OptionPageGridGeneral options, string systemMessage, string modelOrAzureDeploymentOverride = "")
         {
             Conversation chat;
 
@@ -153,18 +161,20 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             {
                 CreateOpenAIApiHandler(options);
 
-                chat = new Conversation((ChatEndpoint)openAiAPI.Chat);
+                chat = new Conversation((ChatEndpoint)openAiAPI.Chat)
+                {
+                    Model = !string.IsNullOrWhiteSpace(modelOrAzureDeploymentOverride) ? modelOrAzureDeploymentOverride : options.Model
+                };
             }
             else
             {
-                CreateAzureApiHandler(options);
+                CreateAzureApiHandler(options, modelOrAzureDeploymentOverride);
 
                 chat = new Conversation((ChatEndpoint)azureAPI.Chat);
             }
 
             chat.AppendSystemMessage(systemMessage);
 
-            chat.Model = options.Model;
             chat.AutoTruncateOnContextLengthExceeded = true;
             chat.RequestParameters.Temperature = options.Temperature;
             chat.RequestParameters.MaxTokens = options.MaxTokens;
@@ -367,12 +377,18 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <param name="userInput">The input provided by the user for the conversation.</param>
         /// <param name="stopSequences">An array of stop sequences to control the conversation flow.</param>
         /// <param name="image">Optional byte array representing an image to be included in the conversation.</param>
+        /// <param name="modelOrAzureDeploymentOverride">An optional parameter to specify the model name or Azure deployment name to override the option's parameters.</param>
         /// <returns>
         /// A <see cref="ConversationOverride"/> object that encapsulates the conversation details.
         /// </returns>
-        private static Conversation CreateConversationForCompletions(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences, byte[] image = null)
+        private static Conversation CreateConversationForCompletions(OptionPageGridGeneral options,
+                                                                     string systemMessage,
+                                                                     string userInput,
+                                                                     string[] stopSequences,
+                                                                     byte[] image = null,
+                                                                     string modelOrAzureDeploymentOverride = "")
         {
-            Conversation chat = CreateConversation(options, systemMessage);
+            Conversation chat = CreateConversation(options, systemMessage, modelOrAzureDeploymentOverride);
 
             if (options.MinifyRequests)
             {
@@ -501,8 +517,11 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// Creates an Azure API handler based on the provided options. 
         /// </summary>
         /// <param name="options">The options to use for creating/updating the Azure API handler.</param>
-        private static void CreateAzureApiHandler(OptionPageGridGeneral options)
+        /// <param name="modelOrAzureDeploymentOverride">An optional parameter to specify the deployment name to override the option's parameters.
+        private static void CreateAzureApiHandler(OptionPageGridGeneral options, string deploymentOverride = "")
         {
+            string deployment = !string.IsNullOrWhiteSpace(deploymentOverride) ? deploymentOverride : options.AzureDeploymentId;
+
             if (azureAPI == null)
             {
                 chatGPTHttpClient = new(options);
@@ -518,7 +537,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                 }
                 else
                 {
-                    azureAPI = OpenAIAPI.ForAzure(options.AzureResourceName, options.AzureDeploymentId, options.ApiKey);
+                    azureAPI = OpenAIAPI.ForAzure(options.AzureResourceName, deployment, options.ApiKey);
                 }
 
                 azureAPI.HttpClientFactory = chatGPTHttpClient;
@@ -527,11 +546,11 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                     (string.IsNullOrWhiteSpace(options.AzureUrlOverride) &&
                     (
                         !azureAPI.ApiUrlFormat.ToLower().Contains(options.AzureResourceName.ToLower()) ||
-                        !azureAPI.ApiUrlFormat.ToLower().Contains(options.AzureDeploymentId.ToLower()))
+                        !azureAPI.ApiUrlFormat.ToLower().Contains(deployment.ToLower()))
                     ))
             {
                 azureAPI = null;
-                CreateAzureApiHandler(options);
+                CreateAzureApiHandler(options, deploymentOverride);
             }
 
             if (azureAPI.Auth.ApiKey != options.ApiKey)

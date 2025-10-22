@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
+using OpenAI_API;
 using OpenAI_API.Chat;
 using OpenAI_API.Functions;
 using OpenAI_API.ResponsesAPI.Models.Request;
@@ -462,6 +463,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private async Task RequestAsync(RequestType commandType, string request, string requestToShowOnList, bool shiftKeyPressed)
         {
             var firstMessage = !_viewModel.Messages.Any();
+            apiChat.UpdateApiKey(options.ApiKey);
             await ExecuteRequestWithCommonHandlingAsync(async () =>
             {
                 await AddMessagesHtmlAsync(IdentifierEnum.Me, requestToShowOnList);

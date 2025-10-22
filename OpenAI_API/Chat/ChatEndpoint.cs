@@ -40,6 +40,18 @@ namespace OpenAI_API.Chat
 			return new Conversation(this, defaultChatRequestArgs: defaultChatRequestArgs ?? DefaultChatRequestArgs);
 		}
 
+		public string ApiKey
+		{
+			get => _Api.Auth?.ApiKey;
+			set
+			{
+				if (_Api.Auth != null)
+				{
+					_Api.Auth.ApiKey = value;
+				}
+			}
+		}
+
 		#region Non-streaming
 
 		/// <summary>

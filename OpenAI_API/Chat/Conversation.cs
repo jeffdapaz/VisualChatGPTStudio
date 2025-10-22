@@ -485,5 +485,10 @@ namespace OpenAI_API.Chat
             _Messages.Clear();
             tools.Clear();
         }
+
+        public void UpdateApiKey(string apiKey)
+        {
+            endpoint.ApiKey = apiKey;
+        }
     }
 }

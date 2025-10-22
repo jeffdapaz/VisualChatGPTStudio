@@ -193,7 +193,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                         Clipboard.SetText(code);
                         break;
                     case "apply":
-                        var __ = ApplyCodeToActiveDocumentAsync(code);
+                        var __ = TerminalWindowHelper.ApplyCodeToActiveDocumentAsync(code);
                         break;
                 }
             };
@@ -246,56 +246,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         public void Dispose()
         {
             OnUnloaded(this, new RoutedEventArgs());
-        }
-
-        /// <summary>
-        /// Applies the specified code to the currently active document in Visual Studio.
-        /// </summary>
-        /// <param name="code">The code to insert or replace in the active document.</param>
-        private async Task ApplyCodeToActiveDocumentAsync(string code)
-        {
-            try
-            {
-                docView = await VS.Documents.GetActiveDocumentViewAsync();
-
-                if (docView?.TextBuffer == null)
-                {
-                    MessageBox.Show("No active document is open to apply the code.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                await docView.TextBuffer.Properties.GetOrCreateSingletonProperty(() => TaskScheduler.FromCurrentSynchronizationContext());
-
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-                var textBuffer = docView.TextView?.TextBuffer;
-                if (textBuffer == null)
-                {
-                    MessageBox.Show("In active document TextBuffer in null.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-                var selection = docView.TextView.Selection.SelectedSpans;
-
-                using var edit = textBuffer.CreateEdit();
-                if (selection.Count > 0 && !selection[0].IsEmpty)
-                {
-                    edit.Replace(selection[0], code);
-                }
-                else
-                {
-                    var caretPosition = docView.TextView.Caret.Position.BufferPosition.Position;
-
-                    edit.Insert(caretPosition, code);
-                }
-
-                edit.Apply();
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-
-                MessageBox.Show("Failed to apply the code to the active document.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Error);
-            }
         }
 
         private async Task AddMessagesFromModelAsync()

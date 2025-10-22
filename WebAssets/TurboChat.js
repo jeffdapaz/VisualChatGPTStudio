@@ -51,7 +51,11 @@ function buildMermaidBlock(lang, text)
 
 /* send messages to WebView2 */
 function sendCode(id, action){
-    const raw = document.getElementById(id).getAttribute('data-raw');
+    let raw = document.getElementById(id).getAttribute('data-raw');
+    let selection = window.getSelection();
+    if (selection.rangeCount > 0 && id === selection.getRangeAt(0).commonAncestorContainer.id) {
+        raw = selection.toString();
+    }
     window.chrome?.webview?.postMessage({
         action:action,
         code:raw

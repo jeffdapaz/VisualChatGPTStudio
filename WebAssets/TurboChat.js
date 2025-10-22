@@ -17,8 +17,14 @@ function buildCodeBlock(lang, highlightedHtml, raw) {
         <header>
           <span>${lang}</span>
           <div>
-            <button onclick="sendCode('${id}','apply')"><i class="fa-solid fa-terminal"></i></i><span>Apply</span></button>
-            <button id="${id}-copy" class="copy-button" onclick="sendCode('${id}','copy')"><i class="fa-regular fa-copy"></i></button>
+            <button class="tooltip" onclick="sendCode('${id}','apply')">
+              <i class="fa-solid fa-terminal"></i>
+              <span class="tooltiptext">Apply to code.</span>
+            </button>
+            <button class="copy-button tooltip" onclick="sendCode('${id}','copy')">
+              <i class="fa-regular fa-copy"></i>
+              <span class="tooltiptext">Copy to clipboard.</span>
+            </button>
           </div>
         </header>
         <pre><code id="${id}" class="language-${lang}" data-raw="${raw.replace(/"/g, '&quot;')}">${highlightedHtml}</code></pre>
@@ -33,7 +39,10 @@ function buildMermaidBlock(lang, text)
         <header>
           <span>${lang}</span>
           <div>
-            <button id="${id}-copy" class="copy-button" onclick="sendCode('${id}','copy')"><i class="fa-regular fa-copy"></i></button>
+            <button class="copy-button tooltip" onclick="sendCode('${id}','copy')">
+              <i class="fa-regular fa-copy"></i>
+              <span class="tooltiptext">Copy to clipboard.</span>
+            </button>
           </div>
         </header>
         <div class="mermaid-box" id="${id}" data-raw="${text.replace(/"/g,'&quot;')}"></div>

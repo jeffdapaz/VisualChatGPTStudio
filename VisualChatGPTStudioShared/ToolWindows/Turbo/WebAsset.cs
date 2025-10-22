@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -9,10 +8,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo;
 
 public static class WebAsset
 {
-    private static readonly string _localAppData = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        Utils.Constants.EXTENSION_NAME);
-
     private static readonly string _root;
 
     static WebAsset()
@@ -25,7 +20,7 @@ public static class WebAsset
 
     public static string GetTurboPath() => $"file:///{Path.Combine(_root, "TurboChat.html").Replace('\\', '/')}";
 
-    public static string Deploy(string packPath)
+    private static void Deploy(string packPath)
     {
         var fileName = Path.GetFileName(packPath);
         var target = Path.Combine(_root, fileName);
@@ -43,17 +38,17 @@ public static class WebAsset
             content = r.ReadToEnd();
 
         File.WriteAllText(target, content, Encoding.UTF8);
-
-        return $"file:///{target.Replace('\\', '/')}";
     }
 
-    public static void DeployTheme(string text, string back, string gpt, string code,  string codeHeader, string codeBorder, string highlight)
+    public static void DeployTheme(string text, string textBg, string gptBg,
+        string codeBg, string codeText, string codeHeader, string codeBorder, string highlight)
     {
         var css = @$":root {{
-          --bg-color: {back};
           --text-color: {text};
-          --gpt-bg-color: {gpt};
-          --code-bg-color: {code};
+          --bg-color: {textBg};
+          --gpt-bg-color: {gptBg};
+          --code-bg-color: {codeBg};
+          --code-text-color: {codeText}
           --code-header-color: {codeHeader};
           --code-border-color: {codeBorder};
           --highlight-color: {highlight};
@@ -68,25 +63,5 @@ public static class WebAsset
         Deploy("WebAssets/TurboChat.html");
         Deploy("WebAssets/TurboChat.css");
         Deploy("WebAssets/TurboChat.js");
-    }
-
-    private static void Extract(string resourceId)
-    {
-        var fileName = Path.Combine(_localAppData, resourceId.Replace('/', Path.DirectorySeparatorChar));
-        Directory.CreateDirectory(Path.GetDirectoryName(fileName)!);
-
-        Uri packUri = new($"pack://application:,,,/VisualChatGPTStudio;component/{resourceId}", UriKind.RelativeOrAbsolute);
-        var info = Application.GetResourceStream(packUri);
-        if (info == null)
-        {
-            Logger.Log($"Resource not found: {packUri}");
-            return;
-        }
-
-        using (info.Stream)
-        using (var fs = File.Create(fileName))
-        {
-            info.Stream.CopyTo(fs);
-        }
     }
 }

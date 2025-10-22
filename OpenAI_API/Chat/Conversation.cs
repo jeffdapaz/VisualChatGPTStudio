@@ -290,25 +290,35 @@ namespace OpenAI_API.Chat
             }
         }
         
+        /// <summary>
+        /// Tool call builder in stream.
+        /// </summary>
         private sealed class PendingToolCall
         {
-            public string Id, Name, Arguments = "";
+            private readonly string id;
+            private readonly string name;
+            private readonly StringBuilder arguments;
+
             public PendingToolCall(string id, string name)
-                => (Id, Name) = (id, name);
-            public void AppendArgs(string delta) => Arguments += delta;
+                => (this.id, this.name, arguments) = (id, name, new StringBuilder());
+            
+            public void AppendArgs(string delta) => arguments.Append(delta);
 
             public FunctionResult Convert()
-                => new FunctionResult()
+                => new FunctionResult
                 {
-                    Id = Id,
-                    Function = new FunctionToCall()
+                    Id = id,
+                    Function = new FunctionToCall
                     {
-                        Name = Name,
-                        Arguments = Arguments,
+                        Name = name,
+                        Arguments = arguments.ToString(),
                     }
                 };
         }
 
+        /// <summary>
+        /// A list of function results from last stream.
+        /// </summary>
         public List<FunctionResult> StreamFunctionResults { get; private set; } = new List<FunctionResult>();
 
         /// <summary>
@@ -342,7 +352,7 @@ namespace OpenAI_API.Chat
                 try
                 {
                     resStream = endpoint.StreamChatEnumerableAsync(request, cancellationToken);
-                    enumerator = resStream.GetAsyncEnumerator();
+                    enumerator = resStream.GetAsyncEnumerator(cancellationToken);
                     await enumerator.MoveNextAsync();
                     firstStreamedResult = enumerator.Current;
                 }
@@ -373,7 +383,7 @@ namespace OpenAI_API.Chat
 
                     if (delta?.Role != null) responseRole = delta.Role;
 
-                    // 1) text
+                    // text
                     var deltaText = delta?.Content?.ToString();
                     if (!string.IsNullOrEmpty(deltaText))
                     {
@@ -403,13 +413,8 @@ namespace OpenAI_API.Chat
                     // 3) finish – tool_calls
                     if (finish == "tool_calls" && toolCalls.Count > 0)
                     {
-                        StreamFunctionResults.Clear();
-                        foreach (var pendingToolCall in toolCalls)
-                        {
-                            StreamFunctionResults.Add(pendingToolCall.Value.Convert());
-                        }
+                        StreamFunctionResults = toolCalls.Select(c => c.Value.Convert()).ToList();
                     }
-
                 } while (await enumerator.MoveNextAsync() && !cancellationToken.IsCancellationRequested);
             }
 

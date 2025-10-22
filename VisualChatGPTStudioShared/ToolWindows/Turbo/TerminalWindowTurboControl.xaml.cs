@@ -775,15 +775,17 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             var backgroundColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.WindowKey]).Color;
             var gptBubbleColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.ScrollBarBackgroundKey]).Color;
             var highlightColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.HighlightKey]).Color;
-            var codeBackgroundColor = "#1f1f1f";
-            var codeHeaderColor = "#2c303d";
-            var codeBorderColor = "#424654";
+            var codeBackgroundColor = "#1f1f1f;";
+            var codeTextColor = "#ccc;";
+            var codeHeaderColor = "#2c303d;";
+            var codeBorderColor = "#424654;";
 
             WebAsset.DeployTheme(
                 ToCssColor(textColor),
                 ToCssColor(backgroundColor),
                 ToCssColor(gptBubbleColor),
                 codeBackgroundColor,
+                codeTextColor,
                 codeHeaderColor,
                 codeBorderColor,
                 ToCssColor(highlightColor));

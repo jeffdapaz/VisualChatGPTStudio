@@ -12,7 +12,7 @@ pre {
     overflow-x: auto;
     white-space: pre;
     background: var(--code-bg-color);
-    color: var(--text-color);
+    color: var(--code-text-color);
     padding: 8px;
     font-family: Consolas, 'Courier New', monospace;
     font-size: 13px;
@@ -21,7 +21,7 @@ pre {
 code {
     font-family: Consolas, 'Courier New', monospace;
     font-size: 13px;
-    color: var(--text-color);
+    color: var(--code-text-color);
 }
 .copy-btn {
     position: absolute;
@@ -44,7 +44,7 @@ summary {
     cursor: pointer;
     user-select: none;
     margin-left: 8px;
-    color: gray;
+    color: var(--code-text-color);
 }
 details {
     padding: 0 8px 8px 8px;
@@ -52,7 +52,7 @@ details {
     overflow: hidden;
     transition: height .3s ease;
     font-size: 14px;
-    color: gray;
+    color: var(--code-text-color);
 }
 details summary {
     cursor: pointer;
@@ -79,7 +79,6 @@ pre {
     margin:.6rem 0;
     border-radius: 8px 8px;
     border: 1px solid var(--code-border-color);
-    overflow:hidden;
     background: var(--code-bg-color);
 }
 .code-box header {
@@ -87,12 +86,13 @@ pre {
     align-items:center;
     justify-content:space-between;
     background:var(--code-header-color);
-    color:#ccc;
+    color: var(--code-text-color);
     padding:.3rem .5rem;
     font-size:12px;
+    border: 1px solid var(--code-border-color);
+    border-radius: 8px 8px 0 0;
     text-transform:uppercase;
     text-overflow:ellipsis;
-    overflow:hidden;
     white-space:nowrap;
 }
 .code-box header span {
@@ -129,7 +129,7 @@ button i {
     left: 50%;
     transform: translate(-50%, -50%);
     background-color: var(--highlight-color);
-    color: var(--text-color);
+    color: var(--code-text-color);
     padding: 10px 20px;
     border-radius: 5px;
     transition: opacity 0.3s ease, bottom 0.3s ease, visibility 0.3s;
@@ -157,4 +157,28 @@ span.command {
 span.context {
     color: #8e44ad;
     font-weight: bold
+}
+.tooltip {
+    position: relative;
+}
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: var(--highlight-color);
+    color: var(--code-text-color);
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s ease, bottom 0.3s ease, visibility 0.3s;
+}
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+    bottom: 150%;
 }

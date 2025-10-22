@@ -147,7 +147,7 @@ Padding="8" CornerRadius="4">
         <!-- Chat -->
         <Grid Name="grdChat" Grid.Row="1">
             <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="*" MinHeight="100"/>
                 <RowDefinition Height="15"/>
                 <RowDefinition Height="Auto" MaxHeight="600"/>
                 <RowDefinition Height="5"/>
@@ -155,7 +155,7 @@ Padding="8" CornerRadius="4">
             </Grid.RowDefinitions>
 
             <!-- WebView -->
-            <ContentPresenter x:Name="WebViewHost"/>
+            <ContentPresenter x:Name="WebViewHost" />
 
             <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Background="#FF007ACC" Margin="0,5,0,5"  Visibility="{Binding Visibility, ElementName=dataGridResult}"/>
             <DataGrid
@@ -212,7 +212,7 @@ Padding="8" CornerRadius="4">
                 DisplayMemberPath="Name"
                 SelectedValuePath="Name" />
             <!-- Request textBox -->
-            <Border Grid.Row="2" CornerRadius="4" BorderBrush="DarkGray" BorderThickness="1" Padding="4"
+            <Border Grid.Row="2" CornerRadius="4" BorderBrush="DarkGray" BorderThickness="1" Padding="4" MaxHeight="200"
                     Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}">
                 <avalonEdit:TextEditor
                     xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"

@@ -6,10 +6,6 @@
     }
 });
 
-function rawCode(el){
-    return el.getAttribute('data-raw') || el.textContent;
-}
-
 function buildCodeBlock(lang, highlightedHtml, raw) {
     const id = 'cb-' + Math.random().toString(36).slice(2);
     return `
@@ -19,15 +15,15 @@ function buildCodeBlock(lang, highlightedHtml, raw) {
           <div>
             <button class="tooltip" onclick="sendCode('${id}','apply')">
               <i class="fa-solid fa-terminal"></i>
-              <span class="tooltiptext">Apply to code.</span>
+              <span class="tooltiptext">Apply</span>
             </button>
             <button class="copy-button tooltip" onclick="sendCode('${id}','copy')">
               <i class="fa-regular fa-copy"></i>
-              <span class="tooltiptext">Copy to clipboard.</span>
+              <span class="tooltiptext">Copy to clipboard</span>
             </button>
           </div>
         </header>
-        <pre><code id="${id}" class="language-${lang}" data-raw="${raw.replace(/"/g, '&quot;')}">${highlightedHtml}</code></pre>
+        <pre><code id="${id}" class="language-${lang}">${highlightedHtml}</code></pre>
       </div>`;
 }
 
@@ -41,7 +37,7 @@ function buildMermaidBlock(lang, text)
           <div>
             <button class="copy-button tooltip" onclick="sendCode('${id}','copy')">
               <i class="fa-regular fa-copy"></i>
-              <span class="tooltiptext">Copy to clipboard.</span>
+              <span class="tooltiptext">Copy to clipboard</span>
             </button>
           </div>
         </header>
@@ -51,7 +47,8 @@ function buildMermaidBlock(lang, text)
 
 /* send messages to WebView2 */
 function sendCode(id, action){
-    let raw = document.getElementById(id).getAttribute('data-raw');
+    let element = document.getElementById(id);
+    let raw = element.getAttribute("data-raw") ?? element.textContent;
     let selection = window.getSelection();
     if (selection.rangeCount > 0 && id === selection.getRangeAt(0).commonAncestorContainer.id) {
         raw = selection.toString();
@@ -108,7 +105,7 @@ function splitThink(text){
 
 function highlightSpecialTags(text) {
     return text.replace(
-        /(?<=^|[\s,>])([/@][^\s,\r\n]*)/g,
+        /(?<=^|[\s,>])((\/{2}|@)[^\s,\r\n]+)/g,
         (match) => {
             if (match.startsWith('/')) {
                 return `<span class="command">${match}</span>`;

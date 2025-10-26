@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -12,6 +13,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using Community.VisualStudio.Toolkit;
 using JeffPires.VisualChatGPTStudio.Agents;
 using JeffPires.VisualChatGPTStudio.Commands;
@@ -180,27 +182,46 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             sqlServerConnectionsAlreadyAdded = ChatRepository.GetSqlServerConnections(_viewModel.ChatId);
             apiDefinitionsAlreadyAdded = ChatRepository.GetApiDefinitions(_viewModel.ChatId);
 
-            _webView.WebMessageReceived += (_, webMessage) =>
-            {
-                if (webMessage?.WebMessageAsJson == null)
-                    return;
+            _webView.WebMessageReceived += WebViewOnWebMessageReceived;
+        }
 
+        private async void WebViewOnWebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs webMessage)
+        {
+            if (webMessage?.WebMessageAsJson == null)
+                return;
+
+            try
+            {
                 var msg = JsonSerializer.Deserialize<JsonElement>(webMessage.WebMessageAsJson);
-                var action = msg.GetProperty("action").GetString();
-                var code = msg.GetProperty("code").GetString();
-                if (code == null)
+                var action = msg.GetProperty("action").GetString()?.ToLower();
+                var data = msg.GetProperty("data").GetString();
+                if (data == null)
                     return;
 
                 switch (action)
                 {
+                    case "png":
+                        var pngBytes = Convert.FromBase64String(data);
+                        var bitmap = new BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.StreamSource = new MemoryStream(pngBytes);
+                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                        bitmap.EndInit();
+                        Clipboard.SetImage(bitmap);
+                        break;
                     case "copy":
-                        Clipboard.SetText(code);
+                        Clipboard.SetText(data);
                         break;
                     case "apply":
-                        var __ = TerminalWindowHelper.ApplyCodeToActiveDocumentAsync(code);
+                        await TerminalWindowHelper.ApplyCodeToActiveDocumentAsync(data);
                         break;
                 }
-            };
+            }
+            catch (Exception e)
+            {
+                Logger.Log($"WebView error: {e.Message}");
+
+            }
         }
 
         private void CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)

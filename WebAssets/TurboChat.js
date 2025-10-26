@@ -35,9 +35,13 @@ function buildMermaidBlock(lang, text)
         <header>
           <span>${lang}</span>
           <div>
+            <button class="copy-button tooltip" onclick="sendPNG('${id}')">
+              <i class="fa-regular fa-image"></i>
+              <span class="tooltiptext">Copy as image</span>
+            </button>
             <button class="copy-button tooltip" onclick="sendCode('${id}','copy')">
               <i class="fa-regular fa-copy"></i>
-              <span class="tooltiptext">Copy to clipboard</span>
+              <span class="tooltiptext">Copy as text</span>
             </button>
           </div>
         </header>
@@ -46,6 +50,37 @@ function buildMermaidBlock(lang, text)
 }
 
 /* send messages to WebView2 */
+function sendPNG(id) {
+    const svgEl = document.querySelector('#'+id+' svg');
+    const svgString = new XMLSerializer().serializeToString(svgEl);
+    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
+    const img = new Image();
+    const scale = 4;
+    const bgColor = getComputedStyle(svgEl).getPropertyValue('--code-bg-color').trim();
+    img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width  = img.width  * scale;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        if (bgColor) {
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        ctx.drawImage(img, 0, 0);
+        
+        const base64 = canvas.toDataURL('image/png').split(',')[1];
+        window.chrome.webview.postMessage({
+            action : 'png',
+            data : base64
+        });
+        URL.revokeObjectURL(url);
+    };
+    img.src = url;
+}
+
 function sendCode(id, action){
     let element = document.getElementById(id);
     let raw = element.getAttribute("data-raw") ?? element.textContent;
@@ -54,8 +89,8 @@ function sendCode(id, action){
         raw = selection.toString();
     }
     window.chrome?.webview?.postMessage({
-        action:action,
-        code:raw
+        action: action,
+        data: raw
     });
     if (action === 'copy') {
         let popup = document.getElementById("popup");
@@ -129,7 +164,6 @@ function renderFrag(f){
 
 /* ---------- Functions called from C# ---------- */
 function addMsg(role, rawText, scrollTo = true){
-    updateShouldScrollFlag();
     const wrap = document.createElement('div');
     wrap.className = 'msg ' + role;
     const bubble = document.createElement('div');
@@ -139,8 +173,8 @@ function addMsg(role, rawText, scrollTo = true){
     );
     wrap.appendChild(bubble);
     document.getElementById('chat').appendChild(wrap);
-    if (scrollTo) {
-        scrollToBottomIfNeeded();
+    if (role !== 'gpt') {
+        scrollToLastRequest();
     }
 }
 

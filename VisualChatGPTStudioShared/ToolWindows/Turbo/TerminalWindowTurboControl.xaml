@@ -31,7 +31,7 @@ Padding="8" CornerRadius="4">
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsFocused" Value="True">
-                                <Setter Value="{DynamicResource {x:Static vsshell:VsBrushes.CommandBarHoverKey}}" Property="Control.Background"/>
+                                <Setter Value="{DynamicResource {x:Static vsshell:VsBrushes.HighlightKey}}" Property="Control.Background"/>
                             </Trigger>
                             <Trigger Property="UIElement.IsMouseOver" Value="true">
                                 <Setter Value="{DynamicResource {x:Static vsshell:VsBrushes.CommandBarHoverKey}}" Property="Control.Background"/>
@@ -46,18 +46,25 @@ Padding="8" CornerRadius="4">
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Margin" Value="4,0"/>
             <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Button}">
                         <Border x:Name="border" Background="{TemplateBinding Control.Background}"
-            BorderThickness="{TemplateBinding Control.BorderThickness}"
-            Padding="{TemplateBinding Control.Padding}" CornerRadius="4">
+                                BorderThickness="{TemplateBinding Control.BorderThickness}"
+                                Padding="{TemplateBinding Control.Padding}" CornerRadius="4">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
+                            <Trigger Property="UIElement.IsFocused" Value="true">
+                                <Setter Value="{DynamicResource {x:Static vsshell:VsBrushes.HighlightKey}}" Property="Control.Background"/>
+                            </Trigger>
                             <Trigger Property="UIElement.IsMouseOver" Value="true">
                                 <Setter Value="{DynamicResource {x:Static vsshell:VsBrushes.CommandBarHoverKey}}" Property="Control.Background"/>
+                            </Trigger>
+                            <Trigger Property="UIElement.IsEnabled" Value="False">
+                                <Setter Value="0.5" Property="Control.Opacity"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -106,7 +113,7 @@ Padding="8" CornerRadius="4">
     BorderThickness="0,0,0,1"
     BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.CommandBarBorderKey}}" Padding="8,4">
             <StackPanel Orientation="Horizontal">
-                <Button Click="NewChat_Click" Style="{StaticResource ToolbarButtonStyle}" ToolTip="New Chat"
+                <Button Click="NewChat_Click" Style="{StaticResource ToolbarButtonStyle}" ToolTip="New Chat" Focusable="True"
         IsEnabled="{Binding IsProcessing, Converter={StaticResource InverseBooleanConverter}}">
                     <StackPanel Orientation="Horizontal">
                         <imaging:CrispImage Width="16" Height="16" Margin="0,0,4,0"
@@ -125,7 +132,7 @@ Padding="8" CornerRadius="4">
                     </StackPanel>
                 </Button>
                 <Button Click="ToggleHistory_Click" Style="{StaticResource ToolbarButtonStyle}" ToolTip="Chat History"
-        IsEnabled="{Binding IsProcessing, Converter={StaticResource InverseBooleanConverter}}">
+                        IsEnabled="{Binding IsProcessing, Converter={StaticResource InverseBooleanConverter}}">
                     <StackPanel Orientation="Horizontal">
                         <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.History}" FrameworkElement.Width="16"
                         Height="16" Margin="0,0,4,0"
@@ -133,7 +140,10 @@ Padding="8" CornerRadius="4">
                         <TextBlock Text="History" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
-                <Button Click="ToggleSettings_Click"  Style="{StaticResource ToolbarButtonStyle}" ToolTip="Settings"
+                <Button Click="ToggleSettings_Click"
+                        Style="{StaticResource ToolbarButtonStyle}"
+                        ToolTip="Settings"
+                        Visibility="Collapsed"
                         IsEnabled="{Binding IsProcessing, Converter={StaticResource InverseBooleanConverter}}">
                     <StackPanel Orientation="Horizontal">
                         <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Settings}" Width="16"
@@ -394,9 +404,10 @@ Padding="8" CornerRadius="4">
         </Grid>
         <!-- Sidebars -->
         <Border x:Name="Overlay" Grid.RowSpan="3"
-            Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" Opacity="0.5"
-            MouseDown="Overlay_OnMouseDown"
-            Visibility="Collapsed">
+                Focusable="False"
+                Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" Opacity="0.5"
+                MouseDown="Overlay_OnMouseDown"
+                Visibility="Collapsed">
             <FrameworkElement.Style>
                 <Style TargetType="{x:Type Border}">
                     <Style.Triggers>
@@ -413,11 +424,19 @@ Padding="8" CornerRadius="4">
                 </Style>
             </FrameworkElement.Style>
         </Border>
-        <Border x:Name="HistorySidebar" Grid.RowSpan="3" Style="{StaticResource SlideBarStyle}"
-            Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
-            BorderThickness="1,0,0,0"
-            BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBorderKey}}" Width="360"
-            HorizontalAlignment="Right" Visibility="Collapsed">
+        <Border x:Name="HistorySidebar"
+                Grid.RowSpan="3"
+                Style="{StaticResource SlideBarStyle}"
+                FocusManager.IsFocusScope="True"
+                KeyboardNavigation.TabNavigation="Cycle"
+                KeyboardNavigation.DirectionalNavigation="Contained"
+                KeyboardNavigation.TabIndex="0"
+                Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
+                BorderThickness="1,0,0,0"
+                BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBorderKey}}"
+                Width="360"
+                HorizontalAlignment="Right"
+                Visibility="Collapsed">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -425,9 +444,11 @@ Padding="8" CornerRadius="4">
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <Border Grid.Row="0" Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTabGradientKey}}"
-            BorderThickness="0,0,0,1"
-            BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBorderKey}}">
+                <!-- Search box -->
+                <Border Grid.Row="0"
+                        Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTabGradientKey}}"
+                        BorderThickness="0,0,0,1"
+                        BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBorderKey}}">
                     <Grid Margin="16,12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -445,10 +466,9 @@ Padding="8" CornerRadius="4">
                         </Button>
                     </Grid>
                 </Border>
-                <Border Grid.Row="1" Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
-            Padding="16,12">
+                <Border Grid.Row="1" Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" Padding="16,12">
                     <Grid>
-                        <TextBox Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}" Height="32">
+                        <TextBox x:Name="HistorySearch" Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}" Height="32">
                             <FrameworkElement.Style>
                                 <Style TargetType="{x:Type TextBox}">
                                     <Setter Property="Background"
@@ -463,8 +483,8 @@ Padding="8" CornerRadius="4">
                             BorderBrush="{TemplateBinding Control.BorderBrush}" BorderThickness="1" CornerRadius="4">
                                                     <Grid>
                                                         <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Search}" Width="16"
-                                            Height="16" HorizontalAlignment="Left"
-                                            Margin="8,0,0,0" Opacity="0.6"/>
+                                                        Height="16" HorizontalAlignment="Left"
+                                                        Margin="8,0,0,0" Opacity="0.6"/>
                                                         <ScrollViewer x:Name="PART_ContentHost" Margin="32,6,8,6" VerticalAlignment="Center"/>
                                                         <TextBlock Text="Search conversations..." Margin="32,6,8,6"
                                    Foreground="{DynamicResource {x:Static vsshell:VsBrushes.GrayTextKey}}" VerticalAlignment="Center"
@@ -480,40 +500,66 @@ Padding="8" CornerRadius="4">
                     </Grid>
                 </Border>
                 <ListBox Grid.Row="2"
+                         SelectionChanged="HistoryList_SelectionChanged"
                          MouseDoubleClick="HistoryList_MouseDoubleClick"
                          ItemsSource="{Binding Chats}"
                          Background="Transparent" BorderThickness="0" Margin="0" Padding="16,8"
                          ScrollViewer.HorizontalScrollBarVisibility="Disabled" VirtualizingPanel.IsVirtualizing="true"
                          VirtualizingPanel.VirtualizationMode="Recycling">
+                    <!-- history item -->
                     <ItemsControl.ItemContainerStyle>
                         <Style TargetType="{x:Type ListBoxItem}">
                             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                             <Setter Property="Padding" Value="0"/>
                             <Setter Property="Margin" Value="0,4"/>
                             <Setter Property="Background" Value="Transparent"/>
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="{x:Type ListBoxItem}">
-                                        <Border x:Name="Border" Background="Transparent" SnapsToDevicePixels="true">
-                                            <ContentPresenter/>
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="UIElement.IsMouseOver" Value="true">
-                                                <Setter TargetName="Border"
-                        Value="{DynamicResource {x:Static vsshell:VsBrushes.CommandBarMouseOverBackgroundGradientKey}}"
-                        Property="Border.Background"/>
-                                            </Trigger>
-                                            <Trigger Property="ListBoxItem.IsSelected" Value="true">
-                                                <Setter TargetName="Border" Value="{DynamicResource {x:Static vsshell:VsBrushes.CommandBarSelectedKey}}"
-                        Property="Border.Background"/>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
+                            <Setter Property="Focusable" Value="True" />
+                            <EventSetter Event="PreviewGotKeyboardFocus" Handler="HistoryList_PreviewGotKeyboardFocus"/>
+                            <EventSetter Event="PreviewKeyDown" Handler="HistoryList_PreviewKeyDown"/>
                             <Setter Property="LayoutTransform">
                                 <Setter.Value>
                                     <ScaleTransform x:Name="transform" />
+                                </Setter.Value>
+                            </Setter>
+                            <!-- history item style -->
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Border x:Name="border"
+                                                Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTabMouseOverBackgroundBeginKey}}"
+                                                BorderBrush="Transparent"
+                                                BorderThickness="2"
+                                                CornerRadius="4"
+                                                SnapsToDevicePixels="true">
+                                            <ContentPresenter />
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="border" Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.CommandBarHoverKey}}"/>
+                                            </Trigger>
+
+                                            <!-- selected item -->
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="border" Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.CommandBarSelectedKey}}"/>
+                                            </Trigger>
+
+                                            <!-- focused item (keyboard UP / DOWN) -->
+                                            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static vsshell:VsBrushes.HighlightKey}}"/>
+                                            </Trigger>
+
+                                            <!-- selected & focused -->
+                                            <MultiTrigger>
+                                                <MultiTrigger.Conditions>
+                                                    <Condition Property="IsSelected" Value="True"/>
+                                                    <Condition Property="IsKeyboardFocusWithin" Value="True"/>
+                                                </MultiTrigger.Conditions>
+                                                <MultiTrigger.Setters>
+                                                    <Setter TargetName="border" Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.CommandBarHoverOverSelectedKey}}"/>
+                                                </MultiTrigger.Setters>
+                                            </MultiTrigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
                                 </Setter.Value>
                             </Setter>
                             <Style.Triggers>
@@ -532,10 +578,11 @@ Padding="8" CornerRadius="4">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border x:Name="HistoryItemBorder"
-                                  Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
+                                  Background="Transparent"
                                   BorderThickness="1"
-                                  BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBorderKey}}" CornerRadius="4"
-                                  Margin="0,2" Padding="12,8">
+                                  BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBorderKey}}"
+                                  CornerRadius="4"
+                                  Margin="2" Padding="12,8">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -596,14 +643,15 @@ Padding="8" CornerRadius="4">
                                     <Setter TargetName="box" Property="Visibility" Value="Visible"/>
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                    <Setter TargetName="HistoryItemBorder" Property="BorderBrush" Value="{DynamicResource {x:Static vsshell:VsBrushes.HighlightKey}}"/>
+                                    <Setter TargetName="HistoryItemBorder" Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.HighlightKey}}"/>
                                 </DataTrigger>
                             </DataTemplate.Triggers>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ListBox>
+                <!-- Paging -->
                 <Border Grid.Row="3"
-                        Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTabGradientKey}}"
+                        Background="Transparent"
                         BorderThickness="0,1,0,0"
                         BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBorderKey}}">
                     <Grid Margin="16,12">
@@ -612,15 +660,24 @@ Padding="8" CornerRadius="4">
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <Button Command="{Binding PrevCmd}" Style="{StaticResource ToolbarButtonStyle}"
-                                Width="28" Height="28" Padding="6">
-                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Previous}" UIElement.Opacity="0.9"/>
+                        <Button Command="{Binding PrevCmd}"
+                                IsEnabledChanged="HistoryPagingButton_OnIsEnabledChanged"
+                                Style="{StaticResource ToolbarButtonStyle}"
+                                Width="28"
+                                Height="28"
+                                Padding="6">
+                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Previous}" Opacity="0.9"/>
                         </Button>
                         <TextBlock Text="{Binding CurrentPageView}" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"
                                    Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
-                        <Button Command="{Binding NextCmd}" Grid.Column="2"
-                                Style="{StaticResource ToolbarButtonStyle}" Width="28" Height="28" Padding="6">
-                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Next}" UIElement.Opacity="0.9"/>
+                        <Button Command="{Binding NextCmd}"
+                                IsEnabledChanged="HistoryPagingButton_OnIsEnabledChanged"
+                                Grid.Column="2"
+                                Style="{StaticResource ToolbarButtonStyle}"
+                                Width="28"
+                                Height="28"
+                                Padding="6">
+                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Next}" Opacity="0.9"/>
                         </Button>
                     </Grid>
                 </Border>

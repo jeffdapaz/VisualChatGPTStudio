@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -49,6 +49,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             _viewModel.ForceReloadChats();
             HistorySidebar.Visibility = Overlay.Visibility = Visibility.Visible;
+            HistorySearch.Focus();
             ToggleWebViewVisibility();
         }
 
@@ -56,26 +57,65 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             HistorySidebar.Visibility = Overlay.Visibility = Visibility.Collapsed;
             ToggleWebViewVisibility();
+            txtRequest.Focus();
         }
 
-        private async void HistoryList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private void HistoryList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (_viewModel != null && sender is ListBox { SelectedItem: ChatEntity selectedItem })
+            CloseHistory();
+        }
+
+        private void HistoryPagingButton_OnIsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (!(bool)e.NewValue && ((Button)sender).IsFocused)
             {
-                try
-                {
-                    CloseHistory();
-                    _viewModel.LoadChat(selectedItem.Id);
-                    apiChat.ClearConversation();
-                    await _webView!.ExecuteScriptAsync(ClearChatScript);
-                    await AddMessagesFromModelAsync();
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
-                    MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                }
+                HistorySearch.Focus();
             }
+        }
+
+        private async void LoadChat(string chatId)
+        {
+            try
+            {
+                _viewModel.LoadChat(chatId);
+                apiChat.ClearConversation();
+                await _webView!.ExecuteScriptAsync(ClearChatScript);
+                await AddMessagesFromModelAsync();
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+                MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);
+            }
+        }
+
+        private void HistoryList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_viewModel != null && sender is ListBox { SelectedItem: ChatEntity selectedItem } && Mouse.LeftButton != MouseButtonState.Released)
+            {
+                LoadChat(selectedItem.Id);
+            }
+        }
+
+
+        private void HistoryList_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key is Key.Space or Key.Enter && sender is ListBoxItem { DataContext: ChatEntity selectedItem } lbi)
+            {
+                lbi.IsSelected = true;
+                e.Handled = true;
+                LoadChat(selectedItem.Id);
+                CloseHistory();
+            }
+        }
+
+        private void HistoryList_PreviewGotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            var lbi = (ListBoxItem)sender;
+
+            // 1. разрешаем фокус (не трогаем e.Handled)
+            // 2. но сбрасываем автоматическое выделение
+            lbi.IsSelected = false;
         }
 
         private void CloseHistoryButton_Click(object sender, RoutedEventArgs e) => CloseHistory();

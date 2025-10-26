@@ -23,10 +23,8 @@ using JeffPires.VisualChatGPTStudio.Utils.Repositories;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Threading;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
-using OpenAI_API;
 using OpenAI_API.Chat;
 using OpenAI_API.Functions;
 using OpenAI_API.ResponsesAPI.Models.Request;
@@ -44,7 +42,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
     /// <summary>
     /// Interaction logic for TerminalWindowTurboControl.
     /// </summary>
-    public partial class TerminalWindowTurboControl : IDisposable
+    public partial class TerminalWindowTurboControl
     {
         #region Constants
 
@@ -93,9 +91,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         public TerminalWindowTurboControl()
         {
             InitializeComponent();
-
             Loaded += OnLoaded;
-            Unloaded += OnUnloaded;
 
             DataContext = _viewModel;
         }
@@ -136,6 +132,21 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
+            try
+            {
+                if (_webView?.CoreWebView2 != null)
+                {
+                    _ = _webView.CoreWebView2.BrowserProcessId;
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                WebViewHost.Content = null;
+                _webView?.Dispose();
+                _webView = null;
+            }
+
             if (!webView2Installed)
             {
                 webView2Installed = await WebView2BootstrapperHelper.EnsureRuntimeAvailableAsync();
@@ -144,13 +155,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 {
                     return;
                 }
-            }
-
-            if (_webView != null)
-            {
-                WebViewHost.Content = null;
-                _webView.Dispose();
-                _webView = null;
             }
 
 #if COPILOT_ENABLED //VS2022
@@ -233,19 +237,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
 
             UpdateBrowser();
-        }
-
-        private void OnUnloaded(object sender, RoutedEventArgs e)
-        {
-            WebViewHost.Content = null;
-            _webView?.Dispose();
-            _webView = null;
-            webView2Installed = false;
-        }
-
-        public void Dispose()
-        {
-            OnUnloaded(this, new RoutedEventArgs());
         }
 
         private async Task AddMessagesFromModelAsync()

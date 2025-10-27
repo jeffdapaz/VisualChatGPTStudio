@@ -291,8 +291,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 }
             }
 
-            await _webView!.ExecuteScriptAsync("renderMermaid()");
-            await _webView!.ExecuteScriptAsync("scrollToLastResponse();");
+            await _webView!.ExecuteScriptAsync(WebFunctions.RenderMermaid);
+            await _webView!.ExecuteScriptAsync(WebFunctions.ScrollToLastResponse);
         }
 
         private void OnTxtRequestOnPreviewKeyDown(object s, KeyEventArgs e)
@@ -450,7 +450,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     {
                         var seg = gptMessage.Segments.First();
                         seg.Content += fragment;
-                        await _webView?.ExecuteScriptAsync($"updateLastGpt(`{JsString(seg.Content)}`);")!;
+                        await _webView?.ExecuteScriptAsync(WebFunctions.UpdateLastGpt(seg.Content))!;
                     }
 
                     await HandleFunctionsCallsAsync(apiChat.StreamFunctionResults, cancellationTokenSource);
@@ -469,8 +469,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     }
                 }
 
-                // TODO: render realtime
-                await _webView?.ExecuteScriptAsync("renderMermaid()")!;
+                await _webView?.ExecuteScriptAsync(WebFunctions.RenderMermaid)!;
 
                 if (firstMessage)
                 {
@@ -483,9 +482,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 ChatRepository.UpdateMessages(_viewModel.ChatId, _viewModel.Messages);
             });
         }
-
-        private static string JsString(string s)
-            => s.Replace(@"\", @"\\").Replace("`", @"\`").Replace("\r", "").Replace("\n", "\\n");
 
         /// <summary>
         /// Sends an asynchronous request and waits for the response or cancellation.
@@ -717,11 +713,12 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         /// <param name="author">The author of the message, used to determine the avatar image.</param>
         /// <param name="content">The message content in Markdown format to be converted and displayed.</param>
-        private async Task AddMessagesHtmlAsync(IdentifierEnum author, string content, bool scroolToButtom = true)
+        /// <param name="scrollToBottom">Scroll to bottom.</param>
+        private async Task AddMessagesHtmlAsync(IdentifierEnum author, string content, bool scrollToBottom = true)
         {
             var script = author == IdentifierEnum.Me
-                ? $"addMsg('user', `{JsString(content)}`, {scroolToButtom.ToString().ToLower()});"
-                : $"updateLastGpt(`{JsString(content)}`, {scroolToButtom.ToString().ToLower()});";
+                ? WebFunctions.AddMsg(content, scrollToBottom)
+                : WebFunctions.UpdateLastGpt(content, scrollToBottom);
             await _webView!.ExecuteScriptAsync(script);
         }
 
@@ -954,21 +951,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         public void CancelRequest(object sender, RoutedEventArgs e)
         {
             EnableDisableButtons(true);
-
             cancellationTokenSource?.Cancel();
-        }
-
-        public void CancelCommand(object sender, RoutedEventArgs e)
-        {
-            if (Overlay.IsVisible)
-            {
-                CloseHistory();
-                CloseSettings();
-            }
-            else if (cancellationTokenSource != null)
-            {
-                CancelRequest(sender, e);
-            }
         }
 
         /// <summary>
@@ -1006,9 +989,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private void AttachImage_OnImagePaste(byte[] attachedImage, string fileName)
         {
             this.attachedImage = attachedImage;
-
             txtImage.Text = fileName;
-
             spImage.Visibility = Visibility.Visible;
         }
 

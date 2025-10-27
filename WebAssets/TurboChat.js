@@ -53,13 +53,15 @@ function buildMermaidBlock(lang, text)
 function sendPNG(id) {
     const svgEl = document.querySelector('#'+id+' svg');
     const svgString = new XMLSerializer().serializeToString(svgEl);
-    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(svgBlob);
+    const svgBase64 = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
     const img = new Image();
-    const scale = 4;
+    const minSize = 1024;
     const bgColor = getComputedStyle(svgEl).getPropertyValue('--code-bg-color').trim();
     img.onload = () => {
         const canvas = document.createElement('canvas');
+        const scaleW = minSize / img.width;
+        const scaleH = minSize / img.height;
+        const scale = Math.max(scaleW, scaleH);
         canvas.width  = img.width  * scale;
         canvas.height = img.height * scale;
         const ctx = canvas.getContext('2d');
@@ -70,15 +72,14 @@ function sendPNG(id) {
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
         ctx.drawImage(img, 0, 0);
-        
+
         const base64 = canvas.toDataURL('image/png').split(',')[1];
         window.chrome.webview.postMessage({
             action : 'png',
             data : base64
         });
-        URL.revokeObjectURL(url);
     };
-    img.src = url;
+    img.src = svgBase64;
 }
 
 function sendCode(id, action){

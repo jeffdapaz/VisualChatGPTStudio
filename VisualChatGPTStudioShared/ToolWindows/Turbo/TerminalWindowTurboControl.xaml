@@ -15,8 +15,10 @@
              Name="TurboChatToolWindow">
 
     <UserControl.Resources>
+        <RoutedUICommand x:Key="cancelCommand" Text="Text" />
         <vm:TerminalTurboViewModel x:Key="Vm"/>
         <utils:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+        <utils:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <Style TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -93,6 +95,14 @@ Padding="8" CornerRadius="4">
         </Storyboard>
     </UserControl.Resources>
 
+    <UserControl.CommandBindings>
+        <CommandBinding Command="{StaticResource cancelCommand}" Executed="CancelRequest" />
+    </UserControl.CommandBindings>
+
+    <UserControl.InputBindings>
+        <KeyBinding Key="Q" Modifiers="Alt" Command="{StaticResource cancelCommand}" />
+    </UserControl.InputBindings>
+
     <UserControl.DataContext>
         <StaticResource ResourceKey="Vm"/>
     </UserControl.DataContext>
@@ -113,44 +123,58 @@ Padding="8" CornerRadius="4">
     BorderThickness="0,0,0,1"
     BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.CommandBarBorderKey}}" Padding="8,4">
             <StackPanel Orientation="Horizontal">
-                <Button Click="NewChat_Click" Style="{StaticResource ToolbarButtonStyle}" ToolTip="New Chat" Focusable="True"
-        IsEnabled="{Binding IsProcessing, Converter={StaticResource InverseBooleanConverter}}">
-                    <StackPanel Orientation="Horizontal">
-                        <imaging:CrispImage Width="16" Height="16" Margin="0,0,4,0"
-                        Moniker="{x:Static catalog:KnownMonikers.AddDocument}"
-                        Opacity="1"/>
-                        <TextBlock Text="New Chat" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
-                <Button Click="DeleteChat_Click"  Style="{StaticResource ToolbarButtonStyle}" ToolTip="Delete Chat"
+                <Button Click="NewChat_Click"
+                        Style="{StaticResource ToolbarButtonStyle}"
+                        ToolTip="New Chat" Focusable="True"
+                        TabIndex="101"
+                        IsTabStop="True"
                         IsEnabled="{Binding IsProcessing, Converter={StaticResource InverseBooleanConverter}}">
-                    <StackPanel Orientation="Horizontal">
-                        <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.DeleteEntity}" Width="16"
-                        Height="16" Margin="0,0,4,0"
-                        Opacity="1"/>
-                        <TextBlock Text="Delete Chat" VerticalAlignment="Center"/>
-                    </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <imaging:CrispImage Width="16" Height="16" Margin="0,0,4,0"
+                            Moniker="{x:Static catalog:KnownMonikers.AddDocument}"
+                            Opacity="1"/>
+                            <TextBlock Text="New Chat" VerticalAlignment="Center"/>
+                        </StackPanel>
                 </Button>
-                <Button Click="ToggleHistory_Click" Style="{StaticResource ToolbarButtonStyle}" ToolTip="Chat History"
+                <Button Click="DeleteChat_Click"
+                        Style="{StaticResource ToolbarButtonStyle}"
+                        ToolTip="Delete Chat"
+                        TabIndex="102"
+                        IsTabStop="True"
                         IsEnabled="{Binding IsProcessing, Converter={StaticResource InverseBooleanConverter}}">
-                    <StackPanel Orientation="Horizontal">
-                        <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.History}" FrameworkElement.Width="16"
-                        Height="16" Margin="0,0,4,0"
-                        Opacity="1"/>
-                        <TextBlock Text="History" VerticalAlignment="Center"/>
-                    </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.DeleteEntity}" Width="16"
+                            Height="16" Margin="0,0,4,0"
+                            Opacity="1"/>
+                            <TextBlock Text="Delete Chat" VerticalAlignment="Center"/>
+                        </StackPanel>
+                </Button>
+                <Button Click="ToggleHistory_Click"
+                        Style="{StaticResource ToolbarButtonStyle}"
+                        ToolTip="Chat History"
+                        TabIndex="103"
+                        IsTabStop="True"
+                        IsEnabled="{Binding IsProcessing, Converter={StaticResource InverseBooleanConverter}}">
+                        <StackPanel Orientation="Horizontal">
+                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.History}" Width="16"
+                            Height="16" Margin="0,0,4,0"
+                            Opacity="1"/>
+                            <TextBlock Text="History" VerticalAlignment="Center"/>
+                        </StackPanel>
                 </Button>
                 <Button Click="ToggleSettings_Click"
                         Style="{StaticResource ToolbarButtonStyle}"
                         ToolTip="Settings"
+                        TabIndex="104"
+                        IsTabStop="True"
                         Visibility="Collapsed"
                         IsEnabled="{Binding IsProcessing, Converter={StaticResource InverseBooleanConverter}}">
-                    <StackPanel Orientation="Horizontal">
-                        <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Settings}" Width="16"
-                        Height="16" Margin="0,0,4,0"
-                        Opacity="1"/>
-                        <TextBlock Text="Settings" VerticalAlignment="Center"/>
-                    </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Settings}" Width="16"
+                            Height="16" Margin="0,0,4,0"
+                            Opacity="1"/>
+                            <TextBlock Text="Settings" VerticalAlignment="Center"/>
+                        </StackPanel>
                 </Button>
             </StackPanel>
         </Border>
@@ -193,20 +217,19 @@ Padding="8" CornerRadius="4">
             </Grid.RowDefinitions>
             <StackPanel Name="spImage" Grid.Row="0" Orientation="Horizontal" Visibility="Collapsed">
                 <TextBlock
-                Name="txtImage"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Center"
-                Height="20"
-                Margin="0,0,10,0"
-                Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}" />
+                    Name="txtImage"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Height="20"
+                    Margin="0,0,10,0"
+                    Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}" />
                 <Button
-                Height="10"
-                Width="10"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Center"
-                Name="btnDeleteImage"
-                Click="btnDeleteImage_Click">
-                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/close.png"/>
+                    IsTabStop="True"
+                    Focusable="True"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Click="btnDeleteImage_Click">
+                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Cancel}" />
                 </Button>
             </StackPanel>
             <ComboBox
@@ -444,7 +467,7 @@ Padding="8" CornerRadius="4">
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <!-- Search box -->
+                <!-- history header -->
                 <Border Grid.Row="0"
                         Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTabGradientKey}}"
                         BorderThickness="0,0,0,1"
@@ -466,29 +489,36 @@ Padding="8" CornerRadius="4">
                         </Button>
                     </Grid>
                 </Border>
+                <!-- history search -->
                 <Border Grid.Row="1" Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" Padding="16,12">
                     <Grid>
-                        <TextBox x:Name="HistorySearch" Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}" Height="32">
+                        <TextBox x:Name="HistorySearch"
+                                 PreviewKeyDown="HistorySearch_PreviewKeyDown"
+                                 Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}" Height="32">
                             <FrameworkElement.Style>
                                 <Style TargetType="{x:Type TextBox}">
                                     <Setter Property="Background"
-                      Value="{DynamicResource {x:Static vsshell:VsBrushes.SearchBoxBackgroundKey}}"/>
+                                            Value="{DynamicResource {x:Static vsshell:VsBrushes.SearchBoxBackgroundKey}}"/>
                                     <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
                                     <Setter Property="BorderBrush"
-                      Value="{DynamicResource {x:Static vsshell:VsBrushes.SearchBoxBorderKey}}"/>
+                                            Value="{DynamicResource {x:Static vsshell:VsBrushes.SearchBoxBorderKey}}"/>
                                     <Setter Property="Template">
                                         <Setter.Value>
                                             <ControlTemplate TargetType="{x:Type TextBox}">
                                                 <Border Background="{TemplateBinding Control.Background}"
-                            BorderBrush="{TemplateBinding Control.BorderBrush}" BorderThickness="1" CornerRadius="4">
+                                                        BorderBrush="{TemplateBinding Control.BorderBrush}" BorderThickness="1" CornerRadius="4">
                                                     <Grid>
-                                                        <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Search}" Width="16"
-                                                        Height="16" HorizontalAlignment="Left"
-                                                        Margin="8,0,0,0" Opacity="0.6"/>
+                                                        <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Search}"
+                                                                            Width="16"
+                                                                            Height="16"
+                                                                            HorizontalAlignment="Left"
+                                                                            Margin="8,0,0,0"
+                                                                            Opacity="0.6"/>
                                                         <ScrollViewer x:Name="PART_ContentHost" Margin="32,6,8,6" VerticalAlignment="Center"/>
-                                                        <TextBlock Text="Search conversations..." Margin="32,6,8,6"
-                                   Foreground="{DynamicResource {x:Static vsshell:VsBrushes.GrayTextKey}}" VerticalAlignment="Center"
-                                   Visibility="{Binding Text.IsEmpty, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                                        <TextBlock Text="Search conversations..."
+                                                                   Margin="32,6,8,6"
+                                                                   Foreground="{DynamicResource {x:Static vsshell:VsBrushes.GrayTextKey}}"
+                                                                   VerticalAlignment="Center" />
                                                     </Grid>
                                                 </Border>
                                             </ControlTemplate>
@@ -499,9 +529,12 @@ Padding="8" CornerRadius="4">
                         </TextBox>
                     </Grid>
                 </Border>
+                <!-- history list -->
                 <ListBox Grid.Row="2"
+                         x:Name="HistoryListBox"
                          SelectionChanged="HistoryList_SelectionChanged"
                          MouseDoubleClick="HistoryList_MouseDoubleClick"
+                         PreviewKeyDown="HistoryList_PreviewKeyDown"
                          ItemsSource="{Binding Chats}"
                          Background="Transparent" BorderThickness="0" Margin="0" Padding="16,8"
                          ScrollViewer.HorizontalScrollBarVisibility="Disabled" VirtualizingPanel.IsVirtualizing="true"
@@ -514,8 +547,7 @@ Padding="8" CornerRadius="4">
                             <Setter Property="Margin" Value="0,4"/>
                             <Setter Property="Background" Value="Transparent"/>
                             <Setter Property="Focusable" Value="True" />
-                            <EventSetter Event="PreviewGotKeyboardFocus" Handler="HistoryList_PreviewGotKeyboardFocus"/>
-                            <EventSetter Event="PreviewKeyDown" Handler="HistoryList_PreviewKeyDown"/>
+                            <EventSetter Event="PreviewKeyDown" Handler="HistoryListItem_PreviewKeyDown"/>
                             <Setter Property="LayoutTransform">
                                 <Setter.Value>
                                     <ScaleTransform x:Name="transform" />
@@ -562,16 +594,24 @@ Padding="8" CornerRadius="4">
                                     </ControlTemplate>
                                 </Setter.Value>
                             </Setter>
+                            <Setter Property="Effect" Value="{x:Null}" />
                             <Style.Triggers>
                                 <EventTrigger RoutedEvent="Loaded">
                                     <EventTrigger.Actions>
                                         <BeginStoryboard>
                                             <Storyboard>
-                                                <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" Duration="0:0:.3" />
+                                                <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" Duration="0:0:.2" />
                                             </Storyboard>
                                         </BeginStoryboard>
                                     </EventTrigger.Actions>
                                 </EventTrigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="RoyalBlue" ShadowDepth="0" BlurRadius="10" />
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
                             </Style.Triggers>
                         </Style>
                     </ItemsControl.ItemContainerStyle>
@@ -626,13 +666,13 @@ Padding="8" CornerRadius="4">
                                             VerticalAlignment="Center"
                                             Command="{Binding DataContext.StartRenameCmd, RelativeSource={RelativeSource AncestorType=ListBox}}"
                                             CommandParameter="{Binding}">
-                                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Rename}" Opacity="0.9"/>
+                                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Rename}" />
                                     </Button>
                                     <Button ToolTip="Delete chat history"
                                             VerticalAlignment="Center"
                                             Command="{Binding DataContext.DeleteCmd, RelativeSource={RelativeSource AncestorType=ListBox}}"
                                             CommandParameter="{Binding}" >
-                                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Remove}" Opacity="0.9"/>
+                                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Cancel}" />
                                     </Button>
                                 </StackPanel>
                             </Grid>
@@ -649,7 +689,7 @@ Padding="8" CornerRadius="4">
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ListBox>
-                <!-- Paging -->
+                <!-- history paging -->
                 <Border Grid.Row="3"
                         Background="Transparent"
                         BorderThickness="0,1,0,0"

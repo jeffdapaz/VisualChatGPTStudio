@@ -10,33 +10,22 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 {
     public partial class TerminalWindowTurboControl
     {
-        private const string ClearChatScript = "clearChat()";
-
         private void NewChat_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.CreateNewChat();
             apiChat.ClearConversation();
-            _ = _webView?.ExecuteScriptAsync(ClearChatScript);
+            _ = _webView?.ExecuteScriptAsync(WebFunctions.ClearChat);
         }
 
         private void DeleteChat_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.DeleteChat(_viewModel.ChatId);
             apiChat.ClearConversation();
-            _ = _webView?.ExecuteScriptAsync(ClearChatScript);
+            _ = _webView?.ExecuteScriptAsync(WebFunctions.ClearChat);
         }
 
         private void ToggleHistory_Click(object sender, RoutedEventArgs e)
-        {
-            if (HistorySidebar.Visibility == Visibility.Visible)
-            {
-                CloseHistory();
-            }
-            else
-            {
-                OpenHistory();
-            }
-        }
+            => ToggleHistory(HistorySidebar.Visibility != Visibility.Visible);
 
         private void ToggleWebViewVisibility()
         {
@@ -45,25 +34,25 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 #endif
         }
 
-        private void OpenHistory()
+        private void ToggleHistory(bool showHistory)
         {
-            _viewModel.ForceReloadChats();
-            HistorySidebar.Visibility = Overlay.Visibility = Visibility.Visible;
-            HistorySearch.Focus();
-            ToggleWebViewVisibility();
-        }
-
-        private void CloseHistory()
-        {
-            HistorySidebar.Visibility = Overlay.Visibility = Visibility.Collapsed;
-            ToggleWebViewVisibility();
-            txtRequest.Focus();
+            if (showHistory)
+            {
+                _viewModel.ForceReloadChats();
+                HistorySidebar.Visibility = Overlay.Visibility = Visibility.Visible;
+                ToggleWebViewVisibility();
+                HistorySearch.Focus();
+            }
+            else
+            {
+                HistorySidebar.Visibility = Overlay.Visibility = Visibility.Collapsed;
+                ToggleWebViewVisibility();
+                txtRequest.Focus();
+            }
         }
 
         private void HistoryList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            CloseHistory();
-        }
+            => ToggleHistory(false);
 
         private void HistoryPagingButton_OnIsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
@@ -79,7 +68,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             {
                 _viewModel.LoadChat(chatId);
                 apiChat.ClearConversation();
-                await _webView!.ExecuteScriptAsync(ClearChatScript);
+                await _webView!.ExecuteScriptAsync(WebFunctions.ClearChat);
                 await AddMessagesFromModelAsync();
             }
             catch (Exception ex)
@@ -97,54 +86,70 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
         }
 
-
         private void HistoryList_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key is Key.Space or Key.Enter && sender is ListBoxItem { DataContext: ChatEntity selectedItem } lbi)
+            if (e.Key == Key.Up && sender is ListBox { SelectedIndex: 0 } listBox)
             {
-                lbi.IsSelected = true;
+                listBox.MoveFocus(new TraversalRequest(FocusNavigationDirection.Up));
                 e.Handled = true;
-                LoadChat(selectedItem.Id);
-                CloseHistory();
             }
         }
 
-        private void HistoryList_PreviewGotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+        private void HistoryListItem_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            var lbi = (ListBoxItem)sender;
-
-            // 1. разрешаем фокус (не трогаем e.Handled)
-            // 2. но сбрасываем автоматическое выделение
-            lbi.IsSelected = false;
+            switch (e.Key)
+            {
+                case Key.Space or Key.Enter when sender is ListBoxItem { DataContext: ChatEntity selectedItem } lbi:
+                    lbi.IsSelected = true;
+                    e.Handled = true;
+                    LoadChat(selectedItem.Id);
+                    ToggleHistory(false);
+                    break;
+                case Key.Left when _viewModel.CanGoPrev:
+                    _viewModel.PrevCmd.Execute(null);
+                    e.Handled = true;
+                    break;
+                case Key.Right when _viewModel.CanGoNext:
+                    _viewModel.NextCmd.Execute(null);
+                    e.Handled = true;
+                    break;
+                case Key.R when sender is ListBoxItem { DataContext: ChatEntity selectedItem }:
+                    _viewModel.StartRenameCmd.Execute(selectedItem);
+                    e.Handled = true;
+                    break;
+                case Key.Delete when sender is ListBoxItem { DataContext: ChatEntity selectedItem }:
+                    _viewModel.DeleteCmd.Execute(selectedItem);
+                    e.Handled = true;
+                    break;
+            }
         }
 
-        private void CloseHistoryButton_Click(object sender, RoutedEventArgs e) => CloseHistory();
+        private void HistorySearch_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Down && sender is TextBox textBox)
+            {
+                textBox.MoveFocus(new TraversalRequest(FocusNavigationDirection.Down));
+                e.Handled = true;
+            }
+        }
+
+        private void CloseHistoryButton_Click(object sender, RoutedEventArgs e)
+            => ToggleHistory(false);
 
         private void ToggleSettings_Click(object sender, RoutedEventArgs e)
-        {
-            if (SettingsSidebar.Visibility == Visibility.Visible)
-            {
-                CloseSettings();
-            }
-            else
-            {
-                OpenSettings();
-            }
-        }
+            => ToggleSettings(SettingsSidebar.Visibility != Visibility.Visible);
 
-        private void OpenSettings()
+        private void ToggleSettings(bool showSettings)
         {
-            SettingsSidebar.Visibility = Overlay.Visibility = Visibility.Visible;
+            SettingsSidebar.Visibility = showSettings
+                ? Overlay.Visibility = Visibility.Visible
+                : Overlay.Visibility = Visibility.Collapsed;
+
             ToggleWebViewVisibility();
         }
 
-        private void CloseSettings()
-        {
-            SettingsSidebar.Visibility = Overlay.Visibility = Visibility.Collapsed;
-            ToggleWebViewVisibility();
-        }
-
-        private void CloseSettingsButton_Click(object sender, RoutedEventArgs e) => CloseSettings();
+        private void CloseSettingsButton_Click(object sender, RoutedEventArgs e)
+            => ToggleSettings(false);
 
         private void Box_OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
@@ -157,8 +162,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
         private void Overlay_OnMouseDown(object sender, MouseButtonEventArgs e)
         {
-            CloseHistory();
-            CloseSettings();
+            ToggleHistory(false);
+            ToggleSettings(false);
         }
     }
 }

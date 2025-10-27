@@ -130,27 +130,55 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
                 page = TotalPages - 1;
             }
 
-            Chats.Clear();
-            if (filtered != null)
-            {
-                var itemsOnPage = filtered;
-                if (itemsOnPage.Count > PageSize)
-                {
-                    var itemsToSkip = page * PageSize;
-                    itemsOnPage = filtered.Skip(itemsToSkip).Take(PageSize).ToList();
-                }
+            SyncCurrentPage();
+            UpdatePaginationProperties();
+        }
 
-                foreach (var c in itemsOnPage)
-                {
-                    Chats.Add(c);
-                }
-            }
-
+        private void UpdatePaginationProperties()
+        {
             OnPropertyChanged(nameof(PageNumber));
             OnPropertyChanged(nameof(TotalPages));
             OnPropertyChanged(nameof(CurrentPageView));
             OnPropertyChanged(nameof(CanGoPrev));
             OnPropertyChanged(nameof(CanGoNext));
+        }
+
+        private void SyncCurrentPage()
+        {
+            var itemsOnPage = filtered;
+            if (itemsOnPage.Count > PageSize)
+            {
+                var itemsToSkip = page * PageSize;
+                itemsOnPage = filtered.Skip(itemsToSkip).Take(PageSize).ToList();
+            }
+
+            // Синхронизация без полной перерисовки
+            var newItems = itemsOnPage ?? [];
+
+            // Удаляем отсутствующие элементы
+            for (var i = Chats.Count - 1; i >= 0; i--)
+            {
+                if (!newItems.Contains(Chats[i]))
+                {
+                    Chats.RemoveAt(i);
+                }
+            }
+
+            // Добавляем новые элементы в правильном порядке
+            for (var i = 0; i < newItems.Count; i++)
+            {
+                if (i < Chats.Count)
+                {
+                    if (!Chats[i].Equals(newItems[i]))
+                    {
+                        Chats[i] = newItems[i];
+                    }
+                }
+                else
+                {
+                    Chats.Add(newItems[i]);
+                }
+            }
         }
 
         private void ReloadChats()
@@ -208,6 +236,9 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
             ReloadChats();
             ApplyFilter();
         }
+
+        // TODO: toolbar buttons visibility
+        public bool IsProcessing { get; set; } = false;
 
         public event PropertyChangedEventHandler PropertyChanged;
 

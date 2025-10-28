@@ -68,6 +68,21 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             {
                 _viewModel.LoadChat(chatId);
                 apiChat.ClearConversation();
+
+                // clear attached
+                sqlServerConnections = null;
+                grdSQL.Visibility = Visibility.Collapsed;
+
+                apiDefinitions = null;
+                grdAPI.Visibility = Visibility.Collapsed;
+
+                attachedImage = null;
+                spImage.Visibility = Visibility.Collapsed;
+
+                grdProgress.Visibility = Visibility.Collapsed;
+                grdCommands.Visibility = Visibility.Visible;
+                CancelRequest(null, null);
+
                 await _webView!.ExecuteScriptAsync(WebFunctions.ClearChat);
                 await AddMessagesFromModelAsync();
             }

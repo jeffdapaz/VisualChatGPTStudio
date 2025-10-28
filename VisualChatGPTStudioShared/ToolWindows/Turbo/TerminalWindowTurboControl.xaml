@@ -215,35 +215,35 @@ Padding="8" CornerRadius="4">
                 <RowDefinition Height="5"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <StackPanel Name="spImage" Grid.Row="0" Orientation="Horizontal" Visibility="Collapsed">
-                <TextBlock
-                    Name="txtImage"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Center"
-                    Height="20"
-                    Margin="0,0,10,0"
-                    Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}" />
-                <Button
-                    IsTabStop="True"
-                    Focusable="True"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Center"
-                    Click="btnDeleteImage_Click">
-                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Cancel}" />
-                </Button>
+            <StackPanel Grid.Row="0" Orientation="Vertical">
+                <StackPanel Name="spImage" Orientation="Horizontal" Visibility="Collapsed">
+                    <TextBlock
+                        Name="txtImage"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Height="20"
+                        Margin="0,0,10,0"
+                        Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}" />
+                    <Button
+                        IsTabStop="True"
+                        Focusable="True"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Click="btnDeleteImage_Click">
+                        <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Cancel}" />
+                    </Button>
+                </StackPanel>
+                <ComboBox
+                    x:Name="cbConnection"
+                    Visibility="{Binding Visibility, ElementName=grdSQL}"
+                    DisplayMemberPath="Description"
+                    SelectedValuePath="ConnectionString" />
+                <ComboBox
+                    x:Name="cbAPIs"
+                    Visibility="{Binding Visibility, ElementName=grdAPI}"
+                    DisplayMemberPath="Name"
+                    SelectedValuePath="Name" />
             </StackPanel>
-            <ComboBox
-                Grid.Row="0"
-                x:Name="cbConnection"
-                Visibility="{Binding Visibility, ElementName=grdSQL}"
-                DisplayMemberPath="Description"
-                SelectedValuePath="ConnectionString" />
-            <ComboBox
-                Grid.Row="0"
-                x:Name="cbAPIs"
-                Visibility="{Binding Visibility, ElementName=grdAPI}"
-                DisplayMemberPath="Name"
-                SelectedValuePath="Name" />
             <!-- Request textBox -->
             <Border Grid.Row="2" CornerRadius="4" BorderBrush="DarkGray" BorderThickness="1" Padding="4" MaxHeight="200"
                     Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}">

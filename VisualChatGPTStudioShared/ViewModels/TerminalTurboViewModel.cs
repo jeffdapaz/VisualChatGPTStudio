@@ -152,10 +152,7 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
                 itemsOnPage = filtered.Skip(itemsToSkip).Take(PageSize).ToList();
             }
 
-            // Синхронизация без полной перерисовки
             var newItems = itemsOnPage ?? [];
-
-            // Удаляем отсутствующие элементы
             for (var i = Chats.Count - 1; i >= 0; i--)
             {
                 if (!newItems.Contains(Chats[i]))
@@ -164,7 +161,6 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
                 }
             }
 
-            // Добавляем новые элементы в правильном порядке
             for (var i = 0; i < newItems.Count; i++)
             {
                 if (i < Chats.Count)

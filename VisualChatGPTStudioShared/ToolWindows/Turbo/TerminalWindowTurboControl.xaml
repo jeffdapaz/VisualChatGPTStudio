@@ -515,10 +515,6 @@ Padding="8" CornerRadius="4">
                                                                             Margin="8,0,0,0"
                                                                             Opacity="0.6"/>
                                                         <ScrollViewer x:Name="PART_ContentHost" Margin="32,6,8,6" VerticalAlignment="Center"/>
-                                                        <TextBlock Text="Search conversations..."
-                                                                   Margin="32,6,8,6"
-                                                                   Foreground="{DynamicResource {x:Static vsshell:VsBrushes.GrayTextKey}}"
-                                                                   VerticalAlignment="Center" />
                                                     </Grid>
                                                 </Border>
                                             </ControlTemplate>
@@ -543,8 +539,8 @@ Padding="8" CornerRadius="4">
                     <ItemsControl.ItemContainerStyle>
                         <Style TargetType="{x:Type ListBoxItem}">
                             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                            <Setter Property="Padding" Value="0"/>
-                            <Setter Property="Margin" Value="0,4"/>
+                            <Setter Property="Padding" Value="12, 8"/>
+                            <Setter Property="Margin" Value="2,4"/>
                             <Setter Property="Background" Value="Transparent"/>
                             <Setter Property="Focusable" Value="True" />
                             <EventSetter Event="PreviewKeyDown" Handler="HistoryListItem_PreviewKeyDown"/>
@@ -562,6 +558,8 @@ Padding="8" CornerRadius="4">
                                                 BorderBrush="Transparent"
                                                 BorderThickness="2"
                                                 CornerRadius="4"
+                                                Margin="2"
+                                                Padding="0, 8, 12,8"
                                                 SnapsToDevicePixels="true">
                                             <ContentPresenter />
                                         </Border>
@@ -617,18 +615,19 @@ Padding="8" CornerRadius="4">
                     </ItemsControl.ItemContainerStyle>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border x:Name="HistoryItemBorder"
-                                  Background="Transparent"
-                                  BorderThickness="1"
-                                  BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBorderKey}}"
-                                  CornerRadius="4"
-                                  Margin="2" Padding="12,8">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                <Border x:Name="SelectedBorder"
+                                        Grid.Column="0"
+                                        Width="4"
+                                        Margin="0, 0, 8, 0"
+                                        Background="Transparent"
+                                        />
+                                <StackPanel Grid.Column="1" Margin="0,0,8,0">
                                     <TextBlock x:Name="txt"
                                                TextTrimming="CharacterEllipsis"
                                                FontWeight="SemiBold"
@@ -661,7 +660,7 @@ Padding="8" CornerRadius="4">
                                     </StackPanel>
                                 </StackPanel>
                                 <!-- History buttons -->
-                                <StackPanel Grid.Column="1" Orientation="Horizontal" >
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" >
                                     <Button ToolTip="Rename chat history"
                                             VerticalAlignment="Center"
                                             Command="{Binding DataContext.StartRenameCmd, RelativeSource={RelativeSource AncestorType=ListBox}}"
@@ -676,14 +675,13 @@ Padding="8" CornerRadius="4">
                                     </Button>
                                 </StackPanel>
                             </Grid>
-                            </Border>
                             <DataTemplate.Triggers>
                                 <DataTrigger Binding="{Binding IsEditing}" Value="True">
                                     <Setter TargetName="txt" Property="Visibility" Value="Collapsed"/>
                                     <Setter TargetName="box" Property="Visibility" Value="Visible"/>
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                    <Setter TargetName="HistoryItemBorder" Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.HighlightKey}}"/>
+                                    <Setter TargetName="SelectedBorder" Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.HighlightKey}}" />
                                 </DataTrigger>
                             </DataTemplate.Triggers>
                         </DataTemplate>

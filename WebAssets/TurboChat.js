@@ -120,8 +120,6 @@ renderer.code = function ({ text, lang }) {
 
 marked.use({ renderer });
 
-mermaid.initialize({ startOnLoad: false, suppressErrorRendering: true, theme: 'dark' });
-
 /* --------- think + markdown --------- */
 function splitThink(text){
     const parts = [];
@@ -245,6 +243,35 @@ function scrollToLastRequest() {
     document.querySelector('#chat .user:last-child .bubble')?.scrollIntoView({
         behavior: 'smooth',
         block: 'start'
+    });
+}
+
+function reloadThemeCss(isDark) {
+    const links = document.getElementsByTagName('link');
+    for (let i = 0; i < links.length; i++) {
+        const link = links[i];
+        const href = link.getAttribute('href');
+        if (link.getAttribute('rel') === 'stylesheet') {
+            // update to new theme colors
+            if (href.startsWith('theme.css')) {
+                const newHref = href.split('?')[0] + '?v=' + new Date().getTime();
+                link.setAttribute('href', newHref);
+            }
+            // update highlight theme
+            if (href.includes('libs/highlight.js')) {
+                if (isDark) {
+                    link.setAttribute('href', 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/base16/default-dark.css');
+                } else {
+                    link.setAttribute('href', 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/base16/default-light.css');
+                }                
+            }
+        }        
+    }
+
+    mermaid.initialize({
+        startOnLoad: false,
+        suppressErrorRendering: true,
+        theme: isDark ? 'dark' : 'base'
     });
 }
 

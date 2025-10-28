@@ -157,7 +157,7 @@
       <Version>4.77.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Imaging">
-      <Version>17.14.40264</Version>
+      <Version>16.10.31321.278</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.9.3184">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -171,6 +171,9 @@
     </PackageReference>
     <PackageReference Include="sqlite-net-pcl">
       <Version>1.8.116</Version>
+    </PackageReference>
+    <PackageReference Include="System.Text.Json">
+      <Version>9.0.10</Version>
     </PackageReference>
     <PackageReference Include="VsixLogger">
       <Version>1.1.45</Version>

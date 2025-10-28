@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Windows;
+using Microsoft.VisualStudio.PlatformUI;
 
 namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo;
 
@@ -19,6 +20,8 @@ public static class WebAsset
     }
 
     public static string GetTurboPath() => $"file:///{Path.Combine(_root, "TurboChat.html").Replace('\\', '/')}";
+
+    public static bool IsDarkTheme { get; private set; }
 
     private static void Deploy(string packPath)
     {
@@ -40,20 +43,41 @@ public static class WebAsset
         File.WriteAllText(target, content, Encoding.UTF8);
     }
 
-    public static void DeployTheme(string text, string textBg, string gptBg,
-        string codeBg, string codeText, string codeHeader, string codeBorder, string highlight)
+    public static void DeployTheme()
     {
-        var css = @$":root {{
-          --text-color: {text};
-          --bg-color: {textBg};
-          --gpt-bg-color: {gptBg};
-          --code-bg-color: {codeBg};
-          --code-text-color: {codeText}
-          --code-header-color: {codeHeader};
-          --code-border-color: {codeBorder};
-          --highlight-color: {highlight};
-        }}";
+        IsDarkTheme = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowTextColorKey).GetBrightness() > 0.9; // white text in dark bg
+        var userBubbleColor = IsDarkTheme ? "#0b8060" : "#acc0e5";
+        var css = @$"
+            :root {{
+                --text-color: {VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowTextColorKey).ToCss()};
+                --bg-color: {VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBackgroundColorKey).ToCss()};
+                --user-bg-color: {userBubbleColor};
+                --gpt-bg-color: {VSColorTheme.GetThemedColor(CommonDocumentColors.CaptionColorKey).ToCss()};
+                --code-bg-color: {VSColorTheme.GetThemedColor(EnvironmentColors.DesignerBackgroundColorKey).ToCss()};
+                --code-text-color: {VSColorTheme.GetThemedColor(CommonDocumentColors.CaptionTextColorKey).ToCss()};
+                --code-header-color: {VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBorderBrushKey).ToCss()};
+                --code-border-color: {VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBorderBrushKey).ToCss()};
+                --highlight-bg-color: {VSColorTheme.GetThemedColor(EnvironmentColors.StatusBarHighlightColorKey).ToCss()};
+                --highlight-color: {VSColorTheme.GetThemedColor(EnvironmentColors.StatusBarHighlightTextColorKey).ToCss()};
+            }}
+
+            a {{
+                color: {VSColorTheme.GetThemedColor(EnvironmentColors.ControlLinkTextBrushKey).ToCss()};
+            }}
+        ";
         File.WriteAllText(Path.Combine(_root, "theme.css"), css);
+    }
+
+    /// <summary>
+    /// Converts a <see cref="System.Drawing.Color"/> to its CSS hexadecimal color string representation (e.g., "#RRGGBB").
+    /// </summary>
+    /// <param name="color">The color to convert.</param>
+    /// <returns>
+    /// A string representing the color in CSS hexadecimal format.
+    /// </returns>
+    private static string ToCss(this System.Drawing.Color color)
+    {
+        return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
     }
 
     private static void EnsureAssets()

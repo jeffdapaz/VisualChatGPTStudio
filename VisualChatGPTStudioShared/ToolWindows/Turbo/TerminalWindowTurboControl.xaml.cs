@@ -33,7 +33,6 @@ using OpenAI_API.ResponsesAPI.Models.Request;
 using OpenAI_API.ResponsesAPI.Models.Response;
 using VisualChatGPTStudioShared.Agents.ApiAgent;
 using VisualChatGPTStudioShared.ToolWindows.Turbo;
-using Color = System.Windows.Media.Color;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 using JsonElement = System.Text.Json.JsonElement;
 using MessageBox = System.Windows.MessageBox;
@@ -130,6 +129,19 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             AttachImage.OnImagePaste += AttachImage_OnImagePaste;
 
             completionManager = new CompletionManager(package, txtRequest);
+
+            VSColorTheme.ThemeChanged += _ =>
+            {
+                try
+                {
+                    WebAsset.DeployTheme();
+                    _webView?.ExecuteScriptAsync(WebFunctions.ReloadThemeCss(WebAsset.IsDarkTheme));
+                }
+                catch (Exception e)
+                {
+                    Logger.Log(e);
+                }
+            };
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -167,6 +179,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             _webView.CoreWebView2InitializationCompleted += CoreWebView2InitializationCompleted;
             _webView.NavigationCompleted += (o, args) =>
             {
+                _webView?.ExecuteScriptAsync(WebFunctions.ReloadThemeCss(WebAsset.IsDarkTheme));
                 _viewModel.LoadChat();
                 _ = AddMessagesFromModelAsync();
             };
@@ -732,24 +745,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 return;
             }
 
-            var textColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.WindowTextKey]).Color;
-            var backgroundColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.WindowKey]).Color;
-            var gptBubbleColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.ScrollBarBackgroundKey]).Color;
-            var highlightColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.HighlightKey]).Color;
-            var codeBackgroundColor = "#1f1f1f;";
-            var codeTextColor = "#ccc;";
-            var codeHeaderColor = "#2c303d;";
-            var codeBorderColor = "#424654;";
-
-            WebAsset.DeployTheme(
-                ToCssColor(textColor),
-                ToCssColor(backgroundColor),
-                ToCssColor(gptBubbleColor),
-                codeBackgroundColor,
-                codeTextColor,
-                codeHeaderColor,
-                codeBorderColor,
-                ToCssColor(highlightColor));
+            WebAsset.DeployTheme();
             _webView?.CoreWebView2.Navigate(WebAsset.GetTurboPath());
         }
 
@@ -778,18 +774,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 spImage.Visibility = Visibility.Collapsed;
                 attachedImage = null;
             }
-        }
-
-        /// <summary>
-        /// Converts a <see cref="System.Windows.Media.Color"/> to its CSS hexadecimal color string representation (e.g., "#RRGGBB").
-        /// </summary>
-        /// <param name="color">The color to convert.</param>
-        /// <returns>
-        /// A string representing the color in CSS hexadecimal format.
-        /// </returns>
-        private static string ToCssColor(Color color)
-        {
-            return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
         }
 
         /// <summary>

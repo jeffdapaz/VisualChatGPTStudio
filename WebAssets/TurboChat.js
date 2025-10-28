@@ -13,11 +13,11 @@ function buildCodeBlock(lang, highlightedHtml, raw) {
         <header>
           <span>${lang}</span>
           <div>
-            <button class="tooltip" onclick="sendCode('${id}','apply')">
+            <button class="tooltip" onclick="sendCode('${id}','apply', this)">
               <i class="fa-solid fa-terminal"></i>
               <span class="tooltiptext">Apply</span>
             </button>
-            <button class="copy-button tooltip" onclick="sendCode('${id}','copy')">
+            <button class="copy-button tooltip" onclick="sendCode('${id}','copy', this)">
               <i class="fa-regular fa-copy"></i>
               <span class="tooltiptext">Copy to clipboard</span>
             </button>
@@ -35,11 +35,11 @@ function buildMermaidBlock(lang, text)
         <header>
           <span>${lang}</span>
           <div>
-            <button class="copy-button tooltip" onclick="sendPNG('${id}')">
+            <button class="copy-button tooltip" onclick="sendPNG('${id}', this)">
               <i class="fa-regular fa-image"></i>
               <span class="tooltiptext">Copy as image</span>
             </button>
-            <button class="copy-button tooltip" onclick="sendCode('${id}','copy')">
+            <button class="copy-button tooltip" onclick="sendCode('${id}','copy', this)">
               <i class="fa-regular fa-copy"></i>
               <span class="tooltiptext">Copy as text</span>
             </button>
@@ -50,7 +50,7 @@ function buildMermaidBlock(lang, text)
 }
 
 /* send messages to WebView2 */
-function sendPNG(id) {
+function sendPNG(id, sender) {
     const svgEl = document.querySelector('#'+id+' svg');
     const svgString = new XMLSerializer().serializeToString(svgEl);
     const svgBase64 = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
@@ -82,7 +82,7 @@ function sendPNG(id) {
     img.src = svgBase64;
 }
 
-function sendCode(id, action){
+function sendCode(id, action, sender){
     let element = document.getElementById(id);
     let raw = element.getAttribute("data-raw") ?? element.textContent;
     let selection = window.getSelection();
@@ -101,6 +101,28 @@ function sendCode(id, action){
                 popup.classList.remove('show');
             }, 2000);
         }
+    }
+
+    if (sender) {
+        const icon = sender.querySelector('i');
+        const originalClass = icon.className;
+        sender.classList.add('swap');
+
+        icon.addEventListener('transitionend', function tEnd() {
+            icon.removeEventListener('transitionend', tEnd);
+
+            icon.className = 'fa-solid fa-check';
+            sender.classList.remove('swap');
+
+            setTimeout(() => {
+                sender.classList.add('swap');
+                icon.addEventListener('transitionend', function tEnd2() {
+                    icon.removeEventListener('transitionend', tEnd2);
+                    icon.className = originalClass;
+                    sender.classList.remove('swap');
+                });
+            }, 1000);
+        });
     }
 }
 

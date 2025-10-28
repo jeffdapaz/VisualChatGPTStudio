@@ -118,6 +118,12 @@ pre {
 }
 button i {
     font-size: 18px;
+    display: inline-block;
+    transition: transform .15s ease-out, opacity .15s ease-out;
+}
+button.swap i {
+    transform: scale(0);
+    opacity: 0;
 }
 .popup-message {
     visibility: hidden;

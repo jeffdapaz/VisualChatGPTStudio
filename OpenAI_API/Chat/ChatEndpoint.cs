@@ -42,7 +42,6 @@ namespace OpenAI_API.Chat
 
 		public string ApiKey
 		{
-			get => _Api.Auth?.ApiKey;
 			set
 			{
 				if (_Api.Auth != null)

@@ -327,7 +327,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <param name="lastCallId">The identifier of the last call to associate with the input.</param>
         /// <param name="previousResponseId">The identifier of the previous response to link the request.</param>
         /// <param name="acknowledgeSafetyChecks">A list of safety checks to acknowledge.</param>
-        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>        
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="ComputerUseResponse"/> returned from the request.</returns>
         public static async Task<ComputerUseResponse> GetComputerUseResponseAsync(OptionPageGridGeneral options,
                                                                                   int displayWidth,
@@ -444,7 +444,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
                 if (!string.IsNullOrWhiteSpace(options.BaseAPI))
                 {
-                    openAiAPI.ApiUrlFormat = options.BaseAPI + "/{0}/{1}";
+                    openAiAPI.ApiUrlFormat = options.BaseAPI.TrimEnd() + "/{0}/{1}";
                 }
 
                 if (!string.IsNullOrWhiteSpace(options.ApiVersion))
@@ -514,7 +514,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         }
 
         /// <summary>
-        /// Creates an Azure API handler based on the provided options. 
+        /// Creates an Azure API handler based on the provided options.
         /// </summary>
         /// <param name="options">The options to use for creating/updating the Azure API handler.</param>
         /// <param name="modelOrAzureDeploymentOverride">An optional parameter to specify the deployment name to override the option's parameters.
@@ -576,7 +576,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
         /// <summary>
         /// Asynchronously gets the code of the selected context items.
-        /// </summary>  
+        /// </summary>
         /// <returns>The code of the selected context items as a string.</returns>
         private static async Task<string> GetSelectedContextItemsCodeAsync()
         {

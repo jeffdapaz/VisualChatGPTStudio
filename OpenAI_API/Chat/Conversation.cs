@@ -51,6 +51,16 @@ namespace OpenAI_API.Chat
         }
 
         /// <summary>
+        /// Update base request settings
+        /// </summary>
+        public void UpdateApi(string apiKey, string baseUrl, string model)
+        {
+            Model.ModelID = model;
+            endpoint.ApiKey = apiKey;
+            endpoint._Api.ApiUrlFormat = baseUrl.TrimEnd('/') + "/{0}/{1}";
+        }
+
+        /// <summary>
         /// After calling <see cref="GetResponseFromChatbotAsync"/>, this contains the full response object which can contain useful metadata like token usages, <see cref="ChatChoice.FinishReason"/>, etc.  This is overwritten with every call to <see cref="GetResponseFromChatbotAsync"/> and only contains the most recent result.
         /// </summary>
         public ChatResult MostRecentApiResult { get; private set; }
@@ -484,11 +494,6 @@ namespace OpenAI_API.Chat
         {
             _Messages.Clear();
             tools.Clear();
-        }
-
-        public void UpdateApiKey(string apiKey)
-        {
-            endpoint.ApiKey = apiKey;
         }
     }
 }

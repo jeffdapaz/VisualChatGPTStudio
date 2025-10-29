@@ -281,7 +281,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
         /// <summary>
         /// Deletes connection strings from the SQL_SERVER_CONNECTIONS table based on the provided chat ID.
         /// </summary>
-        private static void DeleteConnectionString(string chatId)
+        public static void DeleteConnectionString(string chatId)
         {
             SQLiteCommand command = connection.CreateCommand("DELETE FROM SQL_SERVER_CONNECTIONS WHERE CHAT_ID = ?", chatId);
 

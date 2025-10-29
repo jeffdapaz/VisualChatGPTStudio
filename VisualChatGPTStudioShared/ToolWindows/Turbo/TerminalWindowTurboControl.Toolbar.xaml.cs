@@ -1,7 +1,9 @@
 using System;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using JeffPires.VisualChatGPTStudio.Agents;
 using VisualChatGPTStudioShared.ToolWindows.Turbo;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 using MessageBox = System.Windows.MessageBox;
@@ -70,11 +72,28 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 apiChat.ClearConversation();
 
                 // clear attached
-                sqlServerConnections = null;
-                grdSQL.Visibility = Visibility.Collapsed;
+                if (_viewModel.SqlServerConnectionsAlreadyAdded.Count == 0)
+                {
+                    sqlServerConnections = null;
+                    grdSQL.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    // TODO
+                    sqlServerConnections = _viewModel.SqlServerConnectionsAlreadyAdded.Select(s => new SqlServerConnectionInfo() ).ToList();
+                    grdSQL.Visibility = Visibility.Visible;
+                }
 
-                apiDefinitions = null;
-                grdAPI.Visibility = Visibility.Collapsed;
+                if (_viewModel.ApiDefinitionsAlreadyAdded.Count == 0)
+                {
+                    apiDefinitions = null;
+                    grdAPI.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    apiDefinitions = null; // TODO
+                    grdAPI.Visibility = Visibility.Visible;
+                }
 
                 attachedImage = null;
                 spImage.Visibility = Visibility.Collapsed;

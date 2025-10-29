@@ -16,9 +16,9 @@
 
     <UserControl.Resources>
         <RoutedUICommand x:Key="cancelCommand" Text="Text" />
+        <RoutedUICommand x:Key="sendCode" Text="Text" />
         <vm:TerminalTurboViewModel x:Key="Vm"/>
         <utils:InverseBooleanConverter x:Key="InverseBooleanConverter" />
-        <utils:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <Style TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -97,10 +97,13 @@ Padding="8" CornerRadius="4">
 
     <UserControl.CommandBindings>
         <CommandBinding Command="{StaticResource cancelCommand}" Executed="CancelRequest" />
+        <CommandBinding Command="{StaticResource sendCode}" Executed="SendCode" />
     </UserControl.CommandBindings>
 
     <UserControl.InputBindings>
         <KeyBinding Key="Q" Modifiers="Alt" Command="{StaticResource cancelCommand}" />
+        <KeyBinding Key="Enter" Modifiers="Ctrl+Alt" Command="{StaticResource sendCode}" />
+        <KeyBinding Key="Enter" Modifiers="Ctrl+Alt+Shift" Command="{StaticResource sendCode}" />
     </UserControl.InputBindings>
 
     <UserControl.DataContext>

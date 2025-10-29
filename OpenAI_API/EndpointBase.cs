@@ -22,7 +22,7 @@ namespace OpenAI_API
         /// <summary>
         /// The internal reference to the API, mostly used for authentication
         /// </summary>
-        protected readonly OpenAIAPI _Api;
+        internal readonly OpenAIAPI _Api;
 
         /// <summary>
         /// Constructor of the api endpoint base, to be called from the contructor of any devived classes.  Rather than instantiating any endpoint yourself, access it through an instance of <see cref="OpenAIAPI"/>.

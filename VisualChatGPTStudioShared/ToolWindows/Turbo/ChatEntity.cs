@@ -80,6 +80,11 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        public void OnAllPropertiesChanged()
+        {
+            OnPropertyChanged(string.Empty);
+        }
+
         protected bool Set<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
         {
             if (EqualityComparer<T>.Default.Equals(field, value)) return false;

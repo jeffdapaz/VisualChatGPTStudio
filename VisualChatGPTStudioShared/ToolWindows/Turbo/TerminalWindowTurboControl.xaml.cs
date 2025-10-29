@@ -58,7 +58,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private OptionPageGridGeneral options;
         private Package package;
         private bool webView2Installed;
-        private TerminalTurboViewModel _viewModel = new();
+        private TerminalTurboViewModel _viewModel;
         private IWebView2? _webView;
 
         private Conversation apiChat;
@@ -70,9 +70,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private byte[] attachedImage;
         private List<SqlServerConnectionInfo> sqlServerConnections;
         private List<ApiItem> apiDefinitions;
-        private List<string> sqlServerConnectionsAlreadyAdded = [];
-        private List<string> apiDefinitionsAlreadyAdded = [];
-        private Dictionary<IdentifierEnum, string> base64Images = [];
         private Rectangle screenBounds;
         private string previousResponseId;
         private string apiIcon;
@@ -94,7 +91,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             InitializeComponent();
             Loaded += OnLoaded;
 
-            DataContext = _viewModel;
+            _viewModel = (TerminalTurboViewModel)DataContext;
         }
 
         #endregion Constructors
@@ -191,10 +188,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             await _webView.EnsureCoreWebView2Async(env);
 
             apiChat = ApiHandler.CreateConversation(options, options.TurboChatBehavior);
-
-            sqlServerConnectionsAlreadyAdded = ChatRepository.GetSqlServerConnections(_viewModel.ChatId);
-            apiDefinitionsAlreadyAdded = ChatRepository.GetApiDefinitions(_viewModel.ChatId);
-
             _webView.WebMessageReceived += WebViewOnWebMessageReceived;
         }
 
@@ -324,7 +317,19 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                         case ModifierKeys.None:
                             // send Request by Enter
                             e.Handled = true;
-                            _ = RequestAsync(RequestType.Request);
+
+                            if (btnSqlSend.Visibility == Visibility.Visible)
+                            {
+                                btnSqlSend_Click(null, null);
+                            }
+                            else if (btnApiSend.Visibility == Visibility.Visible)
+                            {
+                                btnApiSend_Click(null, null);
+                            }
+                            else
+                            {
+                                _ = RequestAsync(RequestType.Request);
+                            }
                             break;
                     }
                 }
@@ -438,7 +443,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private async Task RequestAsync(RequestType commandType, string request, string requestToShowOnList, bool shiftKeyPressed)
         {
             var firstMessage = !_viewModel.Messages.Any();
-            apiChat.UpdateApiKey(options.ApiKey);
+            apiChat.UpdateApi(options.ApiKey, options.BaseAPI, options.Model);
             await ExecuteRequestWithCommonHandlingAsync(async () =>
             {
                 await AddMessagesHtmlAsync(IdentifierEnum.Me, requestToShowOnList);
@@ -1022,7 +1027,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     return;
                 }
 
-                sqlServerConnections = sqlServerConnections.Where(c1 => !sqlServerConnectionsAlreadyAdded.Any(c2 => c2 == c1.ConnectionString)).ToList();
+                sqlServerConnections = sqlServerConnections.Where(c1 => _viewModel.SqlServerConnectionsAlreadyAdded.All(c2 => c2 != c1.ConnectionString)).ToList();
 
                 if (sqlServerConnections == null || sqlServerConnections.Count == 0)
                 {
@@ -1031,9 +1036,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 }
 
                 cbConnection.ItemsSource = sqlServerConnections;
-
                 cbConnection.SelectedIndex = 0;
-
                 grdCommands.Visibility = Visibility.Collapsed;
                 grdSQL.Visibility = Visibility.Visible;
             }
@@ -1063,6 +1066,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 grdSQL.Visibility = Visibility.Collapsed;
                 grdCommands.Visibility = Visibility.Visible;
+                ChatRepository.DeleteConnectionString(_viewModel.ChatId);
 
                 Logger.Log(ex);
 
@@ -1089,7 +1093,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             await RequestAsync(RequestType.Request, request, requestToShowOnList, false);
 
-            sqlServerConnectionsAlreadyAdded.Add(connection.ConnectionString);
+            _viewModel.SqlServerConnectionsAlreadyAdded.Add(connection.ConnectionString);
 
             ChatRepository.AddSqlServerConnection(_viewModel.ChatId, connection.ConnectionString);
 
@@ -1135,7 +1139,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     return;
                 }
 
-                apiDefinitions = apiDefinitions.Where(c1 => !apiDefinitionsAlreadyAdded.Any(c2 => c2 == c1.Name)).ToList();
+                apiDefinitions = apiDefinitions.Where(c1 => !_viewModel.ApiDefinitionsAlreadyAdded.Any(c2 => c2 == c1.Name)).ToList();
 
                 if (apiDefinitions == null || apiDefinitions.Count == 0)
                 {
@@ -1183,7 +1187,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             await RequestAsync(RequestType.Request, request, requestToShowOnList, false);
 
-            apiDefinitionsAlreadyAdded.Add(apiDefinition.Name);
+            _viewModel.ApiDefinitionsAlreadyAdded.Add(apiDefinition.Name);
 
             ChatRepository.AddApiDefinition(_viewModel.ChatId, apiDefinition.Name);
 

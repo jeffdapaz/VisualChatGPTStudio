@@ -29,8 +29,18 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
             ApplyFilter();
         }
 
-        public List<ChatEntity> AllChats { get; private set; } = [];
+        public List<string> SqlServerConnectionsAlreadyAdded { get; private set; } = [];
 
+        public List<string> ApiDefinitionsAlreadyAdded { get; private set; } = [];
+
+        /// <summary>
+        /// Chat list from Database
+        /// </summary>
+        private List<ChatEntity> AllChats { get; set; } = [];
+
+        /// <summary>
+        /// Current ChatId
+        /// </summary>
         public string ChatId { get; private set; }
 
         public List<MessageEntity> Messages { get; set; }
@@ -90,7 +100,8 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
 
         public void DeleteChat(string delId)
         {
-            if (string.IsNullOrEmpty(delId)) return;
+            if (string.IsNullOrEmpty(delId))
+                return;
             ChatRepository.DeleteChat(delId);
             AllChats.Remove(AllChats.FirstOrDefault(c => c.Id == delId));
             ApplyFilter();
@@ -169,6 +180,10 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
                     {
                         Chats[i] = newItems[i];
                     }
+                    else
+                    {
+                        Chats[i].OnAllPropertiesChanged();
+                    }
                 }
                 else
                 {
@@ -201,7 +216,11 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
         {
             ChatRepository.UpdateChatName(ChatId, header);
             var entity = Chats.FirstOrDefault(c => c.Id == ChatId);
-            if (entity != null) entity.Name = header;
+            if (entity != null)
+            {
+                entity.Name = header;
+                entity.EditName = header;
+            }
         }
 
         public void CreateNewChat()
@@ -225,6 +244,8 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
 
             ChatId = selectedChat?.Id ?? string.Empty;
             Messages = !string.IsNullOrEmpty(ChatId) ? ChatRepository.GetMessages(ChatId) : [];
+            SqlServerConnectionsAlreadyAdded = ChatRepository.GetSqlServerConnections(ChatId);
+            ApiDefinitionsAlreadyAdded = ChatRepository.GetApiDefinitions(ChatId);
         }
 
         public void ForceReloadChats()

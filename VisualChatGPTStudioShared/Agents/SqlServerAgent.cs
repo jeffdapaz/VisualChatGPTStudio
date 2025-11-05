@@ -17,11 +17,11 @@ namespace JeffPires.VisualChatGPTStudio.Agents
     public static class SqlServerAgent
     {
         /// <summary>
-        /// Retrieves a list of SQL Server connection information by filtering and processing connections 
+        /// Retrieves a list of SQL Server connection information by filtering and processing connections
         /// from the Visual Studio Data Explorer Connection Manager that match a specific SQL Server provider.
         /// </summary>
         /// <returns>
-        /// A list of <see cref="SqlServerConnectionInfo"/> objects containing details such as Initial Catalog, 
+        /// A list of <see cref="SqlServerConnectionInfo"/> objects containing details such as Initial Catalog,
         /// Description, and Connection String for each valid SQL Server connection.
         /// </returns>
         public static List<SqlServerConnectionInfo> GetConnections()
@@ -124,13 +124,13 @@ namespace JeffPires.VisualChatGPTStudio.Agents
                                     -- Generate CREATE TABLE
                                     SELECT @DDL = @DDL + 'CREATE TABLE ' + t.name + ' (' +
                                         STUFF((
-                                            SELECT ', ' + c.name + ' ' + tp.name + 
-                                                   CASE 
+                                            SELECT ', ' + c.name + ' ' + tp.name +
+                                                   CASE
                                                        WHEN tp.name IN ('varchar', 'nvarchar', 'char', 'nchar') THEN '(' + CAST(c.max_length AS VARCHAR) + ')'
                                                        WHEN tp.name IN ('decimal', 'numeric') THEN '(' + CAST(c.precision AS VARCHAR) + ',' + CAST(c.scale AS VARCHAR) + ')'
                                                        ELSE ''
-                                                   END + 
-                                                   CASE WHEN c.is_identity = 1 THEN ' IDENTITY(' + CAST(IDENT_SEED(t.name) AS VARCHAR) + ',' + CAST(IDENT_INCR(t.name) AS VARCHAR) + ')' ELSE '' END + 
+                                                   END +
+                                                   CASE WHEN c.is_identity = 1 THEN ' IDENTITY(' + CAST(IDENT_SEED(t.name) AS VARCHAR) + ',' + CAST(IDENT_INCR(t.name) AS VARCHAR) + ')' ELSE '' END +
                                                    CASE WHEN c.is_nullable = 0 THEN ' NOT NULL' ELSE ' NULL' END
                                             FROM sys.columns c
                                             JOIN sys.types tp ON c.user_type_id = tp.user_type_id
@@ -138,7 +138,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
                                             FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 2, '') + ');' + CHAR(13) + CHAR(10)
                                     FROM sys.tables t;
 
-                                    -- Generate the PKs 
+                                    -- Generate the PKs
                                     SELECT @DDL = @DDL + 'ALTER TABLE ' + t.name + ' ADD CONSTRAINT ' + kc.name + ' PRIMARY KEY (' +
                                         STUFF((
                                             SELECT ', ' + c.name
@@ -151,14 +151,14 @@ namespace JeffPires.VisualChatGPTStudio.Agents
                                     WHERE kc.type = 'PK';
 
                                     -- Generate the FKs
-                                    SELECT @DDL = @DDL + 'ALTER TABLE ' + t.name + ' ADD CONSTRAINT ' + fk.name + 
+                                    SELECT @DDL = @DDL + 'ALTER TABLE ' + t.name + ' ADD CONSTRAINT ' + fk.name +
                                            ' FOREIGN KEY (' +
                                            STUFF((
                                                SELECT ', ' + fc.name
                                                FROM sys.foreign_key_columns fkc
                                                JOIN sys.columns fc ON fkc.parent_object_id = fc.object_id AND fkc.parent_column_id = fc.column_id
                                                WHERE fkc.constraint_object_id = fk.object_id
-                                               FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 2, '') + 
+                                               FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 2, '') +
                                            ') REFERENCES ' + rt.name + ' (' +
                                            STUFF((
                                                SELECT ', ' + rc.name
@@ -176,24 +176,22 @@ namespace JeffPires.VisualChatGPTStudio.Agents
 
             SqlConnectionStringBuilder sqlConnectionStringBuilder = GetSqlConnectionStringBuilder(connectionString);
 
-            result = string.Format("{0}: {1}, {2}: {3}{4}{5}",
+            result = string.Format("{0}: {1}, {2}: {3}",
                                     nameof(sqlConnectionStringBuilder.DataSource),
                                     sqlConnectionStringBuilder.DataSource,
                                     nameof(sqlConnectionStringBuilder.InitialCatalog),
-                                    sqlConnectionStringBuilder.InitialCatalog,
-                                    Environment.NewLine,
-                                    result);
+                                    sqlConnectionStringBuilder.InitialCatalog);
 
             return result;
         }
 
         /// <summary>
-        /// Executes a specified SQL function (ExecuteReader, ExecuteNonQuery, or ExecuteScalar) on a given database connection 
+        /// Executes a specified SQL function (ExecuteReader, ExecuteNonQuery, or ExecuteScalar) on a given database connection
         /// and returns the result. Optionally outputs the reader result for ExecuteReader operations.
         /// </summary>
         /// <param name="function">The function to execute, including its name and arguments.</param>
         /// <param name="logQueries">If true, all queries executed by the SQL Server Agent will be logged to the Output window.</param>
-        /// <param name="readerResult">An output parameter to store the result of ExecuteReader operations.</param>        
+        /// <param name="readerResult">An output parameter to store the result of ExecuteReader operations.</param>
         /// <returns>
         /// The result of the executed SQL function as a string.
         /// </returns>
@@ -250,7 +248,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         }
 
         /// <summary>
-        /// Executes a SQL query using the provided connection string and retrieves the result as a list of dictionaries, 
+        /// Executes a SQL query using the provided connection string and retrieves the result as a list of dictionaries,
         /// where each dictionary represents a row with column names as keys and their corresponding values.
         /// </summary>
         /// <param name="connectionString">The connection string to the database.</param>
@@ -319,7 +317,9 @@ namespace JeffPires.VisualChatGPTStudio.Agents
                 {
                     int rowsAffected = command.ExecuteNonQuery();
 
-                    return "Rows affected: " + rowsAffected;
+                    return rowsAffected == -1 && query.ToUpper().Contains("CREATE TABLE")
+                        ? "Table created."
+                        : "Rows affected: " + rowsAffected;
                 }
             }
         }
@@ -359,7 +359,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         }
 
         /// <summary>
-        /// Converts a list of dictionaries representing rows of data into a DataView object. 
+        /// Converts a list of dictionaries representing rows of data into a DataView object.
         /// Each dictionary's keys are used as column names, and the values populate the rows of the DataTable.
         /// </summary>
         /// <param name="readerResult">A list of dictionaries where each dictionary represents a row of data with column names as keys.</param>

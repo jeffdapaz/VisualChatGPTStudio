@@ -57,17 +57,45 @@ details {
 details summary {
     cursor: pointer;
     transition: margin 150ms ease-out;
+    color: rgb(from var(--text-color) r g b / 0.5);
 }
 details[open] summary {
     margin-bottom: 10px;
 }
-.msg { margin:.4rem 0; display:flex; }
-.user  { justify-content:flex-end; }
-.gpt   { justify-content:flex-start; }
-.bubble { max-width:85%; padding:.6rem .9rem; border-radius:1rem; box-shadow: 0px 0px 2px var(--code-bg-color); }
-.user .bubble { background: var(--user-bg-color); color:var(--text-color); }
-.gpt  .bubble { background: var(--gpt-bg-color); color:var(--text-color); }
-
+.msg {
+    margin:.4rem 0; display:flex;
+}
+.me {
+    justify-content:flex-end;
+}
+.gpt {
+    justify-content:flex-start;
+}
+.bubble {
+    max-width:85%;
+    padding:.6rem .9rem;
+    border-radius:1rem;
+    box-shadow: 0px 0px 2px var(--code-bg-color);
+    color:var(--text-color);
+}
+.me .bubble {
+    background: var(--user-bg-color);
+    color:var(--text-color);
+}
+.gpt .bubble {
+    background: var(--gpt-bg-color);
+    color:var(--text-color);
+}
+.functioncall .bubble {
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+}
+.functioncall .bubble details {
+    padding: 0;
+    margin: 4px;
+    overflow: visible;
+}
 pre {
     margin:0 !important;border-radius:0
 }
@@ -166,12 +194,11 @@ span.context {
 }
 .tooltip .tooltiptext {
     visibility: hidden;
-    width: 120px;
     background-color: var(--highlight-bg-color);
     color: var(--highlight-color);
     text-align: center;
     border-radius: 6px;
-    padding: 5px;
+    padding: 4px 16px;
     position: absolute;
     z-index: 1;
     bottom: 100%;

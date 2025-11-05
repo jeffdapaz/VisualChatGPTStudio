@@ -184,7 +184,7 @@ function renderFrag(f){
 }
 
 /* ---------- Functions called from C# ---------- */
-function addMsg(role, rawText, scrollTo = true){
+function addMsg(role, rawText){
     const wrap = document.createElement('div');
     wrap.className = 'msg ' + role;
     const bubble = document.createElement('div');
@@ -194,12 +194,12 @@ function addMsg(role, rawText, scrollTo = true){
     );
     wrap.appendChild(bubble);
     document.getElementById('chat').appendChild(wrap);
-    if (role !== 'gpt') {
-        scrollToLastRequest();
+    if (role === 'me') {
+        window.scrollTo(0, chat.scrollHeight);
     }
 }
 
-function updateLastGpt(rawText, scrollTo = true) {
+function updateLastGpt(rawText) {
     updateShouldScrollFlag();
     const last = document.querySelector('#chat .gpt:last-child .bubble');
     if (last) {
@@ -207,9 +207,7 @@ function updateLastGpt(rawText, scrollTo = true) {
     } else {
         addMsg('gpt', rawText, scrollTo);
     }
-    if (scrollTo) {
-        scrollToBottomIfNeeded();
-    }
+    scrollToBottomIfNeeded();
 }
 
 function clearChat(){

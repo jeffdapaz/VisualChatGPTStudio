@@ -2,71 +2,91 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Data;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Documents;
 using System.Windows.Input;
+using Community.VisualStudio.Toolkit;
+using JeffPires.VisualChatGPTStudio.Agents;
+using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.ToolWindows.Turbo;
+using JeffPires.VisualChatGPTStudio.Utils;
 using JeffPires.VisualChatGPTStudio.Utils.Repositories;
+using OpenAI_API.Chat;
+using OpenAI_API.Functions;
+using VisualChatGPTStudioShared.Agents.ApiAgent;
 
 namespace VisualChatGPTStudioShared.ToolWindows.Turbo
 {
     public sealed class TerminalTurboViewModel : INotifyPropertyChanged
     {
-        private string search = string.Empty;
-        private List<ChatEntity> filtered = [];
-        private int page = 0;
+        private string _search = string.Empty;
+        private List<ChatEntity> _filtered = [];
+        private int _page;
         private const int PageSize = 10;
-
-        public TerminalTurboViewModel()
-        {
-            ReloadChats();
-            var lastChat = AllChats.LastOrDefault();
-            if (lastChat != null)
-            {
-                LoadChat(lastChat.Id);
-            }
-
-            ApplyFilter();
-        }
-
-        public List<string> SqlServerConnectionsAlreadyAdded { get; private set; } = [];
-
-        public List<string> ApiDefinitionsAlreadyAdded { get; private set; } = [];
+        private List<SqlServerConnectionInfo> _sqlServerConnections = [];
+        private List<ApiItem> _apiDefinitions = [];
+        public OptionPageGridGeneral options;
+        public Conversation apiChat;
 
         /// <summary>
         /// Chat list from Database
         /// </summary>
         private List<ChatEntity> AllChats { get; set; } = [];
 
+        public int ToolCallAttempt = 0;
+
+        public int ToolCallMaxAttempts = 10;
+
+        public List<SqlServerConnectionInfo> SqlServerConnections
+        {
+            get => _sqlServerConnections;
+            set => SetField(ref _sqlServerConnections, value);
+        }
+
+        public List<ApiItem> ApiDefinitions
+        {
+            get => _apiDefinitions;
+            set => SetField(ref _apiDefinitions, value);
+        }
+
+        public byte[] AttachedImage;
+
         /// <summary>
         /// Current ChatId
         /// </summary>
         public string ChatId { get; private set; }
 
-        public List<MessageEntity> Messages { get; set; }
+        public ObservableCollection<MessageEntity> Messages { get; } = [];
 
         public ObservableCollection<ChatEntity> Chats { get; } = [];
 
-        public int PageNumber => page + 1;
+        public int PageNumber => _page + 1;
 
-        public int TotalPages => Math.Max(1, (int)Math.Ceiling((filtered?.Count ?? 0.0) / PageSize));
+        public int TotalPages => Math.Max(1, (int)Math.Ceiling((_filtered?.Count ?? 0.0) / PageSize));
 
         public string CurrentPageView => $"{PageNumber} / {TotalPages}";
 
-        public bool CanGoPrev => page > 0;
+        public bool CanGoPrev => _page > 0;
 
-        public bool CanGoNext => page < TotalPages - 1;
+        public bool CanGoNext => _page < TotalPages - 1;
 
         public ICommand NextCmd => new RelayCommand(() =>
             {
-                page++;
+                _page++;
                 ApplyFilter();
             },
             () => CanGoNext);
 
         public ICommand PrevCmd => new RelayCommand(() =>
             {
-                page--;
+                _page--;
                 ApplyFilter();
             },
             () => CanGoPrev);
@@ -110,15 +130,19 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
             {
                 ChatId = string.Empty;
                 Messages.Clear();
+
+                ApiDefinitions = [];
+                SqlServerConnections = [];
+                AttachedImage = null;
             }
         }
 
         public string Search
         {
-            get => search;
+            get => _search;
             set
             {
-                if (SetField(ref search, value))
+                if (SetField(ref _search, value))
                     ApplyFilter();
             }
         }
@@ -127,18 +151,18 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
         {
             if (!string.IsNullOrEmpty(Search))
             {
-                filtered = AllChats
+                _filtered = AllChats
                     .Where(c => c.Name.ToLower().Contains(Search.ToLower()))
                     .ToList();
             }
             else
             {
-                filtered = AllChats;
+                _filtered = AllChats;
             }
 
-            if (page >= TotalPages)
+            if (_page >= TotalPages)
             {
-                page = TotalPages - 1;
+                _page = TotalPages - 1;
             }
 
             SyncCurrentPage();
@@ -156,11 +180,11 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
 
         private void SyncCurrentPage()
         {
-            var itemsOnPage = filtered;
+            var itemsOnPage = _filtered;
             if (itemsOnPage.Count > PageSize)
             {
-                var itemsToSkip = page * PageSize;
-                itemsOnPage = filtered.Skip(itemsToSkip).Take(PageSize).ToList();
+                var itemsToSkip = _page * PageSize;
+                itemsOnPage = _filtered.Skip(itemsToSkip).Take(PageSize).ToList();
             }
 
             var newItems = itemsOnPage ?? [];
@@ -192,7 +216,7 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
             }
         }
 
-        private void ReloadChats()
+        private void DownloadChats()
         {
             AllChats = ChatRepository.GetChats();
             foreach (var c in AllChats)
@@ -201,15 +225,17 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
             }
         }
 
-        public MessageEntity AddMessageSegment(ChatMessageSegment segment)
+        public void AddMessageSegment(ChatMessageSegment segment)
         {
+            if (string.IsNullOrEmpty(segment.Content))
+            {
+                return;
+            }
             if (string.IsNullOrEmpty(ChatId))
             {
                 CreateNewChat();
             }
-            var mes = new MessageEntity { Order = Messages.Count + 1, Segments = [segment] };
-            Messages.Add(mes);
-            return mes;
+            Messages.Add(new MessageEntity { Order = Messages.Count + 1, Segments = [ segment ] });
         }
 
         public void UpdateChatHeader(string header)
@@ -232,8 +258,14 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
                 Messages = [],
                 Name = $"New chat {AllChats.Count + 1}"
             });
-            ForceReloadChats();
+            ForceDownloadChats();
             LoadChat();
+        }
+
+        public void ForceDownloadChats()
+        {
+            DownloadChats();
+            ApplyFilter();
         }
 
         public void LoadChat(string id = "")
@@ -243,19 +275,47 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
                 : AllChats.FirstOrDefault(c => c.Id == id);
 
             ChatId = selectedChat?.Id ?? string.Empty;
-            Messages = !string.IsNullOrEmpty(ChatId) ? ChatRepository.GetMessages(ChatId) : [];
-            SqlServerConnectionsAlreadyAdded = ChatRepository.GetSqlServerConnections(ChatId);
-            ApiDefinitionsAlreadyAdded = ChatRepository.GetApiDefinitions(ChatId);
+            Messages.Clear();
+            if (!string.IsNullOrEmpty(ChatId))
+            {
+                foreach (var message in ChatRepository.GetMessages(ChatId).OrderBy(m => m.Order))
+                {
+                    Messages.Add(message);
+                }
+            }
+
+            apiChat = ApiHandler.CreateConversation(options, options.TurboChatBehavior);
+            foreach (var messageEntity in Messages)
+            {
+                var segment = messageEntity.Segments.FirstOrDefault();
+                if (segment == null)
+                {
+                    continue;
+                }
+                apiChat.Messages.Add(new ChatMessage
+                    {
+                        Role = segment.Author switch
+                        {
+                            IdentifierEnum.Me => ChatMessageRole.User,
+                            IdentifierEnum.ChatGPT or IdentifierEnum.ChatGPTCode => ChatMessageRole.Assistant,
+                            IdentifierEnum.FunctionRequest or IdentifierEnum.FunctionCall => ChatMessageRole.Tool,
+                            _ => ChatMessageRole.System
+                        },
+                        Content = segment.Content
+                    }
+                );
+            }
         }
 
-        public void ForceReloadChats()
+        private JsonSerializerOptions _serializeOptions = new()
         {
-            ReloadChats();
-            ApplyFilter();
-        }
+            WriteIndented = true,
+            MaxDepth = 10,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
 
         // TODO: toolbar buttons visibility
-        public bool IsProcessing { get; set; } = false;
+        public bool IsProcessing { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 

@@ -183,7 +183,7 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
                     HttpResponseMessage response = await CallRestApiAsync(apiDefinition, endPoint, method, headers, queryParams, body, logRequestAndResponse);
 
                     responseStatusCode = response.StatusCode;
-                    responseContent = FormatJson(await response.Content.ReadAsStringAsync());
+                    responseContent = await response.Content.ReadAsStringAsync();
                 }
 
                 if (apiDefinition.SendResponsesToAI)

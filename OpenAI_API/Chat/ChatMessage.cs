@@ -10,11 +10,10 @@ namespace OpenAI_API.Chat
     public class ChatMessage
     {
         /// <summary>
-        /// Creates an empty <see cref="ChatMessage"/>, with <see cref="Role"/> defaulting to <see cref="ChatMessageRole.User"/>
+        /// Creates an empty <see cref="ChatMessage"/>
         /// </summary>
         public ChatMessage()
         {
-            this.Role = ChatMessageRole.User;
         }
 
         /// <summary>
@@ -26,19 +25,6 @@ namespace OpenAI_API.Chat
         {
             this.Role = role;
             this.Content = content;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the ChatMessage class with the specified role, content, and function ID.
-        /// </summary>
-        /// <param name="role">The role associated with the chat message.</param>
-        /// <param name="content">The content of the chat message.</param>
-        /// <param name="functionId">The identifier for the function associated with the chat message.</param>
-        public ChatMessage(ChatMessageRole role, object content, string functionId)
-        {
-            this.Role = role;
-            this.Content = content;
-            this.FunctionId = functionId;
         }
 
         [JsonProperty("role")]

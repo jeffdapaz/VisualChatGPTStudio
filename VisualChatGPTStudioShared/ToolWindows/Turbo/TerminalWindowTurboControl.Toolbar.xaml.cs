@@ -3,7 +3,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using JeffPires.VisualChatGPTStudio.Agents;
+using OpenAI_API.Chat;
 using VisualChatGPTStudioShared.ToolWindows.Turbo;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 using MessageBox = System.Windows.MessageBox;
@@ -15,15 +15,25 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private void NewChat_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.CreateNewChat();
-            apiChat.ClearConversation();
-            _ = _webView?.ExecuteScriptAsync(WebFunctions.ClearChat);
+            ClearChat();
         }
 
         private void DeleteChat_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.DeleteChat(_viewModel.ChatId);
-            apiChat.ClearConversation();
+            ClearChat();
+        }
+
+        private void ClearChat()
+        {
+            _viewModel.apiChat.ClearConversation();
             _ = _webView?.ExecuteScriptAsync(WebFunctions.ClearChat);
+            ToggleApi.IsChecked = ToggleSql.IsChecked = false;
+
+            _viewModel.ApiDefinitions = [];
+            _viewModel.SqlServerConnections = [];
+            _viewModel.AttachedImage = null;
+            EnableDisableButtons(true);
         }
 
         private void ToggleHistory_Click(object sender, RoutedEventArgs e)
@@ -40,7 +50,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             if (showHistory)
             {
-                _viewModel.ForceReloadChats();
+                _viewModel.ForceDownloadChats();
                 HistorySidebar.Visibility = Overlay.Visibility = Visibility.Visible;
                 ToggleWebViewVisibility();
                 HistorySearch.Focus();
@@ -68,42 +78,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             try
             {
-                _viewModel.LoadChat(chatId);
-                apiChat.ClearConversation();
-
-                // clear attached
-                if (_viewModel.SqlServerConnectionsAlreadyAdded.Count == 0)
-                {
-                    sqlServerConnections = null;
-                    grdSQL.Visibility = Visibility.Collapsed;
-                }
-                else
-                {
-                    // TODO
-                    sqlServerConnections = _viewModel.SqlServerConnectionsAlreadyAdded.Select(s => new SqlServerConnectionInfo() ).ToList();
-                    grdSQL.Visibility = Visibility.Visible;
-                }
-
-                if (_viewModel.ApiDefinitionsAlreadyAdded.Count == 0)
-                {
-                    apiDefinitions = null;
-                    grdAPI.Visibility = Visibility.Collapsed;
-                }
-                else
-                {
-                    apiDefinitions = null; // TODO
-                    grdAPI.Visibility = Visibility.Visible;
-                }
-
-                attachedImage = null;
-                spImage.Visibility = Visibility.Collapsed;
-
-                grdProgress.Visibility = Visibility.Collapsed;
-                grdCommands.Visibility = Visibility.Visible;
                 CancelRequest(null, null);
-
                 await _webView!.ExecuteScriptAsync(WebFunctions.ClearChat);
-                await AddMessagesFromModelAsync();
+                _viewModel.LoadChat(chatId);
+                grdCommands.Visibility = Visibility.Visible;
             }
             catch (Exception ex)
             {
@@ -116,6 +94,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             if (_viewModel != null && sender is ListBox { SelectedItem: ChatEntity selectedItem } && Mouse.LeftButton != MouseButtonState.Released)
             {
+                _viewModel.LoadChat(selectedItem.Id);
                 LoadChat(selectedItem.Id);
             }
         }
@@ -136,6 +115,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 case Key.Space or Key.Enter when sender is ListBoxItem { DataContext: ChatEntity selectedItem } lbi:
                     lbi.IsSelected = true;
                     e.Handled = true;
+                    _viewModel.LoadChat(selectedItem.Id);
                     LoadChat(selectedItem.Id);
                     ToggleHistory(false);
                     break;

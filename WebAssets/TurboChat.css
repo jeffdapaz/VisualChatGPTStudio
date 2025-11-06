@@ -219,6 +219,7 @@ table  {
 th, td {
     border: 1px solid #999;
     padding: 4px 8px;
+    text-align: left;
 }
 thead  {
     background: var(--code-bg-color);

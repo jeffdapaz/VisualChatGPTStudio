@@ -770,11 +770,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 }
                 else
                 {
-                    functionResult = SqlServerAgent.ExecuteFunction(function, _viewModel.options.LogSqlServerAgentQueries, out DataView readerResult);
-                    if (readerResult is { Count: > 0 })
+                    functionResult = SqlServerAgent.ExecuteFunction(function, _viewModel.options.LogSqlServerAgentQueries, out var rows);
+                    if (rows is { Count: > 0 })
                     {
-                        var dataTable = readerResult.ToTable();
-                        var selectResult = dataTable.ToMarkdown();
+                        var selectResult = rows.ToMarkdown();
 
                         // Showing the selected result in chat without sending it to LLM
                         _viewModel.AddMessageSegment(new ChatMessageSegment { Author = IdentifierEnum.ChatGPT, Content = selectResult});

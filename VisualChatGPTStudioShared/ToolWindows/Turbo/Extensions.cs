@@ -1,4 +1,4 @@
-﻿using System.Data;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -6,13 +6,8 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo;
 
 public static class Extensions
 {
-    public static string ToMarkdown(this DataTable dataTable)
+    public static string ToMarkdown(this List<Dictionary<string, string>> rows)
     {
-        var rows = dataTable.Rows.OfType<DataRow>()
-            .Select(row => dataTable.Columns.OfType<DataColumn>()
-                .ToDictionary(col => col.ColumnName, col => row[col]?.ToString() ?? string.Empty))
-            .ToList();
-
         var sb = new StringBuilder();
 
         if (rows.Any())
@@ -42,7 +37,8 @@ public static class Extensions
 
         string EscapeMd(string text)
         {
-            if (text == null) return string.Empty;
+            if (text == null)
+                return string.Empty;
             return text.Replace("|", @"\|")
                 .Replace("\r\n", " ")
                 .Replace("\n", " ");

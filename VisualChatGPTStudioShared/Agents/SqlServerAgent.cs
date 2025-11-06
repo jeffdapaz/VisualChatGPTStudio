@@ -191,13 +191,13 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         /// </summary>
         /// <param name="function">The function to execute, including its name and arguments.</param>
         /// <param name="logQueries">If true, all queries executed by the SQL Server Agent will be logged to the Output window.</param>
-        /// <param name="readerResult">An output parameter to store the result of ExecuteReader operations.</param>
+        /// <param name="rows">An output parameter to store the result of ExecuteReader operations.</param>
         /// <returns>
         /// The result of the executed SQL function as a string.
         /// </returns>
-        public static string ExecuteFunction(FunctionResult function, bool logQueries, out DataView readerResult)
+        public static string ExecuteFunction(FunctionResult function, bool logQueries, out List<Dictionary<string, string>> rows)
         {
-            readerResult = null;
+            rows = null;
             string functionResult;
 
             try
@@ -217,7 +217,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
 
                 if (function.Function.Name.Equals(nameof(SqlServerAgent.ExecuteReader)))
                 {
-                    functionResult = SqlServerAgent.ExecuteReader(connectionString, query, out readerResult);
+                    functionResult = SqlServerAgent.ExecuteReader(connectionString, query, out rows);
                 }
                 else if (function.Function.Name.Equals(nameof(SqlServerAgent.ExecuteNonQuery)))
                 {
@@ -253,50 +253,38 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         /// </summary>
         /// <param name="connectionString">The connection string to the database.</param>
         /// <param name="query">The SQL query to execute.</param>
-        /// <param name="result">An output parameter that contains the query result.</param>
+        /// <param name="rows">An output parameter that contains the query result.</param>
         /// <returns>
         /// A string message indicating the number of rows retrieved.
         /// </returns>
-        private static string ExecuteReader(string connectionString, string query, out DataView result)
+        private static string ExecuteReader(string connectionString, string query, out List<Dictionary<string, string>> rows)
         {
-            result = [];
-            List<Dictionary<string, object>> rows = [];
+            rows = [];
+            using SqlConnection connection = new(connectionString);
+            connection.Open();
 
-            using (SqlConnection connection = new(connectionString))
+            using SqlCommand command = new(query, connection);
+            using SqlDataReader reader = command.ExecuteReader();
+            List<string> columnNames = [];
+
+            for (var i = 0; i < reader.FieldCount; i++)
             {
-                connection.Open();
-
-                string messageOutput = string.Empty;
-
-                using (SqlCommand command = new(query, connection))
-                {
-                    using (SqlDataReader reader = command.ExecuteReader())
-                    {
-                        List<string> columnNames = [];
-
-                        for (int i = 0; i < reader.FieldCount; i++)
-                        {
-                            columnNames.Add(reader.GetName(i));
-                        }
-
-                        while (reader.Read())
-                        {
-                            Dictionary<string, object> row = [];
-
-                            for (int i = 0; i < reader.FieldCount; i++)
-                            {
-                                row[columnNames[i]] = reader.GetValue(i);
-                            }
-
-                            rows.Add(row);
-                        }
-                    }
-
-                    result = ConvertReaderResultToDataTable(rows);
-
-                    return "Rows retrieved: " + result.Count;
-                }
+                columnNames.Add(reader.GetName(i));
             }
+
+            while (reader.Read())
+            {
+                Dictionary<string, string> row = [];
+
+                for (var i = 0; i < reader.FieldCount; i++)
+                {
+                    row[columnNames[i]] = reader.GetValue(i).ToString();
+                }
+
+                rows.Add(row);
+            }
+
+            return $"Rows retrieved: {rows.Count}. The data is displayed to the user.";
         }
 
         /// <summary>
@@ -356,38 +344,6 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         private static SqlConnectionStringBuilder GetSqlConnectionStringBuilder(string connectionString)
         {
             return new SqlConnectionStringBuilder(ReplaceTrustedCertificate(connectionString));
-        }
-
-        /// <summary>
-        /// Converts a list of dictionaries representing rows of data into a DataView object.
-        /// Each dictionary's keys are used as column names, and the values populate the rows of the DataTable.
-        /// </summary>
-        /// <param name="readerResult">A list of dictionaries where each dictionary represents a row of data with column names as keys.</param>
-        /// <returns>
-        /// A DataView object representing the converted data from the input list of dictionaries.
-        /// </returns>
-        private static DataView ConvertReaderResultToDataTable(List<Dictionary<string, object>> readerResult)
-        {
-            DataTable dataTable = new();
-
-            foreach (string key in readerResult.First().Keys)
-            {
-                dataTable.Columns.Add(key);
-            }
-
-            foreach (Dictionary<string, object> row in readerResult)
-            {
-                DataRow dataRow = dataTable.NewRow();
-
-                foreach (string key in row.Keys)
-                {
-                    dataRow[key] = row[key] ?? DBNull.Value;
-                }
-
-                dataTable.Rows.Add(dataRow);
-            }
-
-            return dataTable.DefaultView;
         }
 
         /// <summary>

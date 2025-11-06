@@ -776,7 +776,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                         var selectResult = rows.ToMarkdown();
 
                         // Showing the selected result in chat without sending it to LLM
-                        _viewModel.AddMessageSegment(new ChatMessageSegment { Author = IdentifierEnum.ChatGPT, Content = selectResult});
+                        _viewModel.AddMessageSegment(new ChatMessageSegment { Author = IdentifierEnum.Api, Content = selectResult});
                     }
                 }
 
@@ -809,46 +809,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
 
             return true;
-        }
-
-        /// <summary>
-        /// Recursively searches for a visual child of a specified type within a given DependencyObject.
-        /// </summary>
-        /// <typeparam name="T">The type of the visual child to find.</typeparam>
-        /// <param name="obj">The parent DependencyObject to search within.</param>
-        /// <returns>
-        /// The first visual child of the specified type, or null if no such child is found.
-        /// </returns>
-        private static T FindVisualChild<T>(DependencyObject obj) where T : DependencyObject
-        {
-            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
-            {
-                DependencyObject child = VisualTreeHelper.GetChild(obj, i);
-
-                if (child is T t)
-                {
-                    return t;
-                }
-
-                T childOfChild = FindVisualChild<T>(child);
-
-                if (childOfChild != null)
-                {
-                    return childOfChild;
-                }
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Adds a formatted HTML message to the message list, including the author's avatar and the response content converted from Markdown.
-        /// </summary>
-        /// <param name="author">The author of the message, used to determine the avatar image.</param>
-        /// <param name="content">The message content in Markdown format to be converted and displayed.</param>
-        private async Task AddMessagesHtmlAsync(IdentifierEnum author, string content)
-        {
-
         }
 
         /// <summary>

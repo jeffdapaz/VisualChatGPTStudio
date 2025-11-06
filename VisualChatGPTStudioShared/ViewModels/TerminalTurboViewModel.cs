@@ -288,7 +288,7 @@ namespace VisualChatGPTStudioShared.ToolWindows.Turbo
             foreach (var messageEntity in Messages)
             {
                 var segment = messageEntity.Segments.FirstOrDefault();
-                if (segment == null)
+                if (segment == null || segment.Author == IdentifierEnum.Api)
                 {
                     continue;
                 }

@@ -68,7 +68,7 @@ details[open] summary {
 .me {
     justify-content:flex-end;
 }
-.gpt {
+.gpt, .api {
     justify-content:flex-start;
 }
 .bubble {
@@ -80,11 +80,13 @@ details[open] summary {
 }
 .me .bubble {
     background: var(--user-bg-color);
-    color:var(--text-color);
 }
 .gpt .bubble {
     background: var(--gpt-bg-color);
-    color:var(--text-color);
+}
+.api .bubble {
+    max-width: 100%;
+    background: var(--gpt-bg-color);
 }
 .functioncall .bubble {
     background: transparent;

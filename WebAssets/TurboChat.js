@@ -189,9 +189,7 @@ function addMsg(role, rawText){
     wrap.className = 'msg ' + role;
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
-    bubble.innerHTML = highlightSpecialTags(
-        splitThink(rawText).map(renderFrag).join('')
-    );
+    bubble.innerHTML = splitThink(rawText).map(renderFrag).join('');
     wrap.appendChild(bubble);
     document.getElementById('chat').appendChild(wrap);
     if (role === 'me') {
@@ -205,9 +203,41 @@ function updateLastGpt(rawText) {
     if (last) {
         last.innerHTML = splitThink(rawText).map(renderFrag).join('');
     } else {
-        addMsg('gpt', rawText, scrollTo);
+        addMsg('gpt', rawText);
     }
     scrollToBottomIfNeeded();
+}
+
+function addTable(jsonString)
+{
+    let rawData;
+    
+    try {
+        rawData = JSON.parse(jsonString);
+    } catch (e) {
+        console.error('addTable: invalid JSON', e);
+        return;
+    }
+    
+    const wrap = document.createElement('div');
+    wrap.className = 'msg table';
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    wrap.appendChild(bubble);
+    
+    const columns = Object.keys(rawData[0] || {});
+    const rows    = rawData.map(o => columns.map(c => o[c]));
+    
+    new gridjs.Grid({
+        columns: columns.map(c => ({ name: c, sort: true })),
+        data: rows,
+        search: true,
+        pagination: {
+            limit: 25
+        }
+    }).render(bubble);
+
+    document.getElementById('chat').appendChild(wrap);
 }
 
 function clearChat(){

@@ -20,6 +20,9 @@
         public static string UpdateLastGpt(string content)
             => $"updateLastGpt(`{JsString(content)}`);";
 
+        public static string AddTable(string content)
+            => $"addTable(`{JsString(content)}`);";
+
         public static string ReloadThemeCss(bool isDarkTheme)
             => $"reloadThemeCss({isDarkTheme.ToString().ToLower()});";
     }

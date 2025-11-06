@@ -58,7 +58,6 @@
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ChatEntity.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\ChatMessageSegment.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\Extensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\RelayCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\WebAsset.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\WebFunctions.cs" />

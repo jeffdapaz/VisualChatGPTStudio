@@ -185,9 +185,12 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                             continue;
                         }
 
-                        var script = author == IdentifierEnum.ChatGPT
-                            ? WebFunctions.UpdateLastGpt(content)
-                            : WebFunctions.AddMsg(author, content);
+                        var script = author switch
+                        {
+                            IdentifierEnum.ChatGPT => WebFunctions.UpdateLastGpt(content),
+                            IdentifierEnum.Table => WebFunctions.AddTable(content),
+                            _ => WebFunctions.AddMsg(author, content)
+                        };
 
                         await _webView!.ExecuteScriptAsync(script);
 
@@ -773,10 +776,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     functionResult = SqlServerAgent.ExecuteFunction(function, _viewModel.options.LogSqlServerAgentQueries, out var rows);
                     if (rows is { Count: > 0 })
                     {
-                        var selectResult = rows.ToMarkdown();
-
                         // Showing the selected result in chat without sending it to LLM
-                        _viewModel.AddMessageSegment(new ChatMessageSegment { Author = IdentifierEnum.Api, Content = selectResult});
+                        _viewModel.AddMessageSegment(new ChatMessageSegment { Author = IdentifierEnum.Table, Content =  JsonSerializer.Serialize(rows, _serializeOptions)});
                     }
                 }
 

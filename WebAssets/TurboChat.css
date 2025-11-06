@@ -84,7 +84,7 @@ details[open] summary {
 .gpt .bubble {
     background: var(--gpt-bg-color);
 }
-.api .bubble {
+.table .bubble {
     max-width: 100%;
     background: var(--gpt-bg-color);
 }
@@ -214,15 +214,8 @@ span.context {
     opacity: 1;
     bottom: 150%;
 }
-table  {
-    border-collapse: collapse;
-    margin: 1em 0;
-}
-th, td {
-    border: 1px solid #999;
-    padding: 4px 8px;
-    text-align: left;
-}
-thead  {
-    background: var(--code-bg-color);
+.ag-theme-alpine-compact {
+    --ag-grid-size: 4px;
+    --ag-row-height: 28px;
+    --ag-header-height: 32px;
 }

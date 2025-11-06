@@ -484,6 +484,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 result = $"""
                           {_viewModel.options.SqlServerAgentCommand}
                           <dataBaseSchema>{dataBaseSchema}</dataBaseSchema>
+                          {input}
                           """;
             }
             if (ToggleApi.IsChecked == true && cbAPIs.SelectedItem is ApiItem apiDefinition)

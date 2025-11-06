@@ -772,13 +772,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     functionResult = SqlServerAgent.ExecuteFunction(function, _viewModel.options.LogSqlServerAgentQueries, out DataView readerResult);
                     if (readerResult is { Count: > 0 })
                     {
-                        DataTable dataTable = readerResult.ToTable();
+                        var dataTable = readerResult.ToTable();
+                        var selectResult = dataTable.ToMarkdown();
 
-                        // Convert DataTable to a list of dictionaries
-                        var rows = dataTable.Rows.OfType<DataRow>()
-                            .Select(row => dataTable.Columns.OfType<DataColumn>()
-                                .ToDictionary(col => col.ColumnName, col => row[col]));
-                        functionResult = JsonSerializer.Serialize(rows, _serializeOptions);
+                        // Showing the selected result in chat without sending it to LLM
+                        _viewModel.AddMessageSegment(new ChatMessageSegment { Author = IdentifierEnum.ChatGPT, Content = selectResult});
                     }
                 }
 
@@ -791,6 +789,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             if (_viewModel.ToolCallAttempt >= _viewModel.ToolCallMaxAttempts)
             {
+                // Preventing an endless loop of calling tools
+                // No tools - no calls ¯\_(ツ)_/¯
                 _viewModel.apiChat.ClearTools();
             }
 

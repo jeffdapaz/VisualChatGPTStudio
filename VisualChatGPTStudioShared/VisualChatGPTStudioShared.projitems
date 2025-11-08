@@ -70,6 +70,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ComputerUse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Enums.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Http\HttpLogs.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\NullableToVisibilityConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Repositories\ApiAgentRepository.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Repositories\ChatRepository.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\CodeCompletion\CompletionManager.cs" />
@@ -85,6 +86,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Http\RequestCaptureHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Repositories\Repository.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ScreenCapturer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\TextEditorBinding.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\TextFormat.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\WebView2BootstrapperHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\TerminalTurboViewModel.cs" />

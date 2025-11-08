@@ -19,6 +19,7 @@
         <RoutedUICommand x:Key="sendCode" Text="Text" />
         <vm:TerminalTurboViewModel x:Key="Vm"/>
         <utils:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+        <utils:NullableToVisibilityConverter x:Key="NullToVis" />
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <Style TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
@@ -220,7 +221,7 @@
             </StackPanel>
         </Border>
         <!-- Chat -->
-        <Grid Name="grdChat" Grid.Row="1">
+        <Grid Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" MinHeight="100"/>
                 <RowDefinition Height="15"/>
@@ -232,13 +233,19 @@
             <!-- WebView -->
             <ContentPresenter x:Name="WebViewHost" />
 
-            <Grid Name="grdProgress" Grid.Row="4" Visibility="Collapsed">
+            <Grid Grid.Row="4"
+                  Visibility="{Binding IsRequestInProgress, Converter={StaticResource BoolToVis}}">
                 <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="True" />
-                <TextBlock x:Name="lblProgressStatus" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Black" />
+                <TextBlock
+                    Text="{Binding ProgressStatus}"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Foreground="Black" />
             </Grid>
         </Grid>
         <!-- Request textbox area -->
-        <Grid Name="grdRequest" Grid.Row="2" Margin="8,4,8,8">
+        <Grid Grid.Row="2"
+              Margin="8,4,8,8">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="5"/>
@@ -247,17 +254,17 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <StackPanel Grid.Row="0" Orientation="Vertical">
-                <StackPanel Name="spImage" Orientation="Horizontal" Visibility="Collapsed">
+                <StackPanel
+                    Orientation="Horizontal"
+                    Visibility="{Binding AttachedImageText, Converter={StaticResource NullToVis}}">
                     <TextBlock
-                        Name="txtImage"
+                        Text="{Binding AttachedImageText, Mode=TwoWay}"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center"
                         Height="20"
                         Margin="0,0,10,0"
                         Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}" />
                     <Button
-                        IsTabStop="True"
-                        Focusable="True"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center"
                         Click="btnDeleteImage_Click">
@@ -265,17 +272,15 @@
                     </Button>
                 </StackPanel>
                 <ComboBox
-                    x:Name="cbConnection"
+                    SelectedIndex="{Binding SqlServerConnectionSelectedIndex}"
                     ItemsSource="{Binding SqlServerConnections}"
-                    Visibility="{Binding ElementName=ToggleSql, Path=IsChecked,
-                             Converter={StaticResource BoolToVis}}"
+                    Visibility="{Binding UseSqlTools, Converter={StaticResource BoolToVis}}"
                     DisplayMemberPath="Description"
                     SelectedValuePath="ConnectionString" />
                 <ComboBox
-                    x:Name="cbAPIs"
+                    SelectedIndex="{Binding ApiDefinitionSelectedIndex}"
                     ItemsSource="{Binding ApiDefinitions}"
-                    Visibility="{Binding ElementName=ToggleApi, Path=IsChecked,
-                             Converter={StaticResource BoolToVis}}"
+                    Visibility="{Binding UseApiTools, Converter={StaticResource BoolToVis}}"
                     DisplayMemberPath="Name"
                     SelectedValuePath="Name" />
             </StackPanel>
@@ -290,6 +295,7 @@
                 <avalonEdit:TextEditor
                     xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
                     Name="txtRequest"
+                    Document="{Binding RequestDoc}"
                     FontSize="16"
                     HorizontalScrollBarVisibility="Disabled"
                     VerticalScrollBarVisibility="Auto"
@@ -320,23 +326,24 @@
                     </Style>
                 </StackPanel.Resources>
                 <ToggleButton
-                    x:Name="ToggleSql"
+                    Visibility="{Binding IsReadyToRequest, Converter={StaticResource BoolToVis}}"
                     ToolTip="Add context to a database"
-                    TabIndex="2"
                     AutomationProperties.HelpText="Add context to a database"
-                    Checked="ToggleTool">
+                    TabIndex="2"
+                    IsChecked="{Binding UseSqlTools}">
                     <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Database}" />
                 </ToggleButton>
                 <ToggleButton
-                    x:Name="ToggleApi"
+                    Visibility="{Binding IsReadyToRequest, Converter={StaticResource BoolToVis}}"
                     ToolTip="Add context to an API"
-                    TabIndex="2"
                     AutomationProperties.HelpText="Add context to an API"
-                    Checked="ToggleTool">
+                    TabIndex="3"
+                    IsChecked="{Binding UseApiTools}">
                     <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Cloud}" />
                 </ToggleButton>
                 <Button
-                    x:Name="btnAttachImage"
+                    IsEnabled="{Binding IsReadyToRequest}"
+                    Visibility="{Binding IsReadyToRequest, Converter={StaticResource BoolToVis}}"
                     ToolTip="Attach an image"
                     AutomationProperties.HelpText="Attach an image"
                     TabIndex="4"
@@ -344,7 +351,8 @@
                     <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Attach}" />
                 </Button>
                 <Button
-                    x:Name="btnComputerUse"
+                    IsEnabled="{Binding IsReadyToRequest}"
+                    Visibility="{Binding IsReadyToRequest, Converter={StaticResource BoolToVis}}"
                     ToolTip="Computer-Use: Let the AI take control of Visual Studio to execute your instruction"
                     AutomationProperties.HelpText="Computer-Use: Let the AI take control of Visual Studio to execute your instruction"
                     TabIndex="5"
@@ -352,7 +360,8 @@
                     <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Aggregate}" />
                 </Button>
                 <Button
-                    x:Name="btnRequestCode"
+                    IsEnabled="{Binding IsReadyToRequest}"
+                    Visibility="{Binding IsReadyToRequest, Converter={StaticResource BoolToVis}}"
                     ToolTip="Send Code (Ctrl+Alt+Enter)"
                     AutomationProperties.HelpText="Send Code (Ctrl+Alt+Enter)"
                     TabIndex="6"
@@ -360,7 +369,8 @@
                     <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Code}" />
                 </Button>
                 <Button
-                    x:Name="btnRequestSend"
+                    IsEnabled="{Binding IsReadyToRequest}"
+                    Visibility="{Binding IsReadyToRequest, Converter={StaticResource BoolToVis}}"
                     ToolTip="Send (Ctrl+Enter)"
                     AutomationProperties.HelpText="Send (Ctrl+Enter)"
                     TabIndex="7"
@@ -368,13 +378,12 @@
                     <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Send}" />
                 </Button>
                 <Button
-                    x:Name="btnCancel"
+                    IsEnabled="{Binding IsRequestInProgress}"
+                    Visibility="{Binding IsRequestInProgress, Converter={StaticResource BoolToVis}}"
                     ToolTip="Cancel (Alt+Q)"
                     AutomationProperties.HelpText="Cancel (Alt+Q)"
                     Click="CancelRequest"
-                    Visibility="Collapsed"
-                    TabIndex="8"
-                    IsEnabled="False" >
+                    TabIndex="8" >
                     <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Cancel}" />
                 </Button>
             </StackPanel>

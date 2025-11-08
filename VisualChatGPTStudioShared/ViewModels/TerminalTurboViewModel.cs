@@ -1,335 +1,1057 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Data;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Documents;
+using System.Windows;
 using System.Windows.Input;
-using Community.VisualStudio.Toolkit;
 using JeffPires.VisualChatGPTStudio.Agents;
+using JeffPires.VisualChatGPTStudio.Commands;
 using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.ToolWindows.Turbo;
 using JeffPires.VisualChatGPTStudio.Utils;
+using JeffPires.VisualChatGPTStudio.Utils.CodeCompletion;
 using JeffPires.VisualChatGPTStudio.Utils.Repositories;
+using Microsoft.VisualStudio.Text;
 using OpenAI_API.Chat;
 using OpenAI_API.Functions;
+using OpenAI_API.ResponsesAPI.Models.Request;
+using OpenAI_API.ResponsesAPI.Models.Response;
 using VisualChatGPTStudioShared.Agents.ApiAgent;
+using Toolkit = Community.VisualStudio.Toolkit;
+using VS = Microsoft.VisualStudio.Shell;
+using AvalonDocument = ICSharpCode.AvalonEdit.Document.TextDocument;
 
-namespace VisualChatGPTStudioShared.ToolWindows.Turbo
+namespace VisualChatGPTStudioShared.ToolWindows.Turbo;
+
+public sealed class TerminalTurboViewModel : INotifyPropertyChanged
 {
-    public sealed class TerminalTurboViewModel : INotifyPropertyChanged
+    private string _search = string.Empty;
+    private List<ChatEntity> _filtered = [];
+    private int _page;
+    private const int PageSize = 10;
+    public OptionPageGridGeneral Options;
+    public VS.Package Package;
+    public Conversation ApiChat;
+
+    private Toolkit.DocumentView _docView;
+    private Rectangle _screenBounds;
+    private string _previousResponseId;
+
+    private bool _selectedContextFilesCodeAppended;
+
+    public TerminalTurboViewModel()
     {
-        private string _search = string.Empty;
-        private List<ChatEntity> _filtered = [];
-        private int _page;
-        private const int PageSize = 10;
-        private List<SqlServerConnectionInfo> _sqlServerConnections = [];
-        private List<ApiItem> _apiDefinitions = [];
-        public OptionPageGridGeneral options;
-        public Conversation apiChat;
+        Messages.CollectionChanged += MessagesOnCollectionChanged;
+    }
 
-        /// <summary>
-        /// Chat list from Database
-        /// </summary>
-        private List<ChatEntity> AllChats { get; set; } = [];
+    private AvalonDocument _requestDoc = new();
 
-        public int ToolCallAttempt = 0;
+    public AvalonDocument RequestDoc
+    {
+        get => _requestDoc;
+        set => SetField(ref _requestDoc, value);
+    }
 
-        public int ToolCallMaxAttempts = 10;
+    private string _attachedImageText = string.Empty;
 
-        public List<SqlServerConnectionInfo> SqlServerConnections
+    public string AttachedImageText
+    {
+        get => _attachedImageText;
+        set => SetField(ref _attachedImageText, value);
+    }
+
+    private bool _isReadyToRequest;
+
+    public bool IsReadyToRequest
+    {
+        get => _isReadyToRequest;
+        set
         {
-            get => _sqlServerConnections;
-            set => SetField(ref _sqlServerConnections, value);
+            SetField(ref _isReadyToRequest, value);
+            OnPropertyChanged(nameof(IsRequestInProgress));
         }
+    }
 
-        public List<ApiItem> ApiDefinitions
+    private string _progressStatus = string.Empty;
+
+    public string ProgressStatus
+    {
+        get => _progressStatus;
+        set => SetField(ref _progressStatus, value);
+    }
+
+    private bool _useSqlTools;
+
+    public bool UseSqlTools
+    {
+        get => _useSqlTools;
+        set
         {
-            get => _apiDefinitions;
-            set => SetField(ref _apiDefinitions, value);
-        }
-
-        public byte[] AttachedImage;
-
-        /// <summary>
-        /// Current ChatId
-        /// </summary>
-        public string ChatId { get; private set; }
-
-        public ObservableCollection<MessageEntity> Messages { get; } = [];
-
-        public ObservableCollection<ChatEntity> Chats { get; } = [];
-
-        public int PageNumber => _page + 1;
-
-        public int TotalPages => Math.Max(1, (int)Math.Ceiling((_filtered?.Count ?? 0.0) / PageSize));
-
-        public string CurrentPageView => $"{PageNumber} / {TotalPages}";
-
-        public bool CanGoPrev => _page > 0;
-
-        public bool CanGoNext => _page < TotalPages - 1;
-
-        public ICommand NextCmd => new RelayCommand(() =>
+            if (value)
             {
-                _page++;
-                ApplyFilter();
-            },
-            () => CanGoNext);
+                SqlServerConnections = SqlServerAgent.GetConnections();
 
-        public ICommand PrevCmd => new RelayCommand(() =>
-            {
-                _page--;
-                ApplyFilter();
-            },
-            () => CanGoPrev);
-
-        public ICommand DeleteCmd =>
-            new RelayCommand<ChatEntity>(chat => DeleteChat(chat.Id));
-
-        public ICommand StartRenameCmd =>
-            new RelayCommand<ChatEntity>(chat =>
-            {
-                if (chat == null) return;
-                chat.EditName = chat.Name;
-                chat.IsEditing = !chat.IsEditing;
-            });
-
-        public ICommand RenameChatCmd =>
-            new RelayCommand<ChatEntity>(chat =>
-            {
-                if (chat?.Name == null || chat.EditName == null)
+                if (SqlServerConnections.Count != 0)
                 {
-                    return;
-                }
-
-                if (!string.Equals(chat.Name, chat.EditName, StringComparison.Ordinal))
-                {
-                    chat.Name = chat.EditName;
-                    ChatRepository.UpdateChatName(chat.Id, chat.Name);
-                }
-                chat.IsEditing = false;
-            });
-
-        public void DeleteChat(string delId)
-        {
-            if (string.IsNullOrEmpty(delId))
-                return;
-            ChatRepository.DeleteChat(delId);
-            AllChats.Remove(AllChats.FirstOrDefault(c => c.Id == delId));
-            ApplyFilter();
-
-            if (delId == ChatId)
-            {
-                ChatId = string.Empty;
-                Messages.Clear();
-
-                ApiDefinitions = [];
-                SqlServerConnections = [];
-                AttachedImage = null;
-            }
-        }
-
-        public string Search
-        {
-            get => _search;
-            set
-            {
-                if (SetField(ref _search, value))
-                    ApplyFilter();
-            }
-        }
-
-        private void ApplyFilter()
-        {
-            if (!string.IsNullOrEmpty(Search))
-            {
-                _filtered = AllChats
-                    .Where(c => c.Name.ToLower().Contains(Search.ToLower()))
-                    .ToList();
-            }
-            else
-            {
-                _filtered = AllChats;
-            }
-
-            if (_page >= TotalPages)
-            {
-                _page = TotalPages - 1;
-            }
-
-            SyncCurrentPage();
-            UpdatePaginationProperties();
-        }
-
-        private void UpdatePaginationProperties()
-        {
-            OnPropertyChanged(nameof(PageNumber));
-            OnPropertyChanged(nameof(TotalPages));
-            OnPropertyChanged(nameof(CurrentPageView));
-            OnPropertyChanged(nameof(CanGoPrev));
-            OnPropertyChanged(nameof(CanGoNext));
-        }
-
-        private void SyncCurrentPage()
-        {
-            var itemsOnPage = _filtered;
-            if (itemsOnPage.Count > PageSize)
-            {
-                var itemsToSkip = _page * PageSize;
-                itemsOnPage = _filtered.Skip(itemsToSkip).Take(PageSize).ToList();
-            }
-
-            var newItems = itemsOnPage ?? [];
-            for (var i = Chats.Count - 1; i >= 0; i--)
-            {
-                if (!newItems.Contains(Chats[i]))
-                {
-                    Chats.RemoveAt(i);
-                }
-            }
-
-            for (var i = 0; i < newItems.Count; i++)
-            {
-                if (i < Chats.Count)
-                {
-                    if (!Chats[i].Equals(newItems[i]))
-                    {
-                        Chats[i] = newItems[i];
-                    }
-                    else
-                    {
-                        Chats[i].OnAllPropertiesChanged();
-                    }
+                    SqlServerConnectionSelectedIndex = 0;
+                    UseApiTools = false;
                 }
                 else
                 {
-                    Chats.Add(newItems[i]);
+                    SqlServerConnectionSelectedIndex = -1;
+                    value = false;
+                    MessageBox.Show("No SQL Server connections were found. Please add connections first through the Server Explorer window.", Constants.EXTENSION_NAME,
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
-        }
 
-        private void DownloadChats()
+            SetField(ref _useSqlTools, value);
+        }
+    }
+
+    private List<SqlServerConnectionInfo> _sqlServerConnections = [];
+
+    public List<SqlServerConnectionInfo> SqlServerConnections
+    {
+        get => _sqlServerConnections;
+        set => SetField(ref _sqlServerConnections, value);
+    }
+
+    private int _sqlServerConnectionSelectedIndex = -1;
+
+    public int SqlServerConnectionSelectedIndex
+    {
+        get => _sqlServerConnectionSelectedIndex;
+        set => SetField(ref _sqlServerConnectionSelectedIndex, value);
+    }
+
+    private bool _useApiTools;
+
+    public bool UseApiTools
+    {
+        get => _useApiTools;
+        set
         {
-            AllChats = ChatRepository.GetChats();
-            foreach (var c in AllChats)
+            if (value)
             {
-                c.IsSelected = ChatId == c.Id;
-            }
-        }
+                ApiDefinitions = ApiAgent.GetAPIsDefinitions();
 
-        public void AddMessageSegment(ChatMessageSegment segment)
+                if (ApiDefinitions.Count != 0)
+                {
+                    ApiDefinitionSelectedIndex = 0;
+                    UseSqlTools = false;
+                }
+                else
+                {
+                    ApiDefinitionSelectedIndex = -1;
+                    value = false;
+                    MessageBox.Show("No API definitions were found. Please add API definitions first through the extension's options window.", Constants.EXTENSION_NAME,
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+
+            SetField(ref _useApiTools, value);
+        }
+    }
+
+    private List<ApiItem> _apiDefinitions = [];
+
+    public List<ApiItem> ApiDefinitions
+    {
+        get => _apiDefinitions;
+        set => SetField(ref _apiDefinitions, value);
+    }
+
+    private int _apiDefinitionSelectedIndex = -1;
+
+    public int ApiDefinitionSelectedIndex
+    {
+        get => _apiDefinitionSelectedIndex;
+        set => SetField(ref _apiDefinitionSelectedIndex, value);
+    }
+
+    /// <summary>
+    /// Inverse value <see cref="IsReadyToRequest"/>
+    /// </summary>
+    public bool IsRequestInProgress => !_isReadyToRequest;
+
+    public CancellationTokenSource CancellationTokenSource;
+
+    public CompletionManager CompletionManager;
+
+    private bool _shiftKeyPressed;
+
+    /// <summary>
+    /// Chat list from Database
+    /// </summary>
+    private List<ChatEntity> AllChats { get; set; } = [];
+
+    private int _toolCallAttempt;
+
+    private int _toolCallMaxAttempts = 10;
+
+    public byte[] AttachedImage;
+
+    public event Func<string, Task<string>> ScriptRequested;
+
+    private async Task RunScriptAsync(string script)
+    {
+        if (ScriptRequested is null)
+            return;
+        await ScriptRequested.Invoke(script);
+    }
+
+    /// <summary>
+    /// Current ChatId
+    /// </summary>
+    public string ChatId { get; private set; }
+
+    public ObservableCollection<MessageEntity> Messages { get; } = [];
+
+    public ObservableCollection<ChatEntity> Chats { get; } = [];
+
+    public int PageNumber => _page + 1;
+
+    public int TotalPages => Math.Max(1, (int)Math.Ceiling((_filtered?.Count ?? 0.0) / PageSize));
+
+    public string CurrentPageView => $"{PageNumber} / {TotalPages}";
+
+    public bool CanGoPrev => _page > 0;
+
+    public bool CanGoNext => _page < TotalPages - 1;
+
+    public ICommand NextCmd => new RelayCommand(() =>
         {
-            if (string.IsNullOrEmpty(segment.Content))
+            _page++;
+            ApplyFilter();
+        },
+        () => CanGoNext);
+
+    public ICommand PrevCmd => new RelayCommand(() =>
+        {
+            _page--;
+            ApplyFilter();
+        },
+        () => CanGoPrev);
+
+    public ICommand DeleteCmd =>
+        new RelayCommand<ChatEntity>(chat => DeleteChat(chat.Id));
+
+    public ICommand StartRenameCmd =>
+        new RelayCommand<ChatEntity>(chat =>
+        {
+            if (chat == null) return;
+            chat.EditName = chat.Name;
+            chat.IsEditing = !chat.IsEditing;
+        });
+
+    public ICommand RenameChatCmd =>
+        new RelayCommand<ChatEntity>(chat =>
+        {
+            if (chat?.Name == null || chat.EditName == null)
             {
                 return;
             }
-            if (string.IsNullOrEmpty(ChatId))
+
+            if (!string.Equals(chat.Name, chat.EditName, StringComparison.Ordinal))
             {
-                CreateNewChat();
+                chat.Name = chat.EditName;
+                ChatRepository.UpdateChatName(chat.Id, chat.Name);
             }
-            Messages.Add(new MessageEntity { Order = Messages.Count + 1, Segments = [ segment ] });
-        }
+            chat.IsEditing = false;
+        });
 
-        public void UpdateChatHeader(string header)
+    public void DeleteChat(string delId)
+    {
+        if (string.IsNullOrEmpty(delId))
+            return;
+        ChatRepository.DeleteChat(delId);
+        AllChats.Remove(AllChats.FirstOrDefault(c => c.Id == delId));
+        ApplyFilter();
+
+        if (delId == ChatId)
         {
-            ChatRepository.UpdateChatName(ChatId, header);
-            var entity = Chats.FirstOrDefault(c => c.Id == ChatId);
-            if (entity != null)
-            {
-                entity.Name = header;
-                entity.EditName = header;
-            }
-        }
-
-        public void CreateNewChat()
-        {
-            ChatRepository.AddChat(new ChatEntity
-            {
-                Id = Guid.NewGuid().ToString(),
-                Date = DateTime.Now,
-                Messages = [],
-                Name = $"New chat {AllChats.Count + 1}"
-            });
-            ForceDownloadChats();
-            LoadChat();
-        }
-
-        public void ForceDownloadChats()
-        {
-            DownloadChats();
-            ApplyFilter();
-        }
-
-        public void LoadChat(string id = "")
-        {
-            var selectedChat = string.IsNullOrEmpty(id)
-                ? AllChats.FirstOrDefault()
-                : AllChats.FirstOrDefault(c => c.Id == id);
-
-            ChatId = selectedChat?.Id ?? string.Empty;
+            ChatId = string.Empty;
             Messages.Clear();
-            if (!string.IsNullOrEmpty(ChatId))
+            ApiChat.ClearConversation();
+
+            UseApiTools = UseSqlTools = false;
+            AttachedImage = null;
+        }
+    }
+
+    public string Search
+    {
+        get => _search;
+        set
+        {
+            if (SetField(ref _search, value))
+                ApplyFilter();
+        }
+    }
+
+    private void ApplyFilter()
+    {
+        if (!string.IsNullOrEmpty(Search))
+        {
+            _filtered = AllChats
+                .Where(c => c.Name.ToLower().Contains(Search.ToLower()))
+                .ToList();
+        }
+        else
+        {
+            _filtered = AllChats;
+        }
+
+        if (_page >= TotalPages)
+        {
+            _page = TotalPages - 1;
+        }
+
+        SyncCurrentPage();
+        UpdatePaginationProperties();
+    }
+
+    private void UpdatePaginationProperties()
+    {
+        OnPropertyChanged(nameof(PageNumber));
+        OnPropertyChanged(nameof(TotalPages));
+        OnPropertyChanged(nameof(CurrentPageView));
+        OnPropertyChanged(nameof(CanGoPrev));
+        OnPropertyChanged(nameof(CanGoNext));
+    }
+
+    private void SyncCurrentPage()
+    {
+        var itemsOnPage = _filtered;
+        if (itemsOnPage.Count > PageSize)
+        {
+            var itemsToSkip = _page * PageSize;
+            itemsOnPage = _filtered.Skip(itemsToSkip).Take(PageSize).ToList();
+        }
+
+        var newItems = itemsOnPage ?? [];
+        for (var i = Chats.Count - 1; i >= 0; i--)
+        {
+            if (!newItems.Contains(Chats[i]))
             {
-                foreach (var message in ChatRepository.GetMessages(ChatId).OrderBy(m => m.Order))
+                Chats.RemoveAt(i);
+            }
+        }
+
+        for (var i = 0; i < newItems.Count; i++)
+        {
+            if (i < Chats.Count)
+            {
+                if (!Chats[i].Equals(newItems[i]))
                 {
-                    Messages.Add(message);
+                    Chats[i] = newItems[i];
+                }
+                else
+                {
+                    Chats[i].OnAllPropertiesChanged();
                 }
             }
-
-            apiChat = ApiHandler.CreateConversation(options, options.TurboChatBehavior);
-            foreach (var messageEntity in Messages)
+            else
             {
-                var segment = messageEntity.Segments.FirstOrDefault();
-                if (segment == null || segment.Author == IdentifierEnum.Table)
+                Chats.Add(newItems[i]);
+            }
+        }
+    }
+
+    private void DownloadChats()
+    {
+        AllChats = ChatRepository.GetChats();
+        foreach (var c in AllChats)
+        {
+            c.IsSelected = ChatId == c.Id;
+        }
+    }
+
+    private void AddMessageSegment(ChatMessageSegment segment)
+    {
+        if (string.IsNullOrEmpty(segment.Content))
+        {
+            return;
+        }
+        if (string.IsNullOrEmpty(ChatId))
+        {
+            CreateNewChat();
+        }
+        Messages.Add(new MessageEntity { Order = Messages.Count + 1, Segments = [ segment ] });
+    }
+
+    private void UpdateChatHeader(string header)
+    {
+        ChatRepository.UpdateChatName(ChatId, header);
+        var entity = Chats.FirstOrDefault(c => c.Id == ChatId);
+        if (entity != null)
+        {
+            entity.Name = header;
+            entity.EditName = header;
+        }
+    }
+
+    public void CreateNewChat()
+    {
+        ChatRepository.AddChat(new ChatEntity
+        {
+            Id = Guid.NewGuid().ToString(),
+            Date = DateTime.Now,
+            Messages = [],
+            Name = $"New chat {AllChats.Count + 1}"
+        });
+        UseApiTools = UseSqlTools = false;
+        AttachedImage = null;
+        ForceDownloadChats();
+        LoadChat();
+    }
+
+    public void ForceDownloadChats()
+    {
+        DownloadChats();
+        ApplyFilter();
+    }
+
+    public void LoadChat(string id = "")
+    {
+        var selectedChat = string.IsNullOrEmpty(id)
+            ? AllChats.FirstOrDefault()
+            : AllChats.FirstOrDefault(c => c.Id == id);
+
+        ChatId = selectedChat?.Id ?? string.Empty;
+        Messages.Clear();
+        if (!string.IsNullOrEmpty(ChatId))
+        {
+            foreach (var message in ChatRepository.GetMessages(ChatId).OrderBy(m => m.Order))
+            {
+                Messages.Add(message);
+            }
+        }
+
+        ApiChat = ApiHandler.CreateConversation(Options, Options.TurboChatBehavior);
+        foreach (var messageEntity in Messages)
+        {
+            var segment = messageEntity.Segments.FirstOrDefault();
+            if (segment == null || segment.Author == IdentifierEnum.Table)
+            {
+                continue;
+            }
+            ApiChat.Messages.Add(new ChatMessage
                 {
-                    continue;
-                }
-                apiChat.Messages.Add(new ChatMessage
+                    Role = segment.Author switch
                     {
-                        Role = segment.Author switch
-                        {
-                            IdentifierEnum.Me => ChatMessageRole.User,
-                            IdentifierEnum.ChatGPT or IdentifierEnum.ChatGPTCode => ChatMessageRole.Assistant,
-                            IdentifierEnum.FunctionRequest or IdentifierEnum.FunctionCall => ChatMessageRole.Tool,
-                            _ => ChatMessageRole.System
-                        },
-                        Content = segment.Content
-                    }
-                );
+                        IdentifierEnum.Me => ChatMessageRole.User,
+                        IdentifierEnum.ChatGPT or IdentifierEnum.ChatGPTCode => ChatMessageRole.Assistant,
+                        IdentifierEnum.FunctionRequest or IdentifierEnum.FunctionCall => ChatMessageRole.Tool,
+                        _ => ChatMessageRole.System
+                    },
+                    Content = segment.Content
+                }
+            );
+        }
+
+        IsReadyToRequest = true;
+    }
+
+    private JsonSerializerOptions _serializeOptions = new()
+    {
+        WriteIndented = true,
+        MaxDepth = 10,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+    };
+
+    /// <summary>
+    /// Handles a list of function calls asynchronously, processes their results, updates the UI, and recursively handles additional function calls if needed.
+    /// </summary>
+    /// <param name="functions">A list of functions to be executed and processed.</param>
+    /// <param name="cancellationToken">A cancellation token to manage task cancellation.</param>
+    /// <returns>
+    /// A boolean indicating whether the response was successfully handled.
+    /// </returns>
+    private async Task<bool> HandleFunctionsCallsAsync(List<FunctionResult> functions, CancellationTokenSource cancellationToken)
+    {
+        string functionResult;
+
+        if (functions.Count == 0)
+        {
+            return false;
+        }
+
+        foreach (FunctionResult function in functions)
+        {
+            // TODO: Approve before to calling (auto or manual)
+            if (ApiAgent.GetApiFunctions().Select(f => f.Function.Name).Any(f => f.Equals(function.Function.Name, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                (string FunctionResult, string Content) apiResponse = await ApiAgent.ExecuteFunctionAsync(function, Options.LogAPIAgentRequestAndResponses);
+
+                functionResult = apiResponse.FunctionResult;
+
+                if (!string.IsNullOrWhiteSpace(apiResponse.Content))
+                {
+                    functionResult = apiResponse.Content;
+                }
+            }
+            else
+            {
+                functionResult = SqlServerAgent.ExecuteFunction(function, Options.LogSqlServerAgentQueries, out var rows);
+                if (rows is { Count: > 0 })
+                {
+                    // Showing the selected result in chat without sending it to LLM
+                    AddMessageSegment(new ChatMessageSegment { Author = IdentifierEnum.Table, Content =  JsonSerializer.Serialize(rows, _serializeOptions)});
+                }
+            }
+
+            _toolCallAttempt++;
+
+            ApiChat.AppendToolMessage(function, functionResult);
+            function.Function.Result = functionResult;
+            AddMessageSegment(new ChatMessageSegment { Author = IdentifierEnum.FunctionCall, Content = JsonSerializer.Serialize(function.Function, _serializeOptions)});
+        }
+
+        if (_toolCallAttempt >= _toolCallMaxAttempts)
+        {
+            // Preventing an endless loop of calling tools
+            // No tools - no calls ¯\_(ツ)_/¯
+            ApiChat.ClearTools();
+        }
+
+        (string Content, List<FunctionResult> ListFunctions) result = await SendRequestAsync(cancellationToken);
+
+
+        var responseHandled = false;
+        if (result.ListFunctions != null && result.ListFunctions.Any())
+        {
+            responseHandled = await HandleFunctionsCallsAsync(result.ListFunctions, cancellationToken);
+        }
+
+        if (!responseHandled)
+        {
+            HandleResponse(RequestType.Request, false, result.Content);
+        }
+
+        return true;
+    }
+
+    private bool IsReadyToSendRequest()
+    {
+        if (!Options.AzureEntraIdAuthentication && string.IsNullOrWhiteSpace(Options.ApiKey))
+        {
+            MessageBox.Show(Constants.MESSAGE_SET_API_KEY, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+            Package.ShowOptionPage(typeof(OptionPageGridGeneral));
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(RequestDoc.Text))
+        {
+            MessageBox.Show(Constants.MESSAGE_WRITE_REQUEST, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Information);
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Handles an asynchronous request based on the specified command type. Validates input, appends context or system messages, processes code or image-related requests, and sends the final request.
+    /// </summary>
+    public async Task RequestAsync(RequestType commandType)
+    {
+        _shiftKeyPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
+
+        if (!IsReadyToSendRequest())
+        {
+            return;
+        }
+
+        if (!_selectedContextFilesCodeAppended)
+        {
+            var selectedContextFilesCode = await GetSelectedContextItemsCodeAsync();
+
+            if (!string.IsNullOrWhiteSpace(selectedContextFilesCode))
+            {
+                ApiChat.AppendSystemMessage(selectedContextFilesCode);
+                _selectedContextFilesCodeAppended = true;
             }
         }
 
-        private JsonSerializerOptions _serializeOptions = new()
+        if (commandType == RequestType.Code)
         {
-            WriteIndented = true,
-            MaxDepth = 10,
-            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-        };
+            _docView = await Toolkit.VS.Documents.GetActiveDocumentViewAsync();
 
-        // TODO: toolbar buttons visibility
-        public bool IsProcessing { get; set; }
+            var originalCode = _docView?.TextView?.TextBuffer?.CurrentSnapshot.GetText();
 
-        public event PropertyChangedEventHandler PropertyChanged;
+            if (originalCode == null)
+            {
+                return;
+            }
 
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            if (Options.MinifyRequests)
+            {
+                originalCode = TextFormat.MinifyText(originalCode, " ");
+            }
+
+            originalCode = TextFormat.RemoveCharactersFromText(originalCode, Options.CharactersToRemoveFromRequests.Split(','));
+
+            ApiChat.AppendSystemMessage(Options.TurboChatCodeCommand);
+            ApiChat.AppendUserInput(originalCode);
         }
 
-        private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+        var requestToShowOnList = RequestDoc.Text;
+
+        if (AttachedImage != null)
         {
-            if (EqualityComparer<T>.Default.Equals(field, value)) return false;
-            field = value;
-            OnPropertyChanged(propertyName);
-            return true;
+            requestToShowOnList = "#IMG#" + AttachedImageText + Environment.NewLine + Environment.NewLine + requestToShowOnList;
+
+            List<ChatContentForImage> chatContent = [new(AttachedImage)];
+
+            ApiChat.AppendUserInput(chatContent);
         }
+
+        var request = await CompletionManager.ReplaceReferencesAsync(RequestDoc.Text);
+
+        await RequestAsync(commandType, request, requestToShowOnList, _shiftKeyPressed);
+    }
+
+    /// <summary>
+    /// Sends an asynchronous request based on the provided command type, processes the response,
+    /// and updates the UI elements accordingly. Handles exceptions and manages UI state during the operation.
+    /// </summary>
+    private async Task RequestAsync(RequestType commandType, string request, string requestToShowOnList, bool shiftKeyPressed)
+    {
+        var firstMessage = !Messages.Any();
+        ApiChat.UpdateApi(Options.ApiKey, Options.BaseAPI);
+        if (!string.IsNullOrEmpty(Options.Model))
+        {
+            ApiChat.RequestParameters.Model = Options.Model;
+        }
+
+        _toolCallAttempt = 0;
+
+        await ExecuteRequestWithCommonHandlingAsync(async () =>
+        {
+            AddMessageSegment(new() { Author = IdentifierEnum.Me, Content = requestToShowOnList });
+            RequestDoc.Text = string.Empty;
+
+            request = Options.MinifyRequests ? TextFormat.MinifyText(request, " ") : request;
+            request = TextFormat.RemoveCharactersFromText(request, Options.CharactersToRemoveFromRequests.Split(','));
+            request = UpdateTools(request);
+
+            ApiChat.AppendUserInput(request);
+
+            CancellationTokenSource = new();
+
+            if (Options.CompletionStream)
+            {
+                var segment = new ChatMessageSegment { Author = IdentifierEnum.ChatGPT };
+                AddMessageSegment(segment);
+                var content = new StringBuilder();
+                var chatResponses = ApiChat.StreamResponseEnumerableFromChatbotAsync(CancellationTokenSource.Token);
+                await foreach (var fragment in chatResponses)
+                {
+                    content.Append(fragment);
+                    // TODO: send fragment instead full content
+                    if (content.Length > 0) // dont show empty bubble
+                    {
+                        await RunScriptAsync(WebFunctions.UpdateLastGpt(content.ToString()))!;
+                    }
+                }
+                segment.Content = content.ToString();
+
+                await HandleFunctionsCallsAsync(ApiChat.StreamFunctionResults, CancellationTokenSource);
+            }
+            else
+            {
+                (string, List<FunctionResult>) result = await SendRequestAsync(CancellationTokenSource);
+
+                if (result.Item2 != null && result.Item2.Any())
+                {
+                    await HandleFunctionsCallsAsync(result.Item2, CancellationTokenSource);
+                }
+                else
+                {
+                    HandleResponse(commandType, shiftKeyPressed, result.Item1);
+                }
+            }
+
+            // restore request in message history
+            ApiChat.ReplaceLastUserInput(requestToShowOnList);
+            await RunScriptAsync(WebFunctions.RenderMermaid)!;
+
+            if (firstMessage)
+            {
+                await UpdateHeaderAsync("Please suggest a concise and relevant title for my first message based on its context, " +
+                                        "using up to five words and in the same language as my first message.");
+            }
+
+            ChatRepository.UpdateMessages(ChatId, Messages.ToList());
+        });
+    }
+
+    public async Task ComputerUseAsync()
+    {
+        var firstMessage = !Messages.Any();
+        await ExecuteRequestWithCommonHandlingAsync(async () =>
+        {
+            ProgressStatus = "AI is executing actions. Please wait and avoid interaction until completion.";
+
+            byte[] screenshot = ScreenCapturer.CaptureFocusedScreenScreenshot(out _screenBounds);
+
+            string request = RequestDoc.Text;
+            RequestDoc.Text = string.Empty;
+
+            AddMessageSegment(new() { Author = IdentifierEnum.Me, Content = request });
+
+            CancellationTokenSource = new();
+
+            Task<ComputerUseResponse> task;
+
+            if (!string.IsNullOrWhiteSpace(_previousResponseId))
+            {
+                task = ApiHandler.GetComputerUseResponseAsync(Options, request, _screenBounds.Width, _screenBounds.Height, _previousResponseId, CancellationTokenSource.Token);
+            }
+            else
+            {
+                task = ApiHandler.GetComputerUseResponseAsync(Options, request, _screenBounds.Width, _screenBounds.Height, screenshot, CancellationTokenSource.Token);
+            }
+
+            await Task.WhenAny(task, Task.Delay(Timeout.Infinite, CancellationTokenSource.Token));
+
+            CancellationTokenSource.Token.ThrowIfCancellationRequested();
+
+            ComputerUseResponse response = await task;
+
+            await ProcessComputerUseResponseAsync(response, firstMessage);
+        });
+    }
+
+    /// <summary>
+    /// Processes the computer use response asynchronously by displaying messages, executing computer actions,
+    /// capturing screenshots, and sending subsequent requests until no further actions are available.
+    /// </summary>
+    /// <param name="response">The initial ComputerUseResponse containing output items to process.</param>
+    /// <param name="firstMessage">The start of new chat.</param>
+    private async Task ProcessComputerUseResponseAsync(ComputerUseResponse response, bool firstMessage)
+    {
+        while (true)
+        {
+            _previousResponseId = response.Id;
+
+            // 1. Display messages and reasoning in the UI
+            List<ComputerUseContent> messages = response.Output
+                .Where(o => o.Type == ComputerUseOutputItemType.reasoning && o.Summary != null)
+                .SelectMany(o => o.Summary).ToList();
+
+            messages.AddRange(response.Output
+                .Where(o => o.Type == ComputerUseOutputItemType.message && o.Content != null)
+                .SelectMany(o => o.Content));
+
+            foreach (ComputerUseContent message in messages)
+            {
+                AddMessageSegment(new() { Author = IdentifierEnum.ChatGPT, Content = message.Text });
+            }
+
+            // 2. Find the next computer_call action
+            ComputerUseOutputItem computerCall = response.Output.FirstOrDefault(o => o.Type == ComputerUseOutputItemType.computer_call);
+
+            if (computerCall == null)
+            {
+                // No more actions to perform
+                if (firstMessage)
+                {
+                    var request =
+                        $"Please suggest a concise and relevant title for the message" +
+                        $" \"{Messages[0].Segments[0].Content}\"," +
+                        $" based on its context, using up to four-five words and in the same language as the message.";
+
+                    await UpdateHeaderAsync(request);
+                }
+                break;
+            }
+
+            // 3. Execute the action programmatically in Windows/Visual Studio
+            await ComputerUse.DoActionAsync(computerCall.Action, _screenBounds);
+
+            // 4. Capture the updated screenshot
+            byte[] screenshot = ScreenCapturer.CaptureFocusedScreenScreenshot(out _screenBounds);
+
+            // 5. Send the next request using the output of the action
+            response = await ApiHandler.GetComputerUseResponseAsync(
+                Options,
+                _screenBounds.Width,
+                _screenBounds.Height,
+                screenshot,
+                computerCall.CallId,
+                response.Id,
+                computerCall.PendingSafetyChecks,
+                CancellationTokenSource.Token
+            );
+        }
+    }
+
+    private string UpdateTools(string input)
+    {
+        var result = string.Empty;
+        ApiChat.ClearTools();
+        if (UseSqlTools && SqlServerConnectionSelectedIndex != -1 && SqlServerConnections.Count > SqlServerConnectionSelectedIndex)
+        {
+            var sqlServerConnectionInfo = SqlServerConnections[SqlServerConnectionSelectedIndex];
+            var dataBaseSchema = SqlServerAgent.GetDataBaseSchema(sqlServerConnectionInfo.ConnectionString);
+            var sqlFunctions = SqlServerAgent.GetSqlFunctions();
+            foreach (var function in sqlFunctions)
+            {
+                ApiChat.AppendFunctionCall(function);
+            }
+
+            result = $"""
+                      {Options.SqlServerAgentCommand}
+                      <dataBaseSchema>{dataBaseSchema}</dataBaseSchema>
+                      {input}
+                      """;
+        }
+        if (UseApiTools && ApiDefinitionSelectedIndex != -1 && ApiDefinitions.Count > ApiDefinitionSelectedIndex)
+        {
+            var apiDefinition = ApiDefinitions[ApiDefinitionSelectedIndex];
+            var apiFunctions = ApiAgent.GetApiFunctions();
+            foreach (var function in apiFunctions)
+            {
+                ApiChat.AppendFunctionCall(function);
+            }
+
+            result = $"""
+                      {Options.APIAgentCommand}
+                      <apiName>{apiDefinition.Name}</apiName>
+                      <apiDefinition>{TextFormat.MinifyText(apiDefinition.Definition, string.Empty)}</apiDefinition>
+                      <task>{input}</task>
+                      """;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Executes the specified asynchronous operation with common exception handling for requests.
+    /// </summary>
+    /// <param name="requestOperation">The asynchronous operation to execute.</param>
+    private async Task ExecuteRequestWithCommonHandlingAsync(Func<Task> requestOperation)
+    {
+        try
+        {
+            IsReadyToRequest = false;
+            ProgressStatus = "Waiting API Response.";
+            if (IsReadyToSendRequest())
+            {
+                await requestOperation();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // catch request cancellation
+        }
+        catch (Exception ex)
+        {
+            Logger.Log(ex);
+            MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        finally
+        {
+            IsReadyToRequest = true;
+            AttachedImageText = string.Empty;
+            AttachedImage = null;
+        }
+    }
+
+    /// <summary>
+    /// Asynchronously gets the code of the selected context items.
+    /// </summary>
+    /// <returns>The code of the selected context items as a string.</returns>
+    private static async Task<string> GetSelectedContextItemsCodeAsync()
+    {
+        StringBuilder result = new();
+
+        List<string> selectedContextFilesCode = await TerminalWindowSolutionContextCommand.Instance.GetSelectedContextItemsCodeAsync();
+
+        foreach (string code in selectedContextFilesCode)
+        {
+            result.AppendLine(code);
+        }
+
+        return result.ToString();
+    }
+
+    /// <summary>
+    /// Handles the response based on the command type and shift key state, updating the document view or chat list control items accordingly.
+    /// </summary>
+    private void HandleResponse(RequestType commandType, bool shiftKeyPressed, string response)
+    {
+        if (commandType == RequestType.Code && !shiftKeyPressed)
+        {
+            var segments = TextFormat.GetChatTurboResponseSegments(response);
+            var stringBuilder = new StringBuilder();
+
+            foreach (var t in segments)
+            {
+                if (t.Author == IdentifierEnum.ChatGPTCode && _docView?.TextView != null)
+                {
+                    _docView.TextView.TextBuffer.Replace(new Span(0, _docView.TextView.TextBuffer.CurrentSnapshot.Length), t.Content);
+                }
+                stringBuilder.AppendLine(t.Content);
+            }
+
+            AddMessageSegment(new ChatMessageSegment { Author = segments[0].Author, Content = stringBuilder.ToString() });
+        }
+        else
+        {
+            AddMessageSegment(new() { Author = IdentifierEnum.ChatGPT, Content = response });
+        }
+    }
+
+    /// <summary>
+    /// Sends an asynchronous request and waits for the response or cancellation.
+    /// If the operation is canceled, a cancellation exception is thrown.
+    /// Returns a tuple containing a string and a list of FunctionResult objects upon successful completion.
+    /// </summary>
+    /// <returns>
+    /// A tuple with a string and a list of FunctionResult objects.
+    /// </returns>
+    private async Task<(string, List<FunctionResult>)> SendRequestAsync(CancellationTokenSource cancellationTokenSource)
+    {
+        Task<(string, List<FunctionResult>)> task = ApiChat.GetResponseContentAndFunctionAsync();
+
+        await Task.WhenAny(task, Task.Delay(Timeout.Infinite, cancellationTokenSource.Token));
+
+        cancellationTokenSource.Token.ThrowIfCancellationRequested();
+
+        return await task;
+    }
+
+    /// <summary>
+    /// Updates the chat header based on the user's request by sending the request,
+    /// processing the response to generate a chat name, and notifying the parent control of the new chat.
+    /// </summary>
+    /// <param name="request">The user's input request to be sent and processed.</param>
+    public async Task UpdateHeaderAsync(string request)
+    {
+        ApiChat.MessagesCheckpoint();
+        ApiChat.AppendUserInput(request);
+
+        (string, List<FunctionResult>) result = await SendRequestAsync(CancellationTokenSource);
+
+        string chatName = Regex.Replace(result.Item1, @"^<think>.*<\/think>", "", RegexOptions.Singleline);
+
+        chatName = TextFormat.RemoveCharactersFromText(chatName, "\r\n", "\n", "\r", ".", ",", ":", ";", "'", "\"").Trim('*');
+
+        string[] words = chatName.Split(' ');
+
+        if (words.Length > 5)
+        {
+            chatName = string.Join(" ", words[0], words[1], words[2], words[3]);
+        }
+
+        ApiChat.MessagesRestoreFromCheckpoint();
+        UpdateChatHeader(chatName);
+    }
+
+    private async void MessagesOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.NewItems == null || e.NewItems.Count == 0)
+        {
+           await RunScriptAsync(WebFunctions.ClearChat);
+        }
+        else
+        {
+            try
+            {
+                foreach (MessageEntity message in e.NewItems)
+                {
+                    if (message.Segments == null || message.Segments.Count == 0)
+                    {
+                        continue;
+                    }
+                    var author = message.Segments[0].Author;
+                    var content = string.Join("", message.Segments.Select(s => s.Content));
+                    if (author == IdentifierEnum.FunctionCall)
+                    {
+                        if (!Options.ShowToolCalls)
+                        {
+                            continue;
+                        }
+
+                        try
+                        {
+                            var function = JsonSerializer.Deserialize<FunctionToCall>(content, _serializeOptions);
+                            content = $"""
+                                       <details><summary>Tool: {function.Name}</summary>
+
+                                       ```Arguments
+                                       {function.Arguments}
+                                       ```
+
+                                       ```Result
+                                       {function.Result}
+                                       ```
+
+                                       </details>
+                                       """;
+                        }
+                        catch (Exception exception)
+                        {
+                            content += $"- Failed to deserialize: `{exception.Message}`";
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(content))
+                    {
+                        continue;
+                    }
+
+                    var script = author switch
+                    {
+                        IdentifierEnum.ChatGPT => WebFunctions.UpdateLastGpt(content),
+                        IdentifierEnum.Table => WebFunctions.AddTable(content),
+                        _ => WebFunctions.AddMsg(author, content)
+                    };
+
+                    await RunScriptAsync(script);
+
+                    if (author == IdentifierEnum.ChatGPT)
+                    {
+                        await RunScriptAsync(WebFunctions.RenderMermaid);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+                MessageBox.Show(exception.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+    }
+
+    // TODO: toolbar buttons visibility
+    public bool IsProcessing { get; set; }
+
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+        field = value;
+        OnPropertyChanged(propertyName);
+        return true;
     }
 }

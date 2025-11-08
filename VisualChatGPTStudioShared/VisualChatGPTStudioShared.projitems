@@ -61,10 +61,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\RelayCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\WebAsset.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\WebFunctions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\AsyncEventHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\InverseBooleanConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\TerminalWindowTurbo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\TerminalWindowTurboControl.xaml.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\TerminalWindowTurboControl.Toolbar.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ApiHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\AttachImage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ComputerUse.cs" />

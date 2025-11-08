@@ -1,21 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Community.VisualStudio.Toolkit;
+using ToolKit = Community.VisualStudio.Toolkit;
 using JeffPires.VisualChatGPTStudio.Agents;
 using JeffPires.VisualChatGPTStudio.Commands;
 using JeffPires.VisualChatGPTStudio.Options;
@@ -49,8 +49,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         #region Constants
 
         private const string TAG_IMG = "#IMG#";
-        private const string TAG_SQL = "#SQL#";
-        private const string TAG_API = "#API#";
 
         #endregion Constants
 
@@ -62,7 +60,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private IWebView2 _webView;
 
         private CancellationTokenSource cancellationTokenSource;
-        private DocumentView docView;
+        private ToolKit.DocumentView docView;
         private bool shiftKeyPressed;
         private bool selectedContextFilesCodeAppended;
         private CompletionManager completionManager;
@@ -120,23 +118,23 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             VSColorTheme.ThemeChanged += _ =>
             {
-                try
-                {
-                    WebAsset.DeployTheme();
-                    _webView?.ExecuteScriptAsync(WebFunctions.ReloadThemeCss(WebAsset.IsDarkTheme));
-                }
-                catch (Exception e)
-                {
-                    Logger.Log(e);
-                }
+                WebAsset.DeployTheme();
+                ExecuteScript(WebFunctions.ReloadThemeCss(WebAsset.IsDarkTheme));
             };
         }
 
-        private async void MessagesOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        private void ExecuteScript(string script)
+        {
+            AsyncEventHandler.SafeFireAndForget(
+                async () => await _webView?.ExecuteScriptAsync(script)!,
+                Logger.Log);
+        }
+
+        private void MessagesOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             if (e.NewItems == null || e.NewItems.Count == 0)
             {
-                _webView?.ExecuteScriptAsync(WebFunctions.ClearChat);
+                ExecuteScript(WebFunctions.ClearChat);
             }
             else
             {
@@ -192,11 +190,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                             _ => WebFunctions.AddMsg(author, content)
                         };
 
-                        await _webView!.ExecuteScriptAsync(script);
+                        ExecuteScript(script);
 
                         if (author == IdentifierEnum.ChatGPT)
                         {
-                            _webView?.ExecuteScriptAsync(WebFunctions.RenderMermaid);
+                            ExecuteScript(WebFunctions.RenderMermaid);
                         }
                     }
                 }
@@ -243,7 +241,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             _webView.CoreWebView2InitializationCompleted += CoreWebView2InitializationCompleted;
             _webView.NavigationCompleted += (o, args) =>
             {
-                _webView?.ExecuteScriptAsync(WebFunctions.ReloadThemeCss(WebAsset.IsDarkTheme));
+                ExecuteScript(WebFunctions.ReloadThemeCss(WebAsset.IsDarkTheme));
                 _viewModel.ForceDownloadChats();
                 _viewModel.LoadChat();
             };
@@ -292,7 +290,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             catch (Exception e)
             {
                 Logger.Log($"WebView error: {e.Message}");
-
             }
         }
 
@@ -390,7 +387,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             if (commandType == RequestType.Code)
             {
-                docView = await VS.Documents.GetActiveDocumentViewAsync();
+                docView = await ToolKit.VS.Documents.GetActiveDocumentViewAsync();
 
                 var originalCode = docView?.TextView?.TextBuffer?.CurrentSnapshot.GetText();
 
@@ -737,7 +734,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             WriteIndented = true,
             MaxDepth = 10,
-            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
         /// <summary>
@@ -1052,6 +1049,178 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         }
 
         #endregion Event Handlers
+
+        #region Toolbar
+
+        private void NewChat_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.CreateNewChat();
+            ClearChat();
+        }
+
+        private void DeleteChat_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.DeleteChat(_viewModel.ChatId);
+            ClearChat();
+        }
+
+        private void ClearChat()
+        {
+            _viewModel.apiChat.ClearConversation();
+            ExecuteScript(WebFunctions.ClearChat);
+            ToggleApi.IsChecked = ToggleSql.IsChecked = false;
+
+            _viewModel.ApiDefinitions = [];
+            _viewModel.SqlServerConnections = [];
+            _viewModel.AttachedImage = null;
+            EnableDisableButtons(true);
+        }
+
+        private void ToggleHistory_Click(object sender, RoutedEventArgs e)
+            => ToggleHistory(HistorySidebar.Visibility != Visibility.Visible);
+
+        private void ToggleWebViewVisibility()
+        {
+#if !COPILOT_ENABLED // VS 2019
+            WebViewHost.Visibility = Overlay.Visibility == Visibility.Visible ? Visibility.Hidden : Visibility.Visible;
+#endif
+        }
+
+        private void ToggleHistory(bool showHistory)
+        {
+            if (showHistory)
+            {
+                _viewModel.ForceDownloadChats();
+                HistorySidebar.Visibility = Overlay.Visibility = Visibility.Visible;
+                ToggleWebViewVisibility();
+                HistorySearch.Focus();
+            }
+            else
+            {
+                HistorySidebar.Visibility = Overlay.Visibility = Visibility.Collapsed;
+                ToggleWebViewVisibility();
+                txtRequest.Focus();
+            }
+        }
+
+        private void HistoryList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+            => ToggleHistory(false);
+
+        private void HistoryPagingButton_OnIsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (!(bool)e.NewValue && ((Button)sender).IsFocused)
+            {
+                HistorySearch.Focus();
+            }
+        }
+
+        private void LoadChat(string chatId)
+        {
+            try
+            {
+                CancelRequest(null, null);
+                ExecuteScript(WebFunctions.ClearChat);
+                _viewModel.LoadChat(chatId);
+                grdCommands.Visibility = Visibility.Visible;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+                MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);
+            }
+        }
+
+        private void HistoryList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_viewModel != null && sender is ListBox { SelectedItem: ChatEntity selectedItem } && Mouse.LeftButton != MouseButtonState.Released)
+            {
+                _viewModel.LoadChat(selectedItem.Id);
+                LoadChat(selectedItem.Id);
+            }
+        }
+
+        private void HistoryList_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Up && sender is ListBox { SelectedIndex: 0 } listBox)
+            {
+                listBox.MoveFocus(new TraversalRequest(FocusNavigationDirection.Up));
+                e.Handled = true;
+            }
+        }
+
+        private void HistoryListItem_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.Space or Key.Enter when sender is ListBoxItem { DataContext: ChatEntity selectedItem } lbi:
+                    lbi.IsSelected = true;
+                    e.Handled = true;
+                    _viewModel.LoadChat(selectedItem.Id);
+                    LoadChat(selectedItem.Id);
+                    ToggleHistory(false);
+                    break;
+                case Key.Left when _viewModel.CanGoPrev:
+                    _viewModel.PrevCmd.Execute(null);
+                    e.Handled = true;
+                    break;
+                case Key.Right when _viewModel.CanGoNext:
+                    _viewModel.NextCmd.Execute(null);
+                    e.Handled = true;
+                    break;
+                case Key.R when sender is ListBoxItem { DataContext: ChatEntity selectedItem }:
+                    _viewModel.StartRenameCmd.Execute(selectedItem);
+                    e.Handled = true;
+                    break;
+                case Key.Delete when sender is ListBoxItem { DataContext: ChatEntity selectedItem }:
+                    _viewModel.DeleteCmd.Execute(selectedItem);
+                    e.Handled = true;
+                    break;
+            }
+        }
+
+        private void HistorySearch_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Down && sender is TextBox textBox)
+            {
+                textBox.MoveFocus(new TraversalRequest(FocusNavigationDirection.Down));
+                e.Handled = true;
+            }
+        }
+
+        private void CloseHistoryButton_Click(object sender, RoutedEventArgs e)
+            => ToggleHistory(false);
+
+        private void ToggleSettings_Click(object sender, RoutedEventArgs e)
+            => ToggleSettings(SettingsSidebar.Visibility != Visibility.Visible);
+
+        private void ToggleSettings(bool showSettings)
+        {
+            SettingsSidebar.Visibility = showSettings
+                ? Overlay.Visibility = Visibility.Visible
+                : Overlay.Visibility = Visibility.Collapsed;
+
+            ToggleWebViewVisibility();
+        }
+
+        private void CloseSettingsButton_Click(object sender, RoutedEventArgs e)
+            => ToggleSettings(false);
+
+        private void Box_OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (!(bool)e.NewValue)
+                return;
+            var tb = (TextBox)sender;
+            tb.Focus();
+            tb.SelectAll();
+        }
+
+        private void Overlay_OnMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            ToggleHistory(false);
+            ToggleSettings(false);
+        }
+
+        #endregion
     }
 }
 

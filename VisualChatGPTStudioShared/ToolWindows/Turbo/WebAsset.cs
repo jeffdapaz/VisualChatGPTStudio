@@ -45,9 +45,11 @@ public static class WebAsset
 
     public static void DeployTheme()
     {
-        IsDarkTheme = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowTextColorKey).GetBrightness() > 0.9; // white text in dark bg
-        var userBubbleColor = IsDarkTheme ? "#0b8060" : "#acc0e5";
-        var css = @$"
+        try
+        {
+            IsDarkTheme = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowTextColorKey).GetBrightness() > 0.9; // white text in dark bg
+            var userBubbleColor = IsDarkTheme ? "#0b8060" : "#acc0e5";
+            var css = @$"
             :root {{
                 --text-color: {VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowTextColorKey).ToCss()};
                 --bg-color: {VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBackgroundColorKey).ToCss()};
@@ -65,7 +67,13 @@ public static class WebAsset
                 color: {VSColorTheme.GetThemedColor(EnvironmentColors.ControlLinkTextBrushKey).ToCss()};
             }}
         ";
-        File.WriteAllText(Path.Combine(_root, "theme.css"), css);
+            File.WriteAllText(Path.Combine(_root, "theme.css"), css);
+        }
+        catch (Exception e)
+        {
+            Logger.Log(e);
+            MessageBox.Show("Deploy theme error: " + e.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     /// <summary>

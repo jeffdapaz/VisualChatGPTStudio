@@ -74,6 +74,21 @@ public partial class TerminalWindowTurboControl
             WebAsset.DeployTheme();
             SafeExecuteJs(WebFunctions.ReloadThemeCss(WebAsset.IsDarkTheme));
         };
+
+        _viewModel.ScriptRequested += async script =>
+        {
+            try
+            {
+                if (_webView != null)
+                    return await _webView.ExecuteScriptAsync(script);
+            }
+            catch (Exception exception)
+            {
+                Logger.Log($"WebView error: {exception.Message}");
+            }
+
+            return string.Empty;
+        };
     }
 
     private void SafeExecuteJs(string script)
@@ -134,20 +149,6 @@ public partial class TerminalWindowTurboControl
         await _webView.EnsureCoreWebView2Async(env);
 
         _webView.WebMessageReceived += WebViewOnWebMessageReceived;
-        _viewModel.ScriptRequested += async script =>
-        {
-            try
-            {
-                if (_webView != null)
-                    return await _webView.ExecuteScriptAsync(script);
-            }
-            catch (Exception exception)
-            {
-                Logger.Log($"WebView error: {exception.Message}");
-            }
-
-            return string.Empty;
-        };
     }
 
     private async void WebViewOnWebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs webMessage)

@@ -284,7 +284,11 @@ namespace JeffPires.VisualChatGPTStudio.Agents
                 rows.Add(row);
             }
 
-            return $"Rows retrieved: {rows.Count}. The data is displayed to the user.";
+            var dataToUser = rows.Count > 0
+                ? "The data is displayed to the user."
+                : "No data is returned.";
+
+            return $"Rows retrieved: {rows.Count}. {dataToUser}";
         }
 
         /// <summary>

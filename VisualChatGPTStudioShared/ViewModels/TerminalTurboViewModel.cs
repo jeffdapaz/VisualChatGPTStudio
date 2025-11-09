@@ -19,6 +19,7 @@ using JeffPires.VisualChatGPTStudio.Commands;
 using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.ToolWindows.Turbo;
 using JeffPires.VisualChatGPTStudio.Utils;
+using JeffPires.VisualChatGPTStudio.Utils.API;
 using JeffPires.VisualChatGPTStudio.Utils.CodeCompletion;
 using JeffPires.VisualChatGPTStudio.Utils.Repositories;
 using Microsoft.VisualStudio.Text;
@@ -39,9 +40,8 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
     private List<ChatEntity> _filtered = [];
     private int _page;
     private const int PageSize = 10;
-    public OptionPageGridGeneral Options;
-    public VS.Package Package;
-    public Conversation ApiChat;
+
+    private Conversation _apiChat;
 
     private Toolkit.DocumentView _docView;
     private Rectangle _screenBounds;
@@ -49,10 +49,20 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
 
     private bool _selectedContextFilesCodeAppended;
 
+    private bool _shiftKeyPressed;
+
+    private int _toolCallAttempt;
+
+    // TODO: move into option
+    private readonly int _toolCallMaxAttempts = 10;
+
     public TerminalTurboViewModel()
     {
         Messages.CollectionChanged += MessagesOnCollectionChanged;
     }
+
+    public OptionPageGridGeneral Options;
+    public VS.Package Package;
 
     private AvalonDocument _requestDoc = new();
 
@@ -87,7 +97,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
     public string ProgressStatus
     {
         get => _progressStatus;
-        set => SetField(ref _progressStatus, value);
+        private set => SetField(ref _progressStatus, value);
     }
 
     private bool _useSqlTools;
@@ -189,16 +199,10 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
 
     public CompletionManager CompletionManager;
 
-    private bool _shiftKeyPressed;
-
     /// <summary>
     /// Chat list from Database
     /// </summary>
     private List<ChatEntity> AllChats { get; set; } = [];
-
-    private int _toolCallAttempt;
-
-    private int _toolCallMaxAttempts = 10;
 
     public byte[] AttachedImage;
 
@@ -216,7 +220,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
     /// </summary>
     public string ChatId { get; private set; }
 
-    public ObservableCollection<MessageEntity> Messages { get; } = [];
+    private ObservableCollection<MessageEntity> Messages { get; } = [];
 
     public ObservableCollection<ChatEntity> Chats { get; } = [];
 
@@ -283,7 +287,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
         {
             ChatId = string.Empty;
             Messages.Clear();
-            ApiChat.ClearConversation();
+            _apiChat.ClearConversation();
 
             UseApiTools = UseSqlTools = false;
             AttachedImage = null;
@@ -386,7 +390,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
         }
         if (string.IsNullOrEmpty(ChatId))
         {
-            CreateNewChat();
+            CreateNewChat(clearTools: false);
         }
         Messages.Add(new MessageEntity { Order = Messages.Count + 1, Segments = [ segment ] });
     }
@@ -402,7 +406,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
         }
     }
 
-    public void CreateNewChat()
+    public void CreateNewChat(bool clearTools)
     {
         ChatRepository.AddChat(new ChatEntity
         {
@@ -411,8 +415,13 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
             Messages = [],
             Name = $"New chat {AllChats.Count + 1}"
         });
-        UseApiTools = UseSqlTools = false;
-        AttachedImage = null;
+
+        if (clearTools)
+        {
+            UseApiTools = UseSqlTools = false;
+            AttachedImage = null;
+        }
+
         ForceDownloadChats();
         LoadChat();
     }
@@ -439,7 +448,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
             }
         }
 
-        ApiChat = ApiHandler.CreateConversation(Options, Options.TurboChatBehavior);
+        _apiChat = ApiHandler.CreateConversation(Options, Options.TurboChatBehavior);
         foreach (var messageEntity in Messages)
         {
             var segment = messageEntity.Segments.FirstOrDefault();
@@ -447,7 +456,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
             {
                 continue;
             }
-            ApiChat.Messages.Add(new ChatMessage
+            _apiChat.Messages.Add(new ChatMessage
                 {
                     Role = segment.Author switch
                     {
@@ -514,7 +523,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
 
             _toolCallAttempt++;
 
-            ApiChat.AppendToolMessage(function, functionResult);
+            _apiChat.AppendToolMessage(function, functionResult);
             function.Function.Result = functionResult;
             AddMessageSegment(new ChatMessageSegment { Author = IdentifierEnum.FunctionCall, Content = JsonSerializer.Serialize(function.Function, _serializeOptions)});
         }
@@ -523,7 +532,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
         {
             // Preventing an endless loop of calling tools
             // No tools - no calls ¯\_(ツ)_/¯
-            ApiChat.ClearTools();
+            _apiChat.ClearTools();
         }
 
         (string Content, List<FunctionResult> ListFunctions) result = await SendRequestAsync(cancellationToken);
@@ -579,19 +588,21 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
 
             if (!string.IsNullOrWhiteSpace(selectedContextFilesCode))
             {
-                ApiChat.AppendSystemMessage(selectedContextFilesCode);
+                _apiChat.AppendSystemMessage(selectedContextFilesCode);
                 _selectedContextFilesCodeAppended = true;
             }
         }
 
+        var requestToShowOnList = RequestDoc.Text;
+        string request;
+
         if (commandType == RequestType.Code)
         {
             _docView = await Toolkit.VS.Documents.GetActiveDocumentViewAsync();
-
             var originalCode = _docView?.TextView?.TextBuffer?.CurrentSnapshot.GetText();
-
             if (originalCode == null)
             {
+                Logger.Log("Code is null");
                 return;
             }
 
@@ -602,37 +613,26 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
 
             originalCode = TextFormat.RemoveCharactersFromText(originalCode, Options.CharactersToRemoveFromRequests.Split(','));
 
-            ApiChat.AppendSystemMessage(Options.TurboChatCodeCommand);
-            ApiChat.AppendUserInput(originalCode);
+            _apiChat.AppendSystemMessage(Options.TurboChatCodeCommand);
+
+            request = $"""
+                       <task>{requestToShowOnList}</task>
+                       <code>
+                       {originalCode}
+                       </code>
+                       """;
         }
-
-        var requestToShowOnList = RequestDoc.Text;
-
-        if (AttachedImage != null)
+        else
         {
-            requestToShowOnList = "#IMG#" + AttachedImageText + Environment.NewLine + Environment.NewLine + requestToShowOnList;
-
-            List<ChatContentForImage> chatContent = [new(AttachedImage)];
-
-            ApiChat.AppendUserInput(chatContent);
+            request = await CompletionManager.ReplaceReferencesAsync(requestToShowOnList);
         }
 
-        var request = await CompletionManager.ReplaceReferencesAsync(RequestDoc.Text);
-
-        await RequestAsync(commandType, request, requestToShowOnList, _shiftKeyPressed);
-    }
-
-    /// <summary>
-    /// Sends an asynchronous request based on the provided command type, processes the response,
-    /// and updates the UI elements accordingly. Handles exceptions and manages UI state during the operation.
-    /// </summary>
-    private async Task RequestAsync(RequestType commandType, string request, string requestToShowOnList, bool shiftKeyPressed)
-    {
+        // TODO make renaming chat is optionable + manual call
         var firstMessage = !Messages.Any();
-        ApiChat.UpdateApi(Options.ApiKey, Options.BaseAPI);
+        _apiChat.UpdateApi(Options.ApiKey, Options.BaseAPI);
         if (!string.IsNullOrEmpty(Options.Model))
         {
-            ApiChat.RequestParameters.Model = Options.Model;
+            _apiChat.RequestParameters.Model = Options.Model;
         }
 
         _toolCallAttempt = 0;
@@ -646,16 +646,28 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
             request = TextFormat.RemoveCharactersFromText(request, Options.CharactersToRemoveFromRequests.Split(','));
             request = UpdateTools(request);
 
-            ApiChat.AppendUserInput(request);
+            if (AttachedImage != null)
+            {
+                // send image with request
+                List<object> chatContent = [
+                    new ChatContentForImage(AttachedImage),
+                    new { type = "text", text = request }
+                ];
+                _apiChat.AppendUserInput(chatContent);
+            }
+            else
+            {
+                _apiChat.AppendUserInput(request);
+            }
 
             CancellationTokenSource = new();
 
             if (Options.CompletionStream)
             {
-                var segment = new ChatMessageSegment { Author = IdentifierEnum.ChatGPT };
+                var segment = new ChatMessageSegment { Author = IdentifierEnum.ChatGPT, Content = "..." };
                 AddMessageSegment(segment);
                 var content = new StringBuilder();
-                var chatResponses = ApiChat.StreamResponseEnumerableFromChatbotAsync(CancellationTokenSource.Token);
+                var chatResponses = _apiChat.StreamResponseEnumerableFromChatbotAsync(CancellationTokenSource.Token);
                 await foreach (var fragment in chatResponses)
                 {
                     content.Append(fragment);
@@ -667,7 +679,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
                 }
                 segment.Content = content.ToString();
 
-                await HandleFunctionsCallsAsync(ApiChat.StreamFunctionResults, CancellationTokenSource);
+                await HandleFunctionsCallsAsync(_apiChat.StreamFunctionResults, CancellationTokenSource);
             }
             else
             {
@@ -679,12 +691,12 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
                 }
                 else
                 {
-                    HandleResponse(commandType, shiftKeyPressed, result.Item1);
+                    HandleResponse(commandType, _shiftKeyPressed, result.Item1);
                 }
             }
 
             // restore request in message history
-            ApiChat.ReplaceLastUserInput(requestToShowOnList);
+            _apiChat.ReplaceLastUserInput(requestToShowOnList);
             await RunScriptAsync(WebFunctions.RenderMermaid)!;
 
             if (firstMessage)
@@ -800,8 +812,8 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
 
     private string UpdateTools(string input)
     {
-        var result = string.Empty;
-        ApiChat.ClearTools();
+        var result = input;
+        _apiChat.ClearTools();
         if (UseSqlTools && SqlServerConnectionSelectedIndex != -1 && SqlServerConnections.Count > SqlServerConnectionSelectedIndex)
         {
             var sqlServerConnectionInfo = SqlServerConnections[SqlServerConnectionSelectedIndex];
@@ -809,7 +821,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
             var sqlFunctions = SqlServerAgent.GetSqlFunctions();
             foreach (var function in sqlFunctions)
             {
-                ApiChat.AppendFunctionCall(function);
+                _apiChat.AppendFunctionCall(function);
             }
 
             result = $"""
@@ -824,7 +836,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
             var apiFunctions = ApiAgent.GetApiFunctions();
             foreach (var function in apiFunctions)
             {
-                ApiChat.AppendFunctionCall(function);
+                _apiChat.AppendFunctionCall(function);
             }
 
             result = $"""
@@ -861,6 +873,13 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
         {
             Logger.Log(ex);
             MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+            // remove last user message
+            var lastMess = _apiChat.Messages.LastOrDefault();
+            if (lastMess != null && lastMess.Role.Equals(ChatMessageRole.User))
+            {
+                _apiChat.Messages.Remove(lastMess);
+                // TODO run a script "RunScriptAsync()" to show that the last message was not sent.
+            }
         }
         finally
         {
@@ -876,16 +895,8 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
     /// <returns>The code of the selected context items as a string.</returns>
     private static async Task<string> GetSelectedContextItemsCodeAsync()
     {
-        StringBuilder result = new();
-
-        List<string> selectedContextFilesCode = await TerminalWindowSolutionContextCommand.Instance.GetSelectedContextItemsCodeAsync();
-
-        foreach (string code in selectedContextFilesCode)
-        {
-            result.AppendLine(code);
-        }
-
-        return result.ToString();
+        var selectedContextFilesCode = await TerminalWindowSolutionContextCommand.Instance.GetSelectedContextItemsCodeAsync();
+        return string.Concat(selectedContextFilesCode);
     }
 
     /// <summary>
@@ -925,7 +936,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
     /// </returns>
     private async Task<(string, List<FunctionResult>)> SendRequestAsync(CancellationTokenSource cancellationTokenSource)
     {
-        Task<(string, List<FunctionResult>)> task = ApiChat.GetResponseContentAndFunctionAsync();
+        Task<(string, List<FunctionResult>)> task = _apiChat.GetResponseContentAndFunctionAsync();
 
         await Task.WhenAny(task, Task.Delay(Timeout.Infinite, cancellationTokenSource.Token));
 
@@ -939,10 +950,10 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
     /// processing the response to generate a chat name, and notifying the parent control of the new chat.
     /// </summary>
     /// <param name="request">The user's input request to be sent and processed.</param>
-    public async Task UpdateHeaderAsync(string request)
+    private async Task UpdateHeaderAsync(string request)
     {
-        ApiChat.MessagesCheckpoint();
-        ApiChat.AppendUserInput(request);
+        _apiChat.MessagesCheckpoint();
+        _apiChat.AppendUserInput(request);
 
         (string, List<FunctionResult>) result = await SendRequestAsync(CancellationTokenSource);
 
@@ -957,7 +968,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
             chatName = string.Join(" ", words[0], words[1], words[2], words[3]);
         }
 
-        ApiChat.MessagesRestoreFromCheckpoint();
+        _apiChat.MessagesRestoreFromCheckpoint();
         UpdateChatHeader(chatName);
     }
 
@@ -1014,11 +1025,20 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
                         continue;
                     }
 
+                    // send image
+                    string imageData = null;
+                    if (AttachedImage is { Length: > 100 } && !string.IsNullOrEmpty(AttachedImageText))
+                    {
+                        var mimeType = AttachImage.GetImageMimeType(AttachedImage);
+                        var base64String = Convert.ToBase64String(AttachedImage);
+                        imageData = $"data:{mimeType};base64,{base64String}";
+                    }
+
                     var script = author switch
                     {
                         IdentifierEnum.ChatGPT => WebFunctions.UpdateLastGpt(content),
                         IdentifierEnum.Table => WebFunctions.AddTable(content),
-                        _ => WebFunctions.AddMsg(author, content)
+                        _ => WebFunctions.AddMsg(author, content, imageData)
                     };
 
                     await RunScriptAsync(script);

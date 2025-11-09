@@ -184,16 +184,27 @@ function renderFrag(f){
 }
 
 /* ---------- Functions called from C# ---------- */
-function addMsg(role, rawText){
+function addMsg(role, rawText, imageData = null){
+    updateShouldScrollFlag();
     const wrap = document.createElement('div');
     wrap.className = 'msg ' + role;
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
-    bubble.innerHTML = splitThink(rawText).map(renderFrag).join('');
+
+    if (imageData && role === 'me') {
+        const img = document.createElement('img');
+        img.src = imageData;
+        bubble.appendChild(img);
+    }
+    bubble.innerHTML += splitThink(rawText).map(renderFrag).join('');
+    
     wrap.appendChild(bubble);
     document.getElementById('chat').appendChild(wrap);
     if (role === 'me') {
         window.scrollTo(0, chat.scrollHeight);
+    }
+    else {
+        scrollToBottomIfNeeded();
     }
 }
 

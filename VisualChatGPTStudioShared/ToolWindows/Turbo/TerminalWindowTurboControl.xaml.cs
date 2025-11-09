@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Specialized;
 using System.IO;
-using System.Linq;
-using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,7 +13,6 @@ using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
-using OpenAI_API.Functions;
 using VisualChatGPTStudioShared.ToolWindows.Turbo;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 using JsonElement = System.Text.Json.JsonElement;
@@ -29,13 +25,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo;
 /// </summary>
 public partial class TerminalWindowTurboControl
 {
-    #region Properties
     private bool _webView2Installed;
     private readonly TerminalTurboViewModel _viewModel;
     private IWebView2 _webView;
-    #endregion Properties
-
-    #region Constructors
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TerminalWindowTurboControl"/> class.
@@ -47,10 +39,6 @@ public partial class TerminalWindowTurboControl
 
         _viewModel = (TerminalTurboViewModel)DataContext;
     }
-
-    #endregion Constructors
-
-    #region Methods
 
     /// <summary>
     /// Starts the control with the given options and package.
@@ -84,11 +72,11 @@ public partial class TerminalWindowTurboControl
         VSColorTheme.ThemeChanged += _ =>
         {
             WebAsset.DeployTheme();
-            ExecuteScript(WebFunctions.ReloadThemeCss(WebAsset.IsDarkTheme));
+            SafeExecuteJs(WebFunctions.ReloadThemeCss(WebAsset.IsDarkTheme));
         };
     }
 
-    private void ExecuteScript(string script)
+    private void SafeExecuteJs(string script)
     {
         AsyncEventHandler.SafeFireAndForget(
             async () =>
@@ -134,7 +122,7 @@ public partial class TerminalWindowTurboControl
         _webView.CoreWebView2InitializationCompleted += CoreWebView2InitializationCompleted;
         _webView.NavigationCompleted += (_, _) =>
         {
-            ExecuteScript(WebFunctions.ReloadThemeCss(WebAsset.IsDarkTheme));
+            SafeExecuteJs(WebFunctions.ReloadThemeCss(WebAsset.IsDarkTheme));
             _viewModel.ForceDownloadChats();
             _viewModel.LoadChat();
         };
@@ -148,8 +136,15 @@ public partial class TerminalWindowTurboControl
         _webView.WebMessageReceived += WebViewOnWebMessageReceived;
         _viewModel.ScriptRequested += async script =>
         {
-            if (_webView != null)
-                return await _webView.ExecuteScriptAsync(script);
+            try
+            {
+                if (_webView != null)
+                    return await _webView.ExecuteScriptAsync(script);
+            }
+            catch (Exception exception)
+            {
+                Logger.Log($"WebView error: {exception.Message}");
+            }
 
             return string.Empty;
         };
@@ -262,13 +257,6 @@ public partial class TerminalWindowTurboControl
         }
     }
 
-    private JsonSerializerOptions _serializeOptions = new()
-    {
-        WriteIndented = true,
-        MaxDepth = 10,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-    };
-
     /// <summary>
     /// Updates the embedded web browser control with dynamically generated HTML content.
     /// </summary>
@@ -282,8 +270,6 @@ public partial class TerminalWindowTurboControl
         WebAsset.DeployTheme();
         _webView?.CoreWebView2.Navigate(WebAsset.GetTurboPath());
     }
-
-    #endregion Methods
 
     #region Event Handlers
 
@@ -382,7 +368,7 @@ public partial class TerminalWindowTurboControl
     #region Toolbar
     private void NewChat_Click(object sender, RoutedEventArgs e)
     {
-        _viewModel.CreateNewChat();
+        _viewModel.CreateNewChat(clearTools: true);
     }
 
     private void DeleteChat_Click(object sender, RoutedEventArgs e)
@@ -433,7 +419,7 @@ public partial class TerminalWindowTurboControl
         try
         {
             CancelRequest(null, null);
-            ExecuteScript(WebFunctions.ClearChat);
+            SafeExecuteJs(WebFunctions.ClearChat);
             _viewModel.LoadChat(chatId);
             grdCommands.Visibility = Visibility.Visible;
         }

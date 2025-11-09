@@ -81,6 +81,11 @@ details[open] summary {
 .me .bubble {
     background: var(--user-bg-color);
 }
+.me .bubble img {
+    max-height: 400px;
+    max-width: 100%;
+    border-radius: 8px;
+}
 .gpt .bubble {
     background: var(--gpt-bg-color);
 }

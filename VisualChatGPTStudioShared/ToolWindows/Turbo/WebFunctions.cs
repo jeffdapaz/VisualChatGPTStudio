@@ -14,8 +14,8 @@
         public static string ScrollToLastResponse
             => "scrollToLastResponse();";
 
-        public static string AddMsg(IdentifierEnum user, string content)
-            => $"addMsg('{user.ToString().ToLower()}', `{JsString(content)}`);";
+        public static string AddMsg(IdentifierEnum user, string content, string imageData = null)
+            => $"addMsg('{user.ToString().ToLower()}', `{JsString(content)}`, `{imageData}`);";
 
         public static string UpdateLastGpt(string content)
             => $"updateLastGpt(`{JsString(content)}`);";

@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
 namespace JeffPires.VisualChatGPTStudio.Utils.API
@@ -117,6 +118,29 @@ namespace JeffPires.VisualChatGPTStudio.Utils.API
             e.Handled = true;
         }
 
+        public static string GetImageMimeType(byte[] imageBytes)
+        {
+            if (imageBytes.Length < 4) return "image/jpeg"; // fallback
+
+            // PNG
+            if (imageBytes[0] == 0x89 && imageBytes[1] == 0x50 && imageBytes[2] == 0x4E && imageBytes[3] == 0x47)
+                return "image/png";
+
+            // JPEG
+            if (imageBytes[0] == 0xFF && imageBytes[1] == 0xD8 && imageBytes[2] == 0xFF)
+                return "image/jpeg";
+
+            // GIF
+            if (imageBytes[0] == 0x47 && imageBytes[1] == 0x49 && imageBytes[2] == 0x46)
+                return "image/gif";
+
+            // WEBP
+            if (imageBytes[0] == 0x52 && imageBytes[1] == 0x49 && imageBytes[2] == 0x46 && imageBytes[3] == 0x46)
+                return "image/webp";
+
+            return "image/jpeg"; // fallback
+        }
+
         /// <summary>
         /// Converts a BitmapSource object to a byte array by encoding it as a PNG image.
         /// </summary>
@@ -125,10 +149,16 @@ namespace JeffPires.VisualChatGPTStudio.Utils.API
         /// </returns>
         private static byte[] ConvertBitmapSourceToByteArray(System.Windows.Media.Imaging.BitmapSource bitmapSource)
         {
+            var convertedBitmap = new FormatConvertedBitmap();
+            convertedBitmap.BeginInit();
+            convertedBitmap.Source = bitmapSource;
+            convertedBitmap.DestinationFormat = System.Windows.Media.PixelFormats.Bgr32; // Remove alpha-cannel
+            convertedBitmap.EndInit();
+
             using (MemoryStream stream = new())
             {
                 System.Windows.Media.Imaging.PngBitmapEncoder encoder = new();
-                encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmapSource));
+                encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(convertedBitmap));
                 encoder.Save(stream);
 
                 return stream.ToArray();

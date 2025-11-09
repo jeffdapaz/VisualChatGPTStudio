@@ -629,10 +629,15 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
 
         // TODO make renaming chat is optionable + manual call
         var firstMessage = !Messages.Any();
-        _apiChat.UpdateApi(Options.ApiKey, Options.BaseAPI);
-        if (!string.IsNullOrEmpty(Options.Model))
+
+        // TODO update baseUrl for azure.com
+        if (Options.Service == OpenAIService.OpenAI)
         {
-            _apiChat.RequestParameters.Model = Options.Model;
+            _apiChat.UpdateOpenAiApi(Options.ApiKey, Options.BaseAPI);
+            if (!string.IsNullOrEmpty(Options.Model))
+            {
+                _apiChat.RequestParameters.Model = Options.Model;
+            }
         }
 
         _toolCallAttempt = 0;

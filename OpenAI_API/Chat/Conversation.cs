@@ -55,7 +55,7 @@ namespace OpenAI_API.Chat
         /// <summary>
         /// Update base request settings
         /// </summary>
-        public void UpdateApi(string apiKey, string baseUrl)
+        public void UpdateOpenAiApi(string apiKey, string baseUrl)
         {
             endpoint.ApiKey = apiKey;
             endpoint._Api.ApiUrlFormat = baseUrl.TrimEnd('/') + "/{0}/{1}";
@@ -373,7 +373,8 @@ namespace OpenAI_API.Chat
         /// If you are not using C# 8 supporting async enumerables or if you are using the .NET Framework, you may need to use <see cref="StreamResponseFromChatbotAsync(Action{string})"/> instead.
         /// </summary>
         /// <returns>An async enumerable with each of the results as they come in.  See <see href="https://docs.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-8#asynchronous-streams"/> for more details on how to consume an async enumerable.</returns>
-        public async IAsyncEnumerable<string> StreamResponseEnumerableFromChatbotAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+        public async IAsyncEnumerable<string> StreamResponseEnumerableFromChatbotAsync(
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             ChatRequest request;
 
@@ -402,7 +403,7 @@ namespace OpenAI_API.Chat
                     enumerator = resStream.GetAsyncEnumerator(cancellationToken);
                     await enumerator.MoveNextAsync();
                     firstStreamedResult = enumerator.Current;
-                    responseRole = firstStreamedResult.Choices[0].Delta.Role;
+                    responseRole = firstStreamedResult.Choices.FirstOrDefault()?.Delta.Role;
                 }
                 catch (HttpRequestException ex)
                 {
@@ -416,7 +417,7 @@ namespace OpenAI_API.Chat
                 }
 
                 if (enumerator?.Current == null) break;
-                
+
                 var toolCalls = new Dictionary<int, PendingToolCall>();
                 StreamFunctionResults.Clear();
 
@@ -483,14 +484,16 @@ namespace OpenAI_API.Chat
             {
                 throw new Exception("The chat result stream is null, but it shouldn't be");
             }
-            
-            if (responseRole != null)
+
+            if (responseRole == null)
             {
-                var response = RemoveThinkBlock(responseStringBuilder.ToString());
-                if (!string.IsNullOrEmpty(response))
-                {
-                    AppendMessage(responseRole, response);
-                }
+                throw new Exception("The response Role is null, but it shouldn't be");
+            }
+
+            var response = RemoveThinkBlock(responseStringBuilder.ToString());
+            if (!string.IsNullOrEmpty(response))
+            {
+                AppendMessage(responseRole, response);
             }
         }
 

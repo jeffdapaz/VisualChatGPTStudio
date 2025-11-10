@@ -452,8 +452,17 @@ public partial class TerminalWindowTurboControl
 
     private void HistoryListItem_PreviewKeyDown(object sender, KeyEventArgs e)
     {
+        // Buttons with commands
+        if (e.OriginalSource is Button { Command: not null } button && e.Key is Key.Enter or Key.Space)
+        {
+            button.Command.Execute(button.CommandParameter);
+            return;
+        }
+
         var lbi = sender as ListBoxItem;
         var chat = lbi?.DataContext as ChatEntity;
+
+        // Edit chatname
         if (chat is { IsEditing: true })
         {
             switch (e.Key)
@@ -481,7 +490,7 @@ public partial class TerminalWindowTurboControl
             return;
         }
 
-        // No editing name
+        // Navigation
         switch (e.Key)
         {
             case Key.Left when _viewModel.CanGoPrev:

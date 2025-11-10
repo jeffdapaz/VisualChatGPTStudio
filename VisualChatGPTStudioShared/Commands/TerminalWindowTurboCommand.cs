@@ -73,7 +73,15 @@ namespace JeffPires.VisualChatGPTStudio.Commands
         {
             _ = this.package.JoinableTaskFactory.RunAsync(async delegate
             {
-                await package.ShowToolWindowAsync(typeof(TerminalWindowTurbo), 0, true, package.DisposalToken);
+                try
+                {
+                    await package.ShowToolWindowAsync(typeof(TerminalWindowTurbo), 0, true, package.DisposalToken);
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    throw;
+                }
             });
         }
     }

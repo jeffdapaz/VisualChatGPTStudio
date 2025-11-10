@@ -9,6 +9,7 @@ using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils;
 using JeffPires.VisualChatGPTStudio.Utils.API;
 using JeffPires.VisualChatGPTStudio.Utils.CodeCompletion;
+using JeffPires.VisualChatGPTStudio.Utils.Repositories;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.Web.WebView2.Core;
@@ -451,15 +452,38 @@ public partial class TerminalWindowTurboControl
 
     private void HistoryListItem_PreviewKeyDown(object sender, KeyEventArgs e)
     {
+        var lbi = sender as ListBoxItem;
+        var chat = lbi?.DataContext as ChatEntity;
+        if (chat is { IsEditing: true })
+        {
+            switch (e.Key)
+            {
+                // Apply to rename chat
+                case Key.Enter:
+                    if (chat.Name == null || chat.EditName == null)
+                    {
+                        return;
+                    }
+                    if (!string.Equals(chat.Name, chat.EditName, StringComparison.Ordinal))
+                    {
+                        chat.Name = chat.EditName;
+                        ChatRepository.UpdateChatName(chat.Id, chat.Name);
+                    }
+                    chat.IsEditing = false;
+                    e.Handled = true;
+                    break;
+                // Cancel rename chat
+                case Key.Escape:
+                    chat.IsEditing = false;
+                    e.Handled = true;
+                    break;
+            }
+            return;
+        }
+
+        // No editing name
         switch (e.Key)
         {
-            case Key.Space or Key.Enter when sender is ListBoxItem { DataContext: ChatEntity selectedItem } lbi:
-                lbi.IsSelected = true;
-                e.Handled = true;
-                _viewModel.LoadChat(selectedItem.Id);
-                LoadChat(selectedItem.Id);
-                ToggleHistory(false);
-                break;
             case Key.Left when _viewModel.CanGoPrev:
                 _viewModel.PrevCmd.Execute(null);
                 e.Handled = true;
@@ -468,12 +492,19 @@ public partial class TerminalWindowTurboControl
                 _viewModel.NextCmd.Execute(null);
                 e.Handled = true;
                 break;
-            case Key.R when sender is ListBoxItem { DataContext: ChatEntity selectedItem }:
-                _viewModel.StartRenameCmd.Execute(selectedItem);
+            case Key.Space or Key.Enter when chat != null:
+                lbi.IsSelected = true;
+                _viewModel.LoadChat(chat.Id);
+                LoadChat(chat.Id);
+                ToggleHistory(false);
                 e.Handled = true;
                 break;
-            case Key.Delete when sender is ListBoxItem { DataContext: ChatEntity selectedItem }:
-                _viewModel.DeleteCmd.Execute(selectedItem);
+            case Key.R when chat != null:
+                _viewModel.StartRenameCmd.Execute(null);
+                e.Handled = true;
+                break;
+            case Key.Delete when chat != null:
+                _viewModel.DeleteCmd.Execute(chat);
                 e.Handled = true;
                 break;
         }

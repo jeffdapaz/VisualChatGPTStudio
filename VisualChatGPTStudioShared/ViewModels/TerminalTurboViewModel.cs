@@ -259,22 +259,6 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
             chat.IsEditing = !chat.IsEditing;
         });
 
-    public ICommand RenameChatCmd =>
-        new RelayCommand<ChatEntity>(chat =>
-        {
-            if (chat?.Name == null || chat.EditName == null)
-            {
-                return;
-            }
-
-            if (!string.Equals(chat.Name, chat.EditName, StringComparison.Ordinal))
-            {
-                chat.Name = chat.EditName;
-                ChatRepository.UpdateChatName(chat.Id, chat.Name);
-            }
-            chat.IsEditing = false;
-        });
-
     public void DeleteChat(string delId)
     {
         if (string.IsNullOrEmpty(delId))

@@ -603,16 +603,6 @@
                                              Visibility="Collapsed"
                                              IsManipulationEnabled="False"
                                              IsVisibleChanged="Box_OnIsVisibleChanged">
-                                        <TextBox.InputBindings>
-                                              <!-- Enter – Apply rename -->
-                                              <KeyBinding Key="Enter"
-                                                          Command="{Binding DataContext.RenameChatCmd, RelativeSource={RelativeSource AncestorType=ListBox}}"
-                                                          CommandParameter="{Binding}"/>
-                                              <!-- Escape – Cancel rename -->
-                                              <KeyBinding Key="Escape"
-                                                          Command="{Binding DataContext.StartRenameCmd, RelativeSource={RelativeSource AncestorType=ListBox}}"
-                                                          CommandParameter="{Binding}"/>
-                                        </TextBox.InputBindings>
                                     </TextBox>
                                     <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                                         <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Calendar}" Width="12"

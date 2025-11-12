@@ -368,14 +368,8 @@
     <Resource Include="..\Resources\check.png">
       <Link>Resources\check.png</Link>
     </Resource>
-    <Resource Include="..\WebAssets\TurboChat.css">
-      <Link>WebAssets\TurboChat.css</Link>
-    </Resource>
-    <Resource Include="..\WebAssets\TurboChat.html">
-      <Link>WebAssets\TurboChat.html</Link>
-    </Resource>
-    <Resource Include="..\WebAssets\TurboChat.js">
-      <Link>WebAssets\TurboChat.js</Link>
+    <Resource Include="..\VisualChatGPTStudioShared\ToolWindows\Turbo\WebAssets\*">
+      <Link>WebAssets\%(Filename)%(Extension)</Link>
     </Resource>
   </ItemGroup>
   <ItemGroup>

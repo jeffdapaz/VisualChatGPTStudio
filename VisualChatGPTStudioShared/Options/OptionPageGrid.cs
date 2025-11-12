@@ -263,13 +263,13 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Category("Turbo Chat")]
         [DisplayName("Stream")]
         [Description("If you wish to stream response")]
-        [DefaultValue(false)]
+        [DefaultValue(true)]
         public bool CompletionStream { get; set; } = true;
 
         [Category("Turbo Chat")]
         [DisplayName("Show tool calls")]
-        [Description("If you wish to show tool call and resuls")]
-        [DefaultValue(false)]
+        [Description("If you wish to show tool call and results")]
+        [DefaultValue(true)]
         public bool ShowToolCalls { get; set; } = true;
         #endregion Turbo Chat
 

@@ -230,7 +230,10 @@
             </Grid.RowDefinitions>
 
             <!-- WebView -->
-            <ContentPresenter x:Name="WebViewHost" />
+            <Grid>
+                <ContentPresenter x:Name="WebViewHost" />
+                <Image x:Name="ScreenshotImage" Visibility="Collapsed" Stretch="Fill"/>
+            </Grid>
 
             <Grid Grid.Row="4"
                   Visibility="{Binding IsRequestInProgress, Converter={StaticResource BoolToVis}}">

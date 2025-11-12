@@ -70,9 +70,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>VSCommandTable.vsct</DependentUpon>
     </Compile>
-    <Resource Include="WebAssets\TurboChat.js" />
-    <Resource Include="WebAssets\TurboChat.css" />
-    <Resource Include="WebAssets\TurboChat.html" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="lib\osx-arm64\libgit2-3f4182d.dylib">
@@ -83,6 +80,9 @@
     <None Include="README-zh.md" />
     <None Include="README.md" />
     <None Include="ReleaseNotes.md" />
+    <Resource Include="VisualChatGPTStudioShared\ToolWindows\Turbo\WebAssets\*">
+      <Link>WebAssets\%(Filename)%(Extension)</Link>
+    </Resource>
     <EmbeddedResource Include="Resources\Highlighting.xshd" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
@@ -168,7 +168,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Web.WebView2">
-      <Version>1.0.3537.50</Version>
+      <Version>1.0.3595.46</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>13.0.4</Version>

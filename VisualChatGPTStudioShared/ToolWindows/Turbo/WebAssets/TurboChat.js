@@ -6,6 +6,8 @@
     }
 });
 
+let isLoading = false;
+
 function buildCodeBlock(lang, highlightedHtml, raw) {
     const id = 'cb-' + Math.random().toString(36).slice(2);
     return `
@@ -161,7 +163,7 @@ function splitThink(text){
 
 function highlightSpecialTags(text) {
     return text.replace(
-        /(?<=^|[\s,>])((\/{2}|@)[^\s,\r\n]+)/g,
+        /(?<=^|[\s,>])(([\/@])[^\s,\r\n]+)/g,
         (match) => {
             if (match.startsWith('/')) {
                 return `<span class="command">${match}</span>`;
@@ -195,18 +197,23 @@ function addMsg(role, rawText, imageData = null){
         const img = document.createElement('img');
         img.src = imageData;
         bubble.appendChild(img);
+    }
+
+    if (role === 'me') {
         bubble.innerHTML += highlightSpecialTags(rawText);
     } else {
         bubble.innerHTML += splitThink(rawText).map(renderFrag).join('');
     }
-    
+
     wrap.appendChild(bubble);
     document.getElementById('chat').appendChild(wrap);
-    if (role === 'me') {
-        window.scrollTo(0, chat.scrollHeight);
-    }
-    else {
-        scrollToBottomIfNeeded();
+
+    if (!isLoading) {
+        if (role === 'me') {
+            window.scrollTo(0, chat.scrollHeight);
+        } else {
+            scrollToBottomIfNeeded();
+        }
     }
 }
 
@@ -224,23 +231,23 @@ function updateLastGpt(rawText) {
 function addTable(jsonString)
 {
     let rawData;
-    
+
     try {
         rawData = JSON.parse(jsonString);
     } catch (e) {
         console.error('addTable: invalid JSON', e);
         return;
     }
-    
+
     const wrap = document.createElement('div');
     wrap.className = 'msg table';
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
     wrap.appendChild(bubble);
-    
+
     const columns = Object.keys(rawData[0] || {});
     const rows    = rawData.map(o => columns.map(c => o[c]));
-    
+
     new gridjs.Grid({
         columns: columns.map(c => ({ name: c, sort: true })),
         data: rows,
@@ -290,7 +297,7 @@ function updateShouldScrollFlag() {
 }
 
 function scrollToBottomIfNeeded() {
-    if (shouldAutoScroll) {
+    if (shouldAutoScroll && !isLoading) {
         window.scrollTo(0, chat.scrollHeight);
     }
 }
@@ -326,9 +333,9 @@ function reloadThemeCss(isDark) {
                     link.setAttribute('href', 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/base16/default-dark.css');
                 } else {
                     link.setAttribute('href', 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/base16/default-light.css');
-                }                
+                }
             }
-        }        
+        }
     }
 
     mermaid.initialize({

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -103,6 +104,26 @@ public partial class TerminalWindowTurboControl
             Logger.Log);
     }
 
+    private async Task<BitmapSource> CaptureWebViewScreenshot()
+    {
+        if (_webView?.CoreWebView2 == null)
+        {
+            return null;
+        }
+
+        using var stream = new MemoryStream();
+        await _webView?.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat.Png, stream)!;
+        stream.Seek(0, SeekOrigin.Begin);
+
+        var bitmap = new BitmapImage();
+        bitmap.BeginInit();
+        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+        bitmap.StreamSource = stream;
+        bitmap.EndInit();
+
+        return bitmap;
+    }
+
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
         try
@@ -130,11 +151,7 @@ public partial class TerminalWindowTurboControl
             }
         }
 
-#if COPILOT_ENABLED //VS2022
-        _webView = new WebView2CompositionControl();
-#else //VS2019
-            _webView = new WebView2();
-#endif
+        _webView = new WebView2();
         _webView.CoreWebView2InitializationCompleted += CoreWebView2InitializationCompleted;
         _webView.NavigationCompleted += (_, _) =>
         {
@@ -200,7 +217,7 @@ public partial class TerminalWindowTurboControl
         _webView.CoreWebView2.Settings.AreDefaultScriptDialogsEnabled = true;
         _webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
 #if !DEBUG
-            _webView.CoreWebView2.Settings.AreDevToolsEnabled = false;
+        _webView.CoreWebView2.Settings.AreDevToolsEnabled = false;
 #else
         _webView.CoreWebView2.Settings.AreDevToolsEnabled = true;
 #endif
@@ -281,9 +298,9 @@ public partial class TerminalWindowTurboControl
     /// </summary>
     /// <param name="sender">The source of the event, typically the text box.</param>
     /// <param name="e">The event data containing the text that was entered.</param>
-    private async void txtRequest_TextEntered(object sender, TextCompositionEventArgs e)
+    private void txtRequest_TextEntered(object sender, TextCompositionEventArgs e)
     {
-        await _viewModel.CompletionManager.HandleTextEnteredAsync(e);
+        _ = _viewModel.CompletionManager.HandleTextEnteredAsync(e);
     }
 
     /// <summary>
@@ -381,26 +398,58 @@ public partial class TerminalWindowTurboControl
     private void ToggleHistory_Click(object sender, RoutedEventArgs e)
         => ToggleHistory(HistorySidebar.Visibility != Visibility.Visible);
 
-    private void ToggleWebViewVisibility()
+    /// <summary>
+    /// Captures a screenshot of the current WebView2 content and swaps it with a static Image control.
+    /// </summary>
+    /// <remarks>
+    /// This method is used as a workaround for the "Airspace issue" or initial rendering bugs where
+    /// the native WebView2 control might not render correctly when overlapped by WPF elements
+    /// (e.g., popups, menus) or fails to appear upon initial load in a complex host like Visual Studio.
+    ///
+    /// By capturing the visual content and displaying it as a standard WPF Image, we can safely
+    /// hide the underlying WebView2 control, allowing other UI components to render on top without
+    /// clipping issues or resolving the initial visibility glitch.
+    /// </remarks>
+    private async Task ToggleWebViewVisibilityAsync(bool visible)
     {
-#if !COPILOT_ENABLED // VS 2019
-            WebViewHost.Visibility = Overlay.Visibility == Visibility.Visible ? Visibility.Hidden : Visibility.Visible;
-#endif
+        if (!visible)
+        {
+            try
+            {
+                var screenshot = await CaptureWebViewScreenshot();
+                if (screenshot != null)
+                {
+                    ScreenshotImage.Source = screenshot;
+                    ScreenshotImage.Visibility = Visibility.Visible;
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.Log(e);
+            }
+
+            WebViewHost.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            ScreenshotImage.Visibility = Visibility.Collapsed;
+            WebViewHost.Visibility = Visibility.Visible;
+            ScreenshotImage.Source = null;
+        }
     }
 
     private void ToggleHistory(bool showHistory)
     {
+        _ = ToggleWebViewVisibilityAsync(!showHistory);
         if (showHistory)
         {
             _viewModel.ForceDownloadChats();
             HistorySidebar.Visibility = Overlay.Visibility = Visibility.Visible;
-            ToggleWebViewVisibility();
             HistorySearch.Focus();
         }
         else
         {
             HistorySidebar.Visibility = Overlay.Visibility = Visibility.Collapsed;
-            ToggleWebViewVisibility();
             txtRequest.Focus();
         }
     }
@@ -536,11 +585,10 @@ public partial class TerminalWindowTurboControl
 
     private void ToggleSettings(bool showSettings)
     {
+        _ = ToggleWebViewVisibilityAsync(!showSettings);
         SettingsSidebar.Visibility = showSettings
             ? Overlay.Visibility = Visibility.Visible
             : Overlay.Visibility = Visibility.Collapsed;
-
-        ToggleWebViewVisibility();
     }
 
     private void CloseSettingsButton_Click(object sender, RoutedEventArgs e)

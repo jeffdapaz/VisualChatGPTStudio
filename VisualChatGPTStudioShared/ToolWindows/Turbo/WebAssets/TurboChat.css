@@ -77,6 +77,7 @@ details[open] summary {
     border-radius:1rem;
     box-shadow: 0px 0px 2px var(--code-bg-color);
     color:var(--text-color);
+    box-sizing: border-box;
 }
 .me .bubble {
     background: var(--user-bg-color);
@@ -218,9 +219,4 @@ span.context {
     visibility: visible;
     opacity: 1;
     bottom: 150%;
-}
-.ag-theme-alpine-compact {
-    --ag-grid-size: 4px;
-    --ag-row-height: 28px;
-    --ag-header-height: 32px;
 }

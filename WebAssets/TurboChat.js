@@ -195,8 +195,10 @@ function addMsg(role, rawText, imageData = null){
         const img = document.createElement('img');
         img.src = imageData;
         bubble.appendChild(img);
+        bubble.innerHTML += highlightSpecialTags(rawText);
+    } else {
+        bubble.innerHTML += splitThink(rawText).map(renderFrag).join('');
     }
-    bubble.innerHTML += splitThink(rawText).map(renderFrag).join('');
     
     wrap.appendChild(bubble);
     document.getElementById('chat').appendChild(wrap);

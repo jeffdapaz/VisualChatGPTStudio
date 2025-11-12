@@ -11,8 +11,7 @@
              Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
              Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
              mc:Ignorable="d"
-             d:DesignHeight="400" d:DesignWidth="400"
-             Name="TurboChatToolWindow">
+             d:DesignHeight="400" d:DesignWidth="400">
 
     <UserControl.Resources>
         <RoutedUICommand x:Key="cancelCommand" Text="Text" />

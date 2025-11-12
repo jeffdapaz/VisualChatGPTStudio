@@ -530,7 +530,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
 
         if (!responseHandled)
         {
-            HandleResponse(RequestType.Request, false, result.Content);
+            AddMessageSegment(new() { Author = IdentifierEnum.ChatGPT, Content = result.Content });
         }
 
         return true;
@@ -650,10 +650,11 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
             }
 
             CancellationTokenSource = new();
+            var segment = new ChatMessageSegment { Author = IdentifierEnum.ChatGPT, Content = "" };
+            List<FunctionResult> resultTools;
 
-            if (Options.CompletionStream)
+            if (Options.CompletionStream) // stream
             {
-                var segment = new ChatMessageSegment { Author = IdentifierEnum.ChatGPT, Content = "..." };
                 AddMessageSegment(segment);
                 var content = new StringBuilder();
                 var chatResponses = _apiChat.StreamResponseEnumerableFromChatbotAsync(CancellationTokenSource.Token);
@@ -666,22 +667,23 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
                         await RunScriptAsync(WebFunctions.UpdateLastGpt(content.ToString()))!;
                     }
                 }
+
                 segment.Content = content.ToString();
-
-                await HandleFunctionsCallsAsync(_apiChat.StreamFunctionResults, CancellationTokenSource);
+                resultTools = _apiChat.StreamFunctionResults;
             }
-            else
+            else // non-stream
             {
-                (string, List<FunctionResult>) result = await SendRequestAsync(CancellationTokenSource);
+                (segment.Content, resultTools) = await SendRequestAsync(CancellationTokenSource);
+                AddMessageSegment(segment);
+            }
 
-                if (result.Item2 != null && result.Item2.Any())
-                {
-                    await HandleFunctionsCallsAsync(result.Item2, CancellationTokenSource);
-                }
-                else
-                {
-                    HandleResponse(commandType, _shiftKeyPressed, result.Item1);
-                }
+            if (resultTools != null && resultTools.Any())
+            {
+                await HandleFunctionsCallsAsync(resultTools, CancellationTokenSource);
+            }
+            else if (commandType == RequestType.Code && !_shiftKeyPressed)
+            {
+                HandleCodeResponse(segment);
             }
 
             // restore request in message history
@@ -891,28 +893,23 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
     /// <summary>
     /// Handles the response based on the command type and shift key state, updating the document view or chat list control items accordingly.
     /// </summary>
-    private void HandleResponse(RequestType commandType, bool shiftKeyPressed, string response)
+    private void HandleCodeResponse(ChatMessageSegment segment)
     {
-        if (commandType == RequestType.Code && !shiftKeyPressed)
-        {
-            var segments = TextFormat.GetChatTurboResponseSegments(response);
-            var stringBuilder = new StringBuilder();
+        var segments = TextFormat.GetChatTurboResponseSegments(segment.Content);
+        var stringBuilder = new StringBuilder();
 
-            foreach (var t in segments)
+        foreach (var t in segments)
+        {
+            if (t.Author == IdentifierEnum.ChatGPTCode && _docView?.TextView != null)
             {
-                if (t.Author == IdentifierEnum.ChatGPTCode && _docView?.TextView != null)
-                {
-                    _docView.TextView.TextBuffer.Replace(new Span(0, _docView.TextView.TextBuffer.CurrentSnapshot.Length), t.Content);
-                }
-                stringBuilder.AppendLine(t.Content);
+                _docView.TextView.TextBuffer.Replace(new Span(0, _docView.TextView.TextBuffer.CurrentSnapshot.Length), t.Content);
             }
 
-            AddMessageSegment(new ChatMessageSegment { Author = segments[0].Author, Content = stringBuilder.ToString() });
+            stringBuilder.AppendLine(t.Content);
         }
-        else
-        {
-            AddMessageSegment(new() { Author = IdentifierEnum.ChatGPT, Content = response });
-        }
+
+        segment.Author = segments[0].Author;
+        segment.Content = stringBuilder.ToString();
     }
 
     /// <summary>

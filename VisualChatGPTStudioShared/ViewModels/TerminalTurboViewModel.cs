@@ -53,9 +53,6 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
 
     private int _toolCallAttempt;
 
-    // TODO: move into option
-    private readonly int _toolCallMaxAttempts = 10;
-
     public TerminalTurboViewModel()
     {
         Messages.CollectionChanged += MessagesOnCollectionChanged;
@@ -436,7 +433,9 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
         foreach (var messageEntity in Messages)
         {
             var segment = messageEntity.Segments.FirstOrDefault();
-            if (segment == null || segment.Author == IdentifierEnum.Table)
+            // tools should be a response to a previous message using tool_calls
+            // But we are not saving tool_calls in Assistant
+            if (segment == null || segment.Author is IdentifierEnum.Table or IdentifierEnum.FunctionRequest or IdentifierEnum.FunctionCall)
             {
                 continue;
             }
@@ -446,7 +445,6 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
                     {
                         IdentifierEnum.Me => ChatMessageRole.User,
                         IdentifierEnum.ChatGPT or IdentifierEnum.ChatGPTCode => ChatMessageRole.Assistant,
-                        IdentifierEnum.FunctionRequest or IdentifierEnum.FunctionCall => ChatMessageRole.Tool,
                         _ => ChatMessageRole.System
                     },
                     Content = segment.Content
@@ -457,7 +455,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
         IsReadyToRequest = true;
     }
 
-    private JsonSerializerOptions _serializeOptions = new()
+    private readonly JsonSerializerOptions _serializeOptions = new()
     {
         WriteIndented = true,
         MaxDepth = 10,
@@ -474,16 +472,15 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
     /// </returns>
     private async Task<bool> HandleFunctionsCallsAsync(List<FunctionResult> functions, CancellationTokenSource cancellationToken)
     {
-        string functionResult;
-
         if (functions.Count == 0)
         {
             return false;
         }
 
-        foreach (FunctionResult function in functions)
+        foreach (var function in functions)
         {
             // TODO: Approve before to calling (auto or manual)
+            string functionResult;
             if (ApiAgent.GetApiFunctions().Select(f => f.Function.Name).Any(f => f.Equals(function.Function.Name, StringComparison.InvariantCultureIgnoreCase)))
             {
                 (string FunctionResult, string Content) apiResponse = await ApiAgent.ExecuteFunctionAsync(function, Options.LogAPIAgentRequestAndResponses);
@@ -501,18 +498,16 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
                 if (rows is { Count: > 0 })
                 {
                     // Showing the selected result in chat without sending it to LLM
-                    AddMessageSegment(new ChatMessageSegment { Author = IdentifierEnum.Table, Content =  JsonSerializer.Serialize(rows, _serializeOptions)});
+                    AddMessageSegment(new ChatMessageSegment { Author = IdentifierEnum.Table, Content = JsonSerializer.Serialize(rows, _serializeOptions) });
                 }
             }
 
-            _toolCallAttempt++;
-
             _apiChat.AppendToolMessage(function, functionResult);
             function.Function.Result = functionResult;
-            AddMessageSegment(new ChatMessageSegment { Author = IdentifierEnum.FunctionCall, Content = JsonSerializer.Serialize(function.Function, _serializeOptions)});
+            AddMessageSegment(new ChatMessageSegment { Author = IdentifierEnum.FunctionCall, Content = JsonSerializer.Serialize(function.Function, _serializeOptions) });
         }
 
-        if (_toolCallAttempt >= _toolCallMaxAttempts)
+        if (_toolCallAttempt >= Options.ToolCallMaxAttempts)
         {
             // Preventing an endless loop of calling tools
             // No tools - no calls ¯\_(ツ)_/¯
@@ -520,7 +515,6 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
         }
 
         (string Content, List<FunctionResult> ListFunctions) result = await SendRequestAsync(cancellationToken);
-
 
         var responseHandled = false;
         if (result.ListFunctions != null && result.ListFunctions.Any())

@@ -271,6 +271,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Description("If you wish to show tool call and results")]
         [DefaultValue(true)]
         public bool ShowToolCalls { get; set; } = true;
+
+        [Category("Turbo Chat")]
+        [DisplayName("Max tool calls for request")]
+        [Description("Preventing an endless loop of calling tools for one user request")]
+        [DefaultValue(16)]
+        public int ToolCallMaxAttempts { get; set; } = 16;
         #endregion Turbo Chat
 
         #region Copilot

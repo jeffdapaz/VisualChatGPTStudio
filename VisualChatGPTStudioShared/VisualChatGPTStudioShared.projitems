@@ -122,4 +122,7 @@
     <Folder Include="$(MSBuildThisFileDirectory)ToolWindows\SolutionContext\" />
     <Folder Include="$(MSBuildThisFileDirectory)ToolWindows\TerminalWindow\" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="$(MSBuildThisFileDirectory)ToolWindows\Turbo\WebAssets\*" />
+  </ItemGroup>
 </Project>

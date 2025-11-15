@@ -389,9 +389,11 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
 
     public void CreateNewChat(bool clearTools)
     {
+        ChatId = Guid.NewGuid().ToString();
+
         ChatRepository.AddChat(new ChatEntity
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = ChatId,
             Date = DateTime.Now,
             Messages = [],
             Name = $"New chat {AllChats.Count + 1}"
@@ -404,7 +406,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
         }
 
         ForceDownloadChats();
-        LoadChat();
+        LoadChat(ChatId);
     }
 
     public void ForceDownloadChats()
@@ -429,7 +431,15 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
             }
         }
 
-        _apiChat = ApiHandler.CreateConversation(Options, Options.TurboChatBehavior);
+        if (_apiChat == null)
+        {
+            _apiChat = ApiHandler.CreateConversation(Options, Options.TurboChatBehavior);
+        }
+        else
+        {
+            _apiChat.ClearConversation(Options.TurboChatBehavior);
+        }
+
         foreach (var messageEntity in Messages)
         {
             var segment = messageEntity.Segments.FirstOrDefault();
@@ -539,7 +549,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
             return false;
         }
 
-        if (string.IsNullOrWhiteSpace(RequestDoc.Text))
+        if (string.IsNullOrWhiteSpace(RequestDoc.Text) && !(!Options.OneShotToolMode && (UseSqlTools || UseApiTools)))
         {
             MessageBox.Show(Constants.MESSAGE_WRITE_REQUEST, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Information);
             return false;
@@ -622,12 +632,13 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
 
         await ExecuteRequestWithCommonHandlingAsync(async () =>
         {
-            AddMessageSegment(new() { Author = IdentifierEnum.Me, Content = requestToShowOnList });
             RequestDoc.Text = string.Empty;
 
             request = Options.MinifyRequests ? TextFormat.MinifyText(request, " ") : request;
             request = TextFormat.RemoveCharactersFromText(request, Options.CharactersToRemoveFromRequests.Split(','));
-            request = UpdateTools(request);
+            (request, requestToShowOnList) = UpdateTools(request);
+
+            AddMessageSegment(new() { Author = IdentifierEnum.Me, Content = requestToShowOnList });
 
             if (AttachedImage != null)
             {
@@ -664,6 +675,12 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
 
                 segment.Content = content.ToString();
                 resultTools = _apiChat.StreamFunctionResults;
+                _apiChat.AppendMessage(new ChatMessage
+                {
+                    Role = ChatMessageRole.Assistant,
+                    Content = segment.Content,
+                    Functions = resultTools,
+                });
             }
             else // non-stream
             {
@@ -680,11 +697,15 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
                 HandleCodeResponse(segment);
             }
 
-            // restore request in message history
-            _apiChat.ReplaceLastUserInput(requestToShowOnList);
+            if (Options.OneShotToolMode)
+            {
+                // restore request in message history
+                _apiChat.ReplaceLastUserInput(requestToShowOnList);
+            }
+
             await RunScriptAsync(WebFunctions.RenderMermaid)!;
 
-            if (firstMessage)
+            if (firstMessage && Options.AutoRenameChats)
             {
                 await UpdateHeaderAsync("Please suggest a concise and relevant title for my first message based on its context, " +
                                         "using up to five words and in the same language as my first message.");
@@ -795,9 +816,10 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
         }
     }
 
-    private string UpdateTools(string input)
+    private (string RequestToApi, string RequestToShow) UpdateTools(string input)
     {
-        var result = input;
+        var requestToApi = input;
+        var requestToShow = input;
         _apiChat.ClearTools();
         if (UseSqlTools && SqlServerConnectionSelectedIndex != -1 && SqlServerConnections.Count > SqlServerConnectionSelectedIndex)
         {
@@ -809,11 +831,30 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
                 _apiChat.AppendFunctionCall(function);
             }
 
-            result = $"""
-                      {Options.SqlServerAgentCommand}
-                      <dataBaseSchema>{dataBaseSchema}</dataBaseSchema>
-                      {input}
-                      """;
+            if (Options.OneShotToolMode)
+            {
+                requestToApi = $"""
+                                {Options.SqlServerAgentCommand}
+                                <dataBaseSchema>{dataBaseSchema}</dataBaseSchema>
+                                <task>{input}</task>
+                                """;
+                requestToShow = input;
+            }
+            else // Old mode
+            {
+                if (string.IsNullOrWhiteSpace(requestToShow))
+                {
+                    requestToApi = $"""
+                                    {Options.SqlServerAgentCommand}
+                                    <dataBaseSchema>{dataBaseSchema}</dataBaseSchema>
+                                    """;
+                    requestToShow = Options.SqlServerAgentCommand;
+                }
+                else
+                {
+                    requestToApi = requestToShow = input;
+                }
+            }
         }
         if (UseApiTools && ApiDefinitionSelectedIndex != -1 && ApiDefinitions.Count > ApiDefinitionSelectedIndex)
         {
@@ -824,15 +865,35 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
                 _apiChat.AppendFunctionCall(function);
             }
 
-            result = $"""
-                      {Options.APIAgentCommand}
-                      <apiName>{apiDefinition.Name}</apiName>
-                      <apiDefinition>{TextFormat.MinifyText(apiDefinition.Definition, string.Empty)}</apiDefinition>
-                      <task>{input}</task>
-                      """;
+            if (Options.OneShotToolMode)
+            {
+                requestToApi = $"""
+                                {Options.APIAgentCommand}
+                                <apiName>{apiDefinition.Name}</apiName>
+                                <apiDefinition>{TextFormat.MinifyText(apiDefinition.Definition, string.Empty)}</apiDefinition>
+                                <task>{input}</task>
+                                """;
+                requestToShow = input;
+            }
+            else // Old mode
+            {
+                if (string.IsNullOrWhiteSpace(requestToShow))
+                {
+                    requestToApi = $"""
+                                    {Options.APIAgentCommand}
+                                    <apiName>{apiDefinition.Name}</apiName>
+                                    <apiDefinition>{TextFormat.MinifyText(apiDefinition.Definition, string.Empty)}</apiDefinition>
+                                    """;
+                    requestToShow = Options.APIAgentCommand;
+                }
+                else
+                {
+                    requestToApi = requestToShow = input;
+                }
+            }
         }
 
-        return result;
+        return (requestToApi, requestToShow);
     }
 
     /// <summary>

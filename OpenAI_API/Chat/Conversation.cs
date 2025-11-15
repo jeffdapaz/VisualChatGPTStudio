@@ -355,6 +355,7 @@ namespace OpenAI_API.Chat
                 => new FunctionResult
                 {
                     Id = id,
+                    Type = "function",
                     Function = new FunctionToCall
                     {
                         Name = name,
@@ -387,6 +388,7 @@ namespace OpenAI_API.Chat
             bool streamError = false;
             ChatResult firstStreamedResult;
             IAsyncEnumerator<ChatResult> enumerator = null;
+            var toolCalls = new Dictionary<int, PendingToolCall>();
 
             while (retrying && !cancellationToken.IsCancellationRequested)
             {
@@ -417,9 +419,6 @@ namespace OpenAI_API.Chat
                 }
 
                 if (enumerator?.Current == null) break;
-
-                var toolCalls = new Dictionary<int, PendingToolCall>();
-                StreamFunctionResults.Clear();
 
                 // ========== streaming ==========
                 do
@@ -461,12 +460,6 @@ namespace OpenAI_API.Chat
                             }
                         }
                     }
-
-                    // 3) finish – tool_calls
-                    if (finish == "tool_calls" && toolCalls.Count > 0)
-                    {
-                        StreamFunctionResults = toolCalls.Select(c => c.Value.Convert()).ToList();
-                    }
                 } while (await enumerator.MoveNextAsync() && !cancellationToken.IsCancellationRequested);
             }
 
@@ -489,12 +482,15 @@ namespace OpenAI_API.Chat
             {
                 throw new Exception("The response Role is null, but it shouldn't be");
             }
-
-            var response = RemoveThinkBlock(responseStringBuilder.ToString());
-            if (!string.IsNullOrEmpty(response))
+            
+            StreamFunctionResults = toolCalls.Select(c => c.Value.Convert()).ToList();
+            
+            AppendMessage(new ChatMessage
             {
-                AppendMessage(responseRole, response);
-            }
+                Role = responseRole,
+                Content = responseStringBuilder.ToString(),
+                Functions = StreamFunctionResults
+            });
         }
 
         #endregion
@@ -538,10 +534,17 @@ namespace OpenAI_API.Chat
         /// <summary>
         /// Clear messages and tolls for current conversation.
         /// </summary>
-        public void ClearConversation()
+        public void ClearConversation(string systemMessage = "")
         {
+            var firstSystem = !string.IsNullOrWhiteSpace(systemMessage)
+                ? new ChatMessage
+                {
+                    Role = ChatMessageRole.System,
+                    Content = systemMessage
+                }
+                : _Messages.FirstOrDefault(m => m.rawRole.Equals("system", StringComparison.OrdinalIgnoreCase));
             _Messages.Clear();
-            tools.Clear();
+            _Messages.Add(firstSystem);
         }
     }
 }

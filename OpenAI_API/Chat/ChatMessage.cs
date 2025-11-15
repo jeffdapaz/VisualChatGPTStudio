@@ -31,7 +31,7 @@ namespace OpenAI_API.Chat
         internal string rawRole { get; set; }
 
         /// <summary>
-        /// The role of the message, which can be "system", "assistant" or "user"
+        /// The role of the message, which can be "system", "assistant", "user" or "tool"
         /// </summary>
         [JsonIgnore]
         public ChatMessageRole Role

@@ -273,8 +273,28 @@ namespace JeffPires.VisualChatGPTStudio.Options
         public bool ShowToolCalls { get; set; } = true;
 
         [Category("Turbo Chat")]
+        [DisplayName("One-shot tool mode")]
+        [Description("""
+                     API and DB tools without a preliminary “clean” activation request.
+                     The assistant immediately reads the settings, calls up the necessary tools and returns a response.
+                     The tools instructions is automatically deleted from the history: only your question and the result remain in the log.
+                     """)]
+        [DefaultValue(false)]
+        public bool OneShotToolMode { get; set; } = false;
+
+        [Category("Turbo Chat")]
+        [DisplayName("Auto-Rename Chats")]
+        [Description("""
+                     After you send the first message, the chat is automatically given a meaningful, AI-generated title instead of the generic “New Chat 123”.
+                     ⚠️ An extra LLM call is made to create the title, so additional tokens are consumed.
+                     Because the model must first answer you and then request a second pass to pick a name, the first response may take slightly longer.
+                     """)]
+        [DefaultValue(true)]
+        public bool AutoRenameChats { get; set; } = true;
+
+        [Category("Turbo Chat")]
         [DisplayName("Max tool calls for request")]
-        [Description("Preventing an endless loop of calling tools for one user request")]
+        [Description("Preventing an endless loop of calling tools for one user request.")]
         [DefaultValue(16)]
         public int ToolCallMaxAttempts { get; set; } = 16;
         #endregion Turbo Chat

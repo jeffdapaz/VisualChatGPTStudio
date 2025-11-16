@@ -104,7 +104,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Http
                 UseCookies = true,
                 AllowAutoRedirect = true,
                 ServerCertificateCustomValidationCallback = (sender, certificate, chain, sslPolicyErrors) => {
-                    if (sslPolicyErrors == SslPolicyErrors.None)
+                    if (sslPolicyErrors == SslPolicyErrors.None || options.SkipSertValidation)
                     {
                         return true;
                     }

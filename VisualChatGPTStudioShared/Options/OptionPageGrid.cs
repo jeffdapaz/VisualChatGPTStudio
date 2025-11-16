@@ -74,6 +74,16 @@ namespace JeffPires.VisualChatGPTStudio.Options
         public bool LogAPIAgentRequestAndResponses { get; set; } = false;
 
         [Category("General")]
+        [DisplayName("Skip certificate validation")]
+        [Description("""
+                     Disables TLS certificate validation when connecting to the LLM server.
+                     ⚠️ Use only in local/test environments with self-signed certificates.
+                     Leaving this ON in production exposes the app to man-in-the-middle attacks.
+                     """)]
+        [DefaultValue(false)]
+        public bool SkipSertValidation { get; set; } = false;
+
+        [Category("General")]
         [DisplayName("Use Enter to send request in chat")]
         [Description("If true, pressing Enter will send the request in chat instead of using Ctrl+Enter.")]
         [DefaultValue(false)]

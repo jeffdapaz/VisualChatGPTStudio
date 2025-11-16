@@ -918,7 +918,8 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
         catch (Exception ex)
         {
             Logger.Log(ex);
-            MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+            var message = string.Join(Environment.NewLine, EnumerateExceptions(ex).Select(e => e.Message));
+            MessageBox.Show(message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
             // remove last user message
             var lastMess = _apiChat.Messages.LastOrDefault();
             if (lastMess != null && lastMess.Role.Equals(ChatMessageRole.User))
@@ -933,6 +934,12 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
             AttachedImageText = string.Empty;
             AttachedImage = null;
         }
+    }
+
+    private static IEnumerable<Exception> EnumerateExceptions(Exception ex)
+    {
+        for (var cur = ex; cur != null; cur = cur.InnerException)
+            yield return cur;
     }
 
     /// <summary>

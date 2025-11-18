@@ -234,16 +234,6 @@
                 <ContentPresenter x:Name="WebViewHost" />
                 <Image x:Name="ScreenshotImage" Visibility="Collapsed" Stretch="Fill"/>
             </Grid>
-
-            <Grid Grid.Row="4"
-                  Visibility="{Binding IsRequestInProgress, Converter={StaticResource BoolToVis}}">
-                <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="True" />
-                <TextBlock
-                    Text="{Binding ProgressStatus}"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    Foreground="Black" />
-            </Grid>
         </Grid>
         <!-- Request textbox area -->
         <Grid Grid.Row="2"
@@ -294,25 +284,37 @@
                     Padding="4"
                     MaxHeight="200"
                     Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}">
-                <avalonEdit:TextEditor
-                    xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
-                    Name="txtRequest"
-                    Document="{Binding RequestDoc}"
-                    FontSize="16"
-                    HorizontalScrollBarVisibility="Disabled"
-                    VerticalScrollBarVisibility="Auto"
-                    ShowLineNumbers="false"
-                    TabIndex="1"
-                    IsTabStop="True"
-                    Focusable="True"
-                    Background="Transparent"
-                    Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}">
-                    <avalonEdit:TextEditor.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Command="Paste" />
-                        </ContextMenu>
-                    </avalonEdit:TextEditor.ContextMenu>
-                </avalonEdit:TextEditor>
+                <StackPanel>
+                    <Grid
+                        Visibility="{Binding IsRequestInProgress, Converter={StaticResource BoolToVis}}">
+                        <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="True" />
+                        <TextBlock
+                            Text="{Binding ProgressStatus}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Foreground="Black" />
+                    </Grid>
+                    <avalonEdit:TextEditor
+                        Visibility="{Binding IsReadyToRequest, Converter={StaticResource BoolToVis}}"
+                        xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
+                        Name="txtRequest"
+                        Document="{Binding RequestDoc}"
+                        FontSize="16"
+                        HorizontalScrollBarVisibility="Disabled"
+                        VerticalScrollBarVisibility="Auto"
+                        ShowLineNumbers="false"
+                        TabIndex="1"
+                        IsTabStop="True"
+                        Focusable="True"
+                        Background="Transparent"
+                        Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}">
+                        <avalonEdit:TextEditor.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Command="Paste" />
+                            </ContextMenu>
+                        </avalonEdit:TextEditor.ContextMenu>
+                    </avalonEdit:TextEditor>
+                </StackPanel>
             </Border>
             <!-- Request commands -->
             <StackPanel Name="grdCommands"

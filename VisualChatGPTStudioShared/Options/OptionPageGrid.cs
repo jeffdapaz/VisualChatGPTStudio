@@ -76,8 +76,7 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Category("General")]
         [DisplayName("Skip certificate validation")]
         [Description("""
-                     Disables TLS certificate validation when connecting to the LLM server.
-                     ⚠️ Use only in local/test environments with self-signed certificates.
+                     Disables TLS certificate validation when connecting to the LLM server. ⚠️ Use only with self-signed certificates.
                      Leaving this ON in production exposes the app to man-in-the-middle attacks.
                      """)]
         [DefaultValue(false)]
@@ -285,19 +284,23 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Category("Turbo Chat")]
         [DisplayName("One-shot tool mode")]
         [Description("""
-                     API and DB tools without a preliminary “clean” activation request.
-                     The assistant immediately reads the settings, calls up the necessary tools and returns a response.
+                     API and DB tools without a preliminary “clean” activation request. The assistant immediately reads the settings, calls up the necessary tools and returns a response.
                      The tools instructions is automatically deleted from the history: only your question and the result remain in the log.
                      """)]
         [DefaultValue(false)]
         public bool OneShotToolMode { get; set; } = false;
 
         [Category("Turbo Chat")]
+        [DisplayName("Use only system message tools (experimental)")]
+        [Description("Not attempt to use native tool calling and will only use system message tools.")]
+        [DefaultValue(false)]
+        public bool UseOnlySystemMessageTools { get; set; } = false;
+
+        [Category("Turbo Chat")]
         [DisplayName("Auto-Rename Chats")]
         [Description("""
                      After you send the first message, the chat is automatically given a meaningful, AI-generated title instead of the generic “New Chat 123”.
-                     ⚠️ An extra LLM call is made to create the title, so additional tokens are consumed.
-                     Because the model must first answer you and then request a second pass to pick a name, the first response may take slightly longer.
+                     ⚠️ An extra LLM call is made to create the title, so additional tokens are consumed. The first response may take slightly longer.
                      """)]
         [DefaultValue(true)]
         public bool AutoRenameChats { get; set; } = true;

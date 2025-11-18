@@ -82,6 +82,9 @@ function sendPNG(id, sender) {
         });
     };
     img.src = svgBase64;
+
+    showPopupMessage('Image copied.')
+    swapToCheckButton(sender);
 }
 
 function sendCode(id, action, sender){
@@ -95,37 +98,48 @@ function sendCode(id, action, sender){
         action: action,
         data: raw
     });
-    if (action === 'copy') {
-        let popup = document.getElementById("popup");
-        if (!popup.classList.contains('show')) {
-            popup.classList.add('show');
-            setTimeout(() => {
-                popup.classList.remove('show');
-            }, 2000);
-        }
+
+    showPopupMessage('Code ' + action === 'copy' ? 'copied!' : 'applied');
+    swapToCheckButton(sender);
+}
+
+function showPopupMessage(text)
+{
+    let popup = document.getElementById("popup");
+    if (!popup.classList.contains('show')) {
+        popup.classList.add('show');
+        popup.innerText = text;
+        setTimeout(() => {
+            popup.classList.remove('show');
+        }, 1500);
     }
+}
 
-    if (sender) {
-        const icon = sender.querySelector('i');
-        const originalClass = icon.className;
-        sender.classList.add('swap');
-
-        icon.addEventListener('transitionend', function tEnd() {
-            icon.removeEventListener('transitionend', tEnd);
-
-            icon.className = 'fa-solid fa-check';
-            sender.classList.remove('swap');
-
-            setTimeout(() => {
-                sender.classList.add('swap');
-                icon.addEventListener('transitionend', function tEnd2() {
-                    icon.removeEventListener('transitionend', tEnd2);
-                    icon.className = originalClass;
-                    sender.classList.remove('swap');
-                });
-            }, 1000);
-        });
+function swapToCheckButton(sender)
+{
+    if (!sender)
+    {
+        return;
     }
+    const icon = sender.querySelector('i');
+    const originalClass = icon.className;
+    sender.classList.add('swap');
+
+    icon.addEventListener('transitionend', function tEnd() {
+        icon.removeEventListener('transitionend', tEnd);
+
+        icon.className = 'fa-solid fa-check';
+        sender.classList.remove('swap');
+
+        setTimeout(() => {
+            sender.classList.add('swap');
+            icon.addEventListener('transitionend', function tEnd2() {
+                icon.removeEventListener('transitionend', tEnd2);
+                icon.className = originalClass;
+                sender.classList.remove('swap');
+            });
+        }, 1000);
+    });
 }
 
 const renderer = new marked.Renderer();

@@ -429,7 +429,12 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
 
             string filePath = item.FileNames[1];
 
-            IEnumerable<ClassDeclarationSyntax> classDeclarations = await GetClassDeclarationsAsync(filePath);
+            var classDeclarations = await GetClassDeclarationsAsync(filePath);
+
+            if (classDeclarations.Count == 0) // support top-level statements.
+            {
+                completionDataFilesAndMethods.Add(new CompletionData($"{projectName}.{item.Name}", filePath, GetFileIcon(item.Name), CompletionItemType.File, filePath, item.Name));
+            }
 
             foreach (ClassDeclarationSyntax classDecl in classDeclarations)
             {
@@ -473,13 +478,13 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
         /// </summary>
         /// <param name="filePath">The path to the C# file from which to extract class declarations.</param>
         /// <returns>A task that represents the asynchronous operation, containing a collection of class declarations.</returns>
-        private static async Task<IEnumerable<ClassDeclarationSyntax>> GetClassDeclarationsAsync(string filePath)
+        private static async Task<List<ClassDeclarationSyntax>> GetClassDeclarationsAsync(string filePath)
         {
             SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(File.ReadAllText(filePath));
 
             SyntaxNode root = await syntaxTree.GetRootAsync();
 
-            return root.DescendantNodes().OfType<ClassDeclarationSyntax>();
+            return root.DescendantNodes().OfType<ClassDeclarationSyntax>().ToList();
         }
 
         /// <summary>

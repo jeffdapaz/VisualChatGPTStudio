@@ -40,7 +40,7 @@ namespace OpenAI_API.Chat
         /// <summary>
         /// Specifies the model to use for ChatGPT requests.  This is just a shorthand to access <see cref="RequestParameters"/>.Model
         /// </summary>
-        public OpenAI_API.Models.Model Model
+        public Models.Model Model
         {
             get
             {
@@ -185,6 +185,20 @@ namespace OpenAI_API.Chat
                 Content = content,
                 FunctionId = result.Id
             });
+        
+        /// <summary>
+        /// Appends a tool message to the chat by creating a new ChatMessage with the specified role, content, and function ID.
+        /// </summary>
+        public void AppendUserToolMessage(string content, string functionName = "")
+            => AppendMessage(new ChatMessage
+            {
+                Role = ChatMessageRole.User,
+                Content = $"""
+                          Tool output for ls tool call {functionName}:
+                          
+                          {content}
+                          """
+            });
 
         /// <summary>
         /// An event called when the chat message history is too long, which should reduce message history length through whatever means is appropriate for your use case.  You may want to remove the first entry in the <see cref="List{ChatMessage}"/> in the <see cref="EventArgs"/>
@@ -224,6 +238,95 @@ namespace OpenAI_API.Chat
             return (response?.Content?.ToString(), response?.Functions?.ToList());
         }
 
+        public bool UseOnlySystemMessageTools = false;
+        
+        private string GenerateToolPrompt()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine();
+
+            foreach (var tool in tools)
+            {
+                sb.AppendLine(tool.Function.Description);
+                
+                sb.AppendLine($"```tool");
+                sb.AppendLine($"TOOL_NAME: {tool.Function.Name}");
+
+                if (tool.Function.Parameters != null)
+                {
+                    foreach (var param in tool.Function.Parameters.Properties)
+                    {
+                        sb.AppendLine($"BEGIN_ARG: {param.Key}");
+                        sb.AppendLine($"{param.Value.Types.FirstOrDefault()}" +
+                                      (!string.IsNullOrWhiteSpace(param.Value.Description) ? $" // {param.Value.Description}" : ""));
+                        sb.AppendLine("END_ARG");
+                    }
+                }
+                sb.AppendLine("```");
+                sb.AppendLine();
+            }
+
+            return sb.ToString();
+        }
+        
+        private List<FunctionResult> ParseToolBlock(string content)
+        {
+            var matchBlock = Regex.Match(content, "```tool.*?```", RegexOptions.Singleline);
+            if (!matchBlock.Success)
+                return [];
+            
+            var toolBlock = matchBlock.Groups[0].Value;
+            var toolNameMatch = Regex.Match(toolBlock, @"TOOL_NAME:\s*(\S+)", RegexOptions.Multiline);
+            if (!toolNameMatch.Success)
+                return [];
+
+            var toolName = toolNameMatch.Groups[1].Value;
+
+            // BEGIN_ARG: argName ... END_ARG
+            var argRegex = new Regex(@"BEGIN_ARG:\s*(\S+)\s*\n(.*?)\nEND_ARG", RegexOptions.Singleline);
+            var args = new Dictionary<string, object>();
+            foreach (Match match in argRegex.Matches(toolBlock))
+            {
+                var argName = match.Groups[1].Value;
+                var argValue = match.Groups[2].Value.Trim();
+                args[argName] = argValue;
+            }
+
+            var jsonArgs = JsonConvert.SerializeObject(args);
+
+            return [new FunctionResult
+            {
+                Type = "function",
+                Id = Guid.NewGuid().ToString(),
+                Index = 0,
+                Function = new FunctionToCall
+                {
+                    Name = toolName,
+                    Arguments = jsonArgs
+                }
+            }];
+        }
+
+        private ChatRequest GetChatRequest()
+        {
+            if (UseOnlySystemMessageTools && tools != null && tools.Any() && Messages != null && Messages.Any())
+            {
+                var req = new ChatRequest(RequestParameters)
+                {
+                    Messages = Messages?.ToList() ?? []
+                };
+                var systemMessage = req.Messages.FirstOrDefault(m => m.rawRole == "system");
+                systemMessage?.Content = systemMessage.Content.ToString().Replace("-=[ % ]=-", GenerateToolPrompt());
+                return req;
+            }
+            
+            return new ChatRequest(RequestParameters)
+            {
+                Messages = Messages?.ToList() ?? [],
+                Tools = tools != null && tools.Any() ? tools : null,
+            };
+        }
+
         /// <summary>
         /// Sends a request to the chatbot endpoint with the current set of messages and request parameters, and returns the response message content.
         /// </summary>
@@ -236,11 +339,7 @@ namespace OpenAI_API.Chat
             {
                 try
                 {
-                    ChatRequest req = new ChatRequest(RequestParameters)
-                    {
-                        Messages = Messages?.ToList() ?? new List<ChatMessage>(),
-                        Tools = tools != null && tools.Any() ? tools : null,
-                    };
+                    var req = GetChatRequest();
 
                     ChatResult res = await endpoint.CreateChatCompletionAsync(req).ConfigureAwait(false);
 
@@ -256,7 +355,18 @@ namespace OpenAI_API.Chat
                     ChatMessage newMsg = choice.Message ?? throw new Exception("The response from the API did not contain a message. This may be due to an error.");
 
                     string content = newMsg?.Content?.ToString();
+                    
+                    if (UseOnlySystemMessageTools)
+                    {
+                        var functions = ParseToolBlock(content);
+                        if (newMsg.Functions != null)
+                        {
+                            functions.AddRange(newMsg.Functions);
+                        }
 
+                        newMsg.Functions = functions;
+                    }
+                    
                     bool hasFunctions = newMsg.Functions != null && newMsg.Functions.Any();
 
                     if (string.IsNullOrWhiteSpace(content) && !hasFunctions)
@@ -393,11 +503,7 @@ namespace OpenAI_API.Chat
             while (retrying && !cancellationToken.IsCancellationRequested)
             {
                 retrying = false;
-                request = new ChatRequest(RequestParameters)
-                {
-                    Messages = Messages.ToList(),
-                    Tools = tools != null && tools.Any() ? tools : null
-                };
+                request = GetChatRequest();
 
                 try
                 {
@@ -484,12 +590,19 @@ namespace OpenAI_API.Chat
             }
             
             StreamFunctionResults = toolCalls.Select(c => c.Value.Convert()).ToList();
+
+            var content = responseStringBuilder.ToString();
+            
+            if (UseOnlySystemMessageTools)
+            {
+                StreamFunctionResults.AddRange(ParseToolBlock(content));
+            }
             
             AppendMessage(new ChatMessage
             {
                 Role = responseRole,
-                Content = responseStringBuilder.ToString(),
-                Functions = StreamFunctionResults
+                Content = content,
+                Functions = StreamFunctionResults.Count > 0 ? StreamFunctionResults : null
             });
         }
 

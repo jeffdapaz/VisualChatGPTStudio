@@ -185,6 +185,15 @@ namespace JeffPires.VisualChatGPTStudio.Agents
             return result;
         }
 
+        public static bool IsMyFunction(FunctionResult function)
+        {
+            return function.Function.Name switch
+            {
+                nameof(ExecuteReader) or nameof(ExecuteNonQuery) or nameof(ExecuteScalar) => true,
+                _ => false
+            };
+        }
+
         /// <summary>
         /// Executes a specified SQL function (ExecuteReader, ExecuteNonQuery, or ExecuteScalar) on a given database connection
         /// and returns the result. Optionally outputs the reader result for ExecuteReader operations.

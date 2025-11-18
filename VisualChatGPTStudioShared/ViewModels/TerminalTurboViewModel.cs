@@ -365,15 +365,12 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
 
     private void AddMessageSegment(ChatMessageSegment segment)
     {
-        if (string.IsNullOrEmpty(segment.Content))
-        {
-            return;
-        }
         if (string.IsNullOrEmpty(ChatId))
         {
             CreateNewChat(clearTools: false);
         }
-        Messages.Add(new MessageEntity { Order = Messages.Count + 1, Segments = [ segment ] });
+
+        Messages.Add(new MessageEntity { Order = Messages.Count + 1, Segments = [segment] });
     }
 
     private void UpdateChatHeader(string header)
@@ -433,11 +430,11 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
 
         if (_apiChat == null)
         {
-            _apiChat = ApiHandler.CreateConversation(Options, Options.TurboChatBehavior);
+            _apiChat = ApiHandler.CreateConversation(Options, GetSystemMessage());
         }
         else
         {
-            _apiChat.ClearConversation(Options.TurboChatBehavior);
+            _apiChat.ClearConversation(GetSystemMessage());
         }
 
         foreach (var messageEntity in Messages)
@@ -472,6 +469,17 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
+    private string GetSystemMessage()
+    {
+        return !Options.UseOnlySystemMessageTools
+            ? Options.TurboChatBehavior
+            : $"""
+               {Options.TurboChatBehavior}
+
+               {BuiltInAgent.GetToolUseInstructions()}
+               """;
+    }
+
     /// <summary>
     /// Handles a list of function calls asynchronously, processes their results, updates the UI, and recursively handles additional function calls if needed.
     /// </summary>
@@ -491,18 +499,17 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
         {
             // TODO: Approve before to calling (auto or manual)
             string functionResult;
-            if (ApiAgent.GetApiFunctions().Select(f => f.Function.Name).Any(f => f.Equals(function.Function.Name, StringComparison.InvariantCultureIgnoreCase)))
+            if (ApiAgent.IsMyFunction(function))
             {
-                (string FunctionResult, string Content) apiResponse = await ApiAgent.ExecuteFunctionAsync(function, Options.LogAPIAgentRequestAndResponses);
+                (functionResult, var content) = await ApiAgent.ExecuteFunctionAsync(function, Options.LogAPIAgentRequestAndResponses);
 
-                functionResult = apiResponse.FunctionResult;
-
-                if (!string.IsNullOrWhiteSpace(apiResponse.Content))
+                if (!string.IsNullOrWhiteSpace(content))
                 {
-                    functionResult = apiResponse.Content;
+                    // Showing the selected result in chat without sending it to LLM
+                    AddMessageSegment(new ChatMessageSegment { Author = IdentifierEnum.Me, Content = $"#API{Environment.NewLine}{content}"});
                 }
             }
-            else
+            else if (SqlServerAgent.IsMyFunction(function))
             {
                 functionResult = SqlServerAgent.ExecuteFunction(function, Options.LogSqlServerAgentQueries, out var rows);
                 if (rows is { Count: > 0 })
@@ -511,8 +518,30 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
                     AddMessageSegment(new ChatMessageSegment { Author = IdentifierEnum.Table, Content = JsonSerializer.Serialize(rows, _serializeOptions) });
                 }
             }
+            else if (BuiltInAgent.IsMyFunction(function))
+            {
+                (functionResult, var content) = await BuiltInAgent.ExecuteFunctionAsync(function);
 
-            _apiChat.AppendToolMessage(function, functionResult);
+                if (!string.IsNullOrWhiteSpace(content))
+                {
+                    // Showing the selected result in chat without sending it to LLM
+                    AddMessageSegment(new ChatMessageSegment { Author = IdentifierEnum.ChatGPTCode, Content = $"#TOOL {Environment.NewLine}{content}"});
+                }
+            }
+            else
+            {
+                functionResult = $"The tool '{function.Function.Name}' not exists.";
+            }
+
+            if (Options.UseOnlySystemMessageTools)
+            {
+                _apiChat.AppendUserToolMessage(functionResult, function.Function.Name);
+            }
+            else
+            {
+                _apiChat.AppendToolMessage(function, functionResult);
+            }
+
             function.Function.Result = functionResult;
             AddMessageSegment(new ChatMessageSegment { Author = IdentifierEnum.FunctionCall, Content = JsonSerializer.Serialize(function.Function, _serializeOptions) });
         }
@@ -570,149 +599,156 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
             return;
         }
 
-        if (!_selectedContextFilesCodeAppended)
+        try
         {
-            var selectedContextFilesCode = await GetSelectedContextItemsCodeAsync();
-
-            if (!string.IsNullOrWhiteSpace(selectedContextFilesCode))
+            if (!_selectedContextFilesCodeAppended)
             {
-                _apiChat.AppendSystemMessage(selectedContextFilesCode);
-                _selectedContextFilesCodeAppended = true;
-            }
-        }
+                var selectedContextFilesCode = await GetSelectedContextItemsCodeAsync();
 
-        var requestToShowOnList = RequestDoc.Text;
-        string request;
+                if (!string.IsNullOrWhiteSpace(selectedContextFilesCode))
+                {
+                    _apiChat.AppendSystemMessage(selectedContextFilesCode);
+                    _selectedContextFilesCodeAppended = true;
+                }
 
-        if (commandType == RequestType.Code)
-        {
-            _docView = await Toolkit.VS.Documents.GetActiveDocumentViewAsync();
-            var originalCode = _docView?.TextView?.TextBuffer?.CurrentSnapshot.GetText();
-            if (originalCode == null)
-            {
-                Logger.Log("Code is null");
-                return;
+                _apiChat.UseOnlySystemMessageTools = Options.UseOnlySystemMessageTools;
             }
 
-            if (Options.MinifyRequests)
+            var requestToShowOnList = RequestDoc.Text;
+            string request;
+
+            if (commandType == RequestType.Code)
             {
-                originalCode = TextFormat.MinifyText(originalCode, " ");
-            }
+                _docView = await Toolkit.VS.Documents.GetActiveDocumentViewAsync();
+                var originalCode = _docView?.TextView?.TextBuffer?.CurrentSnapshot.GetText();
+                if (originalCode == null)
+                {
+                    Logger.Log("Code is null");
+                    return;
+                }
 
-            originalCode = TextFormat.RemoveCharactersFromText(originalCode, Options.CharactersToRemoveFromRequests.Split(','));
+                if (Options.MinifyRequests)
+                {
+                    originalCode = TextFormat.MinifyText(originalCode, " ");
+                }
 
-            _apiChat.AppendSystemMessage(Options.TurboChatCodeCommand);
+                originalCode = TextFormat.RemoveCharactersFromText(originalCode, Options.CharactersToRemoveFromRequests.Split(','));
 
-            request = $"""
-                       <task>{requestToShowOnList}</task>
-                       <code>
-                       {originalCode}
-                       </code>
-                       """;
-        }
-        else
-        {
-            request = await CompletionManager.ReplaceReferencesAsync(requestToShowOnList);
-        }
+                _apiChat.AppendSystemMessage(Options.TurboChatCodeCommand);
 
-        // TODO make renaming chat is optionable + manual call
-        var firstMessage = !Messages.Any();
-
-        // TODO update baseUrl for azure.com
-        if (Options.Service == OpenAIService.OpenAI)
-        {
-            _apiChat.UpdateOpenAiApi(Options.ApiKey, Options.BaseAPI);
-            if (!string.IsNullOrEmpty(Options.Model))
-            {
-                _apiChat.RequestParameters.Model = Options.Model;
-            }
-        }
-
-        _toolCallAttempt = 0;
-
-        await ExecuteRequestWithCommonHandlingAsync(async () =>
-        {
-            RequestDoc.Text = string.Empty;
-
-            request = Options.MinifyRequests ? TextFormat.MinifyText(request, " ") : request;
-            request = TextFormat.RemoveCharactersFromText(request, Options.CharactersToRemoveFromRequests.Split(','));
-            (request, requestToShowOnList) = UpdateTools(request);
-
-            AddMessageSegment(new() { Author = IdentifierEnum.Me, Content = requestToShowOnList });
-
-            if (AttachedImage != null)
-            {
-                // send image with request
-                List<object> chatContent = [
-                    new ChatContentForImage(AttachedImage),
-                    new { type = "text", text = request }
-                ];
-                _apiChat.AppendUserInput(chatContent);
+                request = $"""
+                           <task>{requestToShowOnList}</task>
+                           <code>
+                           {originalCode}
+                           </code>
+                           """;
             }
             else
             {
-                _apiChat.AppendUserInput(request);
+                request = await CompletionManager.ReplaceReferencesAsync(requestToShowOnList);
             }
 
-            CancellationTokenSource = new();
-            var segment = new ChatMessageSegment { Author = IdentifierEnum.ChatGPT, Content = "" };
-            List<FunctionResult> resultTools;
+            var firstMessage = !Messages.Any();
 
-            if (Options.CompletionStream) // stream
+            // TODO update baseUrl for azure.com
+            if (Options.Service == OpenAIService.OpenAI)
             {
-                AddMessageSegment(segment);
-                var content = new StringBuilder();
-                var chatResponses = _apiChat.StreamResponseEnumerableFromChatbotAsync(CancellationTokenSource.Token);
-                await foreach (var fragment in chatResponses)
+                _apiChat.UpdateOpenAiApi(Options.ApiKey, Options.BaseAPI);
+                if (!string.IsNullOrEmpty(Options.Model))
                 {
-                    content.Append(fragment);
-                    // TODO: send fragment instead full content
-                    if (content.Length > 0) // dont show empty bubble
-                    {
-                        await RunScriptAsync(WebFunctions.UpdateLastGpt(content.ToString()))!;
-                    }
+                    _apiChat.RequestParameters.Model = Options.Model;
+                }
+            }
+
+            _toolCallAttempt = 0;
+
+            await ExecuteRequestWithCommonHandlingAsync(async () =>
+            {
+                RequestDoc.Text = string.Empty;
+
+                request = Options.MinifyRequests ? TextFormat.MinifyText(request, " ") : request;
+                request = TextFormat.RemoveCharactersFromText(request, Options.CharactersToRemoveFromRequests.Split(','));
+                UpdateTools(ref request, ref requestToShowOnList);
+
+                AddMessageSegment(new() { Author = IdentifierEnum.Me, Content = requestToShowOnList });
+
+                if (AttachedImage != null)
+                {
+                    // send image with request
+                    List<object> chatContent =
+                    [
+                        new ChatContentForImage(AttachedImage),
+                        request
+                    ];
+                    _apiChat.AppendUserInput(chatContent);
+                }
+                else
+                {
+                    _apiChat.AppendUserInput(request);
                 }
 
-                segment.Content = content.ToString();
-                resultTools = _apiChat.StreamFunctionResults;
-                _apiChat.AppendMessage(new ChatMessage
+                CancellationTokenSource = new();
+                var segment = new ChatMessageSegment { Author = IdentifierEnum.ChatGPT, Content = "" };
+                List<FunctionResult> resultTools;
+
+                if (Options.CompletionStream) // stream
                 {
-                    Role = ChatMessageRole.Assistant,
-                    Content = segment.Content,
-                    Functions = resultTools,
-                });
-            }
-            else // non-stream
-            {
-                (segment.Content, resultTools) = await SendRequestAsync(CancellationTokenSource);
-                AddMessageSegment(segment);
-            }
+                    AddMessageSegment(segment);
+                    var content = new StringBuilder();
+                    var chatResponses = _apiChat.StreamResponseEnumerableFromChatbotAsync(CancellationTokenSource.Token);
+                    await foreach (var fragment in chatResponses)
+                    {
+                        content.Append(fragment);
+                        // TODO: send fragment instead full content
+                        if (content.Length > 0) // dont show empty bubble
+                        {
+                            await RunScriptAsync(WebFunctions.UpdateLastGpt(content.ToString()))!;
+                        }
+                    }
 
-            if (resultTools != null && resultTools.Any())
-            {
-                await HandleFunctionsCallsAsync(resultTools, CancellationTokenSource);
-            }
-            else if (commandType == RequestType.Code && !_shiftKeyPressed)
-            {
-                HandleCodeResponse(segment);
-            }
+                    segment.Content = content.ToString();
+                    resultTools = _apiChat.StreamFunctionResults;
+                }
+                else // non-stream
+                {
+                    (segment.Content, resultTools) = await SendRequestAsync(CancellationTokenSource);
+                    AddMessageSegment(segment);
+                }
 
-            if (Options.OneShotToolMode)
-            {
-                // restore request in message history
-                _apiChat.ReplaceLastUserInput(requestToShowOnList);
-            }
+                if (resultTools != null && resultTools.Any())
+                {
+                    segment.Content = $"Wanted to call: {string.Join(", ", resultTools.Select(f => f.Function.Name))}";
+                    await RunScriptAsync(WebFunctions.UpdateLastGpt(segment.Content))!;
+                    // TODO: Ask approve or reject.
+                    await HandleFunctionsCallsAsync(resultTools, CancellationTokenSource);
+                }
+                else if (commandType == RequestType.Code && !_shiftKeyPressed)
+                {
+                    HandleCodeResponse(segment);
+                }
 
-            await RunScriptAsync(WebFunctions.RenderMermaid)!;
+                if (Options.OneShotToolMode)
+                {
+                    // restore request in message history
+                    _apiChat.ReplaceLastUserInput(requestToShowOnList);
+                }
 
-            if (firstMessage && Options.AutoRenameChats)
-            {
-                await UpdateHeaderAsync("Please suggest a concise and relevant title for my first message based on its context, " +
-                                        "using up to five words and in the same language as my first message.");
-            }
+                await RunScriptAsync(WebFunctions.RenderMermaid)!;
 
-            ChatRepository.UpdateMessages(ChatId, Messages.ToList());
-        });
+                if (firstMessage && Options.AutoRenameChats)
+                {
+                    await UpdateHeaderAsync("Please suggest a concise and relevant title for my first message based on its context, " +
+                                            "using up to five words and in the same language as my first message.");
+                }
+
+                ChatRepository.UpdateMessages(ChatId, Messages.ToList());
+            });
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Error sending request: {ex.Message}", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Error);
+            Logger.Log(ex);
+        }
     }
 
     public async Task ComputerUseAsync()
@@ -816,10 +852,8 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
         }
     }
 
-    private (string RequestToApi, string RequestToShow) UpdateTools(string input)
+    private void UpdateTools(ref string requestToApi, ref string requestToShow)
     {
-        var requestToApi = input;
-        var requestToShow = input;
         _apiChat.ClearTools();
         if (UseSqlTools && SqlServerConnectionSelectedIndex != -1 && SqlServerConnections.Count > SqlServerConnectionSelectedIndex)
         {
@@ -836,26 +870,19 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
                 requestToApi = $"""
                                 {Options.SqlServerAgentCommand}
                                 <dataBaseSchema>{dataBaseSchema}</dataBaseSchema>
-                                <task>{input}</task>
+                                <task>{requestToApi}</task>
                                 """;
-                requestToShow = input;
             }
-            else // Old mode
+            else if (string.IsNullOrWhiteSpace(requestToApi))
             {
-                if (string.IsNullOrWhiteSpace(requestToShow))
-                {
-                    requestToApi = $"""
-                                    {Options.SqlServerAgentCommand}
-                                    <dataBaseSchema>{dataBaseSchema}</dataBaseSchema>
-                                    """;
-                    requestToShow = Options.SqlServerAgentCommand;
-                }
-                else
-                {
-                    requestToApi = requestToShow = input;
-                }
+                requestToApi = $"""
+                                {Options.SqlServerAgentCommand}
+                                <dataBaseSchema>{dataBaseSchema}</dataBaseSchema>
+                                """;
+                requestToShow = Options.SqlServerAgentCommand;
             }
         }
+
         if (UseApiTools && ApiDefinitionSelectedIndex != -1 && ApiDefinitions.Count > ApiDefinitionSelectedIndex)
         {
             var apiDefinition = ApiDefinitions[ApiDefinitionSelectedIndex];
@@ -871,29 +898,19 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
                                 {Options.APIAgentCommand}
                                 <apiName>{apiDefinition.Name}</apiName>
                                 <apiDefinition>{TextFormat.MinifyText(apiDefinition.Definition, string.Empty)}</apiDefinition>
-                                <task>{input}</task>
+                                <task>{requestToApi}</task>
                                 """;
-                requestToShow = input;
             }
-            else // Old mode
+            else if (string.IsNullOrWhiteSpace(requestToApi))
             {
-                if (string.IsNullOrWhiteSpace(requestToShow))
-                {
-                    requestToApi = $"""
-                                    {Options.APIAgentCommand}
-                                    <apiName>{apiDefinition.Name}</apiName>
-                                    <apiDefinition>{TextFormat.MinifyText(apiDefinition.Definition, string.Empty)}</apiDefinition>
-                                    """;
-                    requestToShow = Options.APIAgentCommand;
-                }
-                else
-                {
-                    requestToApi = requestToShow = input;
-                }
+                requestToApi = $"""
+                                {Options.APIAgentCommand}
+                                <apiName>{apiDefinition.Name}</apiName>
+                                <apiDefinition>{TextFormat.MinifyText(apiDefinition.Definition, string.Empty)}</apiDefinition>
+                                """;
+                requestToShow = Options.APIAgentCommand;
             }
         }
-
-        return (requestToApi, requestToShow);
     }
 
     /// <summary>

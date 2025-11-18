@@ -42,6 +42,15 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
             return ApiAgentRepository.GetAPIs().OrderBy(x => x.Name).ToList();
         }
 
+        public static bool IsMyFunction(FunctionResult function)
+        {
+            return function.Function.Name switch
+            {
+                nameof(CallSoapApiAsync) or nameof(CallRestApiAsync) => true,
+                _ => false
+            };
+        }
+
         /// <summary>
         /// Returns a list of functions that the AI can call to interact with an API.
         /// </summary>
@@ -196,7 +205,7 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
                     responseContent = null;
                 }
 
-                return ($"Response Status Code: {responseStatusCode}", responseContent);
+                return ($"Response Status Code: {responseStatusCode}. The data is displayed to the user. The user in the plugin settings did not allow data to be transferred to the agent from the API.", responseContent);
             }
             catch (Exception ex)
             {

@@ -131,6 +131,13 @@ namespace OpenAI_API.Chat
         /// </summary>
         [JsonProperty("tools")]
         public List<FunctionRequest> Tools { get; set; }
+        
+        /// <summary>
+        /// optimally we'd have tool_choice as 'required', but many providers, especially
+        /// those using SGlang don't properly handle that setting and barf with a 400.
+        /// </summary>
+        [JsonProperty("tool_choice")]
+        public string ToolChoice { get; set; } = "auto"; 
 
         /// <summary>
         /// Creates a new, empty <see cref="ChatRequest"/>

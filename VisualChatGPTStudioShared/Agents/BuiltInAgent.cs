@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -14,6 +13,7 @@ using VS = Community.VisualStudio.Toolkit.VS;
 using Microsoft.VisualStudio.Shell;
 using OpenAI_API.Functions;
 using Process = System.Diagnostics.Process;
+using System.Text;
 
 namespace JeffPires.VisualChatGPTStudio.Agents;
 
@@ -29,6 +29,194 @@ public static class BuiltInAgent
             _ => false
         };
     }
+
+    private static readonly List<Tool> tools =
+    [
+        new Tool
+        {
+            Name = "read_file",
+            Description = """
+                          To read a file with a known filepath, use the read_file tool. For example, to read a file located at 'path/to/file.txt', you would respond with this:
+                          ```tool
+                          TOOL_NAME: read_file
+                          BEGIN_ARG: filepath
+                          path/to/the_file.txt
+                          END_ARG
+                          ```
+                          """,
+            Approval = ApprovalKind.Ask
+        },
+
+        new Tool
+        {
+            Name = "create_new_file",
+            Description = """
+                          To create a NEW file, use the create_new_file tool with the relative filepath and new contents. For example, to create a file located at 'path/to/file.txt', you would respond with:
+                          ```tool
+                          TOOL_NAME: create_new_file
+                          BEGIN_ARG: filepath
+                          path/to/file.txt
+                          END_ARG
+                          BEGIN_ARG: contents
+                          Contents of the file
+                          END_ARG
+                          ```
+                          """,
+            Approval = ApprovalKind.Ask
+        },
+
+        new Tool
+        {
+            Name = "run_terminal_command",
+            Description = """
+                          To run a terminal command, use the run_terminal_command tool
+                          The shell is not stateful and will not remember any previous commands.
+                          When a command is run in the background ALWAYS suggest using shell commands to stop it; NEVER suggest using Ctrl+C.
+                          When suggesting subsequent shell commands ALWAYS format them in shell command blocks.
+                          Do NOT perform actions requiring special/admin privileges.
+                          Choose terminal commands and scripts optimized for win32 and x64 and shell powershell.exe.
+                          You can also optionally include the waitForCompletion argument set to false to run the command in the background, without output message.
+                          For example, to see the git log, you could respond with:
+                          ```tool
+                          TOOL_NAME: run_terminal_command
+                          BEGIN_ARG: command
+                          git log
+                          END_ARG
+                          ```
+                          """,
+            Approval = ApprovalKind.Ask
+        },
+
+        new Tool
+        {
+            Name = "file_glob_search",
+            Description = """
+                          To return a list of files based on a glob search pattern, use the file_glob_search tool
+                          ```tool
+                          TOOL_NAME: file_glob_search
+                          BEGIN_ARG: pattern
+                          *.cs
+                          END_ARG
+                          ```
+                          """,
+            Approval = ApprovalKind.Ask
+        },
+
+        new Tool
+        {
+            Name = "view_diff",
+            Description = """
+                          To view the current git diff, use the view_diff tool. This will show you the changes made in the working directory compared to the last commit.
+                          ```tool
+                          TOOL_NAME: view_diff
+                          ```
+                          """,
+            Approval = ApprovalKind.Ask
+        },
+
+        new Tool
+        {
+            Name = "read_currently_open_file",
+            Description = """
+                          To view the user's currently open file, use the read_currently_open_file tool.
+                          If the user is asking about a file and you don't see any code, use this to check the current file
+                          ```tool
+                          TOOL_NAME: read_currently_open_file
+                          ```
+                          """,
+            Approval = ApprovalKind.Ask
+        },
+
+        new Tool
+        {
+            Name = "ls",
+            Description = """
+                          To list files and folders in a given directory, call the ls tool with "dirPath" and "recursive". For example:
+                          ```tool
+                          TOOL_NAME: ls
+                          BEGIN_ARG: dirPath
+                          path/to/dir
+                          END_ARG
+                          BEGIN_ARG: recursive
+                          false
+                          END_ARG
+                          ```
+                          """,
+            Approval = ApprovalKind.Ask
+        },
+
+        new Tool
+        {
+            Name = "fetch_url_content",
+            Description = """
+                          To fetch the content of a URL, use the fetch_url_content tool. For example, to read the contents of a webpage, you might respond with:
+                          ```tool
+                          TOOL_NAME: fetch_url_content
+                          BEGIN_ARG: url
+                          https://example.com
+                          END_ARG
+                          ```
+                          """,
+            Approval = ApprovalKind.Ask
+        },
+
+        new Tool
+        {
+            Name = "multi_edit",
+            Description = """
+                          To make multiple edits to a single file, use the multi_edit tool with a filepath (relative to the root of the workspace) and an array of edit operations.
+                          For example, you could respond with:
+                          ```tool
+                          TOOL_NAME: multi_edit
+                          BEGIN_ARG: filepath
+                          path/to/file.ts
+                          END_ARG
+                          BEGIN_ARG: edits
+                          [
+                            { "old_string": "const oldVar = 'value'", "new_string": "const newVar = 'updated'" },
+                            { "old_string": "oldFunction()", "new_string": "newFunction()", "replace_all": true }
+                          ]
+                          END_ARG
+                          ```
+                          """,
+            Approval = ApprovalKind.Ask
+        },
+
+        new Tool
+        {
+            Name = "grep_search",
+            Description = """
+                          To perform a grep search within the project, call the grep_search tool with the query pattern to match. For example:
+                          ```tool
+                          TOOL_NAME: grep_search
+                          BEGIN_ARG: query
+                          .*main_services.*
+                          END_ARG
+                          ```
+                          """,
+            Approval = ApprovalKind.Ask
+        },
+
+        new Tool
+        {
+            Name = "view_diff_files",
+            Description = """
+                          To show the difference between two files in Visual Studio interface, call the view_diff_files tool with relative file paths. For example:
+                          ```tool
+                          TOOL_NAME: view_diff_files
+                          BEGIN_ARG: file1
+                          path/to/file1.cs
+                          END_ARG
+                          BEGIN_ARG: file2
+                          path/to/file2.cs
+                          END_ARG
+                          ```
+                          """,
+            Approval = ApprovalKind.Ask
+        }
+    ];
+
+    public static IReadOnlyList<Tool> Tools => tools.AsReadOnly();
 
     public static async Task<(string FunctionResult, string Content)> ExecuteFunctionAsync(FunctionResult function)
     {
@@ -118,7 +306,7 @@ public static class BuiltInAgent
     {
         var args = JsonSerializer.Deserialize<Dictionary<string, string>>(arguments);
         var command = args["command"];
-        var waitForCompletion = args.ContainsKey("waitForCompletion") && bool.Parse(args["waitForCompletion"]);
+        var waitForCompletion = !args.ContainsKey("waitForCompletion") || bool.Parse(args["waitForCompletion"]);
 
         var solutionPath = await GetSolutionPathAsync();
 
@@ -146,7 +334,8 @@ public static class BuiltInAgent
             await Task.Run(() => process.WaitForExit());
 
             var error = await errorTask;
-            return (string.IsNullOrEmpty(error) ? "Command executed successfully" : $"Error: {error}", await outputTask);
+            var output = await outputTask;
+            return (string.IsNullOrEmpty(error) ? $"Command executed successfully: {output}" : $"Error: {error}", output);
         }
 
         return ("Command started in background", "");
@@ -236,11 +425,15 @@ public static class BuiltInAgent
             request.UserAgent = "Visual_ChatGpt_Studio";
             request.Timeout = 3000;
 
+
             using var response = await request.GetResponseAsync();
             using var stream = response.GetResponseStream();
+
+            var buffer = new char[1000];
             using var reader = new StreamReader(stream);
-            var content = await reader.ReadToEndAsync();
-            if (content.Length > 1000)
+            var read = await reader.ReadAsync(buffer, 0, buffer.Length);
+            var content = new string(buffer, 0, read);
+            if (content.Length >= 1000)
             {
                 content = content.Substring(0, 1000) + " ...";
             }
@@ -351,150 +544,39 @@ public static class BuiltInAgent
     }
 
     public static string GetToolUseInstructions()
-        => """
-           <tool_use_instructions>
-           You have access to several "tools" that you can use at any time to retrieve information and/or perform tasks for the User.
-           To use a tool, respond with a tool code block (```tool) using the syntax shown in the examples below:
+    {
+        if (tools.Count == 0)
+        {
+            return string.Empty;
+        }
 
-           The following tools are available to you:
+        var sb = new StringBuilder();
+        sb.AppendLine("""
+                      <tool_use_instructions>
+                      You have access to several "tools" that you can use at any time to retrieve information and/or perform tasks for the User.
+                      To use a tool, respond with a tool code block (```tool) using the syntax shown in the examples below:
 
-           To read a file with a known filepath, use the read_file tool. For example, to read a file located at 'path/to/file.txt', you would respond with this:
-           ```tool
-           TOOL_NAME: read_file
-           BEGIN_ARG: filepath
-           path/to/the_file.txt
-           END_ARG
-           ```
+                      The following tools are available to you:
 
-           To create a NEW file, use the create_new_file tool with the relative filepath and new contents. For example, to create a file located at 'path/to/file.txt', you would respond with:
-           ```tool
-           TOOL_NAME: create_new_file
-           BEGIN_ARG: filepath
-           path/to/the_file.txt
-           END_ARG
-           BEGIN_ARG: contents
-           Contents of the file
-           END_ARG
-           ```
+                      """);
 
-           To run a terminal command, use the run_terminal_command tool
-           The shell is not stateful and will not remember any previous commands.      When a command is run in the background ALWAYS suggest using shell commands to stop it; NEVER suggest using Ctrl+C.      When suggesting subsequent shell commands ALWAYS format them in shell command blocks.      Do NOT perform actions requiring special/admin privileges.      Choose terminal commands and scripts optimized for win32 and x64 and shell powershell.exe.
-           You can also optionally include the waitForCompletion argument set to false to run the command in the background.
-           For example, to see the git log, you could respond with:
-           ```tool
-           TOOL_NAME: run_terminal_command
-           BEGIN_ARG: command
-           git log
-           END_ARG
-           ```
+        foreach (var t in tools)
+        {
+            var fragment = t.GeneratePromptFragment();
+            if (string.IsNullOrWhiteSpace(fragment))
+                continue;
+            sb.AppendLine(fragment);
+            sb.AppendLine();
+        }
 
-           To return a list of files based on a glob search pattern, use the file_glob_search tool
-           ```tool
-           TOOL_NAME: file_glob_search
-           BEGIN_ARG: pattern
-           *.cs
-           END_ARG
-           ```
+        sb.AppendLine("""
 
-           To view the current git diff, use the view_diff tool. This will show you the changes made in the working directory compared to the last commit.
-           ```tool
-           TOOL_NAME: view_diff
-           ```
-
-           To view the user's currently open file, use the read_currently_open_file tool.
-           If the user is asking about a file and you don't see any code, use this to check the current file
-           ```tool
-           TOOL_NAME: read_currently_open_file
-           ```
-
-           To list files and folders in a given directory, call the ls tool with "dirPath" and "recursive". For example:
-           ```tool
-           TOOL_NAME: ls
-           BEGIN_ARG: dirPath
-           path/to/dir
-           END_ARG
-           BEGIN_ARG: recursive
-           false
-           END_ARG
-           ```
-
-           Sometimes the user will provide feedback or guidance on your output. If you were not aware of these "rules", consider using the create_rule_block tool to persist the rule for future interactions.
-           This tool cannot be used to edit existing rules, but you can search in the ".continue/rules" folder and use the edit tool to manage rules.
-           To create a rule, respond with a create_rule_block tool call and the following arguments:
-           - name: Short, descriptive name summarizing the rule's purpose (e.g. 'React Standards', 'Type Hints')
-           - rule: Clear, imperative instruction for future code generation (e.g. 'Use named exports', 'Add Python type hints'). Each rule should focus on one specific standard.
-           - description: Description of when this rule should be applied. Required for Agent Requested rules (AI decides when to apply). Optional for other types.
-           - globs: Optional file patterns to which this rule applies (e.g. ['**/*.{ts,tsx}'] or ['src/**/*.ts', 'tests/**/*.ts'])
-           - alwaysApply: Whether this rule should always be applied. Set to false for Agent Requested and Manual rules. Omit or set to true for Always and Auto Attached rules.
-           For example:
-           ```tool
-           TOOL_NAME: create_rule_block
-           BEGIN_ARG: name
-           Use PropTypes
-           END_ARG
-           BEGIN_ARG: rule
-           Always use PropTypes when declaring React component properties
-           END_ARG
-           BEGIN_ARG: description
-           Ensure that all prop types are explicitly declared for better type safety and code maintainability in React components.
-           END_ARG
-           BEGIN_ARG: globs
-           **/*.cs
-           END_ARG
-           BEGIN_ARG: alwaysApply
-           false
-           END_ARG
-           ```
-
-           To fetch the content of a URL, use the fetch_url_content tool. For example, to read the contents of a webpage, you might respond with:
-           ```tool
-           TOOL_NAME: fetch_url_content
-           BEGIN_ARG: url
-           https://example.com
-           END_ARG
-           ```
-
-           To make multiple edits to a single file, use the multi_edit tool with a filepath (relative to the root of the workspace) and an array of edit operations.
-
-           For example, you could respond with:
-           ```tool
-           TOOL_NAME: multi_edit
-           BEGIN_ARG: filepath
-           path/to/file.ts
-           END_ARG
-           BEGIN_ARG: edits
-           [
-             { "old_string": "const oldVar = 'value'", "new_string": "const newVar = 'updated'" },
-             { "old_string": "oldFunction()", "new_string": "newFunction()", "replace_all": true }
-           ]
-           END_ARG
-           ```
-
-           To perform a grep search within the project, call the grep_search tool with the query pattern to match. For example:
-           ```tool
-           TOOL_NAME: grep_search
-           BEGIN_ARG: query
-           .*main_services.*
-           END_ARG
-           ```
-
-           To show the difference between two files in Visual Studio interface, call the view_diff_files tool with relative file paths. For example:
-           ```tool
-           TOOL_NAME: view_diff_files
-           BEGIN_ARG: file1
-           path/to/file1.cs
-           END_ARG
-           BEGIN_ARG: file2
-           path/to/file2.cs
-           END_ARG
-           ```
-
-           -=[ % ]=-
-
-           If it seems like the User's request could be solved with one of the tools, choose the BEST one for the job based on the user's request and the tool descriptions
-           Then send the ```tool codeblock (YOU call the tool, not the user). Always start the codeblock on a new line.
-           Do not perform actions with/for hypothetical files. Ask the user or use tools to deduce which files are relevant.
-           You can only call ONE tool at at time. The tool codeblock should be the last thing you say; stop your response after the tool codeblock.
-           </tool_use_instructions>
-           """;
+                      If it seems like the User's request could be solved with one of the tools, choose the BEST one for the job based on the user's request and the tool descriptions
+                      Then send the ```tool codeblock (YOU call the tool, not the user). Always start the codeblock on a new line.
+                      Do not perform actions with/for hypothetical files. Ask the user or use tools to deduce which files are relevant.
+                      You can only call ONE tool at at time. The tool codeblock should be the last thing you say; stop your response after the tool codeblock.
+                      </tool_use_instructions>
+                      """);
+        return sb.ToString();
+    }
 }

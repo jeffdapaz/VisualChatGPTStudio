@@ -54,6 +54,11 @@ function buildMermaidBlock(lang, text)
 /* send messages to WebView2 */
 function sendPNG(id, sender) {
     const svgEl = document.querySelector('#'+id+' svg');
+    if (!svgEl)
+    {
+        showPopupMessage('Image not found.');
+        swapToCheckButton(sender, true);
+    }
     const svgString = new XMLSerializer().serializeToString(svgEl);
     const svgBase64 = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
     const img = new Image();
@@ -99,7 +104,7 @@ function sendCode(id, action, sender){
         data: raw
     });
 
-    showPopupMessage('Code ' + action === 'copy' ? 'copied!' : 'applied');
+    showPopupMessage('Code ' + (action === 'copy' ? 'copied!' : 'applied'));
     swapToCheckButton(sender);
 }
 
@@ -115,7 +120,7 @@ function showPopupMessage(text)
     }
 }
 
-function swapToCheckButton(sender)
+function swapToCheckButton(sender, isError = false)
 {
     if (!sender)
     {
@@ -128,7 +133,7 @@ function swapToCheckButton(sender)
     icon.addEventListener('transitionend', function tEnd() {
         icon.removeEventListener('transitionend', tEnd);
 
-        icon.className = 'fa-solid fa-check';
+        icon.className = 'fa-solid ' + (isError ? 'fa-xmark' : 'fa-check');
         sender.classList.remove('swap');
 
         setTimeout(() => {

@@ -14,6 +14,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Agents\ApiAgent\ApiTagItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Agents\BuiltInAgent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Agents\SqlServerAgent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Agents\Tool.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AddComments.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AddSummary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AddSummaryForAll.cs" />

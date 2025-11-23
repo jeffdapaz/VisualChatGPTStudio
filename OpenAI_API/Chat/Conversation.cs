@@ -240,6 +240,8 @@ namespace OpenAI_API.Chat
             return (content, functions);
         }
 
+        public string ResponseModel { get; private set; } = string.Empty;
+
         public bool UseOnlySystemMessageTools { get; set; } = false;
 
         public void UpdateFirstSystemMessage(string systemMessageContent)
@@ -323,6 +325,8 @@ namespace OpenAI_API.Chat
                         throw new Exception("The response from the API did not contain any choices. This may be due to an error.");
                     }
 
+                    ResponseModel = res.Model;
+                    
                     ChatChoice choice = res.Choices[0];
 
                     ChatMessage newMsg = choice.Message ?? throw new Exception("The response from the API did not contain a message. This may be due to an error.");
@@ -484,6 +488,10 @@ namespace OpenAI_API.Chat
                     enumerator = resStream.GetAsyncEnumerator(cancellationToken);
                     await enumerator.MoveNextAsync();
                     firstStreamedResult = enumerator.Current;
+                    if (firstStreamedResult.Model != null)
+                    {
+                        ResponseModel = firstStreamedResult.Model;
+                    }
                     responseRole = firstStreamedResult.Choices.FirstOrDefault()?.Delta.Role;
                 }
                 catch (HttpRequestException ex)
@@ -526,7 +534,7 @@ namespace OpenAI_API.Chat
                     {
                         foreach (var tc in delta.Functions)
                         {
-                            var idx = tc.Index;
+                            var idx = tc.Index ?? 0;
                             if (!toolCalls.TryGetValue(idx, out var pending))
                             {
                                 pending = new PendingToolCall(tc.Id, tc.Function.Name);

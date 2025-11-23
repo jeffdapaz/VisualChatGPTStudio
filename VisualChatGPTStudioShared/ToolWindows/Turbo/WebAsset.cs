@@ -43,7 +43,7 @@ public static class WebAsset
         File.WriteAllText(target, content, Encoding.UTF8);
     }
 
-    public static void DeployTheme()
+    public static bool DeployTheme()
     {
         try
         {
@@ -68,11 +68,13 @@ public static class WebAsset
             }}
         ";
             File.WriteAllText(Path.Combine(_root, "theme.css"), css);
+            return IsDarkTheme;
         }
         catch (Exception e)
         {
             Logger.Log(e);
             MessageBox.Show("Deploy theme error: " + e.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            return true;
         }
     }
 

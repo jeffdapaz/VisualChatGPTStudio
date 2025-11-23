@@ -12,9 +12,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)Agents\ApiAgent\ApiAgent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Agents\ApiAgent\ApiItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Agents\ApiAgent\ApiTagItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Agents\ApprovalKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Agents\BuiltInAgent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Agents\RiskLevel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Agents\SqlServerAgent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Agents\Tool.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Agents\ToolManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Agents\ToolResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Agents\ToolToCall.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AddComments.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AddSummary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AddSummaryForAll.cs" />
@@ -72,6 +77,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ComputerUse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Enums.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Http\HttpLogs.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\JsonUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\NullableToVisibilityConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Repositories\ApiAgentRepository.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Repositories\ChatRepository.cs" />

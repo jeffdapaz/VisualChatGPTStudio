@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using JeffPires.VisualChatGPTStudio.Agents;
+using JeffPires.VisualChatGPTStudio.Utils;
 using VisualChatGPTStudioShared.Utils.Http;
 using VisualChatGPTStudioShared.Utils.Repositories;
 using Parameter = OpenAI_API.Functions.Parameter;
@@ -21,6 +23,184 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
     /// </summary>
     public static class ApiAgent
     {
+        public static readonly IReadOnlyList<Tool> Tools =
+        [
+            new(ExecuteFunctionAsync)
+            {
+                Name = "call_rest_api",
+                Description = "Calls a REST API endpoint using the specified HTTP method, with optional headers, query string, and body, and returns the response.",
+                ExampleToSystemMessage = """
+                                         Use this when you need to call RESTful web services, HTTP APIs, or fetch data from web endpoints.
+                                         You can also add 'body' for POST/PUT/PATCH methods or 'queryParams' for GET method, in JSON format.
+
+                                         Example usage:
+                                         ```tool
+                                         TOOL_NAME: call_rest_api
+                                         BEGIN_ARG: apiName
+                                         Users API
+                                         END_ARG
+                                         BEGIN_ARG: endPoint
+                                         /{controller}/{action}
+                                         END_ARG
+                                         BEGIN_ARG: method
+                                         GET
+                                         END_ARG
+                                         BEGIN_ARG: headers
+                                         { "Authorization": "Bearer token" }
+                                         END_ARG
+                                         ```
+                                         """,
+                RiskLevel = RiskLevel.Medium,
+                Category = "API",
+                Approval = ApprovalKind.AutoApprove,
+                Parameters = new Dictionary<string, Property>
+                {
+                    { "apiName", new Property { Types = ["string"], Description = "The API's name." } },
+                    { "endPoint", new Property { Types = ["string"], Description = "The API endpoint, e.g. /{controller}/{action}." } },
+                    { "method", new Property { Types = ["string"], Description = "HTTP method to be used (GET, POST, PUT, DELETE, etc.)." } },
+                    { "headers", new Property { Types = ["object", "null"], Description = "Optional headers in JSON format, e.g., { \"param1\": \"value1\" }." } },
+                    { "queryParams", new Property { Types = ["object", "null"], Description = "Optional query parameters in JSON format, e.g., { \"param1\": \"value1\" }." } },
+                    { "body", new Property { Types = ["string", "null"], Description = "Request body for POST/PUT/PATCH methods, in JSON format." } }
+                }
+            },
+            new(ExecuteFunctionAsync)
+            {
+                Name = "call_soap_api",
+                Description = "Calls a SOAP service using the specified SOAP action and envelope, with optional headers, and returns the response.",
+                ExampleToSystemMessage = """
+                                         Use this when you need to call RESTful web services, HTTP APIs, or fetch data from web endpoints.
+                                         You can also add 'body' for POST/PUT/PATCH methods or 'queryParams' for GET method, in JSON format.
+
+                                         Example usage:
+                                         ```tool
+                                         TOOL_NAME: call_soap_api
+                                         BEGIN_ARG: apiName
+                                         Users API
+                                         END_ARG
+                                         BEGIN_ARG: endPoint
+                                         The SOAP service endpoint, without the base url.
+                                         END_ARG
+                                         BEGIN_ARG: method
+                                         GET
+                                         END_ARG
+                                         BEGIN_ARG: headers
+                                         { "Authorization": "Bearer token" }
+                                         END_ARG
+                                         ```
+                                         """,
+                RiskLevel = RiskLevel.Medium,
+                Category = "API",
+                Approval = ApprovalKind.AutoApprove,
+                Parameters = new Dictionary<string, Property>
+                {
+                    { "apiName", new Property { Types = ["string"], Description = "The API's name." } },
+                    { "endPoint", new Property { Types = ["string"], Description = "The SOAP service endpoint, without the base url." } },
+                    { "soapAction", new Property { Types = ["string"], Description = "SOAP Action to be executed." } },
+                    { "headers", new Property { Types = ["object", "null"], Description = "Optional headers in JSON format, e.g., { \"param1\": \"value1\" }." } },
+                    { "soapEnvelope", new Property { Types = ["string"], Description = "SOAP envelope in XML format." } }
+                }
+            },
+        ];
+
+        /// <summary>
+        /// Executes an asynchronous function call to an API, handling both SOAP and REST requests based on the provided function parameters.
+        /// </summary>
+        /// <param name="tool">The function result containing the API call details.</param>
+        /// <returns>A tuple where the first value refers to the response to be sent to the AI, and the second value refers to the API response to be displayed in the chat, when applicable.</returns>
+        private static async Task<ToolResult> ExecuteFunctionAsync(Tool tool, IReadOnlyDictionary<string, object> args)
+        {
+            try
+            {
+                var apiName = args.GetString("apiName");
+                var apiDefinition = ApiAgentRepository.GetAPI(apiName);
+
+                if (apiDefinition == null)
+                {
+                    return new ToolResult
+                    {
+                        IsSuccess = false,
+                        Result = $"API with name {apiName} was not found."
+                    };
+                }
+
+                var endPoint = args.GetString("endPoint");
+
+                if (!endPoint.StartsWith("/"))
+                {
+                    endPoint = "/" + endPoint;
+                }
+
+                // Optional headers
+                var headers = args.GetObject<Dictionary<string, string>>("headers") ?? [];
+                foreach (ApiTagItem tag in apiDefinition.Tags.Where(t => t.Type == ApiTagType.Header))
+                {
+                    headers[tag.Key] = tag.Value;
+                }
+
+                HttpStatusCode responseStatusCode;
+                string responseContent;
+
+                if (tool.Name == "call_soap_api")
+                {
+                    var soapAction = args.GetString("soapAction");
+                    var soapEnvelope = args.GetString("soapEnvelope");
+
+                    HttpResponseMessage response = await CallSoapApiAsync(apiDefinition, endPoint, soapAction, headers, soapEnvelope, tool.LogResponseAndRequest);
+
+                    responseStatusCode = response.StatusCode;
+                    responseContent = FormatXml(await response.Content.ReadAsStringAsync());
+                }
+                else
+                {
+                    var method = args.GetString("method");
+
+                    // Optional query parameters
+                    var queryParams =  args.GetObject<Dictionary<string, string>>("queryParams") ?? [];
+
+                    // Request body (for POST, PUT, PATCH, etc.)
+                    var body = args.GetString("body");
+
+                    foreach (ApiTagItem tag in apiDefinition.Tags.Where(t => t.Type == ApiTagType.QueryString))
+                    {
+                        queryParams[tag.Key] = tag.Value;
+                    }
+
+                    var response = await CallRestApiAsync(apiDefinition, endPoint, method, headers, queryParams, body, tool.LogResponseAndRequest);
+
+                    responseStatusCode = response.StatusCode;
+                    responseContent = FormatJson(await response.Content.ReadAsStringAsync());
+                }
+
+                if (apiDefinition.SendResponsesToAI)
+                {
+                    return new ToolResult
+                    {
+                        Result = $"Response Status Code: {responseStatusCode}{Environment.NewLine}{responseContent}"
+                    };
+                }
+
+                if (responseStatusCode != HttpStatusCode.OK)
+                {
+                    responseContent = null;
+                }
+
+                return new ToolResult
+                {
+                    Result = $"Response Status Code: {responseStatusCode}. The data is displayed to the user. The user in the plugin settings did not allow data to be transferred to the agent from the API.",
+                    PrivateResult = responseContent
+                };
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+                return new ToolResult
+                {
+                    IsSuccess = false,
+                    Result = ex.Message
+                };
+            }
+        }
+
         #region Public Methods
 
         /// <summary>
@@ -41,184 +221,9 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
         {
             return ApiAgentRepository.GetAPIs().OrderBy(x => x.Name).ToList();
         }
-
-        public static bool IsMyFunction(FunctionResult function)
-        {
-            return function.Function.Name switch
-            {
-                nameof(CallSoapApiAsync) or nameof(CallRestApiAsync) => true,
-                _ => false
-            };
-        }
-
-        /// <summary>
-        /// Returns a list of functions that the AI can call to interact with an API.
-        /// </summary>
-        /// <returns>List of <see cref="FunctionRequest"/>.</returns>
-        public static List<FunctionRequest> GetApiFunctions()
-        {
-            List<FunctionRequest> functions = [];
-
-            Parameter parametersForRestApi = new()
-            {
-                Properties = new Dictionary<string, Property>
-                {
-                    { "apiName", new Property { Types = ["string"], Description = "The API's name." } },
-                    { "endPoint", new Property { Types = ["string"], Description = "The API endpoint, e.g. /{controler/{action}." } },
-                    { "method", new Property { Types = ["string"], Description = "HTTP method to be used (GET, POST, PUT, DELETE, etc.)." } },
-                    { "headers", new Property { Types = ["object", "null"], Description = "Optional headers in JSON format, e.g., { \"param1\": \"value1\" }." } },
-                    { "queryParams", new Property { Types = ["object", "null"], Description = "Optional query parameters in JSON format, e.g., { \"param1\": \"value1\" }." } },
-                    { "body", new Property { Types = ["string", "null"], Description = "Request body for POST/PUT/PATCH methods, in JSON format." } }
-                }
-            };
-
-            FunctionRequest functionRequestRestApi = new()
-            {
-                Function = new Function
-                {
-                    Name = nameof(CallRestApiAsync),
-                    Description = "Calls a REST API endpoint using the specified HTTP method, with optional headers, query string, and body, and returns the response.",
-                    Parameters = parametersForRestApi
-                }
-            };
-
-            Parameter parametersForSoapApi = new()
-            {
-                Properties = new Dictionary<string, Property>
-                {
-                    { "apiName", new Property { Types = ["string"], Description = "The API's name." } },
-                    { "endPoint", new Property { Types = ["string"], Description = "The SOAP service endpoint, without the base url." } },
-                    { "soapAction", new Property { Types = ["string"], Description = "SOAP Action to be executed." } },
-                    { "headers", new Property { Types = ["object", "null"], Description = "Optional headers in JSON format, e.g., { \"param1\": \"value1\" }." } },
-                    { "soapEnvelope", new Property { Types = ["string"], Description = "SOAP envelope in XML format." } }
-                }
-            };
-
-            FunctionRequest functionRequestSoapApi = new()
-            {
-                Function = new Function
-                {
-                    Name = nameof(CallSoapApiAsync),
-                    Description = "Calls a SOAP service using the specified SOAP action and envelope, with optional headers, and returns the response.",
-                    Parameters = parametersForSoapApi
-                }
-            };
-
-
-            functions.Add(functionRequestRestApi);
-            functions.Add(functionRequestSoapApi);
-
-            return functions;
-        }
-
-        /// <summary>
-        /// Executes an asynchronous function call to an API, handling both SOAP and REST requests based on the provided function parameters.
-        /// </summary>
-        /// <param name="function">The function result containing the API call details.</param>
-        /// <param name="logRequestAndResponse">A boolean indicating whether to log the request and response.</param>
-        /// <returns>A tuple where the first value refers to the response to be sent to the AI, and the second value refers to the API response to be displayed in the chat, when applicable.</returns>
-        public static async Task<(string, string)> ExecuteFunctionAsync(FunctionResult function, bool logRequestAndResponse)
-        {
-            try
-            {
-                JObject arguments = JObject.Parse(function.Function.Arguments);
-
-                string apiName = arguments[nameof(apiName)]?.Value<string>();
-
-                ApiItem apiDefinition = ApiAgentRepository.GetAPI(apiName);
-
-                if (apiDefinition == null)
-                {
-                    return ($"API with name {apiName} was not found.", null);
-                }
-
-                string endPoint = arguments[nameof(endPoint)]?.Value<string>();
-
-                if (!endPoint.StartsWith("/"))
-                {
-                    endPoint = "/" + endPoint;
-                }
-
-                // Optional headers
-                Dictionary<string, string> headers = arguments[nameof(headers)]?.ToObject<Dictionary<string, string>>() ?? [];
-
-                foreach (ApiTagItem tag in apiDefinition.Tags.Where(t => t.Type == ApiTagType.Header))
-                {
-                    if (headers.ContainsKey(tag.Key))
-                    {
-                        headers[tag.Key] = tag.Value;
-                    }
-                    else
-                    {
-                        headers.Add(tag.Key, tag.Value);
-                    }
-                }
-
-                HttpStatusCode responseStatusCode;
-                string responseContent;
-
-                if (function.Function.Name == nameof(CallSoapApiAsync))
-                {
-                    string soapAction = arguments["soapAction"]?.Value<string>();
-                    string soapEnvelope = arguments["soapEnvelope"]?.Value<string>();
-
-                    HttpResponseMessage response = await CallSoapApiAsync(apiDefinition, endPoint, soapAction, headers, soapEnvelope, logRequestAndResponse);
-
-                    responseStatusCode = response.StatusCode;
-                    responseContent = FormatXml(await response.Content.ReadAsStringAsync());
-                }
-                else
-                {
-                    string method = arguments[nameof(method)]?.Value<string>();
-
-                    // Optional query parameters
-                    Dictionary<string, string> queryParams = arguments[nameof(queryParams)]?.ToObject<Dictionary<string, string>>() ?? [];
-
-                    // Request body (for POST, PUT, PATCH, etc.)
-                    string body = arguments[nameof(body)]?.Value<string>();
-
-                    foreach (ApiTagItem tag in apiDefinition.Tags.Where(t => t.Type == ApiTagType.QueryString))
-                    {
-                        if (queryParams.ContainsKey(tag.Key))
-                        {
-                            queryParams[tag.Key] = tag.Value;
-                        }
-                        else
-                        {
-                            queryParams.Add(tag.Key, tag.Value);
-                        }
-                    }
-
-                    HttpResponseMessage response = await CallRestApiAsync(apiDefinition, endPoint, method, headers, queryParams, body, logRequestAndResponse);
-
-                    responseStatusCode = response.StatusCode;
-                    responseContent = await response.Content.ReadAsStringAsync();
-                }
-
-                if (apiDefinition.SendResponsesToAI)
-                {
-                    return ($"Response Status Code: {responseStatusCode}{Environment.NewLine}{responseContent}", null);
-                }
-
-                if (responseStatusCode != HttpStatusCode.OK)
-                {
-                    responseContent = null;
-                }
-
-                return ($"Response Status Code: {responseStatusCode}. The data is displayed to the user. The user in the plugin settings did not allow data to be transferred to the agent from the API.", responseContent);
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-
-                return (ex.Message, null);
-            }
-        }
-
         #endregion Public Methods
 
         #region Private Methods
-
         /// <summary>
         /// Performs the SOAP API call synchronously.
         /// </summary>

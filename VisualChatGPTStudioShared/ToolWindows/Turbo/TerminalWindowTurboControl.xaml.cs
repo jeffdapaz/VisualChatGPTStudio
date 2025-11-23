@@ -73,7 +73,8 @@ public partial class TerminalWindowTurboControl
 
         VSColorTheme.ThemeChanged += _ =>
         {
-            WebAsset.DeployTheme();
+            var isDarkTheme = WebAsset.DeployTheme();
+            _webView?.CoreWebView2.Profile.PreferredColorScheme = isDarkTheme ? CoreWebView2PreferredColorScheme.Dark : CoreWebView2PreferredColorScheme.Light;
             SafeExecuteJs(WebFunctions.ReloadThemeCss(WebAsset.IsDarkTheme));
         };
 
@@ -157,7 +158,7 @@ public partial class TerminalWindowTurboControl
         {
             SafeExecuteJs(WebFunctions.ReloadThemeCss(WebAsset.IsDarkTheme));
             _viewModel.ForceDownloadChats();
-            _viewModel.LoadChat();
+            _ = _viewModel.LoadChatAsync();
         };
 
         WebViewHost.Content = _webView;
@@ -176,30 +177,7 @@ public partial class TerminalWindowTurboControl
 
         try
         {
-            var msg = JsonSerializer.Deserialize<JsonElement>(webMessage.WebMessageAsJson);
-            var action = msg.GetProperty("action").GetString()?.ToLower();
-            var data = msg.GetProperty("data").GetString();
-            if (data == null)
-                return;
-
-            switch (action)
-            {
-                case "png":
-                    var pngBytes = Convert.FromBase64String(data);
-                    var bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.StreamSource = new MemoryStream(pngBytes);
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.EndInit();
-                    Clipboard.SetImage(bitmap);
-                    break;
-                case "copy":
-                    Clipboard.SetText(data);
-                    break;
-                case "apply":
-                    await TerminalWindowHelper.ApplyCodeToActiveDocumentAsync(data);
-                    break;
-            }
+            await _viewModel.OnFrontMessageReceivedAsync(webMessage.WebMessageAsJson);
         }
         catch (Exception e)
         {
@@ -286,8 +264,9 @@ public partial class TerminalWindowTurboControl
             return;
         }
 
-        WebAsset.DeployTheme();
+        var isDarkTheme = WebAsset.DeployTheme();
         _webView?.CoreWebView2.Navigate(WebAsset.GetTurboPath());
+        _webView?.CoreWebView2.Profile.PreferredColorScheme = isDarkTheme ? CoreWebView2PreferredColorScheme.Dark : CoreWebView2PreferredColorScheme.Light;
     }
 
     #region Event Handlers
@@ -343,8 +322,7 @@ public partial class TerminalWindowTurboControl
     /// </summary>
     private void CancelRequest(object sender, RoutedEventArgs e)
     {
-        _viewModel.IsReadyToRequest = false;
-        _viewModel.CancellationTokenSource?.Cancel();
+        _viewModel.CancelRequest();
     }
 
     /// <summary>
@@ -387,7 +365,7 @@ public partial class TerminalWindowTurboControl
     #region Toolbar
     private void NewChat_Click(object sender, RoutedEventArgs e)
     {
-        _viewModel.CreateNewChat(clearTools: true);
+        _ = _viewModel.CreateNewChatAsync(clearTools: true);
     }
 
     private void DeleteChat_Click(object sender, RoutedEventArgs e)
@@ -470,9 +448,8 @@ public partial class TerminalWindowTurboControl
         try
         {
             CancelRequest(null, null);
-            SafeExecuteJs(WebFunctions.ClearChat);
-            _viewModel.LoadChat(chatId);
             grdCommands.Visibility = Visibility.Visible;
+            _ = _viewModel.LoadChatAsync(chatId);
         }
         catch (Exception ex)
         {
@@ -485,7 +462,6 @@ public partial class TerminalWindowTurboControl
     {
         if (_viewModel != null && sender is ListBox { SelectedItem: ChatEntity selectedItem } && Mouse.LeftButton != MouseButtonState.Released)
         {
-            _viewModel.LoadChat(selectedItem.Id);
             LoadChat(selectedItem.Id);
         }
     }
@@ -552,7 +528,6 @@ public partial class TerminalWindowTurboControl
                 break;
             case Key.Space or Key.Enter when chat != null:
                 lbi.IsSelected = true;
-                _viewModel.LoadChat(chat.Id);
                 LoadChat(chat.Id);
                 ToggleHistory(false);
                 e.Handled = true;

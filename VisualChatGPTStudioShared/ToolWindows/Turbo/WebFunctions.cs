@@ -20,6 +20,9 @@
         public static string UpdateLastGpt(string content)
             => $"updateLastGpt(`{JsString(content)}`);";
 
+        public static string RemoveLastGpt
+            => "removeLastGpt();";
+
         public static string AddTable(string content)
             => $"addTable(`{JsString(content)}`);";
 

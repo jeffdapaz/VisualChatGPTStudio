@@ -4,68 +4,67 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using EnvDTE;
-using VS = Community.VisualStudio.Toolkit.VS;
+using JeffPires.VisualChatGPTStudio.Utils;
 using Microsoft.VisualStudio.Shell;
-using OpenAI_API.Functions;
+using VS = Community.VisualStudio.Toolkit.VS;
 using Process = System.Diagnostics.Process;
-using System.Text;
+using Property = OpenAI_API.Functions.Property;
 
 namespace JeffPires.VisualChatGPTStudio.Agents;
 
 public static class BuiltInAgent
 {
-    public static bool IsMyFunction(FunctionResult function)
-    {
-        return function.Function.Name switch
-        {
-            "read_file" or "create_new_file" or "run_terminal_command" or "file_glob_search" or
-                "view_diff" or "read_currently_open_file" or "ls" or "fetch_url_content" or
-                "multi_edit" or "grep_search" or "view_diff_files" => true,
-            _ => false
-        };
-    }
-
-    private static readonly List<Tool> tools =
+    public static readonly IReadOnlyList<Tool> Tools =
     [
-        new Tool
+        new()
         {
             Name = "read_file",
-            Description = """
-                          To read a file with a known filepath, use the read_file tool. For example, to read a file located at 'path/to/file.txt', you would respond with this:
-                          ```tool
-                          TOOL_NAME: read_file
-                          BEGIN_ARG: filepath
-                          path/to/the_file.txt
-                          END_ARG
-                          ```
-                          """,
-            Approval = ApprovalKind.Ask
+            Description = "To read a file with a known filepath, use the read_file tool.",
+            ExampleToSystemMessage = """
+                                     For example, to read a file located at 'path/to/file.txt', you would respond with this:
+                                     ```tool
+                                     TOOL_NAME: read_file
+                                     BEGIN_ARG: filepath
+                                     path/to/the_file.txt
+                                     END_ARG
+                                     ```
+                                     """,
+            RiskLevel = RiskLevel.Low,
+            Approval = ApprovalKind.AutoApprove,
+            ExecuteAsync = ReadFileAsync,
+            Parameters = new Dictionary<string, Property>
+            {
+                { "filepath", new Property { Types = ["string"], Description = "The relative path/to/file.txt" } }
+            }
         },
-
-        new Tool
+        new()
         {
             Name = "create_new_file",
-            Description = """
-                          To create a NEW file, use the create_new_file tool with the relative filepath and new contents. For example, to create a file located at 'path/to/file.txt', you would respond with:
-                          ```tool
-                          TOOL_NAME: create_new_file
-                          BEGIN_ARG: filepath
-                          path/to/file.txt
-                          END_ARG
-                          BEGIN_ARG: contents
-                          Contents of the file
-                          END_ARG
-                          ```
-                          """,
-            Approval = ApprovalKind.Ask
+            Description = "To create a NEW file, use the create_new_file tool with the relative filepath and new contents.",
+            ExampleToSystemMessage = """
+                                     For example, to create a file located at 'path/to/file.txt', you would respond with:
+                                     ```tool
+                                     TOOL_NAME: create_new_file
+                                     BEGIN_ARG: filepath
+                                     path/to/file.txt
+                                     END_ARG
+                                     BEGIN_ARG: contents
+                                     Contents of the file
+                                     END_ARG
+                                     ```
+                                     """,
+            ExecuteAsync = CreateNewFileAsync,
+            Parameters = new Dictionary<string, Property>
+            {
+                { "filepath", new Property { Types = ["string"], Description = "The relative path/to/file.txt" } },
+                { "contents", new Property { Types = ["string"], Description = "Contents of the file" } },
+            }
         },
-
-        new Tool
+        new()
         {
             Name = "run_terminal_command",
             Description = """
@@ -76,173 +75,186 @@ public static class BuiltInAgent
                           Do NOT perform actions requiring special/admin privileges.
                           Choose terminal commands and scripts optimized for win32 and x64 and shell powershell.exe.
                           You can also optionally include the waitForCompletion argument set to false to run the command in the background, without output message.
-                          For example, to see the git log, you could respond with:
-                          ```tool
-                          TOOL_NAME: run_terminal_command
-                          BEGIN_ARG: command
-                          git log
-                          END_ARG
-                          ```
                           """,
-            Approval = ApprovalKind.Ask
+            ExampleToSystemMessage = """
+                                     For example, to see the git log, you could respond with:
+                                     ```tool
+                                     TOOL_NAME: run_terminal_command
+                                     BEGIN_ARG: command
+                                     git log
+                                     END_ARG
+                                     ```
+                                     """,
+            RiskLevel = RiskLevel.High,
+            ExecuteAsync = RunTerminalCommandAsync,
+            Parameters = new Dictionary<string, Property>
+            {
+                { "command", new Property { Types = ["string"], Description = "The powershell command" } }
+            }
         },
-
-        new Tool
+        new()
         {
             Name = "file_glob_search",
-            Description = """
-                          To return a list of files based on a glob search pattern, use the file_glob_search tool
-                          ```tool
-                          TOOL_NAME: file_glob_search
-                          BEGIN_ARG: pattern
-                          *.cs
-                          END_ARG
-                          ```
-                          """,
-            Approval = ApprovalKind.Ask
+            Description = "To return a list of files based on a glob search pattern, use the file_glob_search tool",
+            ExampleToSystemMessage = """
+                                     ```tool
+                                     TOOL_NAME: file_glob_search
+                                     BEGIN_ARG: pattern
+                                     *.cs
+                                     END_ARG
+                                     ```
+                                     """,
+            RiskLevel = RiskLevel.Low,
+            ExecuteAsync = FileGlobSearchAsync,
+            Parameters = new Dictionary<string, Property>
+            {
+                { "pattern", new Property { Types = ["string"], Description = "The search pattern" } }
+            }
         },
-
-        new Tool
+        new()
         {
             Name = "view_diff",
-            Description = """
-                          To view the current git diff, use the view_diff tool. This will show you the changes made in the working directory compared to the last commit.
-                          ```tool
-                          TOOL_NAME: view_diff
-                          ```
-                          """,
-            Approval = ApprovalKind.Ask
+            Description = "To view the current git diff, use the view_diff tool. This will show you the changes made in the working directory compared to the last commit.",
+            ExampleToSystemMessage = """
+                                     ```tool
+                                     TOOL_NAME: view_diff
+                                     ```
+                                     """,
+            RiskLevel = RiskLevel.Low,
+            ExecuteAsync = ViewDiffAsync
         },
-
-        new Tool
+        new()
         {
             Name = "read_currently_open_file",
             Description = """
                           To view the user's currently open file, use the read_currently_open_file tool.
                           If the user is asking about a file and you don't see any code, use this to check the current file
-                          ```tool
-                          TOOL_NAME: read_currently_open_file
-                          ```
                           """,
-            Approval = ApprovalKind.Ask
+            ExampleToSystemMessage = """
+                                     ```tool
+                                     TOOL_NAME: read_currently_open_file
+                                     ```
+                                     """,
+            RiskLevel = RiskLevel.Low,
+            ExecuteAsync = ReadCurrentlyOpenFileAsync
         },
-
-        new Tool
+        new()
         {
             Name = "ls",
-            Description = """
-                          To list files and folders in a given directory, call the ls tool with "dirPath" and "recursive". For example:
-                          ```tool
-                          TOOL_NAME: ls
-                          BEGIN_ARG: dirPath
-                          path/to/dir
-                          END_ARG
-                          BEGIN_ARG: recursive
-                          false
-                          END_ARG
-                          ```
-                          """,
-            Approval = ApprovalKind.Ask
+            Description = "To list files and folders in a given directory, call the ls tool with \"dirPath\" and \"recursive\".",
+            ExampleToSystemMessage = """
+                                     For example:
+                                     ```tool
+                                     TOOL_NAME: ls
+                                     BEGIN_ARG: dirPath
+                                     path/to/dir
+                                     END_ARG
+                                     BEGIN_ARG: recursive
+                                     false
+                                     END_ARG
+                                     ```
+                                     """,
+            RiskLevel = RiskLevel.Low,
+            ExecuteAsync = ListDirectoryAsync,
+            Parameters = new Dictionary<string, Property>
+            {
+                { "dirPath", new Property { Types = ["string"], Description = "The directory path" } },
+                { "recursive", new Property { Types = ["bool"], Description = "Use recursive search" } }
+            }
         },
-
-        new Tool
+        new()
         {
             Name = "fetch_url_content",
-            Description = """
-                          To fetch the content of a URL, use the fetch_url_content tool. For example, to read the contents of a webpage, you might respond with:
-                          ```tool
-                          TOOL_NAME: fetch_url_content
-                          BEGIN_ARG: url
-                          https://example.com
-                          END_ARG
-                          ```
-                          """,
-            Approval = ApprovalKind.Ask
+            Description = "To fetch the content of a URL, use the fetch_url_content tool.",
+            ExampleToSystemMessage = """
+                                     For example, to read the contents of a webpage, you might respond with:
+                                     ```tool
+                                     TOOL_NAME: fetch_url_content
+                                     BEGIN_ARG: url
+                                     https://example.com
+                                     END_ARG
+                                     ```
+                                     """,
+            RiskLevel = RiskLevel.Low,
+            ExecuteAsync = FetchUrlContentAsync,
+            Parameters = new Dictionary<string, Property>
+            {
+                { "url", new Property { Types = ["string"], Description = "https://example.com" } }
+            }
         },
-
-        new Tool
+        new()
         {
             Name = "multi_edit",
-            Description = """
-                          To make multiple edits to a single file, use the multi_edit tool with a filepath (relative to the root of the workspace) and an array of edit operations.
-                          For example, you could respond with:
-                          ```tool
-                          TOOL_NAME: multi_edit
-                          BEGIN_ARG: filepath
-                          path/to/file.ts
-                          END_ARG
-                          BEGIN_ARG: edits
-                          [
-                            { "old_string": "const oldVar = 'value'", "new_string": "const newVar = 'updated'" },
-                            { "old_string": "oldFunction()", "new_string": "newFunction()", "replace_all": true }
-                          ]
-                          END_ARG
-                          ```
-                          """,
-            Approval = ApprovalKind.Ask
+            Description =
+                "To make multiple edits to a single file, use the multi_edit tool with a filepath (relative to the root of the workspace) and an array of edit operations.",
+            ExampleToSystemMessage = """
+                                     For example, you could respond with:
+                                     ```tool
+                                     TOOL_NAME: multi_edit
+                                     BEGIN_ARG: filepath
+                                     path/to/file.ts
+                                     END_ARG
+                                     BEGIN_ARG: edits
+                                     [
+                                       { "old_string": "const oldVar = 'value'", "new_string": "const newVar = 'updated'" },
+                                       { "old_string": "oldFunction()", "new_string": "newFunction()", "replace_all": true }
+                                     ]
+                                     END_ARG
+                                     ```
+                                     """,
+            RiskLevel = RiskLevel.Medium,
+            ExecuteAsync = MultiEditAsync,
+            Parameters = new Dictionary<string, Property>
+            {
+                { "filepath", new Property { Types = ["string"], Description = "The relative path/to/file.txt" } },
+                { "edits", new Property { Types = ["array"], Description = "Array of serialized objects. { \"old_string\": \"const oldVar = 'value'\", \"new_string\": \"const newVar = 'updated'\" }" } }
+            }
         },
-
-        new Tool
+        new()
         {
             Name = "grep_search",
-            Description = """
-                          To perform a grep search within the project, call the grep_search tool with the query pattern to match. For example:
-                          ```tool
-                          TOOL_NAME: grep_search
-                          BEGIN_ARG: query
-                          .*main_services.*
-                          END_ARG
-                          ```
-                          """,
-            Approval = ApprovalKind.Ask
+            Description = "To perform a grep search within the project, call the grep_search tool with the query pattern to match.",
+            ExampleToSystemMessage = """
+                                     For example:
+                                     ```tool
+                                     TOOL_NAME: grep_search
+                                     BEGIN_ARG: query
+                                     .*main_services.*
+                                     END_ARG
+                                     ```
+                                     """,
+            RiskLevel = RiskLevel.Low,
+            ExecuteAsync = GrepSearchAsync,
+            Parameters = new Dictionary<string, Property>
+            {
+                { "query", new Property { Types = ["string"], Description = "The query pattern to match. Example: .*main_services.*" } }
+            }
         },
-
-        new Tool
+        new()
         {
             Name = "view_diff_files",
-            Description = """
-                          To show the difference between two files in Visual Studio interface, call the view_diff_files tool with relative file paths. For example:
-                          ```tool
-                          TOOL_NAME: view_diff_files
-                          BEGIN_ARG: file1
-                          path/to/file1.cs
-                          END_ARG
-                          BEGIN_ARG: file2
-                          path/to/file2.cs
-                          END_ARG
-                          ```
-                          """,
-            Approval = ApprovalKind.Ask
+            Description = "To show the difference between two files in Visual Studio interface, call the view_diff_files tool with relative file paths.",
+            ExampleToSystemMessage = """
+                                     For example:
+                                     ```tool
+                                     TOOL_NAME: view_diff_files
+                                     BEGIN_ARG: file1
+                                     path/to/file1.cs
+                                     END_ARG
+                                     BEGIN_ARG: file2
+                                     path/to/file2.cs
+                                     END_ARG
+                                     ```
+                                     """,
+            RiskLevel = RiskLevel.Low,
+            ExecuteAsync = ViewDiffFilesAsync,
+            Parameters = new Dictionary<string, Property>
+            {
+                { "file1", new Property { Types = ["string"], Description = "The relative path/to/file1.txt" } },
+                { "file2", new Property { Types = ["string"], Description = "The relative path/to/file2.txt" } },
+            }
         }
     ];
-
-    public static IReadOnlyList<Tool> Tools => tools.AsReadOnly();
-
-    public static async Task<(string FunctionResult, string Content)> ExecuteFunctionAsync(FunctionResult function)
-    {
-        try
-        {
-            return function.Function.Name switch
-            {
-                "read_file" => await ReadFileAsync(function.Function.Arguments),
-                "create_new_file" => await CreateNewFileAsync(function.Function.Arguments),
-                "run_terminal_command" => await RunTerminalCommandAsync(function.Function.Arguments),
-                "file_glob_search" => await FileGlobSearchAsync(function.Function.Arguments),
-                "view_diff" => await ViewDiffAsync(),
-                "read_currently_open_file" => await ReadCurrentlyOpenFileAsync(),
-                "ls" => await ListDirectoryAsync(function.Function.Arguments),
-                "fetch_url_content" => await FetchUrlContentAsync(function.Function.Arguments),
-                "multi_edit" => await MultiEditAsync(function.Function.Arguments),
-                "grep_search" => await GrepSearchAsync(function.Function.Arguments),
-                "view_diff_files" => await ViewDiffFilesAsync(function.Function.Arguments),
-                _ => ("Unknown function", "")
-            };
-        }
-        catch (Exception ex)
-        {
-            return ($"Error executing {function.Function.Name}: {ex.Message}", "");
-        }
-    }
 
     private static async Task<string> GetSolutionPathAsync()
     {
@@ -268,45 +280,80 @@ public static class BuiltInAgent
             : fullPath.Substring(solutionPath.Length + 1);
     }
 
-    private static async Task<(string, string)> ReadFileAsync(string arguments)
+    private static async Task<ToolResult> ReadFileAsync(IReadOnlyDictionary<string, object> args)
     {
-        var args = JsonSerializer.Deserialize<Dictionary<string, string>>(arguments);
         var solutionPath = await GetSolutionPathAsync();
-        var filepath = GetSolutionRelativePath(args["filepath"], solutionPath);
+        var filepath = GetSolutionRelativePath(args.GetString("filepath"), solutionPath);
 
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         if (!File.Exists(filepath))
         {
-            return ($"File {args["filepath"]} doesn't exist.", "");
+            return new ToolResult
+            {
+                IsSuccess = false,
+                Result = $"File {args.GetString("filepath")} doesn't exist.",
+                ErrorMessage = $"File {args.GetString("filepath")} doesn't exist."
+            };
         }
 
-        var content = File.ReadAllText(filepath);
-        return ($"File read successfully{Environment.NewLine}{content}", "File read successfully");
+        try
+        {
+            var content = File.ReadAllText(filepath);
+            return new ToolResult
+            {
+                Result = content,
+                PrivateResult = "File read successfully"
+            };
+        }
+        catch (Exception e)
+        {
+            Logger.Log(e);
+            return new ToolResult
+            {
+                IsSuccess = false,
+                Result = $"Error {e.Message}",
+                ErrorMessage = e.Message
+            };
+        }
     }
 
-    private static async Task<(string, string)> CreateNewFileAsync(string arguments)
+    private static async Task<ToolResult> CreateNewFileAsync(IReadOnlyDictionary<string, object> args)
     {
-        var args = JsonSerializer.Deserialize<Dictionary<string, string>>(arguments);
         var solutionPath = await GetSolutionPathAsync();
-        var filepath = GetSolutionRelativePath(args["filepath"], solutionPath);
-        var contents = args["contents"];
+        var filepath = GetSolutionRelativePath(args.GetString("filepath"), solutionPath);
+        var contents = args.GetString("contents");
 
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-        var directory = Path.GetDirectoryName(filepath);
-        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+        try
         {
-            Directory.CreateDirectory(directory);
-        }
+            var directory = Path.GetDirectoryName(filepath);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
 
-        File.WriteAllText(filepath, contents);
-        return ($"File {args["filepath"]} created successfully.", "");
+            File.WriteAllText(filepath, contents);
+            return new ToolResult
+            {
+                Result = $"File {args.GetString("filepath")} created successfully."
+            };
+        }
+        catch (Exception e)
+        {
+            Logger.Log(e);
+            return new ToolResult
+            {
+                IsSuccess = false,
+                Result = $"Error {e.Message}",
+                ErrorMessage = e.Message
+            };
+        }
     }
 
-    private static async Task<(string, string)> RunTerminalCommandAsync(string arguments)
+    private static async Task<ToolResult> RunTerminalCommandAsync(IReadOnlyDictionary<string, object> args)
     {
-        var args = JsonSerializer.Deserialize<Dictionary<string, string>>(arguments);
-        var command = args["command"];
-        var waitForCompletion = !args.ContainsKey("waitForCompletion") || bool.Parse(args["waitForCompletion"]);
+        var command = args.GetString("command");
+        var waitForCompletion = !args.ContainsKey("waitForCompletion") || args.GetBool("waitForCompletion");
 
         var solutionPath = await GetSolutionPathAsync();
 
@@ -324,7 +371,11 @@ public static class BuiltInAgent
 
         using var process = Process.Start(startInfo);
         if (process == null)
-            return ("Failed to start process", "");
+            return new ToolResult
+            {
+                IsSuccess = false,
+                Result = "Failed to start process"
+            };
 
         if (waitForCompletion)
         {
@@ -335,28 +386,48 @@ public static class BuiltInAgent
 
             var error = await errorTask;
             var output = await outputTask;
-            return (string.IsNullOrEmpty(error) ? $"Command executed successfully: {output}" : $"Error: {error}", output);
+            var isSuccess = string.IsNullOrEmpty(error);
+            return new ToolResult
+            {
+                IsSuccess = isSuccess,
+                Result = isSuccess ? $"Command executed successfully: {output}" : $"Error: {error}",
+                ErrorMessage = !isSuccess ? error : string.Empty,
+                PrivateResult = output
+            };
         }
 
-        return ("Command started in background", "");
+        return new ToolResult
+        {
+            Result = "Command started in background"
+        };
     }
 
-    private static async Task<(string, string)> FileGlobSearchAsync(string arguments)
+    private static async Task<ToolResult> FileGlobSearchAsync(IReadOnlyDictionary<string, object> args)
     {
-        var args = JsonSerializer.Deserialize<Dictionary<string, string>>(arguments);
-        var pattern = args["pattern"];
+        var pattern = args.GetString("pattern");
+        if (string.IsNullOrEmpty(pattern))
+        {
+            return new ToolResult
+            {
+                IsSuccess = false,
+                Result = "pattern should be not null"
+            };
+        }
 
         var solutionPath = await GetSolutionPathAsync();
-
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         var files = Directory.GetFiles(solutionPath, pattern, SearchOption.AllDirectories)
             .Select(f => MakeRelativeToSolution(f, solutionPath))
             .ToArray();
 
-        return ($"Found {files.Length} files. Names showed to user.", string.Join("\n", files));
+        return new ToolResult
+        {
+            Result = $"Found {files.Length} files. Names showed to user.",
+            PrivateResult = string.Join(", ", files)
+        };
     }
 
-    private static async Task<(string, string)> ViewDiffAsync()
+    private static async Task<ToolResult> ViewDiffAsync(IReadOnlyDictionary<string, object> args)
     {
         var solutionPath = await GetSolutionPathAsync();
 
@@ -373,50 +444,68 @@ public static class BuiltInAgent
 
         using var process = Process.Start(startInfo);
         if (process == null)
-            return ("Failed to start git process", "");
+            return new ToolResult
+            {
+                IsSuccess = false,
+                Result = "Failed to start git process"
+            };
 
         var output = await process.StandardOutput.ReadToEndAsync();
         await Task.Run(() => process.WaitForExit());
 
-        return ($"Git diff retrieved{Environment.NewLine}{output}", string.Empty);
+        return new ToolResult
+        {
+            Result = $"Git diff retrieved{Environment.NewLine}{output}"
+        };
     }
 
-    private static async Task<(string, string)> ReadCurrentlyOpenFileAsync()
+    private static async Task<ToolResult> ReadCurrentlyOpenFileAsync(IReadOnlyDictionary<string, object> args)
     {
         var docView = await VS.Documents.GetActiveDocumentViewAsync();
         if (docView?.Document?.FilePath == null)
-            return ("No active document", "");
+            return new ToolResult
+            {
+                IsSuccess = false,
+                Result = "No active document"
+            };
 
         var solutionPath = await GetSolutionPathAsync();
         var relativePath = MakeRelativeToSolution(docView.Document.FilePath, solutionPath);
 
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         var content = File.ReadAllText(docView.Document.FilePath);
-        return ($"Read active file: {relativePath}{Environment.NewLine}{content}", string.Empty);
+        return new ToolResult
+        {
+            Result = $"Read active file: {relativePath}{Environment.NewLine}{content}"
+        };
     }
 
-    private static async Task<(string, string)> ListDirectoryAsync(string arguments)
+    private static async Task<ToolResult> ListDirectoryAsync(IReadOnlyDictionary<string, object> args)
     {
-        var args = JsonSerializer.Deserialize<Dictionary<string, string>>(arguments);
         var solutionPath = await GetSolutionPathAsync();
-        var dirPath = GetSolutionRelativePath(args["dirPath"], solutionPath);
-        var recursive = bool.Parse(args["recursive"]);
+        var dirPath = GetSolutionRelativePath(args.GetString("dirPath"), solutionPath);
+        var recursive = args.GetBool("recursive");
 
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         if (!Directory.Exists(dirPath))
-            return ($"Directory {args["dirPath"]} doesn't exist", string.Empty);
+            return new ToolResult
+            {
+                Result = $"Directory {args.GetString("dirPath")} doesn't exist",
+            };
 
         var searchOption = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
         var items = string.Join(Environment.NewLine, Directory.GetFileSystemEntries(dirPath, "*", searchOption)
             .Select(f => MakeRelativeToSolution(f, solutionPath)));
 
-        return ($"Listed directory {args["dirPath"]}{Environment.NewLine}{items}", string.Empty);
+        return new ToolResult
+        {
+            Result = $"Listed directory {args.GetString("dirPath")}{Environment.NewLine}{items}"
+        };
     }
 
-    private static async Task<(string, string)> FetchUrlContentAsync(string arguments)
+    private static async Task<ToolResult> FetchUrlContentAsync(IReadOnlyDictionary<string, object> args)
     {
-        var args = JsonSerializer.Deserialize<Dictionary<string, string>>(arguments);
-        var url = args["url"];
+        var url = args.GetString("url");
 
         try
         {
@@ -437,28 +526,50 @@ public static class BuiltInAgent
             {
                 content = content.Substring(0, 1000) + " ...";
             }
-            return (content, $"URL {url} fetched successfully.");
+
+            return new ToolResult
+            {
+                Result = content,
+                PrivateResult = $"URL {url} fetched successfully."
+            };
         }
         catch (WebException ex)
         {
-            return ($"Web error: {ex.Message}", "");
+            return new ToolResult
+            {
+                IsSuccess = false,
+                Result = $"Web error: {ex.Message}"
+            };
         }
         catch (Exception ex)
         {
-            return ($"Error fetching URL: {ex.Message}", "");
+            return new ToolResult
+            {
+                IsSuccess = false,
+                Result = $"Error fetching URL: {ex.Message}"
+            };
         }
     }
 
-    private static async Task<(string, string)> MultiEditAsync(string arguments)
+    private static async Task<ToolResult> MultiEditAsync(IReadOnlyDictionary<string, object> args)
     {
-        var args = JsonSerializer.Deserialize<JsonElement>(arguments);
         var solutionPath = await GetSolutionPathAsync();
-        var filepath = GetSolutionRelativePath(args.GetProperty("filepath").GetString(), solutionPath);
-        var edits = JsonSerializer.Deserialize<List<EditOperation>>(args.GetProperty("edits").GetRawText());
+        var filepath = GetSolutionRelativePath(args.GetString("filepath"), solutionPath);
+        var edits = args.GetObject<List<EditOperation>>("edits");
 
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         if (!File.Exists(filepath))
-            return ("File doesn't exist", string.Empty);
+            return new ToolResult
+            {
+                IsSuccess = false,
+                Result = "File doesn't exist."
+            };
+        if (edits == null || edits.Count == 0)
+            return new ToolResult
+            {
+                IsSuccess = false,
+                Result = "Parameter 'edits' is invalid."
+            };
 
         var content = File.ReadAllText(filepath);
 
@@ -467,13 +578,23 @@ public static class BuiltInAgent
             : Regex.Replace(current, Regex.Escape(edit.OldString), edit.NewString, RegexOptions.Singleline));
 
         File.WriteAllText(filepath, content);
-        return ("File updated successfully", string.Empty);
+        return new ToolResult
+        {
+            Result = "File updated successfully."
+        };
     }
 
-    private static async Task<(string, string)> GrepSearchAsync(string arguments)
+    private static async Task<ToolResult> GrepSearchAsync(IReadOnlyDictionary<string, object> args)
     {
-        var args = JsonSerializer.Deserialize<Dictionary<string, string>>(arguments);
-        var query = args["query"];
+        var query = args.GetString("query");
+        if (string.IsNullOrEmpty(query))
+        {
+            return new ToolResult
+            {
+                IsSuccess = false,
+                Result = "Parameter 'query' is invalid."
+            };
+        }
 
         var results = new List<string>();
         var solutionPath = await GetSolutionPathAsync();
@@ -504,31 +625,52 @@ public static class BuiltInAgent
             }
         }
 
-        return ($"Found {results.Count} files with matches", string.Join("\n", results));
+        return new ToolResult
+        {
+            Result = $"Found {results.Count} files with matches. List of files are showed to user.",
+            PrivateResult = string.Join("\n", results)
+        };
     }
 
-    private static async Task<(string, string)> ViewDiffFilesAsync(string arguments)
+    private static async Task<ToolResult> ViewDiffFilesAsync(IReadOnlyDictionary<string, object> args)
     {
-        var args = JsonSerializer.Deserialize<Dictionary<string, string>>(arguments);
         var solutionPath = await GetSolutionPathAsync();
-        var filepath1 = GetSolutionRelativePath(args["file1"], solutionPath);
-        var filepath2 = GetSolutionRelativePath(args["file2"], solutionPath);
+        var filepath1 = GetSolutionRelativePath(args.GetString("file1"), solutionPath);
+        var filepath2 = GetSolutionRelativePath(args.GetString("file2"), solutionPath);
         if (!File.Exists(filepath1))
         {
-            return ($"Error: file1 {args["file1"]} is not exits.", string.Empty);
+            return new ToolResult
+            {
+                IsSuccess = false,
+                Result = "File 'file1' not found."
+            };
         }
+
         if (!File.Exists(filepath2))
         {
-            return ($"Error: file2 {args["file2"]} is not exits.", string.Empty);
+            return new ToolResult
+            {
+                IsSuccess = false,
+                Result = "File 'file2' not found."
+            };
         }
+
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         var dte = Package.GetGlobalService(typeof(DTE)) as DTE;
         if (!File.Exists(filepath2))
         {
-            return ("Error: DTE is null.", string.Empty);
+            return new ToolResult
+            {
+                IsSuccess = false,
+                Result = "Error: DTE is null."
+            };
         }
+
         dte?.ExecuteCommand("Tools.DiffFiles", $"\"{filepath1}\" \"{filepath2}\"");
-        return ("Diff successfully showed.", string.Empty);
+        return new ToolResult
+        {
+            Result = "Diff successfully showed."
+        };
     }
 
     private class EditOperation
@@ -541,42 +683,5 @@ public static class BuiltInAgent
 
         [JsonPropertyName("replace_all")]
         public bool ReplaceAll { get; set; } = false;
-    }
-
-    public static string GetToolUseInstructions()
-    {
-        if (tools.Count == 0)
-        {
-            return string.Empty;
-        }
-
-        var sb = new StringBuilder();
-        sb.AppendLine("""
-                      <tool_use_instructions>
-                      You have access to several "tools" that you can use at any time to retrieve information and/or perform tasks for the User.
-                      To use a tool, respond with a tool code block (```tool) using the syntax shown in the examples below:
-
-                      The following tools are available to you:
-
-                      """);
-
-        foreach (var t in tools)
-        {
-            var fragment = t.GeneratePromptFragment();
-            if (string.IsNullOrWhiteSpace(fragment))
-                continue;
-            sb.AppendLine(fragment);
-            sb.AppendLine();
-        }
-
-        sb.AppendLine("""
-
-                      If it seems like the User's request could be solved with one of the tools, choose the BEST one for the job based on the user's request and the tool descriptions
-                      Then send the ```tool codeblock (YOU call the tool, not the user). Always start the codeblock on a new line.
-                      Do not perform actions with/for hypothetical files. Ask the user or use tools to deduce which files are relevant.
-                      You can only call ONE tool at at time. The tool codeblock should be the last thing you say; stop your response after the tool codeblock.
-                      </tool_use_instructions>
-                      """);
-        return sb.ToString();
     }
 }

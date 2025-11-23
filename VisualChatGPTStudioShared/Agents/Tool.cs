@@ -1,27 +1,72 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using OpenAI_API.Functions;
+
 namespace JeffPires.VisualChatGPTStudio.Agents
 {
-    public enum ApprovalKind
-    {
-        Ask,
-        AutoApprove
-    }
-
     public class Tool
     {
+        public Tool()
+        {
+        }
+
+        public Tool(Func<Tool, IReadOnlyDictionary<string, object>, Task<ToolResult>> executeWithToolAsync)
+        {
+            ExecuteAsync = args => executeWithToolAsync(this, args);
+        }
+
+        /// <summary>
+        /// Name of tool
+        /// </summary>
         public string Name { get; init; }
 
+        /// <summary>
+        /// Description for LLM
+        /// </summary>
         public string Description { get; init; }
 
+        /// <summary>
+        /// Example in system message
+        /// </summary>
+        public string ExampleToSystemMessage { get; init; }
+
+        /// <summary>
+        /// Description for user for Approval request
+        /// TODO
+        /// </summary>
+        public string ApprovalDescription { get; init; }
+
+        /// <summary>
+        /// Enabled for use
+        /// </summary>
         public bool Enabled { get; set; } = true;
 
-        public ApprovalKind Approval { get; set; } = ApprovalKind.Ask;
+        /// <summary>
+        /// Approval behavior
+        /// </summary>
+        public ApprovalKind Approval { get; init; } = ApprovalKind.Ask;
 
-        public bool InPrompt { get; set; } = true;
+        /// <summary>
+        /// Category for grouping tools in UI
+        /// </summary>
+        public string Category { get; init; } = "General";
 
-        public string GeneratePromptFragment()
-        {
-            if (!Enabled || !InPrompt) return string.Empty;
-            return Description;
-        }
+        /// <summary>
+        /// Risk level for security considerations
+        /// </summary>
+        public RiskLevel RiskLevel { get; init; } = RiskLevel.Medium;
+
+        /// <summary>
+        /// Function parameters. Used for native tools_calling
+        /// </summary>
+        public Dictionary<string, Property> Parameters { get; init; } = [];
+
+        /// <summary>
+        /// Function to execute the tool
+        /// </summary>
+        public Func<IReadOnlyDictionary<string, object>, Task<ToolResult>> ExecuteAsync { get; init; } = null!;
+
+        public bool LogResponseAndRequest { get; set; }
     }
 }

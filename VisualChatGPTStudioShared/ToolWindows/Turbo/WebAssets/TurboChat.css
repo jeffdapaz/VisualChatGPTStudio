@@ -67,12 +67,13 @@ details[open] summary {
 }
 .me {
     justify-content:flex-end;
+    animation: slideIn 0.3s ease-out;
 }
 .gpt, .api {
     justify-content:flex-start;
 }
 .bubble {
-    max-width:85%;
+    max-width:95%;
     padding:.6rem .9rem;
     border-radius:1rem;
     box-shadow: 0px 0px 2px var(--code-bg-color);
@@ -219,4 +220,97 @@ span.context {
     visibility: visible;
     opacity: 1;
     bottom: 150%;
+}
+
+/* Tool Approval Panel Styles */
+.tool-approval-panel {
+    background: #2d2d30;
+    border: 2px solid #ffb74d;
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 8px;
+    animation: slideIn 0.3s ease-out;
+}
+
+.tool-approval-content {
+    max-width: 100%;
+}
+
+.tool-reasoning {
+    font-style: italic;
+    color: var(--highlight-bg-color);
+    margin: 8px 0;
+    font-size: 0.9em;
+}
+
+.tool-parameters {
+    border: 1px solid #3e3e42;
+    border-radius: 4px;
+    padding: 10px;
+    margin: 10px 0;
+    max-height: 200px;
+    overflow: auto;
+    font-size: 0.85em;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.tool-approval-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.approve-btn, .cancel-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.approve-btn {
+    background: #28a745;
+    color: white;
+}
+
+.approve-btn:hover {
+    background: #218838;
+    transform: translateY(-1px);
+}
+
+.cancel-btn {
+    background: #dc3545;
+    color: white;
+}
+
+.cancel-btn:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Ensure the approval panel is visible in light theme */
+@media (prefers-color-scheme: light) {
+    .tool-approval-panel {
+        border-color: #ffa500;
+    }
+
+    .tool-parameters {
+        border-color: #e9ecef;
+    }
 }

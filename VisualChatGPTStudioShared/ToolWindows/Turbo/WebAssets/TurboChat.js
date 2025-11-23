@@ -6,7 +6,80 @@
     }
 });
 
-let isLoading = false;
+let isLoading = false; // TODO
+
+/* --------- Tool Approval System --------- */
+function showToolApproval(toolRequest) {
+
+    // Create approval panel
+    const approvalPanel = document.createElement('div');
+    approvalPanel.className = 'tool-approval-panel';
+    approvalPanel.innerHTML = `
+        <div class="tool-approval-content">
+            <p><strong>AI wants to call tool:</strong> ${toolRequest.tool_name}</p>
+            ${toolRequest.reasoning ? `<p class="tool-reasoning">${toolRequest.reasoning}</p>` : ''}
+            ${toolRequest.parameters ? `<pre class="tool-parameters">${JSON.stringify(toolRequest.parameters, null, 2)}</pre>` : ''}
+            <div class="tool-approval-buttons">
+                <button id="approve-btn" class="approve-btn">
+                    <i class="fa-solid fa-check"></i> Approve
+                </button>
+                <button id="cancel-btn" class="cancel-btn">
+                    <i class="fa-solid fa-xmark"></i> Cancel
+                </button>
+            </div>
+        </div>
+    `;
+
+    approvalPanel.dataset.toolRequest = JSON.stringify(toolRequest);
+
+    // Add event listeners
+    approvalPanel.querySelector('#approve-btn').addEventListener('click', handleToolApproval);
+    approvalPanel.querySelector('#cancel-btn').addEventListener('click', handleToolCancellation);
+
+    return approvalPanel;
+}
+
+function handleToolApproval(event) {
+    const approvalPanel = event.target.closest('.tool-approval-panel');
+    if (!approvalPanel) return;
+
+    const toolRequest = JSON.parse(approvalPanel.dataset.toolRequest);
+
+    window.chrome.webview.postMessage({
+        type: 'tool_execute',
+        tool_name: toolRequest.tool_name,
+        tool_id: toolRequest.tool_id,
+        parameters: toolRequest.parameters
+    });
+
+    approvalPanel.remove();
+}
+
+function handleToolCancellation(event) {
+    const approvalPanel = event.target.closest('.tool-approval-panel');
+    if (!approvalPanel) return;
+
+    const toolRequest = JSON.parse(approvalPanel.dataset.toolRequest);
+
+    window.chrome.webview.postMessage({
+        type: 'tool_cancelled',
+        tool_name: toolRequest.tool_name,
+        tool_id: toolRequest.tool_id,
+        reason: 'user_cancelled'
+    });
+
+    approvalPanel.remove();
+}
+
+function removeEmptyGpt() {
+    document
+        .querySelectorAll('#chat .gpt:last-child .bubble')
+        .forEach(bubble => {
+            if (!bubble.textContent.trim()) {
+                bubble.remove();
+            }
+        });
+}
 
 function buildCodeBlock(lang, highlightedHtml, raw) {
     const id = 'cb-' + Math.random().toString(36).slice(2);
@@ -29,8 +102,7 @@ function buildCodeBlock(lang, highlightedHtml, raw) {
       </div>`;
 }
 
-function buildMermaidBlock(lang, text)
-{
+function buildMermaidBlock(lang, text) {
     const id = 'mmd-' + Math.random().toString(36).slice(2);
     return `
       <div class="code-box">
@@ -51,11 +123,9 @@ function buildMermaidBlock(lang, text)
       </div>`
 }
 
-/* send messages to WebView2 */
 function sendPNG(id, sender) {
     const svgEl = document.querySelector('#'+id+' svg');
-    if (!svgEl)
-    {
+    if (!svgEl) {
         showPopupMessage('Image not found.');
         swapToCheckButton(sender, true);
     }
@@ -92,7 +162,7 @@ function sendPNG(id, sender) {
     swapToCheckButton(sender);
 }
 
-function sendCode(id, action, sender){
+function sendCode(id, action, sender) {
     let element = document.getElementById(id);
     let raw = element.getAttribute("data-raw") ?? element.textContent;
     let selection = window.getSelection();
@@ -108,8 +178,7 @@ function sendCode(id, action, sender){
     swapToCheckButton(sender);
 }
 
-function showPopupMessage(text)
-{
+function showPopupMessage(text) {
     let popup = document.getElementById("popup");
     if (!popup.classList.contains('show')) {
         popup.classList.add('show');
@@ -120,10 +189,8 @@ function showPopupMessage(text)
     }
 }
 
-function swapToCheckButton(sender, isError = false)
-{
-    if (!sender)
-    {
+function swapToCheckButton(sender, isError = false) {
+    if (!sender) {
         return;
     }
     const icon = sender.querySelector('i');
@@ -164,13 +231,13 @@ renderer.code = function ({ text, lang }) {
 marked.use({ renderer });
 
 /* --------- think + markdown --------- */
-function splitThink(text){
+function splitThink(text) {
     const parts = [];
     const thinkRegex = /^<think>([\s\S]*?)(<\/think>|$)/gi;
     let lastIdx = 0;
     let m;
-    while((m = thinkRegex.exec(text)) !== null){
-        if(m.index > lastIdx){
+    while((m = thinkRegex.exec(text)) !== null) {
+        if(m.index > lastIdx) {
             parts.push({type:'md', text:text.slice(lastIdx, m.index)});
         }
         parts.push({type:'think', text:m[1]});
@@ -195,8 +262,8 @@ function highlightSpecialTags(text) {
     );
 }
 
-function renderFrag(f){
-    if(f.type === 'think'){
+function renderFrag(f) {
+    if(f.type === 'think') {
         return `<details><summary>thinking…</summary>
               ${f.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}
           </details>`;
@@ -205,7 +272,7 @@ function renderFrag(f){
 }
 
 /* ---------- Functions called from C# ---------- */
-function addMsg(role, rawText, imageData = null){
+function addMsg(role, rawText, imageData = null) {
     updateShouldScrollFlag();
     const wrap = document.createElement('div');
     wrap.className = 'msg ' + role;
@@ -234,21 +301,38 @@ function addMsg(role, rawText, imageData = null){
             scrollToBottomIfNeeded();
         }
     }
+
+    return bubble;
 }
 
 function updateLastGpt(rawText) {
     updateShouldScrollFlag();
-    const last = document.querySelector('#chat .gpt:last-child .bubble');
-    if (last) {
+    let last = document.querySelector('#chat .gpt:last-child .bubble') ?? addMsg('gpt', '..');
+
+    // Check to tool approval request
+    try {
+        const messageData = typeof rawText === 'string' ? JSON.parse(rawText) : rawText;
+        if (Array.isArray(messageData) && messageData[0].type === 'tool_request') {
+            // show approval panel
+            last.innerHTML = '';
+            messageData.forEach(message => last.appendChild(showToolApproval(message)));
+        } else {
+            // simple message
+            last.innerHTML = splitThink(rawText).map(renderFrag).join('');
+        }
+    } catch (e) {
+        // not JSON -> simple message
         last.innerHTML = splitThink(rawText).map(renderFrag).join('');
-    } else {
-        addMsg('gpt', rawText);
     }
+
     scrollToBottomIfNeeded();
 }
 
-function addTable(jsonString)
-{
+function removeLastGpt() {
+    document.querySelector('#chat .gpt:last-child .bubble').remove();
+}
+
+function addTable(jsonString) {
     let rawData;
 
     try {
@@ -279,7 +363,7 @@ function addTable(jsonString)
     document.getElementById('chat').appendChild(wrap);
 }
 
-function clearChat(){
+function clearChat() {
     document.getElementById('chat').innerHTML = '';
 }
 

@@ -46,11 +46,5 @@ namespace OpenAI_API.Functions
         /// </summary>
         [JsonProperty("arguments")]
         public string Arguments { get; set; }
-
-        /// <summary>
-        /// Gets or sets the function's result. Optional.
-        /// </summary>
-        [JsonProperty("result")]
-        public string Result { get; set; } = string.Empty;
     }
 }

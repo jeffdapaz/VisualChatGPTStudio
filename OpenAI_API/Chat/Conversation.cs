@@ -187,14 +187,14 @@ namespace OpenAI_API.Chat
             });
         
         /// <summary>
-        /// Appends a tool message to the chat by creating a new ChatMessage with the specified role, content, and function ID.
+        /// Appends a user message to the chat by creating a new ChatMessage
         /// </summary>
         public void AppendUserToolMessage(string content, string functionName = "")
             => AppendMessage(new ChatMessage
             {
                 Role = ChatMessageRole.User,
                 Content = $"""
-                          Tool output for ls tool call {functionName}:
+                          Tool output '{functionName}':
                           
                           {content}
                           """
@@ -235,95 +235,68 @@ namespace OpenAI_API.Chat
         {
             ChatMessage response = await GetResponseFromChatbotAsync();
 
-            return (response?.Content?.ToString(), response?.Functions?.ToList());
+            var content = response?.Content?.ToString() ?? string.Empty;
+            var functions = response?.Functions?.ToList() ?? [];
+            return (content, functions);
         }
 
-        public bool UseOnlySystemMessageTools = false;
-        
-        private string GenerateToolPrompt()
+        public bool UseOnlySystemMessageTools { get; set; } = false;
+
+        public void UpdateFirstSystemMessage(string systemMessageContent)
         {
-            var sb = new StringBuilder();
-            sb.AppendLine();
-
-            foreach (var tool in tools)
-            {
-                sb.AppendLine(tool.Function.Description);
-                
-                sb.AppendLine($"```tool");
-                sb.AppendLine($"TOOL_NAME: {tool.Function.Name}");
-
-                if (tool.Function.Parameters != null)
-                {
-                    foreach (var param in tool.Function.Parameters.Properties)
-                    {
-                        sb.AppendLine($"BEGIN_ARG: {param.Key}");
-                        sb.AppendLine($"{param.Value.Types.FirstOrDefault()}" +
-                                      (!string.IsNullOrWhiteSpace(param.Value.Description) ? $" // {param.Value.Description}" : ""));
-                        sb.AppendLine("END_ARG");
-                    }
-                }
-                sb.AppendLine("```");
-                sb.AppendLine();
-            }
-
-            return sb.ToString();
+            var systemMessage = Messages.FirstOrDefault(m => m.rawRole == "system");
+            systemMessage?.Content = systemMessageContent;
         }
         
         private List<FunctionResult> ParseToolBlock(string content)
         {
-            var matchBlock = Regex.Match(content, "```tool.*?```", RegexOptions.Singleline);
-            if (!matchBlock.Success)
-                return [];
-            
-            var toolBlock = matchBlock.Groups[0].Value;
-            var toolNameMatch = Regex.Match(toolBlock, @"TOOL_NAME:\s*(\S+)", RegexOptions.Multiline);
-            if (!toolNameMatch.Success)
-                return [];
-
-            var toolName = toolNameMatch.Groups[1].Value;
-
-            // BEGIN_ARG: argName ... END_ARG
-            var argRegex = new Regex(@"BEGIN_ARG:\s*(\S+)\s*\n(.*?)\nEND_ARG", RegexOptions.Singleline);
-            var args = new Dictionary<string, object>();
-            foreach (Match match in argRegex.Matches(toolBlock))
+            var matches = Regex.Matches(content, "```tool.*?```", RegexOptions.Singleline);
+            var resultList = new List<FunctionResult>();
+            for (var i = 0; i < matches.Count; i++)
             {
-                var argName = match.Groups[1].Value;
-                var argValue = match.Groups[2].Value.Trim();
-                args[argName] = argValue;
-            }
+                var toolBlock = matches[i].Groups[0].Value;
+                var toolNameMatch = Regex.Match(toolBlock, @"TOOL_NAME:\s*(\S+)", RegexOptions.Multiline);
+                if (!toolNameMatch.Success)
+                    return [];
 
-            var jsonArgs = JsonConvert.SerializeObject(args);
+                var toolName = toolNameMatch.Groups[1].Value;
 
-            return [new FunctionResult
-            {
-                Type = "function",
-                Id = Guid.NewGuid().ToString(),
-                Index = 0,
-                Function = new FunctionToCall
+                // BEGIN_ARG: argName ... END_ARG
+                var argRegex = new Regex(@"BEGIN_ARG:\s*(\S+)\s*\n(.*?)\nEND_ARG", RegexOptions.Singleline);
+                var args = new Dictionary<string, object>();
+                foreach (Match match in argRegex.Matches(toolBlock))
                 {
-                    Name = toolName,
-                    Arguments = jsonArgs
+                    var argName = match.Groups[1].Value;
+                    var argValue = match.Groups[2].Value.Trim();
+                    args[argName] = argValue;
                 }
-            }];
+
+                var jsonArgs = JsonConvert.SerializeObject(args);
+                
+                resultList.Add(new FunctionResult
+                {
+                    Type = "function",
+                    Id = Guid.NewGuid().ToString(),
+                    Index = i,
+                    Function = new FunctionToCall
+                    {
+                        Name = toolName,
+                        Arguments = jsonArgs
+                    }
+                });
+            }
+            
+            return resultList;
         }
 
         private ChatRequest GetChatRequest()
         {
-            if (UseOnlySystemMessageTools && tools != null && tools.Any() && Messages != null && Messages.Any())
-            {
-                var req = new ChatRequest(RequestParameters)
-                {
-                    Messages = Messages?.ToList() ?? []
-                };
-                var systemMessage = req.Messages.FirstOrDefault(m => m.rawRole == "system");
-                systemMessage?.Content = systemMessage.Content.ToString().Replace("-=[ % ]=-", GenerateToolPrompt());
-                return req;
-            }
-            
             return new ChatRequest(RequestParameters)
             {
                 Messages = Messages?.ToList() ?? [],
-                Tools = tools != null && tools.Any() ? tools : null,
+                Tools = !UseOnlySystemMessageTools && tools != null && tools.Any()
+                    ? tools
+                    : null,
             };
         }
 

@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using EnvDTE;
 using JeffPires.VisualChatGPTStudio.Utils;
-using Microsoft.VisualStudio.Shell;
+using Shell = Microsoft.VisualStudio.Shell;
 using VS = Community.VisualStudio.Toolkit.VS;
 using Process = System.Diagnostics.Process;
 using Property = OpenAI_API.Functions.Property;
@@ -285,7 +285,7 @@ public static class BuiltInAgent
         var solutionPath = await GetSolutionPathAsync();
         var filepath = GetSolutionRelativePath(args.GetString("filepath"), solutionPath);
 
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        await Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         if (!File.Exists(filepath))
         {
             return new ToolResult
@@ -323,7 +323,7 @@ public static class BuiltInAgent
         var filepath = GetSolutionRelativePath(args.GetString("filepath"), solutionPath);
         var contents = args.GetString("contents");
 
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        await Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         try
         {
             var directory = Path.GetDirectoryName(filepath);
@@ -357,7 +357,7 @@ public static class BuiltInAgent
 
         var solutionPath = await GetSolutionPathAsync();
 
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        await Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         var startInfo = new ProcessStartInfo
         {
             FileName = "powershell.exe",
@@ -415,7 +415,7 @@ public static class BuiltInAgent
         }
 
         var solutionPath = await GetSolutionPathAsync();
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        await Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         var files = Directory.GetFiles(solutionPath, pattern, SearchOption.AllDirectories)
             .Select(f => MakeRelativeToSolution(f, solutionPath))
             .ToArray();
@@ -431,7 +431,7 @@ public static class BuiltInAgent
     {
         var solutionPath = await GetSolutionPathAsync();
 
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        await Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         var startInfo = new ProcessStartInfo
         {
             FileName = "git",
@@ -472,7 +472,7 @@ public static class BuiltInAgent
         var solutionPath = await GetSolutionPathAsync();
         var relativePath = MakeRelativeToSolution(docView.Document.FilePath, solutionPath);
 
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        await Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         var content = File.ReadAllText(docView.Document.FilePath);
         return new ToolResult
         {
@@ -486,7 +486,7 @@ public static class BuiltInAgent
         var dirPath = GetSolutionRelativePath(args.GetString("dirPath"), solutionPath);
         var recursive = args.GetBool("recursive");
 
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        await Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         if (!Directory.Exists(dirPath))
             return new ToolResult
             {
@@ -557,7 +557,7 @@ public static class BuiltInAgent
         var filepath = GetSolutionRelativePath(args.GetString("filepath"), solutionPath);
         var edits = args.GetObject<List<EditOperation>>("edits");
 
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        await Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         if (!File.Exists(filepath))
             return new ToolResult
             {
@@ -599,7 +599,7 @@ public static class BuiltInAgent
         var results = new List<string>();
         var solutionPath = await GetSolutionPathAsync();
 
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        await Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         var files = Directory.GetFiles(solutionPath, "*", SearchOption.AllDirectories)
             .Where(f => !f.Contains("node_modules") && !f.Contains(".git"))
             .ToArray();
@@ -655,8 +655,8 @@ public static class BuiltInAgent
             };
         }
 
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-        var dte = Package.GetGlobalService(typeof(DTE)) as DTE;
+        await Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        var dte = Shell.Package.GetGlobalService(typeof(DTE)) as DTE;
         if (!File.Exists(filepath2))
         {
             return new ToolResult

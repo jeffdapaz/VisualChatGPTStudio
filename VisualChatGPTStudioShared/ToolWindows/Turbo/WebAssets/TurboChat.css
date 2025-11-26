@@ -74,19 +74,21 @@ details[open] summary {
 }
 .bubble {
     max-width:95%;
-    padding:.6rem .9rem;
-    border-radius:1rem;
-    box-shadow: 0px 0px 2px var(--code-bg-color);
+    padding: .6rem .9rem;
+    border-radius: .4rem;
+    box-shadow: 0 0 2px var(--code-bg-color);
     color:var(--text-color);
     box-sizing: border-box;
 }
 .me .bubble {
     background: var(--user-bg-color);
+    transform: skew(-5deg, 0deg);
 }
 .me .bubble img {
     max-height: 400px;
     max-width: 100%;
-    border-radius: 8px;
+    border-radius: .4rem;
+    display: block;
 }
 .gpt .bubble {
     background: var(--gpt-bg-color);
@@ -113,8 +115,8 @@ pre {
 }
 .code-box {
     position:relative;
-    margin:.6rem 0;
-    border-radius: 8px;
+    margin: .6rem 0;
+    border-radius: .2rem;
     border: 2px solid var(--code-border-color);
     background: var(--code-bg-color);
 }
@@ -137,13 +139,13 @@ pre {
     display:flex;
 }
 .code-box header button {
-    margin-left:.4rem;
-    padding:.2rem .5rem;
+    margin-left: .4rem;
+    padding: .2rem .5rem;
     border:none;
-    border-radius:3px;
+    border-radius: .2rem;
     background: transparent;
-    cursor:pointer;
-    color:inherit;
+    cursor: pointer;
+    color: inherit;
 }
 .code-box header button:hover {
     background-color: var(--code-border-color);

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -22,14 +23,14 @@ public static class BuiltInAgent
     [
         new()
         {
-            Name = "read_file",
-            Description = "To read a file with a known filepath, use the read_file tool.",
+            Name = "read_files",
+            Description = "Request to read the contents of one or more files. Request to read the contents of one or more files. The tool outputs line-numbered content (e.g. \"1 | const x = 1\")",
             ExampleToSystemMessage = """
-                                     For example, to read a file located at 'path/to/file.txt', you would respond with this:
+                                     For example, to read 2 files, you would respond with this:
                                      ```tool
-                                     TOOL_NAME: read_file
-                                     BEGIN_ARG: filepath
-                                     path/to/the_file.txt
+                                     TOOL_NAME: read_files
+                                     BEGIN_ARG: files
+                                     [ "path/to/the_file1.txt", "path/to/the_file2.txt" ]
                                      END_ARG
                                      ```
                                      """,
@@ -38,7 +39,7 @@ public static class BuiltInAgent
             ExecuteAsync = ReadFileAsync,
             Parameters = new Dictionary<string, Property>
             {
-                { "filepath", new Property { Types = ["string"], Description = "The relative path/to/file.txt" } }
+                { "files", new Property { Types = ["array"], Description = "Array of the relative path/to/file.txt, path/to/the_file2.txt" } }
             }
         },
         new()
@@ -159,7 +160,7 @@ public static class BuiltInAgent
             Parameters = new Dictionary<string, Property>
             {
                 { "dirPath", new Property { Types = ["string"], Description = "The directory path" } },
-                { "recursive", new Property { Types = ["bool"], Description = "Use recursive search" } }
+                { "recursive", new Property { Types = ["boolean"], Description = "Use recursive search" } }
             }
         },
         new()
@@ -207,7 +208,7 @@ public static class BuiltInAgent
             Parameters = new Dictionary<string, Property>
             {
                 { "filepath", new Property { Types = ["string"], Description = "The relative path/to/file.txt" } },
-                { "edits", new Property { Types = ["array"], Description = "Array of serialized objects. { \"old_string\": \"const oldVar = 'value'\", \"new_string\": \"const newVar = 'updated'\" }" } }
+                { "edits", new Property { Types = ["array"], Description = "Array of objects. { \"old_string\": \"const oldVar = 'value'\", \"new_string\": \"const newVar = 'updated'\" }" } }
             }
         },
         new()
@@ -283,38 +284,45 @@ public static class BuiltInAgent
     private static async Task<ToolResult> ReadFileAsync(IReadOnlyDictionary<string, object> args)
     {
         var solutionPath = await GetSolutionPathAsync();
-        var filepath = GetSolutionRelativePath(args.GetString("filepath"), solutionPath);
+        var filesInString = args.GetString("files");
+        var files = JsonUtils.Deserialize<List<string>>(filesInString);
 
         await Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-        if (!File.Exists(filepath))
+        var stingBuilder = new StringBuilder();
+        var isSuccess = true;
+        foreach (var fileName in files)
         {
-            return new ToolResult
+            var filepath = GetSolutionRelativePath(fileName, solutionPath);
+            if (!File.Exists(filepath))
             {
-                IsSuccess = false,
-                Result = $"File {args.GetString("filepath")} doesn't exist.",
-                ErrorMessage = $"File {args.GetString("filepath")} doesn't exist."
-            };
+                stingBuilder.AppendLine($"File \"{fileName}\" doesn't exist.");
+                break;
+            }
+
+            stingBuilder.AppendLine($"\"{fileName}\" content");
+
+            try
+            {
+                var lineNum = 0;
+                foreach (var readLine in File.ReadLines(filepath))
+                {
+                    stingBuilder.AppendLine($"{++lineNum} | {readLine}");
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.Log(e);
+                stingBuilder.AppendLine($"Error {e.Message}");
+                isSuccess = false;
+            }
         }
 
-        try
+        return new ToolResult
         {
-            var content = File.ReadAllText(filepath);
-            return new ToolResult
-            {
-                Result = content,
-                PrivateResult = "File read successfully"
-            };
-        }
-        catch (Exception e)
-        {
-            Logger.Log(e);
-            return new ToolResult
-            {
-                IsSuccess = false,
-                Result = $"Error {e.Message}",
-                ErrorMessage = e.Message
-            };
-        }
+            IsSuccess = isSuccess,
+            Result = stingBuilder.ToString(),
+            PrivateResult = isSuccess ? "Files read successfully" : "Errors in log"
+        };
     }
 
     private static async Task<ToolResult> CreateNewFileAsync(IReadOnlyDictionary<string, object> args)
@@ -422,8 +430,7 @@ public static class BuiltInAgent
 
         return new ToolResult
         {
-            Result = $"Found {files.Length} files. Names showed to user.",
-            PrivateResult = string.Join(", ", files)
+            Result = string.Join(", ", files)
         };
     }
 

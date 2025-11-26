@@ -62,7 +62,13 @@ namespace OpenAI_API.Chat
         /// Functions to be executed.
         /// </summary>
         [JsonProperty("tool_calls")]
-        public IReadOnlyList<FunctionResult> Functions { get; set; }
+        public IReadOnlyList<FunctionResult> ToolCalls { get; set; }
+
+        /// <summary>
+        /// An optional content of message showed in think block
+        /// </summary>
+        [JsonProperty("reasoning_content")]
+        public string ReasoningContent { get; set; }
 
         /// <summary>
         /// The function id.

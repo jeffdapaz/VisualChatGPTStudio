@@ -498,14 +498,22 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
     {
         if (Options.UseOnlySystemMessageTools)
         {
-            _apiChat.AppendUserToolMessage(toolToCall.Result?.Result, toolToCall.Tool.Name);
+            _apiChat.AppendMessage(new ChatMessage
+            {
+                Role = ChatMessageRole.User,
+                Name = "Tool",
+                Content = $"""
+                           {toolToCall.Tool.Name}:
+
+                           {toolToCall.Result?.Result}
+                           """
+            });
         }
         else
         {
             _apiChat.AppendMessage(new ChatMessage
             {
                 Role = ChatMessageRole.Tool,
-                Name = toolToCall.Tool.Name,
                 Content = toolToCall.Result?.Result,
                 FunctionId = toolToCall.CallId
             });

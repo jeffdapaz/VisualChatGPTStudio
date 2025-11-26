@@ -185,20 +185,6 @@ namespace OpenAI_API.Chat
                 Content = content,
                 FunctionId = result.Id
             });
-        
-        /// <summary>
-        /// Appends a user message to the chat by creating a new ChatMessage
-        /// </summary>
-        public void AppendUserToolMessage(string content, string functionName = "")
-            => AppendMessage(new ChatMessage
-            {
-                Role = ChatMessageRole.User,
-                Content = $"""
-                          Tool output '{functionName}':
-                          
-                          {content}
-                          """
-            });
 
         /// <summary>
         /// An event called when the chat message history is too long, which should reduce message history length through whatever means is appropriate for your use case.  You may want to remove the first entry in the <see cref="List{ChatMessage}"/> in the <see cref="EventArgs"/>
@@ -236,7 +222,7 @@ namespace OpenAI_API.Chat
             ChatMessage response = await GetResponseFromChatbotAsync();
 
             var content = response?.Content?.ToString() ?? string.Empty;
-            var functions = response?.Functions?.ToList() ?? [];
+            var functions = response?.ToolCalls?.ToList() ?? [];
             return (content, functions);
         }
 
@@ -336,15 +322,15 @@ namespace OpenAI_API.Chat
                     if (UseOnlySystemMessageTools)
                     {
                         var functions = ParseToolBlock(content);
-                        if (newMsg.Functions != null)
+                        if (newMsg.ToolCalls != null)
                         {
-                            functions.AddRange(newMsg.Functions);
+                            functions.AddRange(newMsg.ToolCalls);
                         }
 
-                        newMsg.Functions = functions;
+                        newMsg.ToolCalls = functions;
                     }
                     
-                    bool hasFunctions = newMsg.Functions != null && newMsg.Functions.Any();
+                    bool hasFunctions = newMsg.ToolCalls != null && newMsg.ToolCalls.Any();
 
                     if (string.IsNullOrWhiteSpace(content) && !hasFunctions)
                     {
@@ -467,6 +453,7 @@ namespace OpenAI_API.Chat
             ChatRequest request;
 
             StringBuilder responseStringBuilder = new StringBuilder();
+            var reasoning = new StringBuilder();
             ChatMessageRole responseRole = null;
 
             IAsyncEnumerable<ChatResult> resStream = null;
@@ -526,13 +513,17 @@ namespace OpenAI_API.Chat
                     if (!string.IsNullOrEmpty(deltaText))
                     {
                         responseStringBuilder.Append(deltaText);
+                        if (delta.ReasoningContent != null)
+                        {
+                            reasoning.Append(delta.ReasoningContent);
+                        }
                         yield return deltaText;
                     }
 
-                    // build functions
-                    if (delta?.Functions != null)
+                    // build native tools
+                    if (delta?.ToolCalls != null)
                     {
-                        foreach (var tc in delta.Functions)
+                        foreach (var tc in delta.ToolCalls)
                         {
                             var idx = tc.Index ?? 0;
                             if (!toolCalls.TryGetValue(idx, out var pending))
@@ -573,6 +564,7 @@ namespace OpenAI_API.Chat
             StreamFunctionResults = toolCalls.Select(c => c.Value.Convert()).ToList();
 
             var content = responseStringBuilder.ToString();
+            var reasoningContent = reasoning.ToString();
             
             if (UseOnlySystemMessageTools)
             {
@@ -583,7 +575,8 @@ namespace OpenAI_API.Chat
             {
                 Role = responseRole,
                 Content = content,
-                Functions = StreamFunctionResults.Count > 0 ? StreamFunctionResults : null
+                ReasoningContent = reasoningContent,
+                ToolCalls = StreamFunctionResults.Count > 0 ? StreamFunctionResults : null
             });
         }
 

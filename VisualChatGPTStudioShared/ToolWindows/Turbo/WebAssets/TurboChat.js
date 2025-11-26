@@ -52,7 +52,7 @@ function handleToolApproval(event) {
         parameters: toolRequest.parameters
     });
 
-    approvalPanel.remove();
+    approvalPanel.innerHTML = `<div class="tool-approval-content"><p>✅ ${toolRequest.tool_name}</p></div>`;
 }
 
 function handleToolCancellation(event) {
@@ -68,17 +68,7 @@ function handleToolCancellation(event) {
         reason: 'user_cancelled'
     });
 
-    approvalPanel.remove();
-}
-
-function removeEmptyGpt() {
-    document
-        .querySelectorAll('#chat .gpt:last-child .bubble')
-        .forEach(bubble => {
-            if (!bubble.textContent.trim()) {
-                bubble.remove();
-            }
-        });
+    approvalPanel.innerHTML = `<div class="tool-approval-content"><p>❌ ${toolRequest.tool_name}</p></div>`;
 }
 
 function buildCodeBlock(lang, highlightedHtml, raw) {
@@ -326,10 +316,6 @@ function updateLastGpt(rawText) {
     }
 
     scrollToBottomIfNeeded();
-}
-
-function removeLastGpt() {
-    document.querySelector('#chat .gpt:last-child .bubble').remove();
 }
 
 function addTable(jsonString) {

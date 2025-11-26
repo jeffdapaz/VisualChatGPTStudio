@@ -512,11 +512,17 @@ namespace OpenAI_API.Chat
                     var deltaText = delta?.Content?.ToString();
                     if (!string.IsNullOrEmpty(deltaText))
                     {
-                        responseStringBuilder.Append(deltaText);
                         if (delta.ReasoningContent != null)
                         {
                             reasoning.Append(delta.ReasoningContent);
                         }
+                        else if (deltaText.Contains("</think>"))
+                        {
+                            // Fix Kimi K2 thinking issue in streaming
+                            deltaText = "</think>" + deltaText.Replace("</think>", "");
+                        }
+                        
+                        responseStringBuilder.Append(deltaText);
                         yield return deltaText;
                     }
 

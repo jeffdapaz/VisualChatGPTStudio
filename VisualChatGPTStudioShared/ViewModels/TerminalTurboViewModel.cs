@@ -652,7 +652,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
             return false;
         }
 
-        return true;
+        return IsReadyToRequest;
     }
 
     private async Task HandleExistingWebMessageTypesAsync(JsonElement root)
@@ -758,28 +758,43 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
         }
     }
 
-    private IReadOnlyDictionary<string, object> ParseParameters(JsonElement parametersElement)
+    private IReadOnlyDictionary<string, object> ParseParameters(JsonElement el)
     {
-        var parameters = new Dictionary<string, object>();
-
-        if (parametersElement.ValueKind == JsonValueKind.Object)
+        try
         {
-            foreach (var property in parametersElement.EnumerateObject())
-            {
-                parameters[property.Name] = property.Value.ValueKind switch
-                {
-                    JsonValueKind.String => property.Value.GetString() ?? string.Empty,
-                    JsonValueKind.Number => property.Value.TryGetInt64(out var longVal) ? longVal :
-                        property.Value.TryGetDouble(out var doubleVal) ? doubleVal : 0,
-                    JsonValueKind.True => true,
-                    JsonValueKind.False => false,
-                    JsonValueKind.Array => property.Value.EnumerateArray().Select(e => e.GetString()).ToArray(),
-                    _ => property.Value.GetRawText()
-                };
-            }
-        }
+            if (el.ValueKind != JsonValueKind.Object)
+                throw new JsonException("parameters must be a JSON object");
 
-        return parameters;
+            return (IReadOnlyDictionary<string, object>)ParseToken(el);
+        }
+        catch (Exception ex)
+        {
+            var raw = el.GetRawText();
+            Logger.Log($"Failed to parse parameters JSON: {raw} - {ex.Message}");
+            return new Dictionary<string, object>();
+        }
+    }
+
+    private static object ParseToken(JsonElement token)
+    {
+        try
+        {
+            return token.ValueKind switch
+            {
+                JsonValueKind.String  => token.GetString()!,
+                JsonValueKind.True    => true,
+                JsonValueKind.False   => false,
+                JsonValueKind.Number  => token.TryGetInt64(out var l) ? l : token.GetDouble(),
+                JsonValueKind.Array   => token.EnumerateArray().Select(ParseToken).ToList(),
+                JsonValueKind.Object  => token.EnumerateObject()
+                    .ToDictionary(p => p.Name, p => ParseToken(p.Value)),
+                _ => throw new NotSupportedException($"Unsupported JSON token '{token.ValueKind}'")
+            };
+        }
+        catch (Exception inner)
+        {
+            throw new JsonException($"Error at path '{token}' – {inner.Message}", inner);
+        }
     }
 
     /// <summary>

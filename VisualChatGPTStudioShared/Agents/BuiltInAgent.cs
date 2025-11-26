@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using EnvDTE;
 using JeffPires.VisualChatGPTStudio.Utils;
+using OpenAI_API.Functions;
 using Shell = Microsoft.VisualStudio.Shell;
 using VS = Community.VisualStudio.Toolkit.VS;
 using Process = System.Diagnostics.Process;
@@ -186,8 +187,7 @@ public static class BuiltInAgent
         new()
         {
             Name = "multi_edit",
-            Description =
-                "To make multiple edits to a single file, use the multi_edit tool with a filepath (relative to the root of the workspace) and an array of edit operations.",
+            Description = "To make multiple edits to a single file, use the multi_edit tool with a filepath and an array of edit operations.",
             ExampleToSystemMessage = """
                                      For example, you could respond with:
                                      ```tool
@@ -208,7 +208,21 @@ public static class BuiltInAgent
             Parameters = new Dictionary<string, Property>
             {
                 { "filepath", new Property { Types = ["string"], Description = "The relative path/to/file.txt" } },
-                { "edits", new Property { Types = ["array"], Description = "Array of objects. { \"old_string\": \"const oldVar = 'value'\", \"new_string\": \"const newVar = 'updated'\" }" } }
+                { "edits", new Property
+                    {
+                        Types = ["array"],
+                        Description = "Array of objects.",
+                        Items = new Parameter
+                        {
+                            Properties = new Dictionary<string, Property>
+                            {
+                                { "old_string", new Property { Types = ["string"], Description = "Old string" }  },
+                                { "new_string", new Property { Types = ["string"], Description = "New string" } },
+                                { "replace_all", new Property { Types = ["boolean"], Description = "If true - replace every occurrence of old_string; if false – replace only the first one" } }
+                            }
+                        }
+                    }
+                }
             }
         },
         new()
@@ -582,7 +596,7 @@ public static class BuiltInAgent
 
         content = edits.Aggregate(content, (current, edit) => edit.ReplaceAll
             ? current.Replace(edit.OldString, edit.NewString)
-            : Regex.Replace(current, Regex.Escape(edit.OldString), edit.NewString, RegexOptions.Singleline));
+            :  new Regex(Regex.Escape(edit.OldString)).Replace(content, edit.NewString, 1));
 
         File.WriteAllText(filepath, content);
         return new ToolResult

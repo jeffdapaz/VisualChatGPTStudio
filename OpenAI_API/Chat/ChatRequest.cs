@@ -137,7 +137,7 @@ namespace OpenAI_API.Chat
         /// those using SGlang don't properly handle that setting and barf with a 400.
         /// </summary>
         [JsonProperty("tool_choice")]
-        public string ToolChoice { get; set; } = "auto"; 
+        public string ToolChoice { get; set; }
 
         /// <summary>
         /// Creates a new, empty <see cref="ChatRequest"/>

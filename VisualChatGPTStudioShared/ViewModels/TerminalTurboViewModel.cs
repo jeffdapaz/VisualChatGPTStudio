@@ -1129,10 +1129,10 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
     {
         try
         {
-            IsReadyToRequest = false;
             ProgressStatus = "Waiting API Response.";
             if (IsReadyToSendRequest())
             {
+                IsReadyToRequest = false;
                 await requestOperation();
             }
         }

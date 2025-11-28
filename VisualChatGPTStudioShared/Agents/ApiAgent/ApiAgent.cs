@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Linq;
 using OpenAI_API.Functions;
 using System;
 using System.Collections.Generic;
@@ -34,21 +34,7 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
                                          You can also add 'body' for POST/PUT/PATCH methods or 'queryParams' for GET method, in JSON format.
 
                                          Example usage:
-                                         ```tool
-                                         TOOL_NAME: call_rest_api
-                                         BEGIN_ARG: apiName
-                                         Users API
-                                         END_ARG
-                                         BEGIN_ARG: endPoint
-                                         /{controller}/{action}
-                                         END_ARG
-                                         BEGIN_ARG: method
-                                         GET
-                                         END_ARG
-                                         BEGIN_ARG: headers
-                                         { "Authorization": "Bearer token" }
-                                         END_ARG
-                                         ```
+                                         <|tool_call_begin|> functions.call_rest_api:1 <|tool_call_argument_begin|> {"apiName": "Users API", "endPoint": "/{controller}/{action}", "method": "GET", "headers": { "Authorization": "Bearer token" }} <|tool_call_end|>
                                          """,
                 RiskLevel = RiskLevel.Medium,
                 Category = "API",
@@ -72,21 +58,7 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
                                          You can also add 'body' for POST/PUT/PATCH methods or 'queryParams' for GET method, in JSON format.
 
                                          Example usage:
-                                         ```tool
-                                         TOOL_NAME: call_soap_api
-                                         BEGIN_ARG: apiName
-                                         Users API
-                                         END_ARG
-                                         BEGIN_ARG: endPoint
-                                         The SOAP service endpoint, without the base url.
-                                         END_ARG
-                                         BEGIN_ARG: method
-                                         GET
-                                         END_ARG
-                                         BEGIN_ARG: headers
-                                         { "Authorization": "Bearer token" }
-                                         END_ARG
-                                         ```
+                                         <|tool_call_begin|> functions.call_soap_api:1 <|tool_call_argument_begin|> {"apiName": "Users API", "endPoint": "The SOAP service endpoint, without the base url.", "method": "GET", "headers": { "Authorization": "Bearer token" }} <|tool_call_end|>
                                          """,
                 RiskLevel = RiskLevel.Medium,
                 Category = "API",
@@ -155,7 +127,7 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
                     var method = args.GetString("method");
 
                     // Optional query parameters
-                    var queryParams =  args.GetObject<Dictionary<string, string>>("queryParams") ?? [];
+                    var queryParams = args.GetObject<Dictionary<string, string>>("queryParams") ?? [];
 
                     // Request body (for POST, PUT, PATCH, etc.)
                     var body = args.GetString("body");
@@ -168,7 +140,8 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
                     var response = await CallRestApiAsync(apiDefinition, endPoint, method, headers, queryParams, body, tool.LogResponseAndRequest);
 
                     responseStatusCode = response.StatusCode;
-                    responseContent = FormatJson(await response.Content.ReadAsStringAsync());
+                    var jsonString = JsonUtils.PrettyPrintFormat(await response.Content.ReadAsStringAsync());
+                    responseContent = string.Join(Environment.NewLine, "```json", jsonString,  "```");
                 }
 
                 if (apiDefinition.SendResponsesToAI)
@@ -373,32 +346,6 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
             catch (Exception)
             {
                 return xml;
-            }
-        }
-
-        /// <summary>
-        /// Formats a JSON string by parsing it and returning a prettified version enclosed in markdown code block syntax for JSON.
-        /// </summary>
-        /// <param name="json">The JSON string to be formatted.</param>
-        /// <returns>
-        /// A string containing the formatted JSON wrapped in markdown code block syntax.
-        /// </returns>
-        private static string FormatJson(string json)
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(json))
-                {
-                    return null;
-                }
-
-                JToken parsedJson = JToken.Parse(json);
-
-                return string.Concat("```json", Environment.NewLine, parsedJson.ToString(Newtonsoft.Json.Formatting.Indented), Environment.NewLine, "```");
-            }
-            catch (Exception)
-            {
-                return json;
             }
         }
 

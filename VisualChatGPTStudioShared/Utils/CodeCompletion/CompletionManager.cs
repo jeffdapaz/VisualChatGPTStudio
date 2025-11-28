@@ -178,6 +178,11 @@ namespace JeffPires.VisualChatGPTStudio.Utils.CodeCompletion
 
             try
             {
+                // If you have exception here
+                // - unload project VisualChatGPTStudio2019
+                // - open folder %LocalAppData%\Microsoft\VisualStudio\18.0_*******Exp\Extensions\Jefferson Pires
+                // - remove folder "Visual chatGPT Studio 2019"
+                // - rebuild
                 completionDataCommands.Add(new CompletionData("Complete", OptionsCommands.GetCommandAsync(CommandsType.Complete).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/complete.png"));
                 completionDataCommands.Add(new CompletionData("Add_Tests", OptionsCommands.GetCommandAsync(CommandsType.AddTests).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/addTests.png"));
                 completionDataCommands.Add(new CompletionData("Find_Bugs", OptionsCommands.GetCommandAsync(CommandsType.FindBugs).Result, "pack://application:,,,/VisualChatGPTStudio;component/Resources/findBugs.png"));

@@ -134,7 +134,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                 chat.AppendSystemMessage(selectedContextFilesCode);
             }
 
-            Task task = chat.StreamResponseFromChatbotAsync(resultHandler);
+            Task task = chat.StreamResponseFromChatbotAsync(resultHandler, cancellationToken);
 
             await Task.WhenAny(task, Task.Delay(timeout, cancellationToken)).ConfigureAwait(false);
 

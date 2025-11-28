@@ -16,6 +16,12 @@ public static class JsonUtils
 
     public static T? Deserialize<T>(string json) => JsonSerializer.Deserialize<T>(json, _jsonOptions);
 
+    public static string PrettyPrintFormat(string minifiedJson)
+    {
+        using JsonDocument document = JsonDocument.Parse(minifiedJson);
+        return JsonSerializer.Serialize(document.RootElement, new JsonSerializerOptions { WriteIndented = true });
+    }
+
     public static IReadOnlyDictionary<string, object>? DeserializeParameters(string json)
     {
         try

@@ -311,43 +311,6 @@ namespace OpenAI_API
             return await HttpRequest<T>(url, HttpMethod.Put, postData);
         }
 
-
-
-        /*
-		/// <summary>
-		/// Sends an HTTP request and handles a streaming response.  Does basic line splitting and error handling.
-		/// </summary>
-		/// <param name="url">(optional) If provided, overrides the url endpoint for this request.  If omitted, then <see cref="Url"/> will be used.</param>
-		/// <param name="verb">(optional) The HTTP verb to use, for example "<see cref="HttpMethod.Get"/>".  If omitted, then "GET" is assumed.</param>
-		/// <param name="postData">(optional) A json-serializable object to include in the request body.</param>
-		/// <returns>The HttpResponseMessage of the response, which is confirmed to be successful.</returns>
-		/// <exception cref="HttpRequestException">Throws an exception if a non-success HTTP response was returned</exception>
-		private async IAsyncEnumerable<string> HttpStreamingRequestRaw(string url = null, HttpMethod verb = null, object postData = null)
-		{
-			var response = await HttpRequestRaw(url, verb, postData, true);
-
-			using (var stream = await response.Content.ReadAsStreamAsync())
-			using (StreamReader reader = new StreamReader(stream))
-			{
-				string line;
-				while ((line = await reader.ReadLineAsync()) != null)
-				{
-					if (line.StartsWith("data: "))
-						line = line.Substring("data: ".Length);
-					if (line == "[DONE]")
-					{
-						yield break;
-					}
-					else if (!string.IsNullOrWhiteSpace(line))
-					{
-						yield return line.Trim();
-					}
-				}
-			}
-		}
-		*/
-
-
         /// <summary>
         /// Sends an HTTP request and handles a streaming response.  Does basic line splitting and error handling.
         /// </summary>

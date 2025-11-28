@@ -64,7 +64,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
     public TerminalTurboViewModel()
     {
         _toolManager.ScriptRequested += RunScriptAsync;
-        _toolManager.AddBuiltInTools();
+        _toolManager.RegisterAllTools();
     }
 
     public OptionPageGridGeneral Options;
@@ -595,7 +595,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
                 if (!string.IsNullOrWhiteSpace(toolResult.PrivateResult))
                 {
                     // Showing the selected result in chat without sending it to LLM
-                    await AddUiMessageSegmentAsync(new ChatMessageSegment { Author = IdentifierEnum.Me, Content = $"#API{Environment.NewLine}{toolResult.PrivateResult}" });
+                    await AddUiMessageSegmentAsync(new ChatMessageSegment { Author = IdentifierEnum.ChatGPT, Content = $"#API{Environment.NewLine}{toolResult.PrivateResult}" });
                 }
             }
             else if (executedTool.Tool.Category == "SQL")
@@ -823,6 +823,8 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
             }
 
             _apiChat.UseOnlySystemMessageTools = Options.UseOnlySystemMessageTools;
+            _toolManager.EnableToolsByCategory("API", UseApiTools);
+            _toolManager.EnableToolsByCategory("SQL", UseSqlTools);
             _apiChat.UpdateFirstSystemMessage(GetSystemMessage());
 
             var requestToShowOnList = RequestDoc.Text;
@@ -1105,10 +1107,6 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
         var enabledTools = _toolManager.GetEnabledTools();
         foreach (var tool in enabledTools)
         {
-            if (!UseSqlTools && tool.Category == "SQL" || !UseApiTools && tool.Category == "API")
-            {
-                continue;
-            }
             _apiChat.AppendFunctionCall(new FunctionRequest
             {
                 Function = new Function

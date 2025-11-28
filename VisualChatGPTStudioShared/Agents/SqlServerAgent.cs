@@ -27,12 +27,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
                                          Use this when user asks: "show me all products", "list customers", "get order details"
 
                                          Example usage:
-                                         ```tool
-                                         TOOL_NAME: sql_reader
-                                         BEGIN_ARG: query
-                                         SELECT ProductName, Price FROM Products WHERE Category = 'Electronics'
-                                         END_ARG
-                                         ```
+                                         <|tool_call_begin|> functions.sql_reader:1 <|tool_call_argument_begin|> {"query": "SELECT ProductName, Price FROM Products WHERE Category = 'Electronics'"} <|tool_call_end|>
                                          """,
                 RiskLevel = RiskLevel.Low,
                 Category = "SQL",
@@ -47,12 +42,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
                                          Use this when user asks: "add new user", "update price", "delete order"
 
                                          Example usage:
-                                         ```tool
-                                         TOOL_NAME: sql_non_query
-                                         BEGIN_ARG: query
-                                         INSERT INTO Users (Name, Email) VALUES ('John Doe', 'john@example.com')
-                                         END_ARG
-                                         ```
+                                         <|tool_call_begin|> functions.sql_non_query:1 <|tool_call_argument_begin|> {"query": "INSERT INTO Users (Name, Email) VALUES ('John Doe', 'john@example.com')"} <|tool_call_end|>
                                          """,
                 RiskLevel = RiskLevel.High,
                 Category = "SQL",
@@ -64,14 +54,8 @@ namespace JeffPires.VisualChatGPTStudio.Agents
                 Description = "Use when you need a single value - counts, sums, averages, or checking existence. Returns one value from first row/column.",
                 ExampleToSystemMessage = """
                                          Use this when user asks: "how many users", "what's the total sales", "check if user exists"
-
                                          Example usage:
-                                         ```tool
-                                         TOOL_NAME: sql_scalar
-                                         BEGIN_ARG: query
-                                         SELECT COUNT(*) FROM Orders WHERE OrderDate >= '2024-01-01'
-                                         END_ARG
-                                         ```
+                                         <|tool_call_begin|> functions.sql_scalar:1 <|tool_call_argument_begin|> {"query": "SELECT COUNT(*) FROM Orders WHERE OrderDate >= '2024-01-01'"} <|tool_call_end|>
                                          """,
                 RiskLevel = RiskLevel.Medium,
                 Category = "SQL",

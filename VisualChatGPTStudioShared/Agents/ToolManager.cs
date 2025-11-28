@@ -27,7 +27,7 @@ public class ToolManager
         return await ScriptRequested.Invoke(script);
     }
 
-    public void AddBuiltInTools()
+    public void RegisterAllTools()
     {
         foreach (var tool in BuiltInAgent.Tools)
         {
@@ -63,6 +63,14 @@ public class ToolManager
     }
 
     public IEnumerable<Tool> GetAllTools() => _registeredTools.Values;
+
+    public void EnableToolsByCategory(string category, bool enable)
+    {
+        foreach (var tool in _registeredTools.Values.Where(t => t.Category == category))
+        {
+            tool.Enabled = enable;
+        }
+    }
 
     public IEnumerable<Tool> GetEnabledTools() => _registeredTools.Values.Where(t => t.Enabled);
 
@@ -236,9 +244,23 @@ public class ToolManager
 
         var sb = new StringBuilder();
         sb.AppendLine("""
+                      You are a function-calling assistant.
+
                       <tool_use_instructions>
                       You have access to several "tools" that you can use at any time to retrieve information and/or perform tasks for the User.
-                      To use a tool, respond with a tool code block (```tool) using the syntax shown in the examples below:
+
+                      You MUST invoke tools exclusively with the following literal syntax; no other format is allowed:
+                      <|tool_calls_section_begin|> <|tool_call_begin|> functions.<toolName>:<numID> <|tool_call_argument_begin|> {<arg1>:<val1>,<arg2>:<val2>} <|tool_call_end|> <|tool_calls_section_end|>
+                      Immediately after section_end - stop generation, no explanatory text.
+                      Explanation:
+                      <|tool_calls_section_begin|>                       // start of call block
+                      <|tool_call_begin|> functions.<toolName>:<numID>   // function header. toolName - function name. ID - index number in calls_section. Here is 1.
+                      <|tool_call_argument_begin|> JSON                  // argument body
+                      <|tool_call_end|>                                  // end of first call
+                      <|tool_call_begin|> functions.<toolName>:<numID>   // optional second function header. toolName - function name. ID - index number in calls_section. Here is 2.
+                      <|tool_call_argument_begin|> JSON                  // argument body
+                      <|tool_call_end|>                                  // end of second call
+                      <|tool_calls_section_end|>                         // end of the call block
 
                       The following tools are available to you:
 
@@ -253,10 +275,10 @@ public class ToolManager
 
         sb.AppendLine("""
 
-                      If it seems like the User's request could be solved with one of the tools, choose the BEST one for the job based on the user's request and the tool descriptions
-                      Then send the ```tool codeblock (YOU call the tool, not the user). Always start the codeblock on a new line.
-                      Do not perform actions with/for hypothetical files. Ask the user or use tools to deduce which files are relevant.
-                      You can only call ONE tool at at time. The tool codeblock should be the last thing you say; stop your response after the tool codeblock.
+                      If it seems like the User's request could be solved with the tools, choose the BEST tool for the job based on the user's request and the tool descriptions
+                      Then send the tool_calls_section (YOU call the tool, not the user).
+                      Do not perform actions with/for hypothetical files. Use tools to deduce which files are relevant.
+                      You can call multiple tools in one tool_calls_section.
                       </tool_use_instructions>
                       """);
         return sb.ToString();

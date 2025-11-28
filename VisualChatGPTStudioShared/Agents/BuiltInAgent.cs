@@ -12,6 +12,7 @@ using EnvDTE;
 using JeffPires.VisualChatGPTStudio.Utils;
 using OpenAI_API.Functions;
 using Shell = Microsoft.VisualStudio.Shell;
+using Toolkit = Community.VisualStudio.Toolkit;
 using VS = Community.VisualStudio.Toolkit.VS;
 using Process = System.Diagnostics.Process;
 using Property = OpenAI_API.Functions.Property;
@@ -28,12 +29,7 @@ public static class BuiltInAgent
             Description = "Request to read the contents of one or more files. Request to read the contents of one or more files. The tool outputs line-numbered content (e.g. \"1 | const x = 1\")",
             ExampleToSystemMessage = """
                                      For example, to read 2 files, you would respond with this:
-                                     ```tool
-                                     TOOL_NAME: read_files
-                                     BEGIN_ARG: files
-                                     [ "path/to/the_file1.txt", "path/to/the_file2.txt" ]
-                                     END_ARG
-                                     ```
+                                     <|tool_call_begin|> functions.read_files:1 <|tool_call_argument_begin|> {"files": [ \"path/to/the_file1.txt\", \"path/to/the_file2.txt\" ]} <|tool_call_end|>
                                      """,
             RiskLevel = RiskLevel.Low,
             Approval = ApprovalKind.AutoApprove,
@@ -49,15 +45,7 @@ public static class BuiltInAgent
             Description = "To create a NEW file, use the create_new_file tool with the relative filepath and new contents.",
             ExampleToSystemMessage = """
                                      For example, to create a file located at 'path/to/file.txt', you would respond with:
-                                     ```tool
-                                     TOOL_NAME: create_new_file
-                                     BEGIN_ARG: filepath
-                                     path/to/file.txt
-                                     END_ARG
-                                     BEGIN_ARG: contents
-                                     Contents of the file
-                                     END_ARG
-                                     ```
+                                     <|tool_call_begin|> functions.create_new_file:1 <|tool_call_argument_begin|> {"filepath": "path/to/file.txt", "contents": "Contents of the file"} <|tool_call_end|>
                                      """,
             ExecuteAsync = CreateNewFileAsync,
             Parameters = new Dictionary<string, Property>
@@ -80,12 +68,7 @@ public static class BuiltInAgent
                           """,
             ExampleToSystemMessage = """
                                      For example, to see the git log, you could respond with:
-                                     ```tool
-                                     TOOL_NAME: run_terminal_command
-                                     BEGIN_ARG: command
-                                     git log
-                                     END_ARG
-                                     ```
+                                     <|tool_call_begin|> functions.run_terminal_command:1 <|tool_call_argument_begin|> {"command": "git log"} <|tool_call_end|>
                                      """,
             RiskLevel = RiskLevel.High,
             ExecuteAsync = RunTerminalCommandAsync,
@@ -99,12 +82,8 @@ public static class BuiltInAgent
             Name = "file_glob_search",
             Description = "To return a list of files based on a glob search pattern, use the file_glob_search tool",
             ExampleToSystemMessage = """
-                                     ```tool
-                                     TOOL_NAME: file_glob_search
-                                     BEGIN_ARG: pattern
-                                     *.cs
-                                     END_ARG
-                                     ```
+                                     For example:
+                                     <|tool_call_begin|> functions.file_glob_search:1 <|tool_call_argument_begin|> {"pattern": "**/*.cs"} <|tool_call_end|>
                                      """,
             RiskLevel = RiskLevel.Low,
             ExecuteAsync = FileGlobSearchAsync,
@@ -118,9 +97,8 @@ public static class BuiltInAgent
             Name = "view_diff",
             Description = "To view the current git diff, use the view_diff tool. This will show you the changes made in the working directory compared to the last commit.",
             ExampleToSystemMessage = """
-                                     ```tool
-                                     TOOL_NAME: view_diff
-                                     ```
+                                     For example
+                                     <|tool_call_begin|> functions.view_diff:1 <|tool_call_argument_begin|> <|tool_call_end|>
                                      """,
             RiskLevel = RiskLevel.Low,
             ExecuteAsync = ViewDiffAsync
@@ -133,9 +111,8 @@ public static class BuiltInAgent
                           If the user is asking about a file and you don't see any code, use this to check the current file
                           """,
             ExampleToSystemMessage = """
-                                     ```tool
-                                     TOOL_NAME: read_currently_open_file
-                                     ```
+                                     For example
+                                     <|tool_call_begin|> functions.read_currently_open_file:1 <|tool_call_argument_begin|> <|tool_call_end|>
                                      """,
             RiskLevel = RiskLevel.Low,
             ExecuteAsync = ReadCurrentlyOpenFileAsync
@@ -146,15 +123,7 @@ public static class BuiltInAgent
             Description = "To list files and folders in a given directory, call the ls tool with \"dirPath\" and \"recursive\".",
             ExampleToSystemMessage = """
                                      For example:
-                                     ```tool
-                                     TOOL_NAME: ls
-                                     BEGIN_ARG: dirPath
-                                     path/to/dir
-                                     END_ARG
-                                     BEGIN_ARG: recursive
-                                     false
-                                     END_ARG
-                                     ```
+                                     <|tool_call_begin|> functions.ls:1 <|tool_call_argument_begin|> {"dirPath": "path/to/dir", "recursive": false} <|tool_call_end|>
                                      """,
             RiskLevel = RiskLevel.Low,
             ExecuteAsync = ListDirectoryAsync,
@@ -170,12 +139,7 @@ public static class BuiltInAgent
             Description = "To fetch the content of a URL, use the fetch_url_content tool.",
             ExampleToSystemMessage = """
                                      For example, to read the contents of a webpage, you might respond with:
-                                     ```tool
-                                     TOOL_NAME: fetch_url_content
-                                     BEGIN_ARG: url
-                                     https://example.com
-                                     END_ARG
-                                     ```
+                                     <|tool_call_begin|> functions.fetch_url_content:1 <|tool_call_argument_begin|> {"url": "https://example.com"} <|tool_call_end|>
                                      """,
             RiskLevel = RiskLevel.Low,
             ExecuteAsync = FetchUrlContentAsync,
@@ -188,20 +152,18 @@ public static class BuiltInAgent
         {
             Name = "multi_edit",
             Description = "To make multiple edits to a single file, use the multi_edit tool with a filepath and an array of edit operations.",
-            ExampleToSystemMessage = """
+            ExampleToSystemMessage = $"""
                                      For example, you could respond with:
-                                     ```tool
-                                     TOOL_NAME: multi_edit
-                                     BEGIN_ARG: filepath
-                                     path/to/file.ts
-                                     END_ARG
-                                     BEGIN_ARG: edits
-                                     [
-                                       { "old_string": "const oldVar = 'value'", "new_string": "const newVar = 'updated'" },
-                                       { "old_string": "oldFunction()", "new_string": "newFunction()", "replace_all": true }
-                                     ]
-                                     END_ARG
-                                     ```
+                                     <|tool_call_begin|> functions.multi_edit:1 <|tool_call_argument_begin|>
+                                     {JsonUtils.Serialize(new Dictionary<string, object> {
+                                         { "filepath", "path/to/file.cs" },
+                                         { "edits", new List<EditOperation>
+                                             {
+                                                 new() { NewString = "new_string", OldString = "const oldVar = 'value'" },
+                                                 new() { NewString = "newFunction()", OldString = "oldFunction()'", ReplaceAll = true }
+                                             }
+                                         }})
+                                     } <|tool_call_end|>
                                      """,
             RiskLevel = RiskLevel.Medium,
             ExecuteAsync = MultiEditAsync,
@@ -231,14 +193,10 @@ public static class BuiltInAgent
             Description = "To perform a grep search within the project, call the grep_search tool with the query pattern to match.",
             ExampleToSystemMessage = """
                                      For example:
-                                     ```tool
-                                     TOOL_NAME: grep_search
-                                     BEGIN_ARG: query
-                                     .*main_services.*
-                                     END_ARG
-                                     ```
+                                     <|tool_call_begin|> functions.grep_search:1 <|tool_call_argument_begin|> {"query": ".*main_services.*"} <|tool_call_end|>
                                      """,
             RiskLevel = RiskLevel.Low,
+            Approval = ApprovalKind.AutoApprove,
             ExecuteAsync = GrepSearchAsync,
             Parameters = new Dictionary<string, Property>
             {
@@ -251,15 +209,7 @@ public static class BuiltInAgent
             Description = "To show the difference between two files in Visual Studio interface, call the view_diff_files tool with relative file paths.",
             ExampleToSystemMessage = """
                                      For example:
-                                     ```tool
-                                     TOOL_NAME: view_diff_files
-                                     BEGIN_ARG: file1
-                                     path/to/file1.cs
-                                     END_ARG
-                                     BEGIN_ARG: file2
-                                     path/to/file2.cs
-                                     END_ARG
-                                     ```
+                                     <|tool_call_begin|> functions.view_diff_files:1 <|tool_call_argument_begin|> {"file1": "path/to/file1.cs", "file2": "path/to/file2.cs"} <|tool_call_end|>
                                      """,
             RiskLevel = RiskLevel.Low,
             ExecuteAsync = ViewDiffFilesAsync,
@@ -575,7 +525,8 @@ public static class BuiltInAgent
     private static async Task<ToolResult> MultiEditAsync(IReadOnlyDictionary<string, object> args)
     {
         var solutionPath = await GetSolutionPathAsync();
-        var filepath = GetSolutionRelativePath(args.GetString("filepath"), solutionPath);
+        var inputFileName = args.GetString("filepath");
+        var filepath = GetSolutionRelativePath(inputFileName, solutionPath);
         var edits = args.GetObject<List<EditOperation>>("edits");
 
         await Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -601,8 +552,46 @@ public static class BuiltInAgent
         File.WriteAllText(filepath, content);
         return new ToolResult
         {
-            Result = "File updated successfully."
+            Result = $"File {inputFileName} is updated."
         };
+    }
+
+    private static async Task<List<string>> GetAllCodeFilesAsync()
+    {
+        var files = new List<string>();
+
+        // 1. Получаем все проекты (даже вложенные в Solution Folders)
+        var projects = await VS.Solutions.GetAllProjectsAsync();
+
+        foreach (var project in projects)
+        {
+            // 2. Рекурсивно обходим Items
+            await WalkItemsAsync(project.Children, files);
+        }
+
+        return files;
+    }
+
+    private static async Task WalkItemsAsync(
+        IEnumerable<Toolkit.SolutionItem> items,
+        List<string> files)
+    {
+        foreach (var item in items)
+        {
+            switch (item.Type)
+            {
+                case Toolkit.SolutionItemType.PhysicalFile when (item as Toolkit.PhysicalFile)?.Extension is not (".zip" or ".bin" or ".dll" or ".exe") :
+                    files.Add(item.FullPath);
+                    break;
+                case Toolkit.SolutionItemType.Project :
+                    files.Add(item.FullPath);
+                    await WalkItemsAsync(item.Children, files);
+                    break;
+                case Toolkit.SolutionItemType.PhysicalFolder or Toolkit.SolutionItemType.SolutionFolder :
+                    await WalkItemsAsync(item.Children, files);
+                    break;
+            }
+        }
     }
 
     private static async Task<ToolResult> GrepSearchAsync(IReadOnlyDictionary<string, object> args)
@@ -621,10 +610,7 @@ public static class BuiltInAgent
         var solutionPath = await GetSolutionPathAsync();
 
         await Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-        var files = Directory.GetFiles(solutionPath, "*", SearchOption.AllDirectories)
-            .Where(f => !f.Contains("node_modules") && !f.Contains(".git"))
-            .ToArray();
-
+        var files = await GetAllCodeFilesAsync();
         var regex = new Regex(query, RegexOptions.Multiline);
 
         foreach (var file in files)
@@ -633,12 +619,10 @@ public static class BuiltInAgent
             {
                 var content = File.ReadAllText(file);
                 var matches = regex.Matches(content);
-
-                if (matches.Count > 0)
-                {
-                    var relativePath = MakeRelativeToSolution(file, solutionPath);
-                    results.Add($"{relativePath}: {matches.Count} matches");
-                }
+                if (matches.Count <= 0)
+                    continue;
+                var relativePath = MakeRelativeToSolution(file, solutionPath);
+                results.Add($"{relativePath} - {matches.Count} matches");
             }
             catch
             {
@@ -648,8 +632,7 @@ public static class BuiltInAgent
 
         return new ToolResult
         {
-            Result = $"Found {results.Count} files with matches. List of files are showed to user.",
-            PrivateResult = string.Join("\n", results)
+            Result = results.Count == 0 ? "Nothing found." : string.Join("\n", results)
         };
     }
 

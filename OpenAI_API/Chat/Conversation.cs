@@ -235,46 +235,46 @@ namespace OpenAI_API.Chat
             var systemMessage = Messages.FirstOrDefault(m => m.rawRole == "system");
             systemMessage?.Content = systemMessageContent;
         }
-        
+
         private List<FunctionResult> ParseToolBlock(string content)
         {
-            var matches = Regex.Matches(content, "```tool.*?```", RegexOptions.Singleline);
-            var resultList = new List<FunctionResult>();
-            for (var i = 0; i < matches.Count; i++)
+            var result = new List<FunctionResult>();
+
+            // section tool_calls_section
+            var sectionRegex = new Regex(
+                @"<\|tool_calls_section_begin\|>(.*?)<\|tool_calls_section_end\|>",
+                RegexOptions.Singleline);
+
+            foreach (Match secMatch in sectionRegex.Matches(content))
             {
-                var toolBlock = matches[i].Groups[0].Value;
-                var toolNameMatch = Regex.Match(toolBlock, @"TOOL_NAME:\s*(\S+)", RegexOptions.Multiline);
-                if (!toolNameMatch.Success)
-                    return [];
+                var sectionBody = secMatch.Groups[1].Value;
 
-                var toolName = toolNameMatch.Groups[1].Value;
+                // tool calls inside
+                var callRegex = new Regex(
+                    @"<\|tool_call_begin\|>\s*functions\.(\w+):(\d+)\s*<\|tool_call_argument_begin\|>\s*(\{.*?\})\s*<\|tool_call_end\|>",
+                    RegexOptions.Singleline);
 
-                // BEGIN_ARG: argName ... END_ARG
-                var argRegex = new Regex(@"BEGIN_ARG:\s*(\S+)\s*\n(.*?)\nEND_ARG", RegexOptions.Singleline);
-                var args = new Dictionary<string, object>();
-                foreach (Match match in argRegex.Matches(toolBlock))
+                foreach (Match callMatch in callRegex.Matches(sectionBody))
                 {
-                    var argName = match.Groups[1].Value;
-                    var argValue = match.Groups[2].Value.Trim();
-                    args[argName] = argValue;
-                }
+                    var toolName = callMatch.Groups[1].Value;
+                    var callId = callMatch.Groups[2].Value;
+                    var jsonArgs = callMatch.Groups[3].Value;
 
-                var jsonArgs = JsonConvert.SerializeObject(args);
-                
-                resultList.Add(new FunctionResult
-                {
-                    Type = "function",
-                    Id = Guid.NewGuid().ToString(),
-                    Index = i,
-                    Function = new FunctionToCall
+                    result.Add(new FunctionResult
                     {
-                        Name = toolName,
-                        Arguments = jsonArgs
-                    }
-                });
+                        Type = "function",
+                        Id = callId,
+                        Index = result.Count,
+                        Function = new FunctionToCall
+                        {
+                            Name = toolName,
+                            Arguments = jsonArgs
+                        }
+                    });
+                }
             }
-            
-            return resultList;
+
+            return result;
         }
 
         private ChatRequest GetChatRequest()
@@ -388,25 +388,11 @@ namespace OpenAI_API.Chat
         /// If you are on the latest C# supporting async enumerables, you may prefer the cleaner syntax of <see cref="StreamResponseEnumerableFromChatbotAsync"/> instead.
         ///  </summary>
         /// <param name="resultHandler">An action to be called as each new result arrives.</param>
-        public async Task StreamResponseFromChatbotAsync(Action<string> resultHandler)
+        public async Task StreamResponseFromChatbotAsync(Action<string> resultHandler, CancellationToken cancellationToken)
         {
-            await foreach (string res in StreamResponseEnumerableFromChatbotAsync())
+            await foreach (string res in StreamResponseEnumerableFromChatbotAsync(cancellationToken))
             {
                 resultHandler(res);
-            }
-        }
-
-        /// <summary>
-        /// Calls the API to get a response, which is appended to the current chat's <see cref="Messages"/> as an <see cref="ChatMessageRole.Assistant"/> <see cref="ChatMessage"/>, and streams the results to the <paramref name="resultHandler"/> as they come in. <br/>
-        /// If you are on the latest C# supporting async enumerables, you may prefer the cleaner syntax of <see cref="StreamResponseEnumerableFromChatbotAsync"/> instead.
-        ///  </summary>
-        /// <param name="resultHandler">An action to be called as each new result arrives, which includes the index of the result in the overall result set.</param>
-        public async Task StreamResponseFromChatbotAsync(Action<int, string> resultHandler)
-        {
-            int index = 0;
-            await foreach (string res in StreamResponseEnumerableFromChatbotAsync())
-            {
-                resultHandler(index++, res);
             }
         }
         
@@ -448,7 +434,7 @@ namespace OpenAI_API.Chat
         /// </summary>
         /// <returns>An async enumerable with each of the results as they come in.  See <see href="https://docs.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-8#asynchronous-streams"/> for more details on how to consume an async enumerable.</returns>
         public async IAsyncEnumerable<string> StreamResponseEnumerableFromChatbotAsync(
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             ChatRequest request;
 
@@ -507,25 +493,7 @@ namespace OpenAI_API.Chat
                     {
                         responseRole = delta.Role;
                     }
-
-                    // text
-                    var deltaText = delta?.Content?.ToString();
-                    if (!string.IsNullOrEmpty(deltaText))
-                    {
-                        if (delta.ReasoningContent != null)
-                        {
-                            reasoning.Append(delta.ReasoningContent);
-                        }
-                        else if (deltaText.Contains("</think>"))
-                        {
-                            // Fix Kimi K2 thinking issue in streaming
-                            deltaText = "</think>" + deltaText.Replace("</think>", "");
-                        }
-                        
-                        responseStringBuilder.Append(deltaText);
-                        yield return deltaText;
-                    }
-
+                    
                     // build native tools
                     if (delta?.ToolCalls != null)
                     {
@@ -543,6 +511,24 @@ namespace OpenAI_API.Chat
                                 pending.AppendArgs(tc.Function.Arguments);
                             }
                         }
+                    }
+
+                    // text
+                    var deltaText = delta?.Content?.ToString();
+                    if (!string.IsNullOrEmpty(deltaText))
+                    {
+                        if (delta.ReasoningContent != null)
+                        {
+                            reasoning.Append(delta.ReasoningContent);
+                        }
+                        else if (deltaText.Contains("</think>"))
+                        {
+                            // Fix Kimi K2 thinking issue in streaming
+                            deltaText = "</think>" + deltaText.Replace("</think>", "");
+                        }
+                        
+                        responseStringBuilder.Append(deltaText);
+                        yield return deltaText;
                     }
                 } while (await enumerator.MoveNextAsync() && !cancellationToken.IsCancellationRequested);
             }

@@ -17,7 +17,6 @@ using Microsoft.Web.WebView2.Wpf;
 using VisualChatGPTStudioShared.ToolWindows.Turbo;
 using Package = Microsoft.VisualStudio.Shell.Package;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
-using JsonElement = System.Text.Json.JsonElement;
 using MessageBox = System.Windows.MessageBox;
 
 namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo;
@@ -487,7 +486,7 @@ public partial class TerminalWindowTurboControl
         var lbi = sender as ListBoxItem;
         var chat = lbi?.DataContext as ChatEntity;
 
-        // Edit chatname
+        // Edit chatName
         if (chat is { IsEditing: true })
         {
             switch (e.Key)

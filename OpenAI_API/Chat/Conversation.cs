@@ -25,7 +25,7 @@ namespace OpenAI_API.Chat
         /// <summary>
         /// The tools object used to make function execution requests.
         /// </summary>
-        private readonly List<FunctionRequest> tools;
+        private readonly List<FunctionRequest> tools = new();
 
         /// <summary>
         /// Indicates whether a retry has already been attempted.
@@ -85,8 +85,7 @@ namespace OpenAI_API.Chat
                 RequestParameters.Model = Models.Model.DefaultChatModel;
             }
 
-            _Messages = new List<ChatMessage>();
-            tools = new List<FunctionRequest>();
+            Messages = [];
             this.endpoint = endpoint;
             RequestParameters.NumChoicesPerMessage = 1;
             RequestParameters.Stream = false;
@@ -95,15 +94,15 @@ namespace OpenAI_API.Chat
         /// <summary>
         /// A list of messages exchanged so far. To append to this list, use <see cref="AppendMessage(ChatMessage)"/>, <see cref="AppendUserInput(string)"/>, <see cref="AppendSystemMessage(string)"/>, or <see cref="AppendExampleChatbotOutput(string)"/>.
         /// </summary>
-        public IList<ChatMessage> Messages { get => _Messages; }
-        private List<ChatMessage> _Messages;
+        public List<ChatMessage> Messages { get; private set; }
+        
         private string _checkPoint = string.Empty;
 
         public void MessagesCheckpoint()
-            => _checkPoint = JsonConvert.SerializeObject(_Messages);
+            => _checkPoint = JsonConvert.SerializeObject(Messages);
         
         public void MessagesRestoreFromCheckpoint()
-            => _Messages = JsonConvert.DeserializeObject<List<ChatMessage>>(_checkPoint);
+            => Messages = JsonConvert.DeserializeObject<List<ChatMessage>>(_checkPoint);
 
         /// <summary>
         /// Appends a <see cref="ChatMessage"/> to the chat history
@@ -111,7 +110,7 @@ namespace OpenAI_API.Chat
         /// <param name="message">The <see cref="ChatMessage"/> to append to the chat history</param>
         public void AppendMessage(ChatMessage message)
         {
-            _Messages.Add(message);
+            Messages.Add(message);
         }
 
         /// <summary>
@@ -281,7 +280,7 @@ namespace OpenAI_API.Chat
         {
             return new ChatRequest(RequestParameters)
             {
-                Messages = Messages?.ToList() ?? [],
+                Messages = Messages,
                 Tools = !UseOnlySystemMessageTools && tools != null && tools.Any()
                     ? tools
                     : null,
@@ -621,9 +620,9 @@ namespace OpenAI_API.Chat
                     Role = ChatMessageRole.System,
                     Content = systemMessage
                 }
-                : _Messages.FirstOrDefault(m => m.rawRole.Equals("system", StringComparison.OrdinalIgnoreCase));
-            _Messages.Clear();
-            _Messages.Add(firstSystem);
+                : Messages.FirstOrDefault(m => m.rawRole.Equals("system", StringComparison.OrdinalIgnoreCase));
+            Messages.Clear();
+            Messages.Add(firstSystem);
         }
     }
 }

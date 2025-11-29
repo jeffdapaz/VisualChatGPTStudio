@@ -58,10 +58,11 @@ namespace OpenAI_API.Functions
     public class Parameter
     {
         /// <summary>
-        /// Parameter type
+        /// Parameter type. Default is object.
+        /// When is an "object", then the Properties must be specified.
         /// </summary>
         [JsonProperty("type")]
-        public string Type => "object";
+        public string Type { get; set; } = "object";
 
         /// <summary>
         /// Parameter properties list
@@ -74,19 +75,13 @@ namespace OpenAI_API.Functions
         /// All fields in properties must be marked as required.
         /// </summary>
         [JsonProperty("required")]
-        public List<string> Required
-        {
-            get
-            {
-                return Properties.Select(p => p.Key).ToList();
-            }
-        }
+        public List<string> Required => Properties?.Select(p => p.Key).ToList();
 
         /// <summary>
         /// Must be set to false for each object in the parameters
         /// </summary>
         [JsonProperty("additionalProperties")]
-        public bool AdditionalProperties => false;        
+        public bool AdditionalProperties => false;
     }
 
     /// <summary>

@@ -524,15 +524,15 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
     /// Handles a list of function calls asynchronously, processes their results, updates the UI, and recursively handles additional function calls if needed.
     /// </summary>
     /// <param name="functions">A list of functions to be executed and processed.</param>
-    /// <param name="cancellationToken">A cancellation token to manage task cancellation.</param>
+    /// <param name="cts">A cancellation token to manage task cancellation.</param>
     /// <returns>
     /// A boolean indicating whether the response was successfully handled.
     /// </returns>
-    private async Task<bool> HandleFunctionsCallsAsync(List<FunctionResult> functions, CancellationTokenSource cancellationToken)
+    private async Task HandleFunctionsCallsAsync(List<FunctionResult> functions, CancellationTokenSource cts)
     {
         if (functions.Count == 0)
         {
-            return false;
+            return;
         }
 
         List<ToolToCall> toolsToCall = [];
@@ -621,20 +621,15 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
         }
 
         ProgressStatus = "Waiting API Response";
-        (string Content, List<FunctionResult> ListFunctions) result = await SendRequestAsync(cancellationToken);
+        var (_, resultTools) = await SendRequestAndUpdateUiAsync(cts);
 
-        var responseHandled = false;
-        if (result.ListFunctions != null && result.ListFunctions.Any())
+        if (resultTools != null && resultTools.Any())
         {
-            responseHandled = await HandleFunctionsCallsAsync(result.ListFunctions, cancellationToken);
+            await Task.Delay(100); // some magic =) TODO remove after testing send some tools twice.
+            await HandleFunctionsCallsAsync(resultTools, cts);
         }
 
-        if (!responseHandled)
-        {
-            await AddUiMessageSegmentAsync(new() { Author = IdentifierEnum.ChatGPT, Content = result.Content });
-        }
-
-        return true;
+        _toolCallAttempt = 0;
     }
 
     private bool IsReadyToSendRequest()
@@ -781,12 +776,12 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
         {
             return token.ValueKind switch
             {
-                JsonValueKind.String  => token.GetString()!,
-                JsonValueKind.True    => true,
-                JsonValueKind.False   => false,
-                JsonValueKind.Number  => token.TryGetInt64(out var l) ? l : token.GetDouble(),
-                JsonValueKind.Array   => token.EnumerateArray().Select(ParseToken).ToList(),
-                JsonValueKind.Object  => token.EnumerateObject()
+                JsonValueKind.String => token.GetString()!,
+                JsonValueKind.True => true,
+                JsonValueKind.False => false,
+                JsonValueKind.Number => token.TryGetInt64(out var l) ? l : token.GetDouble(),
+                JsonValueKind.Array => token.EnumerateArray().Select(ParseToken).ToList(),
+                JsonValueKind.Object => token.EnumerateObject()
                     .ToDictionary(p => p.Name, p => ParseToken(p.Value)),
                 _ => throw new NotSupportedException($"Unsupported JSON token '{token.ValueKind}'")
             };
@@ -873,8 +868,6 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
                 }
             }
 
-            _toolCallAttempt = 0;
-
             await ExecuteRequestWithCommonHandlingAsync(async () =>
             {
                 RequestDoc.Text = string.Empty;
@@ -898,37 +891,14 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
                 _apiChat.Messages.Add(apiUserMessage);
 
                 cancellationTokenSource = new();
-                var segment = new ChatMessageSegment { Author = IdentifierEnum.ChatGPT, Content = "" };
-                List<FunctionResult> resultTools;
 
-                if (Options.CompletionStream) // stream
-                {
-                    await AddUiMessageSegmentAsync(segment);
-                    var content = new StringBuilder();
-                    var chatResponses = _apiChat.StreamResponseEnumerableFromChatbotAsync(cancellationTokenSource.Token);
-                    await foreach (var fragment in chatResponses)
-                    {
-                        content.Append(fragment);
-                        // TODO: send fragment instead full content
-                        if (content.Length > 0) // dont show empty bubble
-                        {
-                            await RunScriptAsync(WebFunctions.UpdateLastGpt(content.ToString()))!;
-                        }
-                    }
-
-                    segment.Content = content.ToString();
-                    resultTools = _apiChat.StreamFunctionResults;
-                }
-                else // non-stream
-                {
-                    (segment.Content, resultTools) = await SendRequestAsync(cancellationTokenSource);
-                    await AddUiMessageSegmentAsync(segment);
-                }
+                var (segment, resultTools) = await SendRequestAndUpdateUiAsync(cancellationTokenSource);
 
                 if (resultTools != null && resultTools.Any())
                 {
                     segment.Content = "";
                     await RunScriptAsync(WebFunctions.RemoveLastGpt);
+                    _toolCallAttempt = 0;
                     await HandleFunctionsCallsAsync(resultTools, cancellationTokenSource);
                 }
                 else if (commandType == RequestType.Code && !_shiftKeyPressed)
@@ -1196,6 +1166,38 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
 
         segment.Author = segments[0].Author;
         segment.Content = stringBuilder.ToString();
+    }
+
+    private async Task<(ChatMessageSegment segment, List<FunctionResult> resultTools)> SendRequestAndUpdateUiAsync(CancellationTokenSource cts)
+    {
+        var segment = new ChatMessageSegment { Author = IdentifierEnum.ChatGPT, Content = "" };
+        List<FunctionResult> resultTools;
+
+        if (Options.CompletionStream) // stream
+        {
+            await AddUiMessageSegmentAsync(segment);
+            var content = new StringBuilder();
+            var chatResponses = _apiChat.StreamResponseEnumerableFromChatbotAsync(cancellationTokenSource.Token);
+            await foreach (var fragment in chatResponses)
+            {
+                content.Append(fragment);
+                // TODO: send fragment instead full content
+                if (content.Length > 0) // dont show empty bubble
+                {
+                    await RunScriptAsync(WebFunctions.UpdateLastGpt(content.ToString()))!;
+                }
+            }
+
+            segment.Content = content.ToString();
+            resultTools = _apiChat.StreamFunctionResults;
+        }
+        else // non-stream
+        {
+            (segment.Content, resultTools) = await SendRequestAsync(cancellationTokenSource);
+            await AddUiMessageSegmentAsync(segment);
+        }
+
+        return (segment, resultTools);
     }
 
     /// <summary>

@@ -36,7 +36,13 @@ public static class BuiltInAgent
             ExecuteAsync = ReadFileAsync,
             Parameters = new Dictionary<string, Property>
             {
-                { "files", new Property { Types = ["array"], Description = "Array of the relative path/to/file.txt, path/to/the_file2.txt" } }
+                { "files", new Property
+                    {
+                        Types = ["array"],
+                        Description = "Array of the relative path/to/file.txt, path/to/the_file2.txt",
+                        Items = new Parameter { Type = "string" }
+                    }
+                }
             }
         },
         new()
@@ -79,17 +85,33 @@ public static class BuiltInAgent
         },
         new()
         {
-            Name = "file_glob_search",
-            Description = "To return a list of files based on a glob search pattern, use the file_glob_search tool",
+            Name = "file_search",
+            Description = "To return a list of files with patches in solution directory based on a search regex pattern, use the file_search tool.",
             ExampleToSystemMessage = """
                                      For example:
-                                     <|tool_call_begin|> functions.file_glob_search:1 <|tool_call_argument_begin|> {"pattern": "**/*.cs"} <|tool_call_end|>
+                                     <|tool_call_begin|> functions.file_search:1 <|tool_call_argument_begin|> {"regex": "^.*\.cs$"} <|tool_call_end|>
                                      """,
             RiskLevel = RiskLevel.Low,
-            ExecuteAsync = FileGlobSearchAsync,
+            ExecuteAsync = FileSearchAsync,
             Parameters = new Dictionary<string, Property>
             {
-                { "pattern", new Property { Types = ["string"], Description = "The search pattern" } }
+                { "regex", new Property { Types = ["string"], Description = "The regex pattern for files in all solution directory. Example: '^.*\\.cs$'" } }
+            }
+        },
+        new()
+        {
+            Name = "grep_search",
+            Description = "To perform a grep search within the project, call the grep_search tool with the regex pattern to match.",
+            ExampleToSystemMessage = """
+                                     For example:
+                                     <|tool_call_begin|> functions.grep_search:1 <|tool_call_argument_begin|> {"regex": "^.*?main_services.*"} <|tool_call_end|>
+                                     """,
+            RiskLevel = RiskLevel.Low,
+            Approval = ApprovalKind.AutoApprove,
+            ExecuteAsync = GrepSearchAsync,
+            Parameters = new Dictionary<string, Property>
+            {
+                { "regex", new Property { Types = ["string"], Description = "The regex pattern to match. Example: .*main_services.*" } }
             }
         },
         new()
@@ -189,22 +211,6 @@ public static class BuiltInAgent
         },
         new()
         {
-            Name = "grep_search",
-            Description = "To perform a grep search within the project, call the grep_search tool with the query pattern to match.",
-            ExampleToSystemMessage = """
-                                     For example:
-                                     <|tool_call_begin|> functions.grep_search:1 <|tool_call_argument_begin|> {"query": ".*main_services.*"} <|tool_call_end|>
-                                     """,
-            RiskLevel = RiskLevel.Low,
-            Approval = ApprovalKind.AutoApprove,
-            ExecuteAsync = GrepSearchAsync,
-            Parameters = new Dictionary<string, Property>
-            {
-                { "query", new Property { Types = ["string"], Description = "The query pattern to match. Example: .*main_services.*" } }
-            }
-        },
-        new()
-        {
             Name = "view_diff_files",
             Description = "To show the difference between two files in Visual Studio interface, call the view_diff_files tool with relative file paths.",
             ExampleToSystemMessage = """
@@ -220,30 +226,6 @@ public static class BuiltInAgent
             }
         }
     ];
-
-    private static async Task<string> GetSolutionPathAsync()
-    {
-        var solution = await VS.Solutions.GetCurrentSolutionAsync();
-        return solution != null ? Path.GetDirectoryName(solution.FullPath) : Directory.GetCurrentDirectory();
-    }
-
-    private static string GetSolutionRelativePath(string relativePath, string solutionPath)
-    {
-        if (string.IsNullOrEmpty(relativePath))
-            throw new ArgumentException("Path cannot be null or empty");
-
-        if (Path.IsPathRooted(relativePath))
-            throw new ArgumentException("Absolute paths are not allowed. Use relative paths from solution root.");
-
-        return Path.Combine(solutionPath, relativePath.Replace('/', Path.DirectorySeparatorChar));
-    }
-
-    private static string MakeRelativeToSolution(string fullPath, string solutionPath)
-    {
-        return !fullPath.StartsWith(solutionPath, StringComparison.OrdinalIgnoreCase)
-            ? fullPath
-            : fullPath.Substring(solutionPath.Length + 1);
-    }
 
     private static async Task<ToolResult> ReadFileAsync(IReadOnlyDictionary<string, object> args)
     {
@@ -374,27 +356,70 @@ public static class BuiltInAgent
         };
     }
 
-    private static async Task<ToolResult> FileGlobSearchAsync(IReadOnlyDictionary<string, object> args)
+    private static async Task<ToolResult> FileSearchAsync(IReadOnlyDictionary<string, object> args)
     {
-        var pattern = args.GetString("pattern");
+        var pattern = args.GetString("regex");
         if (string.IsNullOrEmpty(pattern))
         {
             return new ToolResult
             {
                 IsSuccess = false,
-                Result = "pattern should be not null"
+                Result = "Regex pattern should be not empty."
             };
         }
 
         var solutionPath = await GetSolutionPathAsync();
         await Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-        var files = Directory.GetFiles(solutionPath, pattern, SearchOption.AllDirectories)
+        var regex = new Regex(pattern, RegexOptions.Compiled);
+        var files = (await GetAllSolutionFilesAsync()).Where(f => regex.IsMatch(f))
             .Select(f => MakeRelativeToSolution(f, solutionPath))
             .ToArray();
 
         return new ToolResult
         {
-            Result = string.Join(", ", files)
+            Result = files.Length == 0 ? "Nothing found." : string.Join(", ", files)
+        };
+    }
+
+    private static async Task<ToolResult> GrepSearchAsync(IReadOnlyDictionary<string, object> args)
+    {
+        var query = args.GetString("query");
+        if (string.IsNullOrEmpty(query))
+        {
+            return new ToolResult
+            {
+                IsSuccess = false,
+                Result = "Parameter 'query' is invalid."
+            };
+        }
+
+        var results = new List<string>();
+        var solutionPath = await GetSolutionPathAsync();
+
+        await Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        var files = await GetAllSolutionFilesAsync();
+        var regex = new Regex(query, RegexOptions.Multiline);
+
+        foreach (var file in files)
+        {
+            try
+            {
+                var content = File.ReadAllText(file);
+                var matches = regex.Matches(content);
+                if (matches.Count <= 0)
+                    continue;
+                var relativePath = MakeRelativeToSolution(file, solutionPath);
+                results.Add($"{relativePath} - {matches.Count} matches");
+            }
+            catch
+            {
+                // Skip files that can't be read
+            }
+        }
+
+        return new ToolResult
+        {
+            Result = results.Count == 0 ? "Nothing found." : string.Join("\n", results)
         };
     }
 
@@ -477,6 +502,14 @@ public static class BuiltInAgent
     private static async Task<ToolResult> FetchUrlContentAsync(IReadOnlyDictionary<string, object> args)
     {
         var url = args.GetString("url");
+        if (string.IsNullOrEmpty(url))
+        {
+            return new ToolResult
+            {
+                IsSuccess = false,
+                Result = "Error: url is empty."
+            };
+        }
 
         try
         {
@@ -485,9 +518,16 @@ public static class BuiltInAgent
             request.UserAgent = "Visual_ChatGpt_Studio";
             request.Timeout = 3000;
 
-
             using var response = await request.GetResponseAsync();
             using var stream = response.GetResponseStream();
+            if (stream == null)
+            {
+                return new ToolResult
+                {
+                    IsSuccess = false,
+                    Result = "Error: response stream is null."
+                };
+            }
 
             var buffer = new char[1000];
             using var reader = new StreamReader(stream);
@@ -556,86 +596,6 @@ public static class BuiltInAgent
         };
     }
 
-    private static async Task<List<string>> GetAllCodeFilesAsync()
-    {
-        var files = new List<string>();
-
-        // 1. Получаем все проекты (даже вложенные в Solution Folders)
-        var projects = await VS.Solutions.GetAllProjectsAsync();
-
-        foreach (var project in projects)
-        {
-            // 2. Рекурсивно обходим Items
-            await WalkItemsAsync(project.Children, files);
-        }
-
-        return files;
-    }
-
-    private static async Task WalkItemsAsync(
-        IEnumerable<Toolkit.SolutionItem> items,
-        List<string> files)
-    {
-        foreach (var item in items)
-        {
-            switch (item.Type)
-            {
-                case Toolkit.SolutionItemType.PhysicalFile when (item as Toolkit.PhysicalFile)?.Extension is not (".zip" or ".bin" or ".dll" or ".exe") :
-                    files.Add(item.FullPath);
-                    break;
-                case Toolkit.SolutionItemType.Project :
-                    files.Add(item.FullPath);
-                    await WalkItemsAsync(item.Children, files);
-                    break;
-                case Toolkit.SolutionItemType.PhysicalFolder or Toolkit.SolutionItemType.SolutionFolder :
-                    await WalkItemsAsync(item.Children, files);
-                    break;
-            }
-        }
-    }
-
-    private static async Task<ToolResult> GrepSearchAsync(IReadOnlyDictionary<string, object> args)
-    {
-        var query = args.GetString("query");
-        if (string.IsNullOrEmpty(query))
-        {
-            return new ToolResult
-            {
-                IsSuccess = false,
-                Result = "Parameter 'query' is invalid."
-            };
-        }
-
-        var results = new List<string>();
-        var solutionPath = await GetSolutionPathAsync();
-
-        await Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-        var files = await GetAllCodeFilesAsync();
-        var regex = new Regex(query, RegexOptions.Multiline);
-
-        foreach (var file in files)
-        {
-            try
-            {
-                var content = File.ReadAllText(file);
-                var matches = regex.Matches(content);
-                if (matches.Count <= 0)
-                    continue;
-                var relativePath = MakeRelativeToSolution(file, solutionPath);
-                results.Add($"{relativePath} - {matches.Count} matches");
-            }
-            catch
-            {
-                // Skip files that can't be read
-            }
-        }
-
-        return new ToolResult
-        {
-            Result = results.Count == 0 ? "Nothing found." : string.Join("\n", results)
-        };
-    }
-
     private static async Task<ToolResult> ViewDiffFilesAsync(IReadOnlyDictionary<string, object> args)
     {
         var solutionPath = await GetSolutionPathAsync();
@@ -677,15 +637,74 @@ public static class BuiltInAgent
         };
     }
 
+    private static async Task<string> GetSolutionPathAsync()
+    {
+        var solution = await VS.Solutions.GetCurrentSolutionAsync();
+        return solution != null ? Path.GetDirectoryName(solution.FullPath) : Directory.GetCurrentDirectory();
+    }
+
+    private static string GetSolutionRelativePath(string relativePath, string solutionPath)
+    {
+        if (string.IsNullOrEmpty(relativePath))
+            throw new ArgumentException("Path cannot be null or empty");
+
+        if (Path.IsPathRooted(relativePath))
+            throw new ArgumentException("Absolute paths are not allowed. Use relative paths from solution root.");
+
+        return Path.Combine(solutionPath, relativePath.Replace('/', Path.DirectorySeparatorChar));
+    }
+
+    private static string MakeRelativeToSolution(string fullPath, string solutionPath)
+    {
+        return !fullPath.StartsWith(solutionPath, StringComparison.OrdinalIgnoreCase)
+            ? fullPath
+            : fullPath.Substring(solutionPath.Length + 1);
+    }
+
+    /// <summary>
+    /// Get list with full file paths included in solution.
+    /// </summary>
+    private static async Task<List<string>> GetAllSolutionFilesAsync()
+    {
+        var files = new List<string>();
+        var projects = await VS.Solutions.GetAllProjectsAsync();
+        foreach (var project in projects)
+        {
+            await WalkItemsAsync(project.Children, files);
+        }
+
+        return files;
+    }
+
+    private static async Task WalkItemsAsync(IEnumerable<Toolkit.SolutionItem> items, List<string> files)
+    {
+        foreach (var item in items)
+        {
+            switch (item.Type)
+            {
+                case Toolkit.SolutionItemType.PhysicalFile when (item as Toolkit.PhysicalFile)?.Extension is not (".zip" or ".bin" or ".dll" or ".exe") :
+                    files.Add(item.FullPath);
+                    break;
+                case Toolkit.SolutionItemType.Project :
+                    files.Add(item.FullPath);
+                    await WalkItemsAsync(item.Children, files);
+                    break;
+                case Toolkit.SolutionItemType.PhysicalFolder or Toolkit.SolutionItemType.SolutionFolder :
+                    await WalkItemsAsync(item.Children, files);
+                    break;
+            }
+        }
+    }
+
     private class EditOperation
     {
         [JsonPropertyName("old_string")]
-        public string OldString { get; set; }
+        public string OldString { get; init; }
 
         [JsonPropertyName("new_string")]
-        public string NewString { get; set; }
+        public string NewString { get; init; }
 
         [JsonPropertyName("replace_all")]
-        public bool ReplaceAll { get; set; } = false;
+        public bool ReplaceAll { get; init; }
     }
 }

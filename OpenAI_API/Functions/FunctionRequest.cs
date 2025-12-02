@@ -68,14 +68,28 @@ namespace OpenAI_API.Functions
         /// Parameter properties list
         /// </summary>
         [JsonProperty("properties")]
-        public Dictionary<string, Property> Properties { get; set; }
+        public object Properties { get; set; }
 
         /// <summary>
         /// Indicate if the parameter is mandatory.
         /// All fields in properties must be marked as required.
         /// </summary>
         [JsonProperty("required")]
-        public List<string> Required => Properties?.Select(p => p.Key).ToList();
+        public List<string> Required
+        {
+            get
+            {
+                if (Properties is null)
+                    return null;
+                
+                if (Properties is Dictionary<string, Property> dict)
+                {
+                    return dict.Select(p => p.Key).ToList();
+                }
+
+                return Properties.GetType().GetProperties().Select(prop => prop.Name).ToList();
+            }
+        }
 
         /// <summary>
         /// Must be set to false for each object in the parameters

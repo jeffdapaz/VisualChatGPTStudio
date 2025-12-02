@@ -9,6 +9,7 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using EnvDTE;
+using EnvDTE80;
 using JeffPires.VisualChatGPTStudio.Utils;
 using OpenAI_API.Functions;
 using Shell = Microsoft.VisualStudio.Shell;
@@ -26,7 +27,7 @@ public static class BuiltInAgent
         new()
         {
             Name = "read_files",
-            Description = "Request to read the contents of one or more files. Request to read the contents of one or more files. The tool outputs line-numbered content (e.g. \"1 | const x = 1\")",
+            Description = "Request to read the contents of one or more files. The tool outputs line-numbered content (e.g. \"1 | const x = 1\")",
             ExampleToSystemMessage = """
                                      For example, to read 2 files, you would respond with this:
                                      <|tool_call_begin|> functions.read_files:1 <|tool_call_argument_begin|> {"files": [ \"path/to/the_file1.txt\", \"path/to/the_file2.txt\" ]} <|tool_call_end|>
@@ -34,7 +35,7 @@ public static class BuiltInAgent
             RiskLevel = RiskLevel.Low,
             Approval = ApprovalKind.AutoApprove,
             ExecuteAsync = ReadFileAsync,
-            Parameters = new Dictionary<string, Property>
+            Properties = new Dictionary<string, Property>
             {
                 { "files", new Property
                     {
@@ -54,7 +55,7 @@ public static class BuiltInAgent
                                      <|tool_call_begin|> functions.create_new_file:1 <|tool_call_argument_begin|> {"filepath": "path/to/file.txt", "contents": "Contents of the file"} <|tool_call_end|>
                                      """,
             ExecuteAsync = CreateNewFileAsync,
-            Parameters = new Dictionary<string, Property>
+            Properties = new Dictionary<string, Property>
             {
                 { "filepath", new Property { Types = ["string"], Description = "The relative path/to/file.txt" } },
                 { "contents", new Property { Types = ["string"], Description = "Contents of the file" } },
@@ -64,7 +65,7 @@ public static class BuiltInAgent
         {
             Name = "run_terminal_command",
             Description = """
-                          To run a terminal command, use the run_terminal_command tool
+                          To run a terminal command, use the run_terminal_command tool in
                           The shell is not stateful and will not remember any previous commands.
                           When a command is run in the background ALWAYS suggest using shell commands to stop it; NEVER suggest using Ctrl+C.
                           When suggesting subsequent shell commands ALWAYS format them in shell command blocks.
@@ -74,26 +75,28 @@ public static class BuiltInAgent
                           """,
             ExampleToSystemMessage = """
                                      For example, to see the git log, you could respond with:
-                                     <|tool_call_begin|> functions.run_terminal_command:1 <|tool_call_argument_begin|> {"command": "git log"} <|tool_call_end|>
+                                     <|tool_call_begin|> functions.run_terminal_command:1 <|tool_call_argument_begin|> {"exe": "dotnet", "command": "restore"} <|tool_call_end|>
                                      """,
             RiskLevel = RiskLevel.High,
             ExecuteAsync = RunTerminalCommandAsync,
-            Parameters = new Dictionary<string, Property>
+            Properties = new Dictionary<string, Property>
             {
-                { "command", new Property { Types = ["string"], Description = "The powershell command" } }
+                { "exe", new Property { Types = ["string"], Description = "powershell or cmd or dotnet"} },
+                { "command", new Property { Types = ["string"], Description = "The command" } },
+                { "waitForCompletion", new Property { Types = ["boolean"], Description = "Set to false to run the command in the background, without output message" } }
             }
         },
         new()
         {
-            Name = "file_search",
-            Description = "To return a list of files with patches in solution directory based on a search regex pattern, use the file_search tool.",
+            Name = "search_files",
+            Description = "To return a list of files with patches in solution directory based on a search regex pattern, use the search_files tool.",
             ExampleToSystemMessage = """
                                      For example:
-                                     <|tool_call_begin|> functions.file_search:1 <|tool_call_argument_begin|> {"regex": "^.*\.cs$"} <|tool_call_end|>
+                                     <|tool_call_begin|> functions.search_files:1 <|tool_call_argument_begin|> {"regex": "^.*\.cs$"} <|tool_call_end|>
                                      """,
             RiskLevel = RiskLevel.Low,
             ExecuteAsync = FileSearchAsync,
-            Parameters = new Dictionary<string, Property>
+            Properties = new Dictionary<string, Property>
             {
                 { "regex", new Property { Types = ["string"], Description = "The regex pattern for files in all solution directory. Example: '^.*\\.cs$'" } }
             }
@@ -109,7 +112,7 @@ public static class BuiltInAgent
             RiskLevel = RiskLevel.Low,
             Approval = ApprovalKind.AutoApprove,
             ExecuteAsync = GrepSearchAsync,
-            Parameters = new Dictionary<string, Property>
+            Properties = new Dictionary<string, Property>
             {
                 { "regex", new Property { Types = ["string"], Description = "The regex pattern to match. Example: .*main_services.*" } }
             }
@@ -149,7 +152,7 @@ public static class BuiltInAgent
                                      """,
             RiskLevel = RiskLevel.Low,
             ExecuteAsync = ListDirectoryAsync,
-            Parameters = new Dictionary<string, Property>
+            Properties = new Dictionary<string, Property>
             {
                 { "dirPath", new Property { Types = ["string"], Description = "The directory path" } },
                 { "recursive", new Property { Types = ["boolean"], Description = "Use recursive search" } }
@@ -165,65 +168,101 @@ public static class BuiltInAgent
                                      """,
             RiskLevel = RiskLevel.Low,
             ExecuteAsync = FetchUrlContentAsync,
-            Parameters = new Dictionary<string, Property>
+            Properties = new Dictionary<string, Property>
             {
                 { "url", new Property { Types = ["string"], Description = "https://example.com" } }
             }
         },
         new()
         {
-            Name = "multi_edit",
-            Description = "To make multiple edits to a single file, use the multi_edit tool with a filepath and an array of edit operations.",
-            ExampleToSystemMessage = $"""
+            Name = "apply_diff",
+            Description = """
+                          To make multiple edits to a single file, use the apply_diff tool with a path and diff.
+                          If you're not confident in the exact content to search for, use the read_files tool first to get the exact content.
+                          When applying the diffs, be extra careful to remember to change any closing brackets or other syntax that may be affected by the diff farther down in the file.
+                          """,
+            ExampleToSystemMessage = """
+                                     The SEARCH section must exactly match existing content including whitespace and indentation.
+                                     start_line - The starting line of the file for SEARCH block.
+                                     If you're not confident in the exact content to search for, use the read_file tool first to get the exact content.
                                      For example, you could respond with:
-                                     <|tool_call_begin|> functions.multi_edit:1 <|tool_call_argument_begin|>
-                                     {JsonUtils.Serialize(new Dictionary<string, object> {
-                                         { "filepath", "path/to/file.cs" },
-                                         { "edits", new List<EditOperation>
-                                             {
-                                                 new() { NewString = "new_string", OldString = "const oldVar = 'value'" },
-                                                 new() { NewString = "newFunction()", OldString = "oldFunction()'", ReplaceAll = true }
-                                             }
-                                         }})
-                                     } <|tool_call_end|>
+                                     <|tool_call_begin|> functions.apply_diff:1 <|tool_call_argument_begin|>
+                                     { "path": "path/to/file.txt",
+                                       "diffs": [
+                                         {
+                                            "start_line": 12,
+                                            "search": "    // Old calculation logic\n    const result = value * 0.9;\n    return result;",
+                                            "replace": "    // Updated calculation logic with logging\n    console.log(`Calculating for value: ${value}`);\n    const result = value * 0.95; // Adjusted factor\n    return result;"
+                                         }
+                                       ]
+                                     <|tool_call_end|>
                                      """,
             RiskLevel = RiskLevel.Medium,
-            ExecuteAsync = MultiEditAsync,
-            Parameters = new Dictionary<string, Property>
+            ExecuteAsync = ApplyDiffAsync,
+            Properties = new
             {
-                { "filepath", new Property { Types = ["string"], Description = "The relative path/to/file.txt" } },
-                { "edits", new Property
+                path = new { type = "string", description = "Relative or absolute path to the file in solution." },
+                diffs = new
+                {
+                    type = "array",
+                    description = "Array of diffs to apply",
+                    items = new
                     {
-                        Types = ["array"],
-                        Description = "Array of objects.",
-                        Items = new Parameter
+                        type = "object",
+                        properties = new
                         {
-                            Properties = new Dictionary<string, Property>
-                            {
-                                { "old_string", new Property { Types = ["string"], Description = "Old string" }  },
-                                { "new_string", new Property { Types = ["string"], Description = "New string" } },
-                                { "replace_all", new Property { Types = ["boolean"], Description = "If true - replace every occurrence of old_string; if false – replace only the first one" } }
-                            }
-                        }
+                            start_line = new { type = "integer" },
+                            search = new { type = "array", description = "The SEARCH lines must exactly match existing content including whitespace and indentation.", items = new { type = "string" } },
+                            replace = new { type = "array", description = "The REPLACE lines", items = new { type = "string" } }
+                        },
+                        required = new[] { "start_line", "search", "replace" }
                     }
                 }
             }
         },
         new()
         {
-            Name = "view_diff_files",
-            Description = "To show the difference between two files in Visual Studio interface, call the view_diff_files tool with relative file paths.",
+            Name = "show_diff_files_to_user",
+            Description = "To show the difference between two files in Visual Studio interface, call the show_diff_files_to_user tool with relative file paths.",
             ExampleToSystemMessage = """
                                      For example:
-                                     <|tool_call_begin|> functions.view_diff_files:1 <|tool_call_argument_begin|> {"file1": "path/to/file1.cs", "file2": "path/to/file2.cs"} <|tool_call_end|>
+                                     <|tool_call_begin|> functions.show_diff_files_to_user:1 <|tool_call_argument_begin|> {"file1": "path/to/file1.cs", "file2": "path/to/file2.cs"} <|tool_call_end|>
                                      """,
             RiskLevel = RiskLevel.Low,
             ExecuteAsync = ViewDiffFilesAsync,
-            Parameters = new Dictionary<string, Property>
+            Properties = new Dictionary<string, Property>
             {
                 { "file1", new Property { Types = ["string"], Description = "The relative path/to/file1.txt" } },
                 { "file2", new Property { Types = ["string"], Description = "The relative path/to/file2.txt" } },
+                { "file1Title", new Property { Types = ["string"], Description = "The title of file 1" } },
+                { "file2Title", new Property { Types = ["string"], Description = "The title of file 2" } },
             }
+        },
+        new()
+        {
+            Name = "build_solution",
+            Description = "To build solution in Visual Studio. With action - Build, Rebuild or Clean. When any errors returns errors list.",
+            ExampleToSystemMessage = """
+                                     For example:
+                                     <|tool_call_begin|> functions.build_solution:1 <|tool_call_argument_begin|> {"action": 0} <|tool_call_end|>
+                                     """,
+            RiskLevel = RiskLevel.Low,
+            ExecuteAsync = BuildSolutionAsync,
+            Properties = new Dictionary<string, Property>
+            {
+                { "action", new Property { Types = ["integer"], Description = "The build action enum. 0 - Build, 1 - Rebuild, 2 - Clean." } }
+            }
+        },
+        new()
+        {
+            Name = "get_error_list",
+            Description = "To get error list of current solution and current file from Visual Studio.",
+            ExampleToSystemMessage = """
+                                     For example:
+                                     <|tool_call_begin|> functions.get_error_list:1 <|tool_call_argument_begin|> {} <|tool_call_end|>
+                                     """,
+            RiskLevel = RiskLevel.Low,
+            ExecuteAsync = GetErrorListAsync
         }
     ];
 
@@ -238,7 +277,7 @@ public static class BuiltInAgent
         var isSuccess = true;
         foreach (var fileName in files)
         {
-            var filepath = GetSolutionRelativePath(fileName, solutionPath);
+            var filepath = GetAbsolutePath(fileName, solutionPath);
             if (!File.Exists(filepath))
             {
                 stingBuilder.AppendLine($"File \"{fileName}\" doesn't exist.");
@@ -274,7 +313,7 @@ public static class BuiltInAgent
     private static async Task<ToolResult> CreateNewFileAsync(IReadOnlyDictionary<string, object> args)
     {
         var solutionPath = await GetSolutionPathAsync();
-        var filepath = GetSolutionRelativePath(args.GetString("filepath"), solutionPath);
+        var filepath = GetAbsolutePath(args.GetString("filepath"), solutionPath);
         var contents = args.GetString("contents");
 
         await Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -306,16 +345,37 @@ public static class BuiltInAgent
 
     private static async Task<ToolResult> RunTerminalCommandAsync(IReadOnlyDictionary<string, object> args)
     {
+        var exe = args.GetString("exe");
         var command = args.GetString("command");
         var waitForCompletion = !args.ContainsKey("waitForCompletion") || args.GetBool("waitForCompletion");
 
         var solutionPath = await GetSolutionPathAsync();
 
+        if (exe is not ("cmd" or "powershell" or "dotnet"))
+        {
+            return new ToolResult
+            {
+                IsSuccess = false,
+                Result = $"{exe} is unsupported."
+            };
+        }
+
+        if (string.IsNullOrWhiteSpace(command))
+        {
+            return new ToolResult
+            {
+                IsSuccess = false,
+                Result = "Command should be not empty."
+            };
+        }
+
         await Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         var startInfo = new ProcessStartInfo
         {
-            FileName = "powershell.exe",
-            Arguments = $"-Command \"{command}\"",
+            FileName = exe,
+            Arguments = exe is "powershell"
+                ? $"-Command \"{command}\""
+                : command,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
@@ -479,7 +539,7 @@ public static class BuiltInAgent
     private static async Task<ToolResult> ListDirectoryAsync(IReadOnlyDictionary<string, object> args)
     {
         var solutionPath = await GetSolutionPathAsync();
-        var dirPath = GetSolutionRelativePath(args.GetString("dirPath"), solutionPath);
+        var dirPath = GetAbsolutePath(args.GetString("dirPath"), solutionPath);
         var recursive = args.GetBool("recursive");
 
         await Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -562,45 +622,65 @@ public static class BuiltInAgent
         }
     }
 
-    private static async Task<ToolResult> MultiEditAsync(IReadOnlyDictionary<string, object> args)
+    private static async Task<ToolResult> ApplyDiffAsync(IReadOnlyDictionary<string, object> args)
     {
         var solutionPath = await GetSolutionPathAsync();
-        var inputFileName = args.GetString("filepath");
-        var filepath = GetSolutionRelativePath(inputFileName, solutionPath);
-        var edits = args.GetObject<List<EditOperation>>("edits");
+        var inputFileName = args.GetString("path");
+        var filepath = GetAbsolutePath(inputFileName, solutionPath);
+        var replacements = args.GetObject<List<DiffReplacement>>("diffs");
 
         await Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         if (!File.Exists(filepath))
-            return new ToolResult
+            return new ToolResult { IsSuccess = false, Result = "File doesn't exist." };
+
+        if (replacements == null || replacements.Count == 0)
+            return new ToolResult { IsSuccess = false, Result = "No valid replacements found in diff." };
+
+        var lines = File.ReadAllLines(filepath).ToList();
+        var totalReplacements = 0;
+        var appliedReplacements = new List<string>();
+
+        replacements = replacements.OrderByDescending(r => r.StartLine).ToList();
+
+        foreach (var replacement in replacements)
+        {
+            var startIndex = replacement.StartLine - 1;
+            var endLine = replacement.StartLine + replacement.Search.Count - 1;
+            var endIndex = endLine - 1;
+
+            if (replacement.StartLine < 1 || endLine > lines.Count)
             {
-                IsSuccess = false,
-                Result = "File doesn't exist."
-            };
-        if (edits == null || edits.Count == 0)
-            return new ToolResult
+                continue;
+            }
+
+            var currentLines = lines.Skip(startIndex).Take(endIndex - startIndex + 1).ToList();
+
+            if (!currentLines.SequenceEqual(replacement.Search))
             {
-                IsSuccess = false,
-                Result = "Parameter 'edits' is invalid."
-            };
+                continue;
+            }
 
-        var content = File.ReadAllText(filepath);
+            // Replace lines
+            lines.RemoveRange(startIndex, currentLines.Count);
+            lines.InsertRange(startIndex, replacement.Replace);
 
-        content = edits.Aggregate(content, (current, edit) => edit.ReplaceAll
-            ? current.Replace(edit.OldString, edit.NewString)
-            :  new Regex(Regex.Escape(edit.OldString)).Replace(content, edit.NewString, 1));
+            totalReplacements++;
+            appliedReplacements.Add($"{replacement.StartLine}-{endLine}");
+        }
 
-        File.WriteAllText(filepath, content);
+        File.WriteAllLines(filepath, lines);
+
         return new ToolResult
         {
-            Result = $"File {inputFileName} is updated."
+            Result = $"File {inputFileName} updated. Applied {totalReplacements} replacements: {string.Join(", ", appliedReplacements)}"
         };
     }
 
     private static async Task<ToolResult> ViewDiffFilesAsync(IReadOnlyDictionary<string, object> args)
     {
         var solutionPath = await GetSolutionPathAsync();
-        var filepath1 = GetSolutionRelativePath(args.GetString("file1"), solutionPath);
-        var filepath2 = GetSolutionRelativePath(args.GetString("file2"), solutionPath);
+        var filepath1 = GetAbsolutePath(args.GetString("file1"), solutionPath);
+        var filepath2 = GetAbsolutePath(args.GetString("file2"), solutionPath);
         if (!File.Exists(filepath1))
         {
             return new ToolResult
@@ -621,19 +701,77 @@ public static class BuiltInAgent
 
         await Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         var dte = Shell.Package.GetGlobalService(typeof(DTE)) as DTE;
-        if (!File.Exists(filepath2))
-        {
-            return new ToolResult
-            {
-                IsSuccess = false,
-                Result = "Error: DTE is null."
-            };
-        }
-
         dte?.ExecuteCommand("Tools.DiffFiles", $"\"{filepath1}\" \"{filepath2}\"");
         return new ToolResult
         {
             Result = "Diff successfully showed."
+        };
+    }
+
+    private static async Task<ToolResult> BuildSolutionAsync(IReadOnlyDictionary<string, object> args)
+    {
+        var buildAction = (Toolkit.BuildAction)args.GetInt("action");
+        var result = await VS.Build.BuildSolutionAsync(buildAction);
+
+        if (!result)
+        {
+            var errorList = await GetErrorListAsync(null);
+
+            return new ToolResult
+            {
+                IsSuccess = false,
+                Result = $"""
+                          Build is failed.
+
+                          {errorList.Result}
+                          """,
+                PrivateResult = errorList.PrivateResult
+            };
+        }
+
+        return new ToolResult
+        {
+            Result = "Build is successful."
+        };
+    }
+
+    private static async Task<ToolResult> GetErrorListAsync(IReadOnlyDictionary<string, object> args)
+    {
+        await Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        var dte = Shell.Package.GetGlobalService(typeof(DTE)) as DTE2;
+        var errorList = dte?.ToolWindows?.ErrorList?.ErrorItems;
+        if (errorList == null)
+        {
+            return new ToolResult
+            {
+                IsSuccess = false,
+                Result = "Error list is null"
+            };
+        }
+
+        var errors = new List<BuildError>();
+
+        for (var i = 1; i <= errorList.Count; i++)
+        {
+            var errorItem = errorList.Item(i);
+            try
+            {
+                errors.Add(new BuildError
+                {
+                    Message = errorItem.Description,
+                    FileName = errorItem.FileName,
+                    Line = errorItem.Line
+                });
+            }
+            catch
+            {
+                // safe skip error
+            }
+        }
+
+        return new ToolResult
+        {
+            Result = JsonUtils.Serialize(errors)
         };
     }
 
@@ -643,15 +781,13 @@ public static class BuiltInAgent
         return solution != null ? Path.GetDirectoryName(solution.FullPath) : Directory.GetCurrentDirectory();
     }
 
-    private static string GetSolutionRelativePath(string relativePath, string solutionPath)
+    private static string GetAbsolutePath(string relativePath, string solutionPath)
     {
         if (string.IsNullOrEmpty(relativePath))
-            throw new ArgumentException("Path cannot be null or empty");
+            throw new ArgumentException("Path cannot be null or empty.");
 
-        if (Path.IsPathRooted(relativePath))
-            throw new ArgumentException("Absolute paths are not allowed. Use relative paths from solution root.");
-
-        return Path.Combine(solutionPath, relativePath.Replace('/', Path.DirectorySeparatorChar));
+        var path = relativePath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar).TrimStart('.', Path.DirectorySeparatorChar);
+        return path.StartsWith(solutionPath) ? path : $"{solutionPath}{Path.DirectorySeparatorChar}{path}";
     }
 
     private static string MakeRelativeToSolution(string fullPath, string solutionPath)
@@ -696,15 +832,27 @@ public static class BuiltInAgent
         }
     }
 
-    private class EditOperation
+    private class BuildError
     {
-        [JsonPropertyName("old_string")]
-        public string OldString { get; init; }
+        [JsonPropertyName("message")]
+        public string Message { get; init; }
 
-        [JsonPropertyName("new_string")]
-        public string NewString { get; init; }
+        [JsonPropertyName("file_name")]
+        public string FileName { get; init; }
 
-        [JsonPropertyName("replace_all")]
-        public bool ReplaceAll { get; init; }
+        [JsonPropertyName("line")]
+        public int Line { get; init; }
+    }
+
+    private class DiffReplacement
+    {
+        [JsonPropertyName("start_line")]
+        public int StartLine { get; init; } = -1;
+
+        [JsonPropertyName("search")]
+        public List<string> Search { get; init; } = [];
+
+        [JsonPropertyName("replace")]
+        public List<string> Replace { get; init; } = [];
     }
 }

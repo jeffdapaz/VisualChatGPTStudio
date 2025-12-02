@@ -39,7 +39,7 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
                 RiskLevel = RiskLevel.Medium,
                 Category = "API",
                 Approval = ApprovalKind.AutoApprove,
-                Parameters = new Dictionary<string, Property>
+                Properties = new Dictionary<string, Property>
                 {
                     { "apiName", new Property { Types = ["string"], Description = "The API's name." } },
                     { "endPoint", new Property { Types = ["string"], Description = "The API endpoint, e.g. /{controller}/{action}." } },
@@ -63,7 +63,7 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
                 RiskLevel = RiskLevel.Medium,
                 Category = "API",
                 Approval = ApprovalKind.AutoApprove,
-                Parameters = new Dictionary<string, Property>
+                Properties = new Dictionary<string, Property>
                 {
                     { "apiName", new Property { Types = ["string"], Description = "The API's name." } },
                     { "endPoint", new Property { Types = ["string"], Description = "The SOAP service endpoint, without the base url." } },

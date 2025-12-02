@@ -1083,7 +1083,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
                 {
                     Description = tool.Description,
                     Name = tool.Name,
-                    Parameters = new Parameter { Properties = tool.Parameters }
+                    Parameters = new Parameter { Properties = tool.Properties }
                 }
             });
         }

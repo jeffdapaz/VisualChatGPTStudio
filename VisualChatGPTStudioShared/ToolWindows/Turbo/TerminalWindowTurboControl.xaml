@@ -11,7 +11,7 @@
              Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
              Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
              mc:Ignorable="d"
-             d:DesignHeight="400" d:DesignWidth="400">
+             d:DesignHeight="400" d:DesignWidth="700">
 
     <UserControl.Resources>
         <RoutedUICommand x:Key="cancelCommand" Text="Text" />
@@ -279,14 +279,13 @@
             <!-- Request textBox -->
             <Border Grid.Row="2"
                     CornerRadius="4"
-                    BorderBrush="LightGray"
+                    BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUIBorderKey}}"
                     BorderThickness="1"
-                    Padding="4"
+                    Padding="8"
                     MaxHeight="200"
                     Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}">
                 <StackPanel>
-                    <Grid
-                        Visibility="{Binding IsRequestInProgress, Converter={StaticResource BoolToVis}}">
+                    <Grid Visibility="{Binding IsRequestInProgress, Converter={StaticResource BoolToVis}}">
                         <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="True" />
                         <TextBlock
                             Text="{Binding ProgressStatus}"
@@ -300,6 +299,7 @@
                         Name="txtRequest"
                         Document="{Binding RequestDoc}"
                         FontSize="16"
+                        Padding="2"
                         HorizontalScrollBarVisibility="Disabled"
                         VerticalScrollBarVisibility="Auto"
                         ShowLineNumbers="false"
@@ -314,83 +314,82 @@
                             </ContextMenu>
                         </avalonEdit:TextEditor.ContextMenu>
                     </avalonEdit:TextEditor>
+                    <!-- Request commands -->
+                    <StackPanel Name="grdCommands"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Right" >
+                        <StackPanel.Resources>
+                            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
+                                <Setter Property="Margin" Value="8,0"/>
+                            </Style>
+                            <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource {x:Type ToggleButton}}">
+                                <Setter Property="Margin" Value="8,0"/>
+                            </Style>
+                        </StackPanel.Resources>
+                        <ToggleButton
+                            Visibility="{Binding IsReadyToRequest, Converter={StaticResource BoolToVis}}"
+                            ToolTip="Add context to a database"
+                            AutomationProperties.HelpText="Add context to a database"
+                            TabIndex="2"
+                            IsChecked="{Binding UseSqlTools}">
+                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Database}" />
+                        </ToggleButton>
+                        <ToggleButton
+                            Visibility="{Binding IsReadyToRequest, Converter={StaticResource BoolToVis}}"
+                            ToolTip="Add context to an API"
+                            AutomationProperties.HelpText="Add context to an API"
+                            TabIndex="3"
+                            IsChecked="{Binding UseApiTools}">
+                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Cloud}" />
+                        </ToggleButton>
+                        <Button
+                            IsEnabled="{Binding IsReadyToRequest}"
+                            Visibility="{Binding IsReadyToRequest, Converter={StaticResource BoolToVis}}"
+                            ToolTip="Attach an image"
+                            AutomationProperties.HelpText="Attach an image"
+                            TabIndex="4"
+                            Click="btnAttachImage_Click">
+                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Attach}" />
+                        </Button>
+                        <Button
+                            IsEnabled="{Binding IsReadyToRequest}"
+                            Visibility="{Binding IsReadyToRequest, Converter={StaticResource BoolToVis}}"
+                            ToolTip="Computer-Use: Let the AI take control of Visual Studio to execute your instruction"
+                            AutomationProperties.HelpText="Computer-Use: Let the AI take control of Visual Studio to execute your instruction"
+                            TabIndex="5"
+                            Click="btnComputerUse_Click" >
+                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Aggregate}" />
+                        </Button>
+                        <Button
+                            IsEnabled="{Binding IsReadyToRequest}"
+                            Visibility="{Binding IsReadyToRequest, Converter={StaticResource BoolToVis}}"
+                            ToolTip="Send Code (Ctrl+Alt+Enter)"
+                            AutomationProperties.HelpText="Send Code (Ctrl+Alt+Enter)"
+                            TabIndex="6"
+                            Click="SendCode" >
+                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Code}" />
+                        </Button>
+                        <Button
+                            IsEnabled="{Binding IsReadyToRequest}"
+                            Visibility="{Binding IsReadyToRequest, Converter={StaticResource BoolToVis}}"
+                            ToolTip="Send (Ctrl+Enter)"
+                            AutomationProperties.HelpText="Send (Ctrl+Enter)"
+                            TabIndex="7"
+                            Click="SendRequest" >
+                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Send}" />
+                        </Button>
+                        <Button
+                            IsEnabled="{Binding IsRequestInProgress}"
+                            Visibility="{Binding IsRequestInProgress, Converter={StaticResource BoolToVis}}"
+                            ToolTip="Cancel (Alt+Q)"
+                            AutomationProperties.HelpText="Cancel (Alt+Q)"
+                            Click="CancelRequest"
+                            TabIndex="8" >
+                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Cancel}" />
+                        </Button>
+                    </StackPanel>
                 </StackPanel>
             </Border>
-            <!-- Request commands -->
-            <StackPanel Name="grdCommands"
-                        Grid.Row="4"
-                        Orientation="Horizontal"
-                        HorizontalAlignment="Right" >
-                <StackPanel.Resources>
-                    <Style TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
-                        <Setter Property="Margin" Value="8,0"/>
-                    </Style>
-                    <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource {x:Type ToggleButton}}">
-                        <Setter Property="Margin" Value="8,0"/>
-                    </Style>
-                </StackPanel.Resources>
-                <ToggleButton
-                    Visibility="{Binding IsReadyToRequest, Converter={StaticResource BoolToVis}}"
-                    ToolTip="Add context to a database"
-                    AutomationProperties.HelpText="Add context to a database"
-                    TabIndex="2"
-                    IsChecked="{Binding UseSqlTools}">
-                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Database}" />
-                </ToggleButton>
-                <ToggleButton
-                    Visibility="{Binding IsReadyToRequest, Converter={StaticResource BoolToVis}}"
-                    ToolTip="Add context to an API"
-                    AutomationProperties.HelpText="Add context to an API"
-                    TabIndex="3"
-                    IsChecked="{Binding UseApiTools}">
-                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Cloud}" />
-                </ToggleButton>
-                <Button
-                    IsEnabled="{Binding IsReadyToRequest}"
-                    Visibility="{Binding IsReadyToRequest, Converter={StaticResource BoolToVis}}"
-                    ToolTip="Attach an image"
-                    AutomationProperties.HelpText="Attach an image"
-                    TabIndex="4"
-                    Click="btnAttachImage_Click">
-                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Attach}" />
-                </Button>
-                <Button
-                    IsEnabled="{Binding IsReadyToRequest}"
-                    Visibility="{Binding IsReadyToRequest, Converter={StaticResource BoolToVis}}"
-                    ToolTip="Computer-Use: Let the AI take control of Visual Studio to execute your instruction"
-                    AutomationProperties.HelpText="Computer-Use: Let the AI take control of Visual Studio to execute your instruction"
-                    TabIndex="5"
-                    Click="btnComputerUse_Click" >
-                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Aggregate}" />
-                </Button>
-                <Button
-                    IsEnabled="{Binding IsReadyToRequest}"
-                    Visibility="{Binding IsReadyToRequest, Converter={StaticResource BoolToVis}}"
-                    ToolTip="Send Code (Ctrl+Alt+Enter)"
-                    AutomationProperties.HelpText="Send Code (Ctrl+Alt+Enter)"
-                    TabIndex="6"
-                    Click="SendCode" >
-                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Code}" />
-                </Button>
-                <Button
-                    IsEnabled="{Binding IsReadyToRequest}"
-                    Visibility="{Binding IsReadyToRequest, Converter={StaticResource BoolToVis}}"
-                    ToolTip="Send (Ctrl+Enter)"
-                    AutomationProperties.HelpText="Send (Ctrl+Enter)"
-                    TabIndex="7"
-                    Click="SendRequest" >
-                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Send}" />
-                </Button>
-                <Button
-                    IsEnabled="{Binding IsRequestInProgress}"
-                    Visibility="{Binding IsRequestInProgress, Converter={StaticResource BoolToVis}}"
-                    ToolTip="Cancel (Alt+Q)"
-                    AutomationProperties.HelpText="Cancel (Alt+Q)"
-                    Click="CancelRequest"
-                    TabIndex="8" >
-                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Cancel}" />
-                </Button>
-            </StackPanel>
         </Grid>
         <!-- Sidebars -->
         <Border x:Name="Overlay" Grid.RowSpan="3"

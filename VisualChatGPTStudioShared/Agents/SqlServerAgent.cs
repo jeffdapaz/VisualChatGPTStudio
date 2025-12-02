@@ -32,7 +32,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
                 RiskLevel = RiskLevel.Low,
                 Category = "SQL",
                 Approval = ApprovalKind.AutoApprove,
-                Parameters = new Dictionary<string, Property> { { "query", new Property { Types = ["string"], Description = "Script to be executed." } } },
+                Properties = new Dictionary<string, Property> { { "query", new Property { Types = ["string"], Description = "Script to be executed." } } },
             },
             new(ExecuteNonQueryAsync)
             {
@@ -46,7 +46,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
                                          """,
                 RiskLevel = RiskLevel.High,
                 Category = "SQL",
-                Parameters = new Dictionary<string, Property> { { "query", new Property { Types = ["string"], Description = "Script to be executed." } } },
+                Properties = new Dictionary<string, Property> { { "query", new Property { Types = ["string"], Description = "Script to be executed." } } },
             },
             new(ExecuteScalarAsync)
             {
@@ -59,7 +59,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
                                          """,
                 RiskLevel = RiskLevel.Medium,
                 Category = "SQL",
-                Parameters = new Dictionary<string, Property> { { "query", new Property { Types = ["string"], Description = "Script to be executed." } } },
+                Properties = new Dictionary<string, Property> { { "query", new Property { Types = ["string"], Description = "Script to be executed." } } },
             }
         ];
 

@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
-             mc:Ignorable="d"             
+             mc:Ignorable="d"
              Name="MyToolWindow">
     <UserControl.Resources>
         <Style x:Key="ImageHandCursorStyle" TargetType="{x:Type Image}">
@@ -16,8 +16,8 @@
             </Style.Triggers>
         </Style>
     </UserControl.Resources>
-    
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" d:DesignWidth="700">
         <Grid Margin="10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="25"/>
@@ -71,17 +71,17 @@
                     </CheckBox.LayoutTransform>
                 </CheckBox>
                 <Image ToolTip="If checked, all API responses will be forwarded to the AI so it can process and retain them in its context. Otherwise, the AI will only receive the HTTP status, and the responses will be displayed directly in the chat. This option is ideal if you want to protect data and save tokens." Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/information.png" />
-            </StackPanel>            
-            
+            </StackPanel>
+
             <!-- TAGs -->
             <Button x:Name="btnInsertTag" Content="Insert a Key/Value" Click="btnInsertTag_Click"  Grid.Row="4" Grid.Column="2" HorizontalAlignment="Right" Width="150" />
             <Label Content="Key/Values:" Grid.Row="6" Grid.Column="0" VerticalAlignment="Top" />
-            <DataGrid 
-                x:Name="grdTags" 
-                AutoGenerateColumns="False" 
-                Grid.Row="6" 
-                Grid.Column="2" 
-                SelectionMode="Single" 
+            <DataGrid
+                x:Name="grdTags"
+                AutoGenerateColumns="False"
+                Grid.Row="6"
+                Grid.Column="2"
+                SelectionMode="Single"
                 SelectionUnit="FullRow"
                 CanUserAddRows="False"
                 CanUserReorderColumns="False"
@@ -95,14 +95,14 @@
                     <DataGridTemplateColumn Header="">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Image 
-                                    Height="16" 
-                                    Width="16" 
-                                    HorizontalAlignment="Center" 
-                                    VerticalAlignment="Center" 
-                                    Name="btnDelete" 
-                                    MouseDown="btnGrdTagsDelete_Click" 
-                                    ToolTip="Delete this key-value pair." 
+                                <Image
+                                    Height="16"
+                                    Width="16"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Name="btnDelete"
+                                    MouseDown="btnGrdTagsDelete_Click"
+                                    ToolTip="Delete this key-value pair."
                                     Style="{StaticResource ImageHandCursorStyle}"
                                     Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/garbage_color.png"/>
                             </DataTemplate>
@@ -123,11 +123,11 @@
 
             <!-- APIs List -->
             <Label Content="APIs:" Grid.Row="14" Grid.Column="0" VerticalAlignment="Top" />
-            <DataGrid 
-                x:Name="grdApis" 
-                Grid.Row="14" 
-                Grid.Column="2" 
-                AutoGenerateColumns="False" 
+            <DataGrid
+                x:Name="grdApis"
+                Grid.Row="14"
+                Grid.Column="2"
+                AutoGenerateColumns="False"
                 CanUserAddRows="False"
                 CanUserReorderColumns="False"
                 SelectionMode="Single">
@@ -140,20 +140,20 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
-                                    <Image 
-                                        Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/edit_color.png" 
-                                        Width="16" 
-                                        Height="16" 
-                                        Margin="5,0,5,0" 
-                                        ToolTip="Edit this API." 
+                                    <Image
+                                        Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/edit_color.png"
+                                        Width="16"
+                                        Height="16"
+                                        Margin="5,0,5,0"
+                                        ToolTip="Edit this API."
                                         AutomationProperties.HelpText="Edit this API."
                                         Style="{StaticResource ImageHandCursorStyle}"
                                         MouseDown="btnEditApi_Click" />
-                                    <Image 
-                                        Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/garbage_color.png" 
+                                    <Image
+                                        Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/garbage_color.png"
                                         Width="16"
-                                        Height="16" 
-                                        ToolTip="Delete this API." 
+                                        Height="16"
+                                        ToolTip="Delete this API."
                                         AutomationProperties.HelpText="Delete this API."
                                         Style="{StaticResource ImageHandCursorStyle}"
                                         MouseDown="btnDeleteApi_Click" />

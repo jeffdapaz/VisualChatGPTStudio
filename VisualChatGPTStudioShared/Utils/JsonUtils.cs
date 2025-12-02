@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 
 namespace JeffPires.VisualChatGPTStudio.Utils;
@@ -9,7 +10,8 @@ public static class JsonUtils
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = true,
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
     public static string Serialize(object value) => JsonSerializer.Serialize(value, _jsonOptions);

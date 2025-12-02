@@ -58,9 +58,9 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         public RiskLevel RiskLevel { get; init; } = RiskLevel.Medium;
 
         /// <summary>
-        /// Function parameters. Used for native tools_calling
+        /// Function properties. Used for native tools_calling
         /// </summary>
-        public Dictionary<string, Property> Parameters { get; init; } = [];
+        public object Properties { get; init; } = new Dictionary<string, Property>();
 
         /// <summary>
         /// Function to execute the tool

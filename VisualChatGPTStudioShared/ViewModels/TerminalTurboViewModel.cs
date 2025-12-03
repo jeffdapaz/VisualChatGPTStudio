@@ -448,7 +448,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
             var segment = messageEntity.Segments.FirstOrDefault();
             // tools should be a response to a previous message using tool_calls
             // But we are not saving tool_calls in Assistant
-            if (segment == null || segment.Author is IdentifierEnum.Table or IdentifierEnum.FunctionRequest or IdentifierEnum.FunctionCall)
+            if (segment == null || segment.Author is IdentifierEnum.Table or IdentifierEnum.FunctionRequest)
             {
                 continue;
             }
@@ -459,6 +459,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
                     {
                         IdentifierEnum.Me => ChatMessageRole.User,
                         IdentifierEnum.ChatGPT or IdentifierEnum.ChatGPTCode => ChatMessageRole.Assistant,
+                        IdentifierEnum.FunctionCall => ChatMessageRole.Tool,
                         _ => ChatMessageRole.System
                     },
                     Content = segment.Content
@@ -583,7 +584,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
         var approvedTools = await _toolManager.RequestApprovalAsync(toolsToCall);
         foreach (var notApproved in toolsToCall.Except(approvedTools))
         {
-            notApproved.Result = new ToolResult { Result = $"Tool '{notApproved.Tool.Name}' isn't approved by user." };
+            notApproved.Result = new ToolResult { Result = $"Tool '{notApproved.Tool.Name}' isn't approved by user.", Args = notApproved.ArgumentsJson };
             AppendToolResultToApi(notApproved);
         }
         await foreach (var executedTool in _toolManager.ExecuteToolsAsync(approvedTools))
@@ -920,7 +921,8 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
                                             "using up to five words and in the same language as my first message.");
                 }
 
-                ChatRepository.UpdateMessages(ChatId, MessagesForUi.ToList());
+                // TODO TODO TODO: UI messages??? We need "universal" messages to be stored in the database. These messages are used to load chats.
+                ChatRepository.UpdateMessages(ChatId, MessagesForUi);
             });
         }
         catch (Exception ex)
@@ -1265,6 +1267,7 @@ public sealed class TerminalTurboViewModel : INotifyPropertyChanged
                     content = $"""
                                <details><summary>Tool: {toolResult.Name}</summary>
 
+                               <p><strong>Args:</strong> {toolResult.Args}</p>
                                <p><strong>Success:</strong> {toolResult.IsSuccess}</p>
                                <p><strong>Result:</strong> {toolResult.Result.Replace("\n", "<br/>")}</p>
 

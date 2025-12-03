@@ -19,6 +19,11 @@ public record ToolResult
     public string PrivateResult { get; init; } = string.Empty;
 
     /// <summary>
+    /// Tool arguments
+    /// </summary>
+    public string Args { get; set; } = string.Empty;
+
+    /// <summary>
     /// Indicates if the operation was successful
     /// </summary>
     public bool IsSuccess { get; init; } = true;

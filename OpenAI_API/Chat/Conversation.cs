@@ -239,14 +239,16 @@ namespace OpenAI_API.Chat
         {
             var result = new List<FunctionResult>();
 
+            var clearContent = RemoveThinkBlock(content);
+
             // section tool_calls_section
             var sectionRegex = new Regex(
-                @"<\|tool_calls_section_begin\|>(.*?)<\|tool_calls_section_end\|>",
+                @"<\|tool_calls_section_begin\|>(?<section>.*?)((<\|tool_calls_section_end\|>)|$)",
                 RegexOptions.Singleline);
 
-            foreach (Match secMatch in sectionRegex.Matches(content))
+            foreach (Match secMatch in sectionRegex.Matches(clearContent))
             {
-                var sectionBody = secMatch.Groups[1].Value;
+                var sectionBody = secMatch.Groups["section"].Value;
 
                 // tool calls inside
                 var callRegex = new Regex(

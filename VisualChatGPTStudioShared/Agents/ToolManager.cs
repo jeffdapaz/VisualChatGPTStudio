@@ -162,6 +162,7 @@ public class ToolManager
             }
 
             result.Name = tool.Tool.Name;
+            result.Args = tool.ArgumentsJson;
             tool.Result = result;
             yield return tool;
         }
@@ -246,21 +247,23 @@ public class ToolManager
         sb.AppendLine("""
                       You are a function-calling assistant.
 
-                      <tool_use_instructions>
+                      ## Tool use instructions
+
                       You have access to several "tools" that you can use at any time to retrieve information and/or perform tasks for the User.
 
                       You MUST invoke tools exclusively with the following literal syntax; no other format is allowed:
                       <|tool_calls_section_begin|> <|tool_call_begin|> functions.<toolName>:<index> <|tool_call_argument_begin|> {<arg1>:<val1>,<arg2>:<val2>} <|tool_call_end|> <|tool_calls_section_end|>
-                      Immediately after section_end - stop generation, no explanatory text.
+                      Immediately after <|tool_calls_section_end|> - stop generation, no explanatory text.
+
                       Explanation:
-                      <|tool_calls_section_begin|>                       // start of call block
-                      <|tool_call_begin|> functions.<toolName>:<index>   // function header. toolName - function name. index - index number from 0 in calls_section. Here is 0.
-                      <|tool_call_argument_begin|> JSON                  // argument body
-                      <|tool_call_end|>                                  // end of first call
-                      <|tool_call_begin|> functions.<toolName>:<index>   // optional second function header. toolName - function name. index - index number in calls_section. Here is 1.
-                      <|tool_call_argument_begin|> JSON                  // argument body
-                      <|tool_call_end|>                                  // end of second call
-                      <|tool_calls_section_end|>                         // end of the call block
+                      <|tool_calls_section_begin|>                          // Required! Start of calls block.
+                        <|tool_call_begin|> functions.<toolName>:<index>    // function header. toolName - function name. index - index number from 0 in calls_section.
+                          <|tool_call_argument_begin|> {}                   // argument body JSON object
+                        <|tool_call_end|>                                   // end of first call
+                        <|tool_call_begin|> functions.<toolName>:<index>    // optional second function header. toolName - function name. index - index number in calls_section.
+                          <|tool_call_argument_begin|> {}                   // argument body JSON object
+                        <|tool_call_end|>                                   // end of second call
+                      <|tool_calls_section_end|>                            // Optional. End of the calls block. All examples below without this block.
 
                       The following tools are available to you:
 
@@ -279,7 +282,6 @@ public class ToolManager
                       Then send the tool_calls_section (YOU call the tool, not the user).
                       Do not perform actions with/for hypothetical files. Use tools to deduce which files are relevant.
                       You can call multiple tools in one tool_calls_section.
-                      </tool_use_instructions>
                       """);
         return sb.ToString();
     }

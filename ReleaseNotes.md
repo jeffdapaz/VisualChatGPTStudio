@@ -1,5 +1,11 @@
 ﻿## Release Notes 📜
 
+### 5.6.1
+
+- Fix Copilot suggestions not appearing in Visual Studio 2026.
+- Fix API agent not working properly in some scenarios.
+- Fix "Send Code" feature in Turbo Chat not working properly in some scenarios.
+
 ### 5.6.0
 
 - Improvements on copilot feature to suggests completions more often.

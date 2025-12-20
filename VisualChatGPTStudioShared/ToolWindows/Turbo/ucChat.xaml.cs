@@ -682,6 +682,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 originalCode = TextFormat.RemoveCharactersFromText(originalCode, options.CharactersToRemoveFromRequests.Split(','));
 
                 apiChat.AppendSystemMessage(options.TurboChatCodeCommand);
+                apiChat.AppendSystemMessage("You can only return one code block, and need to be inside a markdown code block (```...```).");
                 apiChat.AppendUserInput(originalCode);
             }
 

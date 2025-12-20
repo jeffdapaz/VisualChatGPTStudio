@@ -17,10 +17,6 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
     /// </summary>
     public static class Suggestions
     {
-        private static readonly MethodInfo tryDisplaySuggestionAsyncType;
-
-        private static readonly MethodInfo cacheProposalType;
-
         private static readonly FieldInfo suggestionManagerType;
 
         private static readonly FieldInfo sessionType;
@@ -55,7 +51,6 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
                 }
             }
 
-            cacheProposalType = inlineCompletionsType.GetMethod("CacheProposal", BindingFlags.Instance | BindingFlags.NonPublic);
             sessionType = inlineCompletionsType.GetField("Session", BindingFlags.Instance | BindingFlags.NonPublic);
             suggestionManagerType = inlineCompletionsType.GetField("_suggestionManager", BindingFlags.Instance | BindingFlags.NonPublic);
 
@@ -63,8 +58,6 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
             {
                 suggestionManagerType = inlineCompletionsType.GetField("SuggestionManager", BindingFlags.Instance | BindingFlags.NonPublic);
             }
-
-            tryDisplaySuggestionAsyncType = suggestionManagerType.FieldType.GetMethod("TryDisplaySuggestionAsync");
         }
 
         /// <summary>
@@ -95,25 +88,104 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
                 .FirstOrDefault(c =>
                 {
                     ParameterInfo[] parameters = c.GetParameters();
+                    return parameters.Length == 2 && parameters[0].ParameterType.Name == "GenerateResult" && parameters[1].ParameterType.Name == "InlineCompletionsInstance";
+                });
+
+            object obj2;
+
+            if (obj2Constructor != null)
+            {
+                obj2 = obj2Constructor.Invoke([obj, inlineCompletionsInstance]);
+            }
+            else
+            {
+                obj2Constructor = inlineCompletionSuggestion.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic)
+                .FirstOrDefault(c =>
+                {
+                    ParameterInfo[] parameters = c.GetParameters();
                     return parameters.Length == 1 && parameters[0].ParameterType.Name == "InlineCompletionsInstance";
                 });
 
-            if (obj2Constructor == null)
-            {
-                Logger.Log("Copilot - Could not get the constructor.");
-            }
+                if (obj2Constructor == null)
+                {
+                    Logger.Log("Copilot - Could not get the constructor.");
+                    return;
+                }
 
-            object obj2 = obj2Constructor.Invoke([inlineCompletionsInstance]);
+                obj2 = obj2Constructor.Invoke([inlineCompletionsInstance]);
+            }
 
             object value2 = suggestionManagerType.GetValue(inlineCompletionsInstance);
 
-            SuggestionSessionBase val2 = await (Task<SuggestionSessionBase>)tryDisplaySuggestionAsyncType.Invoke(value2, [obj2, null]);
+            MethodInfo tryDisplaySuggestionAsyncType = value2.GetType().GetMethod("TryDisplaySuggestionAsync", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+            if (tryDisplaySuggestionAsyncType == null)
+            {
+                Logger.Log("Copilot - Could not get the tryDisplaySuggestionAsyncType method.");
+                return;
+            }
+
+            ParameterInfo[] parameters = tryDisplaySuggestionAsyncType.GetParameters();
+            object[] args = new object[parameters.Length];
+
+            if (parameters.Length > 0)
+            {
+                args[0] = obj2;
+            }
+
+            if (parameters.Length > 1)
+            {
+                if (parameters[1].ParameterType == typeof(System.Threading.CancellationToken))
+                {
+                    args[1] = default(System.Threading.CancellationToken);
+                }
+                else
+                {
+                    args[1] = null;
+                }
+            }
+
+            for (int i = 2; i < parameters.Length; i++)
+            {
+                if (parameters[i].HasDefaultValue)
+                {
+                    args[i] = parameters[i].DefaultValue;
+                }
+            }
+
+            SuggestionSessionBase val2 = await (Task<SuggestionSessionBase>)tryDisplaySuggestionAsyncType.Invoke(value2, args);
 
             if (val2 != null)
             {
                 SuggestionSessionBase val3 = val2;
 
-                cacheProposalType.Invoke(inlineCompletionsInstance, [proposalCollection.Proposals.First()]);
+                MethodInfo cacheProposalType = inlineCompletionsInstance.GetType().GetMethod("CacheProposal", BindingFlags.Instance | BindingFlags.NonPublic);
+
+                if (cacheProposalType == null)
+                {
+                    Logger.Log("Copilot - Could not get the CacheProposal method.");
+                    return;
+                }
+
+                ParameterInfo[] cacheParams = cacheProposalType.GetParameters();
+
+                object[] cacheArgs = new object[cacheParams.Length];
+
+                if (cacheParams.Length > 0)
+                {
+                    cacheArgs[0] = proposalCollection.Proposals.First();
+                }
+
+                for (int i = 1; i < cacheParams.Length; i++)
+                {
+                    if (cacheParams[i].HasDefaultValue)
+                    {
+                        cacheArgs[i] = cacheParams[i].DefaultValue;
+                    }
+                }
+
+                cacheProposalType.Invoke(inlineCompletionsInstance, cacheArgs);
+
                 sessionType.SetValue(inlineCompletionsInstance, val2);
 
                 await val3.DisplayProposalAsync(proposalCollection.Proposals.First(), default);

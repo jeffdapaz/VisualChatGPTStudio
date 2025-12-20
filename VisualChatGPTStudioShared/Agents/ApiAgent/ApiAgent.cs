@@ -1,5 +1,3 @@
-﻿using Newtonsoft.Json.Linq;
-using OpenAI_API.Functions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,6 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using OpenAI_API.Functions;
 using VisualChatGPTStudioShared.Utils.Http;
 using VisualChatGPTStudioShared.Utils.Repositories;
 using Parameter = OpenAI_API.Functions.Parameter;
@@ -378,9 +379,10 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
                     return null;
                 }
 
-                JToken parsedJson = JToken.Parse(json);
+                object parsedJson = JsonConvert.DeserializeObject(json);
+                string formatted = JsonConvert.SerializeObject(parsedJson, Newtonsoft.Json.Formatting.Indented);
 
-                return string.Concat("```json", Environment.NewLine, parsedJson.ToString(Newtonsoft.Json.Formatting.Indented), Environment.NewLine, "```");
+                return string.Concat("```json", Environment.NewLine, formatted, Environment.NewLine, "```");
             }
             catch (Exception)
             {

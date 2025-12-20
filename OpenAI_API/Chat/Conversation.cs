@@ -227,6 +227,11 @@ namespace OpenAI_API.Chat
                             throw new ArgumentOutOfRangeException("The maximum response length was exceeded. You may want to increase the max_tokens parameter, or reduce the length of your prompt.");
                         }
 
+                        if (string.Equals(finishReason, "stop", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            return newMsg;
+                        }
+
                         throw new Exception("The response from the API did not contain any message content. This may be due to an error.");
                     }
 

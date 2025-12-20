@@ -62,6 +62,12 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
 
             try
             {
+                if (showingAutoComplete)
+                {
+                    return;
+                }
+
+                showingAutoComplete = true;
                 cancellationTokenSource?.Cancel();
                 cancellationTokenSource = new();
 
@@ -103,6 +109,11 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
                     prediction = await ApiHandler.GetResponseAsync(options, systemMessage, code, null, cancellationTokenSource.Token, null, modelOverride);
                 }
 
+                if (string.IsNullOrWhiteSpace(prediction))
+                {
+                    return;
+                }
+
                 if (cancellationTokenSource.Token.IsCancellationRequested || string.IsNullOrWhiteSpace(prediction))
                 {
                     return;
@@ -113,17 +124,18 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
                 cache[cacheKey] = prediction;
 
                 await Suggestions.ShowAutocompleteAsync(view, prediction, caretPosition);
-
-                showingAutoComplete = true;
             }
             catch (OperationCanceledException)
             {
-                showingAutoComplete = false;
+                //Task cancelled - do nothing
             }
             catch (Exception ex)
+            {                
+                Logger.Log(ex);
+            }
+            finally 
             {
                 showingAutoComplete = false;
-                Logger.Log(ex);
             }
         }
 

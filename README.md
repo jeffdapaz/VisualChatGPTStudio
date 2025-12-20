@@ -445,23 +445,17 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 <a id="18"></a>
 ## Release Notes 📜
 
+### 5.6.1
+
+- Fix Copilot suggestions not appearing in Visual Studio 2026.
+- Fix API agent not working properly in some scenarios.
+- Fix "Send Code" feature in Turbo Chat not working properly in some scenarios.
+
 ### 5.6.0
 
 - Improvements on copilot feature to suggests completions more often.
 - Added option to configure a dedicated Copilot model (or Azure deployment) for inline suggestions, with selectable Default / Completion / Specific-Chat modes.
 - The "Apply" button in Turbo Chat now can applies only the selected code block when a selection is present; otherwise, it applies the entire code.
 - Added the "Apply" button in the "Visual chatGPT Studio" window.
-
-### 5.5.0
-
-- Added the "Apply" button in the Turbo Chat window. This button allows you to apply the changes suggested by the AI directly to the code editor, without needing to copy and paste the response manually.
-- Update Turbo Chat to support mermaid diagrams rendering. Necessary Visual Studio 2022 version 17.14.16 or higher.
-- Fixed the long words that break the layout in the Turbo Chat window.
-- Improved set scroll position when new messages are added in the Turbo Chat window.
-- Improved feedback messages when API calls fail.
-- Fixed Turbo Chat invisible on Visual Studio 2019.
-- Fixed crash on Turbo Chat when double click on empty space. Thanks to [@paymicro](https://github.com/paymicro).
-- Added reasoning block separation on Turbo Chat when the response contains `<think>` blocks. Thanks to [@paymicro](https://github.com/paymicro).
-- Added the new extension option 'Use Enter to send request in chat', where if true, pressing Enter will send the request in chat instead of using Ctrl+Enter. Thanks to [@paymicro](https://github.com/paymicro).
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

@@ -20,7 +20,6 @@ using JeffPires.VisualChatGPTStudio.Utils.API;
 using JeffPires.VisualChatGPTStudio.Utils.CodeCompletion;
 using JeffPires.VisualChatGPTStudio.Utils.Repositories;
 using Markdig;
-using Markdig.SyntaxHighlighting;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.Web.WebView2.Core;
@@ -47,6 +46,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private const string TAG_IMG = "#IMG#";
         private const string TAG_SQL = "#SQL#";
         private const string TAG_API = "#API#";
+
+        private const string HighlightJsCdnScript = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js";
+        private const string HighlightJsCdnStyleLight = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css";
+        private const string HighlightJsCdnStyleDark = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css";
 
         #endregion Constants
 
@@ -157,7 +160,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             completionManager = new CompletionManager(package, txtRequest);
 
-            markdownPipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().DisableHtml().UseSyntaxHighlighting().Build();
+            markdownPipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().DisableHtml().Build();
 
             StringBuilder segments;
 
@@ -1095,6 +1098,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             Color textColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.WindowTextKey]).Color;
             Color backgroundColor = ((SolidColorBrush)Application.Current.Resources[VsBrushes.WindowKey]).Color;
 
+            bool isDarkTheme = GetRelativeLuminance(backgroundColor) < 0.5;
+            string highlightCssUrl = isDarkTheme ? HighlightJsCdnStyleDark : HighlightJsCdnStyleLight;
+
             Color codeBackgroundColor = Color.FromRgb(
                 (byte)Math.Max(0, backgroundColor.R - 20),
                 (byte)Math.Max(0, backgroundColor.G - 20),
@@ -1110,6 +1116,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     <head>
                         <meta http-equiv='X-UA-Compatible' content='IE=edge' />
                         <meta charset='UTF-8'>
+                        <link rel='stylesheet' href='{highlightCssUrl}' />
+                        <script src='{HighlightJsCdnScript}'></script>
                         <style>
                             body {{
                                 font-family: Segoe UI, Tahoma, Geneva, Verdana, sans-serif;
@@ -1315,6 +1323,12 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                                         }}
                                     }});
                                 }}
+
+                                try {{
+                                    if (window.hljs) {{
+                                        window.hljs.highlightAll();
+                                    }}
+                                }} catch(e){{}}
                             }};
                         </script>
                     </head>
@@ -1463,6 +1477,27 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private static string ToCssColor(System.Windows.Media.Color color)
         {
             return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+        }
+
+        /// <summary>
+        /// Calculates the relative luminance of a given color based on WCAG (Web Content Accessibility Guidelines) standards using sRGB color space.
+        /// </summary>
+        /// <param name="color">The Color object for which the luminance is to be calculated.</param>
+        /// <returns>The relative luminance as a double value, ranging from 0 (darkest black) to 1 (brightest white).</returns>
+        private static double GetRelativeLuminance(Color color)
+        {
+            // WCAG relative luminance (sRGB)
+            static double ToLinear(byte c)
+            {
+                double srgb = c / 255.0;
+                return srgb <= 0.04045 ? (srgb / 12.92) : Math.Pow((srgb + 0.055) / 1.055, 2.4);
+            }
+
+            double r = ToLinear(color.R);
+            double g = ToLinear(color.G);
+            double b = ToLinear(color.B);
+
+            return 0.2126 * r + 0.7152 * g + 0.0722 * b;
         }
 
         /// <summary>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="VisualChatGPTStudio.4854bc98-735d-4622-a0cf-30454b50aa0f" Version="5.6.1" Language="en-US" Publisher="Jefferson Pires" />
+        <Identity Id="VisualChatGPTStudio.4854bc98-735d-4622-a0cf-30454b50aa0f" Version="5.7.0" Language="en-US" Publisher="Jefferson Pires" />
         <DisplayName>Visual chatGPT Studio</DisplayName>
         <Description xml:space="preserve">Visual Studio extension that integrates advanced AI capabilities, enabling tasks like code suggestions, bug detection, optimization, unit test generation, and more directly within the development environment.</Description>
         <Icon>icons8-chatgpt-512.png</Icon>

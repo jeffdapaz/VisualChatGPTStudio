@@ -90,6 +90,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private readonly string sqlIcon;
         private readonly string imgIcon;
 
+        // Session-only image previews:
+        // Key: the exact prefix used in the rendered user message (TAG_IMG + fileName)
+        // Value: data URL (data:image/...;base64,...) to be used only for current session rendering.
+        private readonly Dictionary<string, string> sessionImagePreviews = [];
+
         #endregion Properties
 
         #region Constructors
@@ -693,7 +698,28 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             if (attachedImage != null)
             {
-                requestToShowOnList = TAG_IMG + txtImage.Text + Environment.NewLine + Environment.NewLine + requestToShowOnList;
+                string imgKey = TAG_IMG + txtImage.Text;
+
+                requestToShowOnList = imgKey + Environment.NewLine + Environment.NewLine + requestToShowOnList;
+
+                // Store preview only for the running VS session (do NOT persist in DB)
+                try
+                {
+                    string ext = System.IO.Path.GetExtension(txtImage.Text)?.ToLowerInvariant();
+                    string mime = ext switch
+                    {
+                        ".jpg" => "image/jpeg",
+                        ".jpeg" => "image/jpeg",
+                        ".webp" => "image/webp",
+                        _ => "image/png"
+                    };
+
+                    sessionImagePreviews[imgKey] = $"data:{mime};base64,{Convert.ToBase64String(attachedImage)}";
+                }
+                catch
+                {
+                    // ignore preview generation errors
+                }
 
                 List<ChatContentForImage> chatContent = [new(attachedImage)];
 
@@ -1027,6 +1053,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private void AddMessagesHtml(IdentifierEnum author, string content)
         {
             string htmlContent;
+            string extraHtml = string.Empty;
 
             string authorIcon = author switch
             {
@@ -1037,6 +1064,29 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             if (author == IdentifierEnum.Me)
             {
+                // Detect image attachment prefix so we can show a session-only preview below the message.
+                // Persisted history keeps only TAG + filename, so on reload the preview won't exist.
+                string imgKey = null;
+                if (content != null && content.StartsWith(TAG_IMG, StringComparison.Ordinal))
+                {
+                    int endOfFirstLine = content.IndexOfAny(['\r', '\n']);
+                    if (endOfFirstLine > 0)
+                    {
+                        imgKey = content.Substring(0, endOfFirstLine);
+                    }
+                    else
+                    {
+                        imgKey = content;
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(imgKey) && sessionImagePreviews.TryGetValue(imgKey, out string dataUrl))
+                {
+                    string fileName = imgKey.Substring(TAG_IMG.Length);
+                    string safeFileName = System.Net.WebUtility.HtmlEncode(fileName);
+                    extraHtml = $"<div class='chat-image-preview-wrapper'><img class='chat-image-preview' src='{dataUrl}' alt='{safeFileName}' /></div>";
+                }
+
                 content = HighlightSpecialTagsForHtml(content);
 
                 content = content
@@ -1045,6 +1095,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     .Replace(TAG_API, $"<img src='{apiIcon}' style='width:18px; height:18px; vertical-align:top; margin-right:3px;' />");
 
                 htmlContent = content.Replace(Environment.NewLine, "<br />");
+
+                if (!string.IsNullOrWhiteSpace(extraHtml))
+                {
+                    htmlContent = htmlContent + "<br />" + extraHtml;
+                }
             }
             else
             {
@@ -1174,6 +1229,20 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                                 transition: height .3s ease;
                                 font-size: 14px;
                                 color: gray;
+                            }}
+
+                            .chat-image-preview-wrapper {{
+                                width: 100%;
+                                margin-top: 8px;
+                            }}
+
+                            .chat-image-preview {{
+                                display: block;
+                                max-width: 100%;
+                                height: auto;
+                                object-fit: contain;
+                                border-radius: 8px;
+                                border: 1px solid #888;
                             }}
                         </style>
                         <script type='text/javascript'>

@@ -1335,7 +1335,13 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                             .sql-result-grid {{
                                 margin: 10px 0;
                                 width: 100%;
-                                overflow-x: auto;
+                                max-width: 100%;
+                            }}
+
+                            .gridjs-container {{
+                                width: 100% !important;
+                                max-width: 100% !important;
+                                overflow: hidden !important;
                             }}
 
                             .gridjs-wrapper {{
@@ -1343,12 +1349,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                                 border-radius: 8px;
                                 overflow-x: auto !important;
                                 background-color: {cssBackgroundColor} !important;
-                                min-width: 100%;
-                            }}
-
-                            .gridjs-container {{
-                                overflow-x: auto !important;
-                                width: 100%;
+                                width: 100% !important;
+                                max-width: 100% !important;
+                                box-shadow: none !important;
+                                display: block !important;
                             }}
 
                             .gridjs-table {{

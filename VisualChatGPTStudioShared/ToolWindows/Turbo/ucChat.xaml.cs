@@ -51,6 +51,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private const string HighlightJsCdnStyleLight = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css";
         private const string HighlightJsCdnStyleDark = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css";
         private const string MermaidJsCdnScript = "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js";
+        private const string GridJsCdnScript = "https://cdn.jsdelivr.net/npm/gridjs/dist/gridjs.umd.js";
+        private const string GridJsCdnStyle = "https://cdn.jsdelivr.net/npm/gridjs/dist/theme/mermaid.min.css";
 
         #endregion Constants
 
@@ -364,31 +366,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             txtImage.Text = fileName;
 
             spImage.Visibility = Visibility.Visible;
-        }
-
-        /// <summary>
-        /// Handles the PreviewMouseWheel event for a DataGrid to enable horizontal scrolling when the Shift key is pressed.
-        /// </summary>
-        private void DataGridResult_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
-            {
-                ScrollViewer scrollViewer = FindVisualChild<ScrollViewer>(sender as DataGrid);
-
-                if (scrollViewer != null)
-                {
-                    if (e.Delta > 0)
-                    {
-                        scrollViewer.LineLeft();
-                    }
-                    else
-                    {
-                        scrollViewer.LineRight();
-                    }
-
-                    e.Handled = true;
-                }
-            }
         }
 
         /// <summary>
@@ -977,12 +954,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                     if (readerResult != null && readerResult.Count > 0)
                     {
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            dataGridResult.ItemsSource = null;
-                            dataGridResult.ItemsSource = readerResult;
-                            dataGridResult.Visibility = Visibility.Visible;
-                        });
+                        // Render SQL results in the chat using Grid.js
+                        AddSqlResultGridHtml(readerResult);
+                        UpdateBrowser();
                     }
                 }
 
@@ -1203,8 +1177,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                         <meta http-equiv='X-UA-Compatible' content='IE=edge' />
                         <meta charset='UTF-8'>
                         <link rel='stylesheet' href='{highlightCssUrl}' />
+                        <link rel='stylesheet' href='{GridJsCdnStyle}' />
                         <script src='{HighlightJsCdnScript}'></script>
                         <script src='{MermaidJsCdnScript}'></script>
+                        <script src='{GridJsCdnScript}'></script>
                         <style>
                             body {{
                                 font-family: Segoe UI, Tahoma, Geneva, Verdana, sans-serif;
@@ -1312,6 +1288,115 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                                 font-family: Consolas, 'Courier New', monospace;
                                 font-size: 12px;
                                 margin: 8px 0;
+                            }}
+
+                            /* Grid.js custom styles */
+                            .sql-result-grid {{
+                                margin: 10px 0;
+                                width: 100%;
+                                overflow-x: auto;
+                            }}
+
+                            .gridjs-wrapper {{
+                                border: 1.5px solid #888;
+                                border-radius: 8px;
+                                overflow-x: auto !important;
+                                background-color: {cssBackgroundColor} !important;
+                                min-width: 100%;
+                            }}
+
+                            .gridjs-container {{
+                                overflow-x: auto !important;
+                                width: 100%;
+                            }}
+
+                            .gridjs-table {{
+                                width: auto !important;
+                                min-width: 100%;
+                                table-layout: auto !important;
+                            }}
+
+                            .gridjs-head {{
+                                background-color: {cssCodeBackgroundColor} !important;
+                            }}
+
+                            .gridjs-th {{
+                                background-color: {cssCodeBackgroundColor} !important;
+                                color: {cssTextColor} !important;
+                                border-color: #888 !important;
+                                padding: 8px !important;
+                                font-weight: bold !important;
+                                white-space: nowrap;
+                            }}
+
+                            .gridjs-td {{
+                                background-color: {cssBackgroundColor} !important;
+                                color: {cssTextColor} !important;
+                                border-color: #888 !important;
+                                padding: 6px 8px !important;
+                                white-space: nowrap;
+                            }}
+
+                            .gridjs-tr {{
+                                background-color: {cssBackgroundColor} !important;
+                            }}
+
+                            .gridjs-tr:hover {{
+                                background-color: {cssCodeBackgroundColor} !important;
+                            }}
+
+                            .gridjs-tr:hover .gridjs-td {{
+                                background-color: {cssCodeBackgroundColor} !important;
+                            }}
+
+                            .gridjs-tbody {{
+                                background-color: {cssBackgroundColor} !important;
+                            }}
+
+                            .gridjs-footer {{
+                                background-color: {cssCodeBackgroundColor} !important;
+                                border-top: 1.5px solid #888 !important;
+                                color: {cssTextColor} !important;
+                            }}
+
+                            .gridjs-pagination {{
+                                color: {cssTextColor} !important;
+                            }}
+
+                            .gridjs-pagination .gridjs-pages {{
+                                color: {cssTextColor} !important;
+                            }}
+
+                            .gridjs-pagination .gridjs-pages button {{
+                                background-color: {cssBackgroundColor} !important;
+                                color: {cssTextColor} !important;
+                                border: 1px solid #888 !important;
+                            }}
+
+                            .gridjs-pagination .gridjs-pages button:hover {{
+                                background-color: {cssCodeBackgroundColor} !important;
+                            }}
+
+                            .gridjs-pagination .gridjs-pages button.gridjs-currentPage {{
+                                background-color: #0078d4 !important;
+                                color: white !important;
+                                border-color: #0078d4 !important;
+                            }}
+
+                            .gridjs-pagination .gridjs-summary {{
+                                color: {cssTextColor} !important;
+                            }}
+
+                            .gridjs-search {{
+                                color: {cssTextColor} !important;
+                            }}
+
+                            .gridjs-search-input {{
+                                background-color: {cssBackgroundColor} !important;
+                                color: {cssTextColor} !important;
+                                border: 1px solid #888 !important;
+                                padding: 6px !important;
+                                border-radius: 4px !important;
                             }}
                         </style>
                         <script type='text/javascript'>
@@ -1759,6 +1844,93 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             double b = ToLinear(color.B);
 
             return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        }
+
+        /// <summary>
+        /// Converts a DataView to a JSON string representation for use with Grid.js.
+        /// </summary>
+        /// <param name="dataView">The DataView to convert.</param>
+        /// <returns>A JSON string containing columns and data arrays.</returns>
+        private static string ConvertDataViewToJson(DataView dataView)
+        {
+            if (dataView == null || dataView.Count == 0)
+            {
+                return "{ \"columns\": [], \"data\": [] }";
+            }
+
+            List<string> columns = new List<string>();
+            foreach (DataColumn column in dataView.Table.Columns)
+            {
+                columns.Add(column.ColumnName);
+            }
+
+            List<List<object>> data = new List<List<object>>();
+            foreach (DataRowView rowView in dataView)
+            {
+                List<object> row = new List<object>();
+                foreach (DataColumn column in dataView.Table.Columns)
+                {
+                    object value = rowView[column.ColumnName];
+                    if (value == null || value == DBNull.Value)
+                    {
+                        row.Add(null);
+                    }
+                    else
+                    {
+                        row.Add(value);
+                    }
+                }
+                data.Add(row);
+            }
+
+            return JsonConvert.SerializeObject(new { columns, data });
+        }
+
+        /// <summary>
+        /// Adds SQL result grid HTML to the messages using Grid.js for rendering.
+        /// </summary>
+        /// <param name="dataView">The DataView containing SQL query results.</param>
+        private void AddSqlResultGridHtml(DataView dataView)
+        {
+            if (dataView == null || dataView.Count == 0)
+            {
+                return;
+            }
+
+            string jsonData = ConvertDataViewToJson(dataView);
+            string gridId = $"sql-grid-{Guid.NewGuid():N}";
+
+            string gridHtml = $@"
+                <div class='sql-result-grid'>
+                    <div id='{gridId}'></div>
+                    <script>
+                        (function() {{
+                            var gridData = {jsonData};
+                            if (typeof gridjs !== 'undefined') {{
+                                new gridjs.Grid({{
+                                    columns: gridData.columns,
+                                    data: gridData.data,
+                                    search: true,
+                                    sort: true,
+                                    pagination: {{
+                                        enabled: true,
+                                        limit: 10
+                                    }},
+                                    resizable: false,
+                                    fixedHeader: false,
+                                    width: 'auto',
+                                    style: {{
+                                        table: {{
+                                            'white-space': 'nowrap'
+                                        }}
+                                    }}
+                                }}).render(document.getElementById('{gridId}'));
+                            }}
+                        }})();
+                    </script>
+                </div>";
+
+            messagesHtml.AppendLine(gridHtml);
         }
 
         /// <summary>

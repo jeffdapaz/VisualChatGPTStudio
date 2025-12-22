@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.Data.Services;
+using Microsoft.VisualStudio.Data.Services;
 using Microsoft.VisualStudio.Shell;
 using Newtonsoft.Json.Linq;
 using OpenAI_API.Functions;
@@ -28,11 +28,45 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         {
             const string SQL_SERVER_PROVIDER = "91510608-8809-4020-8897-fba057e22d54";
 
-            IVsDataExplorerConnectionManager connectionManager = Package.GetGlobalService(typeof(IVsDataExplorerConnectionManager)) as IVsDataExplorerConnectionManager;
+            IVsDataExplorerConnectionManager connectionManager =
+                Package.GetGlobalService(typeof(IVsDataExplorerConnectionManager)) as IVsDataExplorerConnectionManager;
+
+            if (connectionManager == null)
+                return [];
 
             return connectionManager.Connections
                 .Where(kvp => kvp.Value.Provider == new Guid(SQL_SERVER_PROVIDER))
-                .Select(kvp => kvp.Value.Connection.DisplayConnectionString)
+                // Try to obtain the underlying provider object (e.g., SqlConnection) to read the real connection string
+                .Select(kvp =>
+                {
+                    var dataConnection = kvp.Value.Connection; // IVsDataConnection
+                    object providerObject = null;
+                    try
+                    {
+                        providerObject = dataConnection.GetLockedProviderObject();
+                        if (providerObject is SqlConnection sqlConn)
+                        {
+                            if (sqlConn.State == System.Data.ConnectionState.Closed)
+                                sqlConn.Open();
+                            return sqlConn.ConnectionString;
+                        }
+                        if (providerObject is System.Data.Common.DbConnection dbConn)
+                        {
+                            if (dbConn.State == System.Data.ConnectionState.Closed)
+                                dbConn.Open();
+                            return dbConn.ConnectionString;
+                        }
+                        return dataConnection.DisplayConnectionString;
+                    }
+                    catch
+                    {
+                        return dataConnection.DisplayConnectionString;
+                    }
+                    finally
+                    {
+                        try { dataConnection.UnlockProviderObject(); } catch { /* ignore */ }
+                    }
+                })
                 .Where(connectionString =>
                 {
                     return !string.IsNullOrWhiteSpace(GetSqlConnectionStringBuilder(connectionString)?.InitialCatalog);
@@ -40,7 +74,6 @@ namespace JeffPires.VisualChatGPTStudio.Agents
                 .Select(connectionString =>
                 {
                     SqlConnectionStringBuilder builder = GetSqlConnectionStringBuilder(connectionString);
-
                     return new SqlServerConnectionInfo
                     {
                         DataSource = builder.DataSource,

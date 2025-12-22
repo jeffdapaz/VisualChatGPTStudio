@@ -82,25 +82,13 @@
         <Grid Name="grdChat" Grid.Row="0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="15"/>
-                <RowDefinition Height="Auto" MaxHeight="600"/>
                 <RowDefinition Height="5"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <Grid x:Name="webHost" Grid.Row="0"/>
 
-            <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Background="#FF007ACC" Margin="0,5,0,5"  Visibility="{Binding Visibility, ElementName=dataGridResult}"/>
-            <DataGrid 
-                Grid.Row="2"
-                Visibility="Collapsed"
-                Name="dataGridResult" 
-                AutoGenerateColumns="True" 
-                IsReadOnly="True"   
-                HorizontalScrollBarVisibility="Auto" 
-                VerticalScrollBarVisibility="Auto"
-                PreviewMouseWheel="DataGridResult_PreviewMouseWheel"/>
-            <Grid Name="grdProgress" Grid.Row="4" Visibility="Collapsed">
+            <Grid Name="grdProgress" Grid.Row="2" Visibility="Collapsed">
                 <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="True" />
                 <TextBlock x:Name="lblProgressStatus" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Black" />
             </Grid>

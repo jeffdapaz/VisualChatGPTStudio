@@ -50,6 +50,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private const string HighlightJsCdnScript = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js";
         private const string HighlightJsCdnStyleLight = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css";
         private const string HighlightJsCdnStyleDark = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css";
+        private const string MermaidJsCdnScript = "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js";
 
         #endregion Constants
 
@@ -1119,11 +1120,38 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                                   """;
                 }
 
-                //Fix Mermaid code blocks
-                htmlContent = Regex.Replace(htmlContent, @"<div class=""lang-mermaid editor-colors"">(.*?)</div>", m =>
+                //Fix Mermaid code blocks - convert both Markdig formats to standard format
+                // Handle: <pre class="mermaid">...</pre> (may contain pre-rendered SVG or raw code)
+                htmlContent = Regex.Replace(htmlContent, @"<pre\s+class=""mermaid[^""]*""[^>]*>(.*?)</pre>", m =>
                 {
                     string inner = m.Groups[1].Value;
-                    return $"<pre><code class=\"language-mermaid\">{System.Net.WebUtility.HtmlEncode(inner)}</code></pre>";
+                    
+                    // Check if it contains SVG (pre-rendered by Markdig)
+                    if (inner.Contains("<svg"))
+                    {
+                        // Extract the actual Mermaid code from before the SVG
+                        // The Markdig format is: [Mermaid Code Text]<svg>...</svg>
+                        int svgIndex = inner.IndexOf("<svg");
+                        if (svgIndex > 0)
+                        {
+                            // Get only the text before the SVG
+                            string mermaidCode = inner.Substring(0, svgIndex).Trim();
+                            mermaidCode = System.Net.WebUtility.HtmlDecode(mermaidCode);
+                            return $"<pre><code class=\"language-mermaid\">{mermaidCode}</code></pre>";
+                        }
+                    }
+                    
+                    // No SVG found, treat as raw Mermaid code
+                    inner = System.Net.WebUtility.HtmlDecode(inner);
+                    return $"<pre><code class=\"language-mermaid\">{inner}</code></pre>";
+                }, RegexOptions.Singleline);
+                
+                // Handle: <div class="lang-mermaid ...">...</div>
+                htmlContent = Regex.Replace(htmlContent, @"<div class=""lang-mermaid[^""]*"">(.*?)</div>", m =>
+                {
+                    string inner = m.Groups[1].Value;
+                    inner = System.Net.WebUtility.HtmlDecode(inner);
+                    return $"<pre><code class=\"language-mermaid\">{inner}</code></pre>";
                 }, RegexOptions.Singleline);
             }
 
@@ -1166,6 +1194,9 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             string cssBackgroundColor = ToCssColor(backgroundColor);
             string cssCodeBackgroundColor = ToCssColor(codeBackgroundColor);
 
+            // Mermaid theme configuration based on Visual Studio theme
+            string mermaidTheme = isDarkTheme ? "dark" : "default";
+
             string html = $@"
                     <html>
                     <head>
@@ -1173,6 +1204,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                         <meta charset='UTF-8'>
                         <link rel='stylesheet' href='{highlightCssUrl}' />
                         <script src='{HighlightJsCdnScript}'></script>
+                        <script src='{MermaidJsCdnScript}'></script>
                         <style>
                             body {{
                                 font-family: Segoe UI, Tahoma, Geneva, Verdana, sans-serif;
@@ -1244,14 +1276,81 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                                 border-radius: 8px;
                                 border: 1px solid #888;
                             }}
+
+                            .mermaid-container {{
+                                width: 100%;
+                                max-width: 100%;
+                                margin: 10px 0;
+                                padding: 10px;
+                                border: 1.5px solid #888;
+                                border-radius: 8px;
+                                background-color: {cssBackgroundColor};
+                                overflow: auto;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                                box-sizing: border-box;
+                            }}
+
+                            .mermaid-diagram {{
+                                max-width: 100%;
+                                height: auto;
+                                transform-origin: top center;
+                            }}
+                            
+                            .mermaid-diagram svg {{
+                                max-width: 100%;
+                                height: auto;
+                                display: block;
+                            }}
+
+                            .mermaid-error {{
+                                color: #ff6b6b;
+                                background-color: {cssCodeBackgroundColor};
+                                padding: 10px;
+                                border-radius: 4px;
+                                font-family: Consolas, 'Courier New', monospace;
+                                font-size: 12px;
+                                margin: 8px 0;
+                            }}
                         </style>
                         <script type='text/javascript'>
                             var copyIcon = '{copyIcon}';
                             var checkIcon = '{checkIcon}';
                             var diagramIcon = '{diagramIcon}';
                             var submitIcon = '{submitIcon}';
+                            var mermaidDiagramCounter = 0;
+                            var mermaidInitialized = false;
+
+                            // Wait for Mermaid to load before initializing page
+                            function waitForMermaid(callback) {{
+                                if (typeof mermaid !== 'undefined') {{
+                                    if (!mermaidInitialized) {{
+                                        mermaid.initialize({{ 
+                                            startOnLoad: false, 
+                                            theme: '{mermaidTheme}',
+                                            securityLevel: 'loose',
+                                            fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif'
+                                        }});
+                                        mermaidInitialized = true;
+                                    }}
+                                    callback();
+                                }} else {{
+                                    setTimeout(function() {{ waitForMermaid(callback); }}, 100);
+                                }}
+                            }}
 
                             window.onload = function() {{
+                                waitForMermaid(function() {{
+                                    initializePage();
+                                }});
+                            }};
+
+                            window.addEventListener('resize', function() {{
+                                adjustMermaidDiagrams();
+                            }});
+
+                            async function initializePage() {{
                                 var msgs = document.getElementsByClassName('chat-message');
 
                                 if (msgs.length > 0) {{
@@ -1278,41 +1377,17 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                                 for (var i = 0; i < pres.length; i++) {{
                                     var pre = pres[i];
-                                    var wrapper = document.createElement('div');
-                                    wrapper.style.position = 'relative'; 
-                                    pre.parentNode.insertBefore(wrapper, pre);
-                                    wrapper.appendChild(pre);
-
                                     var codeEl = pre.getElementsByTagName('code')[0];
                                     var isMermaid = codeEl && codeEl.className && codeEl.className.indexOf('language-mermaid') !== -1;
 
                                     if (isMermaid) {{
-                                        var btnPreview = document.createElement('button');
-                                        btnPreview.className = 'copy-btn';
-                                        btnPreview.title = 'Preview Diagram';
-                                        btnPreview.style.position = 'absolute';
-                                        btnPreview.style.top = '8px';
-                                        btnPreview.style.right = '56px'; 
-                                        btnPreview.style.width = '15px';
-                                        btnPreview.style.height = '15px';
-                                        btnPreview.style.padding = '0';
-                                        var imgPrev = document.createElement('img');
-                                        imgPrev.src = diagramIcon;
-                                        btnPreview.appendChild(imgPrev);
-
-                                        btnPreview.onclick = function() {{
-                                            var codeText = this.parentNode.getElementsByTagName('pre')[0].innerText;
-                                            try {{
-                                                if (window.chrome && window.chrome.webview && window.chrome.webview.postMessage) {{
-                                                    window.chrome.webview.postMessage(JSON.stringify({{ type: 'openMermaid', code: codeText }}));
-                                                }} else if (window.external && window.external.notify) {{
-                                                    window.external.notify(JSON.stringify({{ type: 'openMermaid', code: codeText }}));
-                                                }}
-                                            }} catch(e){{}}
-                                        }};
-
-                                        wrapper.appendChild(btnPreview);
+                                        await renderMermaidDiagram(codeEl, pre);
                                     }}
+
+                                    var wrapper = document.createElement('div');
+                                    wrapper.style.position = 'relative'; 
+                                    pre.parentNode.insertBefore(wrapper, pre);
+                                    wrapper.appendChild(pre);
 
                                     var applyBtn = document.createElement('button');
                                     applyBtn.className = 'copy-btn';
@@ -1398,7 +1473,124 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                                         window.hljs.highlightAll();
                                     }}
                                 }} catch(e){{}}
-                            }};
+                            }}
+
+                            async function renderMermaidDiagram(codeEl, pre) {{
+                                try {{
+                                    var mermaidCode = codeEl.textContent.trim();
+                                    var diagramId = 'mermaid-diagram-' + mermaidDiagramCounter++;
+                                    
+                                    // Create container for the diagram
+                                    var diagramContainer = document.createElement('div');
+                                    diagramContainer.className = 'mermaid-container';
+                                    
+                                    var diagramDiv = document.createElement('div');
+                                    diagramDiv.className = 'mermaid-diagram';
+                                    diagramDiv.id = diagramId;
+                                    
+                                    diagramContainer.appendChild(diagramDiv);
+                                    
+                                    // Insert diagram BEFORE the <pre> block
+                                    pre.parentNode.insertBefore(diagramContainer, pre);
+                                    
+                                    // Render the diagram
+                                    if (window.mermaid) {{
+                                        var {{ svg }} = await window.mermaid.render(diagramId + '-svg', mermaidCode);
+                                        diagramDiv.innerHTML = svg;
+                                        
+                                        // Adjust SVG to fit container and scale intelligently
+                                        var svgElement = diagramDiv.querySelector('svg');
+                                        if (svgElement) {{
+                                            svgElement.style.maxWidth = '100%';
+                                            svgElement.style.height = 'auto';
+                                            
+                                            // Get the original width/height
+                                            var originalWidth = svgElement.width.baseVal.value;
+                                            var originalHeight = svgElement.height.baseVal.value;
+                                            
+                                            // Calculate container available width (minus padding and border)
+                                            var containerWidth = diagramContainer.clientWidth - 22; // 10px padding * 2 + 1.5px border * 2
+                                            
+                                            var scale = 1.0;
+                                            
+                                            // Intelligent scaling strategy:
+                                            // - Very small diagrams (< 50% of container): scale up to 85%
+                                            // - Medium diagrams (50%-95% of container): keep original
+                                            // - Large diagrams (> 95% of container): scale down to 85%
+                                            
+                                            var targetSize = containerWidth * 0.85; // Target 85% of container width
+                                            
+                                            if (originalWidth < containerWidth * 0.5) {{
+                                                // Diagram too small - scale up
+                                                scale = targetSize / originalWidth;
+                                                scale = Math.min(scale, 2.5); // Max 2.5x to avoid over-scaling
+                                            }} else if (originalWidth > containerWidth * 0.95) {{
+                                                // Diagram too large - scale down
+                                                scale = targetSize / originalWidth;
+                                                scale = Math.max(scale, 0.4); // Min 40% to keep readable
+                                            }}
+                                            
+                                            if (scale !== 1.0) {{
+                                                svgElement.style.transform = 'scale(' + scale + ')';
+                                                svgElement.style.transformOrigin = 'top center';
+                                                // Adjust container height to accommodate scaled content
+                                                diagramDiv.style.height = (originalHeight * scale) + 'px';
+                                            }}
+                                        }}
+                                    }}
+                                    
+                                    // Keep the code block visible (don't hide it)
+                                    return true;
+                                }} catch (error) {{
+                                    // Display error message if diagram rendering fails
+                                    var errorDiv = document.createElement('div');
+                                    errorDiv.className = 'mermaid-error';
+                                    errorDiv.textContent = '⚠ Unable to render diagram: ' + error.message;
+                                    pre.parentNode.insertBefore(errorDiv, pre);
+                                    return false;
+                                }}
+                            }}
+
+                            function adjustMermaidDiagrams() {{
+                                var containers = document.querySelectorAll('.mermaid-container');
+                                containers.forEach(function(container) {{
+                                    var diagramDiv = container.querySelector('.mermaid-diagram');
+                                    var svg = diagramDiv ? diagramDiv.querySelector('svg') : null;
+                                    
+                                    if (svg) {{
+                                        svg.style.maxWidth = '100%';
+                                        svg.style.height = 'auto';
+                                        
+                                        // Recalculate scale with intelligent sizing
+                                        var originalWidth = svg.width.baseVal.value;
+                                        var originalHeight = svg.height.baseVal.value;
+                                        var containerWidth = container.clientWidth - 22;
+                                        
+                                        var scale = 1.0;
+                                        var targetSize = containerWidth * 0.85;
+                                        
+                                        // Apply same intelligent scaling strategy as renderMermaidDiagram
+                                        if (originalWidth < containerWidth * 0.5) {{
+                                            // Diagram too small - scale up
+                                            scale = targetSize / originalWidth;
+                                            scale = Math.min(scale, 2.5);
+                                        }} else if (originalWidth > containerWidth * 0.95) {{
+                                            // Diagram too large - scale down
+                                            scale = targetSize / originalWidth;
+                                            scale = Math.max(scale, 0.4);
+                                        }}
+                                        
+                                        if (scale !== 1.0) {{
+                                            svg.style.transform = 'scale(' + scale + ')';
+                                            svg.style.transformOrigin = 'top center';
+                                            diagramDiv.style.height = (originalHeight * scale) + 'px';
+                                        }} else {{
+                                            svg.style.transform = '';
+                                            diagramDiv.style.height = '';
+                                        }}
+                                    }}
+                                }});
+                            }}
                         </script>
                     </head>
                     <body tabindex=""0"">

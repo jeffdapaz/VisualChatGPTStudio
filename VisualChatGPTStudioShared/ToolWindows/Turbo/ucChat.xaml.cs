@@ -1326,7 +1326,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                                 border-color: #888 !important;
                                 padding: 8px !important;
                                 font-weight: bold !important;
-                                white-space: nowrap;
+                                white-space: normal !important;
+                                word-wrap: break-word !important;
+                                overflow-wrap: break-word !important;
+                                text-align: left !important;
                             }}
 
                             .gridjs-td {{
@@ -1334,7 +1337,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                                 color: {cssTextColor} !important;
                                 border-color: #888 !important;
                                 padding: 6px 8px !important;
-                                white-space: nowrap;
+                                white-space: normal !important;
+                                word-wrap: break-word !important;
+                                overflow-wrap: break-word !important;
+                                vertical-align: top !important;
                             }}
 
                             .gridjs-tr {{
@@ -1887,6 +1893,55 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         }
 
         /// <summary>
+        /// Calculates the optimal width for each column based on header and content length.
+        /// </summary>
+        /// <param name="dataView">The DataView containing the data.</param>
+        /// <returns>A dictionary mapping column names to their calculated widths in pixels.</returns>
+        private static Dictionary<string, string> CalculateColumnWidths(DataView dataView)
+        {
+            Dictionary<string, string> columnWidths = new Dictionary<string, string>();
+
+            if (dataView == null || dataView.Table.Columns.Count == 0)
+            {
+                return columnWidths;
+            }
+
+            // Character width estimation: approximately 8 pixels per character for standard fonts
+            const int charWidth = 8;
+            const int minWidth = 80; // Minimum column width in pixels
+            const int maxWidth = 400; // Maximum column width in pixels
+            const int paddingWidth = 32; // Extra padding (16px on each side)
+
+            foreach (DataColumn column in dataView.Table.Columns)
+            {
+                // Start with header length
+                int maxLength = column.ColumnName.Length;
+
+                // Check content length for each row
+                foreach (DataRowView rowView in dataView)
+                {
+                    object value = rowView[column.ColumnName];
+                    if (value != null && value != DBNull.Value)
+                    {
+                        int contentLength = value.ToString().Length;
+                        if (contentLength > maxLength)
+                        {
+                            maxLength = contentLength;
+                        }
+                    }
+                }
+
+                // Calculate width with padding, respecting min and max constraints
+                int calculatedWidth = (maxLength * charWidth) + paddingWidth;
+                calculatedWidth = Math.Max(minWidth, Math.Min(maxWidth, calculatedWidth));
+
+                columnWidths[column.ColumnName] = $"{calculatedWidth}px";
+            }
+
+            return columnWidths;
+        }
+
+        /// <summary>
         /// Adds SQL result grid HTML to the messages using Grid.js for rendering.
         /// </summary>
         /// <param name="dataView">The DataView containing SQL query results.</param>
@@ -1898,7 +1953,29 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
 
             string jsonData = ConvertDataViewToJson(dataView);
+            Dictionary<string, string> columnWidths = CalculateColumnWidths(dataView);
             string gridId = $"sql-grid-{Guid.NewGuid():N}";
+
+            // Build columns configuration with calculated widths
+            StringBuilder columnsConfig = new StringBuilder("[");
+            bool firstColumn = true;
+
+            foreach (DataColumn column in dataView.Table.Columns)
+            {
+                if (!firstColumn)
+                {
+                    columnsConfig.Append(", ");
+                }
+
+                string width = columnWidths.ContainsKey(column.ColumnName) ? columnWidths[column.ColumnName] : "auto";
+                string safeColumnName = System.Net.WebUtility.HtmlEncode(column.ColumnName).Replace("'", "\\'");
+
+                columnsConfig.Append($"{{ name: '{safeColumnName}', width: '{width}' }}");
+
+                firstColumn = false;
+            }
+
+            columnsConfig.Append("]");
 
             string gridHtml = $@"
                 <div class='sql-result-grid'>
@@ -1908,7 +1985,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                             var gridData = {jsonData};
                             if (typeof gridjs !== 'undefined') {{
                                 new gridjs.Grid({{
-                                    columns: gridData.columns,
+                                    columns: {columnsConfig},
                                     data: gridData.data,
                                     search: true,
                                     sort: true,
@@ -1921,7 +1998,17 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                                     width: 'auto',
                                     style: {{
                                         table: {{
-                                            'white-space': 'nowrap'
+                                            'table-layout': 'fixed'
+                                        }},
+                                        th: {{
+                                            'white-space': 'normal',
+                                            'word-wrap': 'break-word',
+                                            'overflow-wrap': 'break-word'
+                                        }},
+                                        td: {{
+                                            'white-space': 'normal',
+                                            'word-wrap': 'break-word',
+                                            'overflow-wrap': 'break-word'
                                         }}
                                     }}
                                 }}).render(document.getElementById('{gridId}'));

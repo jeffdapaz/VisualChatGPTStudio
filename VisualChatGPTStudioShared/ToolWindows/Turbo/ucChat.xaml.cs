@@ -388,26 +388,44 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 {
                     string type = obj.type.ToString();
 
-                    if (type == "openMermaid")
-                    {
-                        string code = obj.code != null ? obj.code.ToString() : string.Empty;
-
-                        if (!string.IsNullOrWhiteSpace(code))
-                        {
-                            string[] lines = code.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
-
-                            string tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"{lines[0]}_{DateTime.Now:yyyyMMdd_HHmmss}.md");
-
-                            System.IO.File.WriteAllText(tempPath, $"```mermaid\n{code}\n```", Encoding.UTF8);
-
-                            VS.Documents.OpenAsync(tempPath);
-                        }
-                    }
-                    else if (type == "applyCode")
+                    if (type == "applyCode")
                     {
                         string code = obj.code != null ? obj.code.ToString() : string.Empty;
 
                         TerminalWindowHelper.ApplyCodeToActiveDocumentAsync(code);
+                    }
+                    else if (type == "copyImageToClipboard")
+                    {
+                        string base64Data = obj.imageData != null ? obj.imageData.ToString() : string.Empty;
+
+                        if (!string.IsNullOrWhiteSpace(base64Data))
+                        {
+                            try
+                            {
+                                byte[] imageBytes = Convert.FromBase64String(base64Data);
+
+                                using (System.IO.MemoryStream ms = new(imageBytes))
+                                {
+                                    System.Drawing.Image image = System.Drawing.Image.FromStream(ms);
+                                    System.Windows.Forms.Clipboard.SetImage(image);
+                                }
+
+                                // Send success feedback to JavaScript
+                                if (webBrowser is Microsoft.Web.WebView2.Wpf.WebView2 web2)
+                                {
+                                    await web2.CoreWebView2.ExecuteScriptAsync("window.clipboardCopySuccess && window.clipboardCopySuccess()");
+                                }
+                                else if (webBrowser is Microsoft.Web.WebView2.Wpf.WebView2CompositionControl comp2)
+                                {
+                                    await comp2.CoreWebView2.ExecuteScriptAsync("window.clipboardCopySuccess && window.clipboardCopySuccess()");
+                                }
+                            }
+                            catch (Exception imgEx)
+                            {
+                                Logger.Log(imgEx);
+                                MessageBox.Show("Failed to copy image to clipboard.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+                            }
+                        }
                     }
                 }
             }
@@ -1099,7 +1117,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 htmlContent = Regex.Replace(htmlContent, @"<pre\s+class=""mermaid[^""]*""[^>]*>(.*?)</pre>", m =>
                 {
                     string inner = m.Groups[1].Value;
-                    
+
                     // Check if it contains SVG (pre-rendered by Markdig)
                     if (inner.Contains("<svg"))
                     {
@@ -1114,12 +1132,12 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                             return $"<pre><code class=\"language-mermaid\">{mermaidCode}</code></pre>";
                         }
                     }
-                    
+
                     // No SVG found, treat as raw Mermaid code
                     inner = System.Net.WebUtility.HtmlDecode(inner);
                     return $"<pre><code class=\"language-mermaid\">{inner}</code></pre>";
                 }, RegexOptions.Singleline);
-                
+
                 // Handle: <div class="lang-mermaid ...">...</div>
                 htmlContent = Regex.Replace(htmlContent, @"<div class=""lang-mermaid[^""]*"">(.*?)</div>", m =>
                 {
@@ -1170,6 +1188,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             // Mermaid theme configuration based on Visual Studio theme
             string mermaidTheme = isDarkTheme ? "dark" : "default";
+
+            #region HTML Template
 
             string html = $@"
                     <html>
@@ -1266,6 +1286,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                                 justify-content: center;
                                 align-items: center;
                                 box-sizing: border-box;
+                                position: relative;
                             }}
 
                             .mermaid-diagram {{
@@ -1277,6 +1298,26 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                             .mermaid-diagram svg {{
                                 max-width: 100%;
                                 height: auto;
+                                display: block;
+                            }}
+
+                            .mermaid-copy-btn {{
+                                position: absolute;
+                                top: 8px;
+                                right: 8px;
+                                width: 15px;
+                                height: 15px;
+                                background: none;
+                                border: none;
+                                padding: 0;
+                                cursor: pointer;
+                                outline: none;
+                                z-index: 10;
+                            }}
+
+                            .mermaid-copy-btn img {{
+                                width: 15px;
+                                height: 15px;
                                 display: block;
                             }}
 
@@ -1628,6 +1669,20 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                                                 diagramDiv.style.height = (originalHeight * scale) + 'px';
                                             }}
                                         }}
+                                        
+                                        // Add copy as PNG button
+                                        var copyPngBtn = document.createElement('button');
+                                        copyPngBtn.className = 'mermaid-copy-btn';
+                                        copyPngBtn.title = 'Copy as PNG';
+                                        var imgCopyPng = document.createElement('img');
+                                        imgCopyPng.src = copyIcon;
+                                        copyPngBtn.appendChild(imgCopyPng);
+                                        
+                                        copyPngBtn.onclick = async function() {{
+                                            await copyMermaidAsPNG(diagramDiv, this);
+                                        }};
+                                        
+                                        diagramContainer.appendChild(copyPngBtn);
                                     }}
                                     
                                     // Keep the code block visible (don't hide it)
@@ -1639,6 +1694,129 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                                     errorDiv.textContent = '⚠ Unable to render diagram: ' + error.message;
                                     pre.parentNode.insertBefore(errorDiv, pre);
                                     return false;
+                                }}
+                            }}
+
+                            async function copyMermaidAsPNG(diagramDiv, button) {{
+                                try {{
+                                    var svgElement = diagramDiv.querySelector('svg');
+                                    if (!svgElement) {{
+                                        return;
+                                    }}
+                                    
+                                    // Clone SVG to avoid modifying the original
+                                    var svgClone = svgElement.cloneNode(true);
+                                    
+                                    // Remove any CSS transforms that might affect rendering
+                                    svgClone.style.transform = 'none';
+                                    svgClone.style.transformOrigin = 'top left';
+                                    
+                                    // Get dimensions from viewBox first (most reliable for Mermaid SVGs)
+                                    var width, height;
+                                    var viewBox = svgElement.getAttribute('viewBox');
+                                    
+                                    if (viewBox) {{
+                                        var parts = viewBox.split(/[\s,]+/);
+                                        if (parts.length === 4) {{
+                                            width = parseFloat(parts[2]);
+                                            height = parseFloat(parts[3]);
+                                        }}
+                                    }}
+                                    
+                                    // Fallback to SVG attributes
+                                    if (!width || !height || width <= 0 || height <= 0) {{
+                                        width = parseFloat(svgElement.getAttribute('width')) || svgElement.width.baseVal.value;
+                                        height = parseFloat(svgElement.getAttribute('height')) || svgElement.height.baseVal.value;
+                                    }}
+                                    
+                                    // Last fallback to bounding rect
+                                    if (!width || !height || width <= 0 || height <= 0) {{
+                                        var rect = svgElement.getBoundingClientRect();
+                                        width = rect.width;
+                                        height = rect.height;
+                                    }}
+                                    
+                                    // Ensure minimum dimensions
+                                    width = Math.max(Math.ceil(width), 100);
+                                    height = Math.max(Math.ceil(height), 100);
+                                    
+                                    // Set explicit dimensions on the clone
+                                    svgClone.setAttribute('width', width);
+                                    svgClone.setAttribute('height', height);
+                                    
+                                    // Ensure viewBox matches the dimensions
+                                    if (!svgClone.getAttribute('viewBox')) {{
+                                        svgClone.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
+                                    }}
+                                    
+                                    // Add required namespaces
+                                    svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                                    svgClone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+                                    
+                                    // Create a canvas element with padding for safety
+                                    var padding = 10;
+                                    var canvas = document.createElement('canvas');
+                                    var scale = 2; // 2x for better quality
+                                    canvas.width = (width + padding * 2) * scale;
+                                    canvas.height = (height + padding * 2) * scale;
+                                    var ctx = canvas.getContext('2d');
+                                    
+                                    // Fill white background
+                                    ctx.fillStyle = 'white';
+                                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                    
+                                    // Scale and add padding offset
+                                    ctx.scale(scale, scale);
+                                    ctx.translate(padding, padding);
+                                    
+                                    // Convert SVG to base64 data URL (avoids CORS/tainted canvas issues)
+                                    var svgData = new XMLSerializer().serializeToString(svgClone);
+                                    var svgBase64 = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+                                    
+                                    // Store button reference for callback
+                                    var btnRef = button;
+                                    
+                                    // Set up success callback for C# to call
+                                    window.clipboardCopySuccess = function() {{
+                                        var imgEl = btnRef.getElementsByTagName('img')[0];
+                                        if (imgEl) {{
+                                            imgEl.src = checkIcon;
+                                            setTimeout(function() {{ imgEl.src = copyIcon; }}, 1200);
+                                        }}
+                                        window.clipboardCopySuccess = null;
+                                    }};
+                                    
+                                    // Load SVG as image using base64 data URL
+                                    var img = new Image();
+                                    img.onload = function() {{
+                                        ctx.drawImage(img, 0, 0, width, height);
+                                        
+                                        // Get base64 PNG data (remove the data:image/png;base64, prefix)
+                                        var dataUrl = canvas.toDataURL('image/png');
+                                        var base64Data = dataUrl.replace(/^data:image\/png;base64,/, '');
+                                        
+                                        // Send to C# via postMessage
+                                        try {{
+                                            if (window.chrome && window.chrome.webview && window.chrome.webview.postMessage) {{
+                                                window.chrome.webview.postMessage(JSON.stringify({{ type: 'copyImageToClipboard', imageData: base64Data }}));
+                                            }} else if (window.external && window.external.notify) {{
+                                                window.external.notify(JSON.stringify({{ type: 'copyImageToClipboard', imageData: base64Data }}));
+                                            }}
+                                        }} catch(e) {{
+                                            console.error('Failed to send image to clipboard:', e);
+                                            alert('Failed to copy diagram as PNG.');
+                                        }}
+                                    }};
+                                    
+                                    img.onerror = function(e) {{
+                                        console.error('Failed to load SVG as image:', e);
+                                        alert('Failed to convert diagram to PNG.');
+                                    }};
+                                    
+                                    img.src = svgBase64;
+                                }} catch (error) {{
+                                    console.error('Error copying Mermaid as PNG:', error);
+                                    alert('An error occurred while copying the diagram.');
                                 }}
                             }}
 
@@ -1688,6 +1866,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                         {messagesHtml}
                     </body>
                     </html>";
+
+            #endregion HTML_TEMPLATE
 
             if (webBrowser is Microsoft.Web.WebView2.Wpf.WebView2 web)
             {

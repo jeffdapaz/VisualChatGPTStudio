@@ -1352,25 +1352,39 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                             }}
 
                             .gridjs-table {{
-                                width: auto !important;
+                                width: max-content !important;
                                 min-width: 100%;
-                                table-layout: auto !important;
+                                table-layout: fixed !important;
                             }}
 
                             .gridjs-head {{
                                 background-color: {cssCodeBackgroundColor} !important;
                             }}
 
+                            .gridjs-thead {{
+                                position: static !important;
+                            }}
+
                             .gridjs-th {{
                                 background-color: {cssCodeBackgroundColor} !important;
                                 color: {cssTextColor} !important;
                                 border-color: #888 !important;
-                                padding: 8px !important;
+                                padding: 8px 15px 8px 8px !important;
                                 font-weight: bold !important;
-                                white-space: normal !important;
-                                word-wrap: break-word !important;
-                                overflow-wrap: break-word !important;
-                                text-align: left !important;
+                                white-space: nowrap !important;
+                                overflow: hidden !important;
+                                text-overflow: ellipsis !important;
+                                min-width: fit-content !important;
+                                position: relative !important;
+                                display: table-cell !important;
+                                vertical-align: middle !important;
+                            }}
+
+                            .gridjs-th-content {{
+                                white-space: nowrap !important;
+                                overflow: hidden !important;
+                                text-overflow: ellipsis !important;
+                                display: block !important;
                             }}
 
                             .gridjs-td {{
@@ -1378,10 +1392,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                                 color: {cssTextColor} !important;
                                 border-color: #888 !important;
                                 padding: 6px 8px !important;
-                                white-space: normal !important;
-                                word-wrap: break-word !important;
-                                overflow-wrap: break-word !important;
-                                vertical-align: top !important;
+                                white-space: nowrap;
                             }}
 
                             .gridjs-tr {{
@@ -2079,40 +2090,47 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// <returns>A dictionary mapping column names to their calculated widths in pixels.</returns>
         private static Dictionary<string, string> CalculateColumnWidths(DataView dataView)
         {
-            Dictionary<string, string> columnWidths = new Dictionary<string, string>();
+            Dictionary<string, string> columnWidths = [];
 
             if (dataView == null || dataView.Table.Columns.Count == 0)
             {
                 return columnWidths;
             }
 
-            // Character width estimation: approximately 8 pixels per character for standard fonts
-            const int charWidth = 8;
-            const int minWidth = 80; // Minimum column width in pixels
-            const int maxWidth = 400; // Maximum column width in pixels
-            const int paddingWidth = 32; // Extra padding (16px on each side)
+            // Character width estimation: approximately 10 pixels per character for standard fonts
+            const int charWidth = 10;
+            const int minWidth = 100; // Minimum column width in pixels
+            const int maxWidth = 1200; // Maximum column width in pixels
+            const int headerPaddingLeft = 10; // Left padding
+            const int headerPaddingRight = 20; // Right padding (includes sort icon space ~20px + extra margin for full text display)
+            const int cellPaddingLeft = 10;
+            const int cellPaddingRight = 10;
 
             foreach (DataColumn column in dataView.Table.Columns)
             {
-                // Start with header length
-                int maxLength = column.ColumnName.Length;
+                // Calculate header width with extra padding for sort icon
+                int headerLength = column.ColumnName.Length;
+                int headerWidth = (headerLength * charWidth) + headerPaddingLeft + headerPaddingRight;
 
-                // Check content length for each row
+                // Find max content length
+                int maxContentLength = 0;
                 foreach (DataRowView rowView in dataView)
                 {
                     object value = rowView[column.ColumnName];
                     if (value != null && value != DBNull.Value)
                     {
                         int contentLength = value.ToString().Length;
-                        if (contentLength > maxLength)
+                        if (contentLength > maxContentLength)
                         {
-                            maxLength = contentLength;
+                            maxContentLength = contentLength;
                         }
                     }
                 }
 
-                // Calculate width with padding, respecting min and max constraints
-                int calculatedWidth = (maxLength * charWidth) + paddingWidth;
+                int contentWidth = (maxContentLength * charWidth) + cellPaddingLeft + cellPaddingRight;
+
+                // Use the larger of header width or content width
+                int calculatedWidth = Math.Max(headerWidth, contentWidth);
                 calculatedWidth = Math.Max(minWidth, Math.Min(maxWidth, calculatedWidth));
 
                 columnWidths[column.ColumnName] = $"{calculatedWidth}px";
@@ -2174,21 +2192,12 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                                         limit: 10
                                     }},
                                     resizable: false,
+                                    autoWidth: false,
                                     fixedHeader: false,
                                     width: 'auto',
                                     style: {{
                                         table: {{
-                                            'table-layout': 'fixed'
-                                        }},
-                                        th: {{
-                                            'white-space': 'normal',
-                                            'word-wrap': 'break-word',
-                                            'overflow-wrap': 'break-word'
-                                        }},
-                                        td: {{
-                                            'white-space': 'normal',
-                                            'word-wrap': 'break-word',
-                                            'overflow-wrap': 'break-word'
+                                            'white-space': 'nowrap'
                                         }}
                                     }}
                                 }}).render(document.getElementById('{gridId}'));

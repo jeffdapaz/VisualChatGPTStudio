@@ -445,17 +445,18 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 <a id="18"></a>
 ## Release Notes 📜
 
+### 5.7.0
+
+- Improved syntax highlighting for code blocks in Turbo Chat.
+- Attached images are now displayed as inline previews within the chat body.
+- Mermaid diagrams are now rendered directly in the chat, with the ability to copy them as PNG images.
+- SQL Server Agent query results are now displayed directly within the chat.
+- Fixed SQL Server Agent connections when using SQL Server Authentication with passwords.
+
 ### 5.6.1
 
 - Fix Copilot suggestions not appearing in Visual Studio 2026.
 - Fix API agent not working properly in some scenarios.
 - Fix "Send Code" feature in Turbo Chat not working properly in some scenarios.
-
-### 5.6.0
-
-- Improvements on copilot feature to suggests completions more often.
-- Added option to configure a dedicated Copilot model (or Azure deployment) for inline suggestions, with selectable Default / Completion / Specific-Chat modes.
-- The "Apply" button in Turbo Chat now can applies only the selected code block when a selection is present; otherwise, it applies the entire code.
-- Added the "Apply" button in the "Visual chatGPT Studio" window.
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

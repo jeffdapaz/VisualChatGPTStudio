@@ -1,5 +1,13 @@
 ﻿## Release Notes 📜
 
+### 5.7.0
+
+- Improved syntax highlighting for code blocks in Turbo Chat.
+- Attached images are now displayed as inline previews within the chat body.
+- Mermaid diagrams are now rendered directly in the chat, with the ability to copy them as PNG images.
+- SQL Server Agent query results are now displayed directly within the chat.
+- Fixed SQL Server Agent connections when using SQL Server Authentication with passwords.
+
 ### 5.6.1
 
 - Fix Copilot suggestions not appearing in Visual Studio 2026.

@@ -5,8 +5,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Community.VisualStudio.Toolkit;
 using EnvDTE;
+using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Newtonsoft.Json;
+using Task = System.Threading.Tasks.Task;
 
 namespace JeffPires.VisualChatGPTStudio.Utils
 {
@@ -70,6 +72,21 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         }
 
         /// <summary>
+        /// Retrieves the currently active file (document) in the Visual Studio editor.
+        /// </summary>
+        /// <returns>
+        /// The <see cref="Document"/> object representing the active file in the editor.
+        /// </returns>
+        public static async Task<Document> GetActiveFileAsync()
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            DTE dte = await VS.GetServiceAsync<DTE, DTE>();
+
+            return dte.ActiveDocument;
+        }
+
+        /// <summary>
         /// Asynchronously retrieves the content of a specified <see cref="ProjectItem"/>. If the item is open or can be opened as a document,
         /// it reads the content using the TextDocument API; otherwise, it attempts to read the file contents directly from disk.
         /// Returns an empty string if content cannot be retrieved.
@@ -116,6 +133,71 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             }
 
             return string.Empty;
+        }
+
+        /// <summary>
+        /// Asynchronously writes the specified content to the file represented by the given <paramref name="item"/> (ProjectItem).
+        /// If the item is open and is a text document, replaces its current content with <paramref name="newContent"/>.
+        /// If the item is closed, writes <paramref name="newContent"/> directly to the file on disk.
+        /// Throws an exception if the item is not a text document or lacks an associated file.
+        /// </summary>
+        /// <param name="item">The ProjectItem representing the file to update.</param>
+        /// <param name="newContent">The new content to write to the file.</param>
+        /// <returns>A Task representing the asynchronous write operation.</returns>
+        public static async Task WriteContentToFileAsync(ProjectItem item, string newContent)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            if (item.IsOpen)
+            {
+                Document doc = item.Document;
+
+                TextDocument textDoc = doc?.Object("TextDocument") as TextDocument;
+
+                if (textDoc != null)
+                {
+                    EditPoint start = textDoc.StartPoint.CreateEditPoint();
+                    EditPoint end = textDoc.EndPoint.CreateEditPoint();
+                    start.Delete(end);
+                    start.Insert(newContent ?? "");
+                    doc.Save();
+                }
+                else
+                {
+                    throw new Exception("File is not a text document.");
+                }
+            }
+            else
+            {
+                if (item.FileCount > 0)
+                {
+                    string filePath = item.FileNames[1];
+
+                    File.WriteAllText(filePath, newContent ?? "");
+                }
+                else
+                {
+                    throw new Exception("Project item file not found.");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Writes the specified content to an existing file at the given file path. 
+        /// Throws an exception if the file does not exist.
+        /// </summary>
+        /// <param name="filePath">The path of the file to write to.</param>
+        /// <param name="newContent">The content to write to the file. If null, an empty string will be written.</param>
+        public static void WriteContentToFile(string filePath, string newContent)
+        {
+            if (File.Exists(filePath))
+            {
+                File.WriteAllText(filePath, newContent ?? "");
+            }
+            else
+            {
+                throw new Exception("File not found in solution.");
+            }
         }
 
         #endregion Public Methods

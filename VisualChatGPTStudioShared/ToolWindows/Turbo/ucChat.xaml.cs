@@ -977,7 +977,14 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             {
                 if (CopilotAgent.GetFunctions().Select(f => f.Function.Name).Any(f => f.Equals(function.Function.Name, StringComparison.InvariantCultureIgnoreCase)))
                 {
-                    functionResult = await CopilotAgent.ExecuteFunctionAsync(function);
+                    if (chkEnableCopilotAgent.IsChecked.Value)
+                    {
+                        functionResult = await CopilotAgent.ExecuteFunctionAsync(function);
+                    }
+                    else
+                    {
+                        functionResult = "Copilot Agent is not allowed at the moment. Ask user to enable it.";
+                    }
                 }
                 else if (ApiAgent.GetFunctions().Select(f => f.Function.Name).Any(f => f.Equals(function.Function.Name, StringComparison.InvariantCultureIgnoreCase)))
                 {

@@ -20,8 +20,11 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
     /// <summary>
     /// Allows interaction with any API as an Agent.
     /// </summary>
-    public static class ApiAgent
+    public static class ApiAgent 
     {
+        public delegate void OnExecutingFunctionHandler(string message);
+        public static event OnExecutingFunctionHandler OnExecutingFunction;
+
         #region Public Methods
 
         /// <summary>
@@ -47,7 +50,7 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
         /// Returns a list of functions that the AI can call to interact with an API.
         /// </summary>
         /// <returns>List of <see cref="FunctionRequest"/>.</returns>
-        public static List<FunctionRequest> GetApiFunctions()
+        public static List<FunctionRequest> GetFunctions()
         {
             List<FunctionRequest> functions = [];
 
@@ -151,6 +154,8 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
 
                 if (function.Function.Name == nameof(CallSoapApiAsync))
                 {
+                    OnExecutingFunction?.Invoke($"Requesting {apiDefinition.Name} SOAP API: {endPoint}...");
+
                     string soapAction = arguments["soapAction"]?.Value<string>();
                     string soapEnvelope = arguments["soapEnvelope"]?.Value<string>();
 
@@ -158,9 +163,13 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
 
                     responseStatusCode = response.StatusCode;
                     responseContent = FormatXml(await response.Content.ReadAsStringAsync());
+
+                    OnExecutingFunction?.Invoke($"Processing {apiDefinition.Name} SOAP API response...");
                 }
                 else
                 {
+                    OnExecutingFunction?.Invoke($"Requesting {apiDefinition.Name} REST API: {endPoint}...");
+
                     string method = arguments[nameof(method)]?.Value<string>();
 
                     // Optional query parameters
@@ -185,6 +194,8 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
 
                     responseStatusCode = response.StatusCode;
                     responseContent = FormatJson(await response.Content.ReadAsStringAsync());
+
+                    OnExecutingFunction?.Invoke($"Processing {apiDefinition.Name} REST API response...");
                 }
 
                 if (apiDefinition.SendResponsesToAI)

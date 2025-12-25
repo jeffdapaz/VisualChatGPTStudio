@@ -1,4 +1,4 @@
-﻿namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
+namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 {
     /// <summary>
     /// This class represents a chat message segment.
@@ -29,8 +29,8 @@
     public enum IdentifierEnum
     {
         Me,
-        ChatGPT,
-        ChatGPTCode,
+        AI,
+        AICode,
         FunctionCall,
         FunctionRequest,
         Api,

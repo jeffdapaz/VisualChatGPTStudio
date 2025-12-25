@@ -168,6 +168,16 @@
                     <ColumnDefinition Width="15"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
+                <CheckBox
+                    Grid.Column="0"
+                    x:Name="chkEnableCopilotAgent"
+                    VerticalAlignment="Bottom"
+                    HorizontalAlignment="Left"
+                    ToolTip="Enable Copilot Agent" 
+                    AutomationProperties.HelpText="Enable Copilot Agent"
+                    Content="Enable Copilot Agent"
+                    TabIndex="2"
+                    />
                 <Button 
                     Grid.Column="1"
                     Height="20" 
@@ -176,7 +186,7 @@
                     ToolTip="Add context to an API" 
                     AutomationProperties.HelpText="Add context to an API"
                     Click="btnAPI_Click" 
-                    TabIndex="2"
+                    TabIndex="3"
                     IsTabStop="True"
                     Focusable="True"
                     Margin="10,0,0,0">
@@ -189,7 +199,7 @@
                     x:Name="btnSql" 
                     ToolTip="Add context to a database" 
                     AutomationProperties.HelpText="Add context to a database"
-                    TabIndex="3"
+                    TabIndex="4"
                     IsTabStop="True"
                     Focusable="True"
                     Click="btnSql_Click" >
@@ -202,7 +212,7 @@
                     x:Name="btnAttachImage" 
                     ToolTip="Attach an image"
                     AutomationProperties.HelpText="Attach an image"
-                    TabIndex="4"
+                    TabIndex="5"
                     IsTabStop="True"
                     Focusable="True"
                     Click="btnAttachImage_Click">
@@ -214,7 +224,7 @@
                     x:Name="btnComputerUse" 
                     ToolTip="Computer-Use: Let the AI take control of Visual Studio to execute your instruction" 
                     AutomationProperties.HelpText="Computer-Use: Let the AI take control of Visual Studio to execute your instruction"
-                    TabIndex="5"
+                    TabIndex="6"
                     IsTabStop="True"
                     Focusable="True"
                     Click="btnComputerUse_Click" >
@@ -226,7 +236,7 @@
                     x:Name="btnRequestCode" 
                     ToolTip="Send Code (Ctrl+Alt+Enter)" 
                     AutomationProperties.HelpText="Send Code (Ctrl+Alt+Enter)"
-                    TabIndex="6"
+                    TabIndex="7"
                     IsTabStop="True"
                     Focusable="True"
                     Click="SendCode" >
@@ -238,7 +248,7 @@
                     x:Name="btnRequestSend" 
                     ToolTip="Send (Ctrl+Enter)" 
                     AutomationProperties.HelpText="Send (Ctrl+Enter)"
-                    TabIndex="7"
+                    TabIndex="8"
                     IsTabStop="True"
                     Focusable="True"
                     Click="SendRequest" >
@@ -252,7 +262,7 @@
                     AutomationProperties.HelpText="Cancel (Alt+Q)"
                     Click="CancelRequest" 
                     Visibility="Collapsed" 
-                    TabIndex="8"
+                    TabIndex="9"
                     IsTabStop="True"
                     Focusable="True"
                     IsEnabled="False" >
@@ -273,7 +283,7 @@
                     x:Name="btnSqlCancel" 
                     ToolTip="Cancel" 
                     AutomationProperties.HelpText="Cancel"
-                    TabIndex="8"
+                    TabIndex="10"
                     IsTabStop="True"
                     Focusable="True"
                     Click="btnSqlCancel_Click" >
@@ -285,7 +295,7 @@
                     x:Name="btnSqlSend" 
                     ToolTip="Send Context Database to the AI" 
                     AutomationProperties.HelpText="Send Context Database to the AI"
-                    TabIndex="9"
+                    TabIndex="11"
                     IsTabStop="True"
                     Focusable="True"
                     Click="btnSqlSend_Click" >

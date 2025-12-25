@@ -333,6 +333,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         public string APIAgentCommand { get; set; } = "Based on the API's definition provided following, make API calls according to the instructions when requested. Do not include the base URL in the endpoints.";
 
         [Category("Commands")]
+        [DisplayName("Copilot Agent Command")]
+        [Description("The command that guide the AI to interact with the project in many ways.")]
+        [DefaultValue("If needed and requested by the user, you may interact directly with the project in various ways through the available functions provided to you.")]
+        public string CopilotAgentCommand { get; set; } = "If needed and requested by the user, you may interact directly with the project in various ways through the available functions provided to you.";
+
+        [Category("Commands")]
         [DisplayName("Use Completion API for Commands")]
         [Description("If true, all requests to completion-code will use alternative 'Completion' model and API. Configure 'Completion Parameters' section before. Not works for Azure API.")]
         [DefaultValue(false)]

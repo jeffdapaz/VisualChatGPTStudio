@@ -16,6 +16,9 @@ namespace JeffPires.VisualChatGPTStudio.Agents
     /// </summary>
     public static class SqlServerAgent
     {
+        public delegate void OnExecutingFunctionHandler(string message);
+        public static event OnExecutingFunctionHandler OnExecutingFunction;
+
         /// <summary>
         /// Retrieves a list of SQL Server connection information by filtering and processing connections 
         /// from the Visual Studio Data Explorer Connection Manager that match a specific SQL Server provider.
@@ -92,7 +95,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         /// <returns>
         /// A list of <see cref="FunctionRequest"/> objects representing SQL functions for executing scripts (e.g., ExecuteReader, ExecuteNonQuery, ExecuteScalar).
         /// </returns>
-        public static List<FunctionRequest> GetSqlFunctions()
+        public static List<FunctionRequest> GetFunctions()
         {
             List<FunctionRequest> functions = [];
 
@@ -252,14 +255,20 @@ namespace JeffPires.VisualChatGPTStudio.Agents
 
                 if (function.Function.Name.Equals(nameof(SqlServerAgent.ExecuteReader)))
                 {
+                    OnExecutingFunction?.Invoke($"Executing SQL Server ExecuteReader query...");
+
                     functionResult = SqlServerAgent.ExecuteReader(connectionString, query, out readerResult);
                 }
                 else if (function.Function.Name.Equals(nameof(SqlServerAgent.ExecuteNonQuery)))
                 {
+                    OnExecutingFunction?.Invoke($"Executing SQL Server ExecuteNonQuery query...");
+
                     functionResult = SqlServerAgent.ExecuteNonQuery(connectionString, query);
                 }
                 else if (function.Function.Name.Equals(nameof(SqlServerAgent.ExecuteScalar)))
                 {
+                    OnExecutingFunction?.Invoke($"Processing SQL Server ExecuteScalar query...");
+
                     functionResult = SqlServerAgent.ExecuteScalar(connectionString, query);
                 }
                 else
@@ -272,6 +281,8 @@ namespace JeffPires.VisualChatGPTStudio.Agents
                     Logger.Log(query);
                     Logger.Log(new string('_', 100));
                 }
+
+                OnExecutingFunction?.Invoke($"Processing SQL Server query result...");
             }
             catch (Exception ex)
             {

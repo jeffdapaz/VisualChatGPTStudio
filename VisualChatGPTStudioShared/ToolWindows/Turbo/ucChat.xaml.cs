@@ -92,6 +92,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private readonly string submitIcon;
         private readonly string sqlIcon;
         private readonly string imgIcon;
+        private bool copilotAgentContextAdded = false;
 
         // Session-only image previews:
         // Key: the exact prefix used in the rendered user message (TAG_IMG + fileName)
@@ -129,13 +130,13 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 #if COPILOT_ENABLED //VS2022
             webBrowser = new Microsoft.Web.WebView2.Wpf.WebView2CompositionControl() { Name = "webBrowserChat" };
 #else //VS2019
-            webBrowser = new Microsoft.Web.WebView2.Wpf.WebView2() { Name = "webBrowserChat" };    
+            webBrowser = new Microsoft.Web.WebView2.Wpf.WebView2() { Name = "webBrowserChat" };
 #endif
 
             webHost.Children.Add(webBrowser);
 
             meIcon = GetImageBase64(IdentifierEnum.Me);
-            chatGptIcon = GetImageBase64(IdentifierEnum.ChatGPT);
+            chatGptIcon = GetImageBase64(IdentifierEnum.AI);
             apiIcon = GetImageBase64(IdentifierEnum.Api);
             copyIcon = GetImageBase64(IdentifierEnum.CopyIcon);
             checkIcon = GetImageBase64(IdentifierEnum.CheckIcon);
@@ -210,6 +211,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             sqlServerConnectionsAlreadyAdded = ChatRepository.GetSqlServerConnections(chatId);
             apiDefinitionsAlreadyAdded = ChatRepository.GetApiDefinitions(chatId);
+
+            ApiAgent.OnExecutingFunction += OnExecutingFunction;
+            SqlServerAgent.OnExecutingFunction += OnExecutingFunction;
+            CopilotAgent.OnExecutingFunction += OnExecutingFunction;
         }
 
         #endregion Constructors
@@ -219,7 +224,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         {
             // Global send request by "Enter" or "Ctrl+Enter"
             if (e.Key == Key.Enter &&
-                (options.UseEnter && Keyboard.Modifiers == ModifierKeys.None || !options.UseEnter && Keyboard.Modifiers == ModifierKeys.Control))
+                ((options.UseEnter && Keyboard.Modifiers == ModifierKeys.None) || (!options.UseEnter && Keyboard.Modifiers == ModifierKeys.Control)))
             {
                 _ = RequestAsync(RequestType.Request);
                 e.Handled = true;
@@ -437,6 +442,15 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
         }
 
+        /// <summary>
+        /// Updates the progress status label text with the specified message during function execution.
+        /// </summary>
+        /// <param name="message">The message to display in the progress status label.</param>
+        private void OnExecutingFunction(string message)
+        {
+            lblProgressStatus.Text = message;
+        }
+
         #endregion Event Handlers
 
         #region SQL Event Handlers
@@ -505,7 +519,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 return;
             }
 
-            List<FunctionRequest> sqlFunctions = SqlServerAgent.GetSqlFunctions();
+            List<FunctionRequest> sqlFunctions = SqlServerAgent.GetFunctions();
 
             foreach (FunctionRequest function in sqlFunctions)
             {
@@ -597,7 +611,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </summary>
         private async void btnApiSend_Click(object sender, RoutedEventArgs e)
         {
-            List<FunctionRequest> apiFunctions = ApiAgent.GetApiFunctions();
+            List<FunctionRequest> apiFunctions = ApiAgent.GetFunctions();
 
             foreach (FunctionRequest function in apiFunctions)
             {
@@ -654,6 +668,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             if (!IsReadyToSendRequest())
             {
                 return;
+            }
+
+            if (chkEnableCopilotAgent.IsChecked.Value && !copilotAgentContextAdded)
+            {
+                AddCopilotAgentFunctions();
             }
 
             if (!selectedContextFilesCodeAppended)
@@ -921,7 +940,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 for (int i = 0; i < segments.Count; i++)
                 {
-                    if (segments[i].Author == IdentifierEnum.ChatGPTCode)
+                    if (segments[i].Author == IdentifierEnum.AICode)
                     {
                         docView.TextView.TextBuffer.Replace(new Microsoft.VisualStudio.Text.Span(0, docView.TextView.TextBuffer.CurrentSnapshot.Length), segments[i].Content);
                     }
@@ -933,11 +952,13 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
             else
             {
-                messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.ChatGPT, Content = response }] });
-                AddMessagesHtml(IdentifierEnum.ChatGPT, response);
+                messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.AI, Content = response }] });
+                AddMessagesHtml(IdentifierEnum.AI, response);
             }
 
             UpdateBrowser();
+
+            lblProgressStatus.Text = "Thinking...";
         }
 
         /// <summary>
@@ -954,7 +975,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             foreach (FunctionResult function in functions)
             {
-                if (ApiAgent.GetApiFunctions().Select(f => f.Function.Name).Any(f => f.Equals(function.Function.Name, StringComparison.InvariantCultureIgnoreCase)))
+                if (CopilotAgent.GetFunctions().Select(f => f.Function.Name).Any(f => f.Equals(function.Function.Name, StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    functionResult = await CopilotAgent.ExecuteFunctionAsync(function);
+                }
+                else if (ApiAgent.GetFunctions().Select(f => f.Function.Name).Any(f => f.Equals(function.Function.Name, StringComparison.InvariantCultureIgnoreCase)))
                 {
                     (string, string) apiResponse = await ApiAgent.ExecuteFunctionAsync(function, options.LogAPIAgentRequestAndResponses);
 
@@ -1051,7 +1076,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             string authorIcon = author switch
             {
                 IdentifierEnum.Me => meIcon,
-                IdentifierEnum.ChatGPT => chatGptIcon,
+                IdentifierEnum.AI => chatGptIcon,
                 IdentifierEnum.Api => apiIcon
             };
 
@@ -1927,7 +1952,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             string imageSource = identifier switch
             {
                 IdentifierEnum.Me => RESOURCE_PATH + "vs.png",
-                IdentifierEnum.ChatGPT => RESOURCE_PATH + "chatGPT.png",
+                IdentifierEnum.AI => RESOURCE_PATH + "chatGPT.png",
                 IdentifierEnum.Api => RESOURCE_PATH + "api.png",
                 IdentifierEnum.CopyIcon => RESOURCE_PATH + "copy.png",
                 IdentifierEnum.CheckIcon => RESOURCE_PATH + "check.png",
@@ -2044,7 +2069,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             double g = ToLinear(color.G);
             double b = ToLinear(color.B);
 
-            return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            return (0.2126 * r) + (0.7152 * g) + (0.0722 * b);
         }
 
         /// <summary>
@@ -2059,16 +2084,16 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 return "{ \"columns\": [], \"data\": [] }";
             }
 
-            List<string> columns = new List<string>();
+            List<string> columns = [];
             foreach (DataColumn column in dataView.Table.Columns)
             {
                 columns.Add(column.ColumnName);
             }
 
-            List<List<object>> data = new List<List<object>>();
+            List<List<object>> data = [];
             foreach (DataRowView rowView in dataView)
             {
-                List<object> row = new List<object>();
+                List<object> row = [];
                 foreach (DataColumn column in dataView.Table.Columns)
                 {
                     object value = rowView[column.ColumnName];
@@ -2159,7 +2184,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             string gridId = $"sql-grid-{Guid.NewGuid():N}";
 
             // Build columns configuration with calculated widths
-            StringBuilder columnsConfig = new StringBuilder("[");
+            StringBuilder columnsConfig = new("[");
             bool firstColumn = true;
 
             foreach (DataColumn column in dataView.Table.Columns)
@@ -2235,12 +2260,12 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 foreach (ComputerUseContent message in messages)
                 {
-                    AddMessagesHtml(IdentifierEnum.ChatGPT, message.Text);
+                    AddMessagesHtml(IdentifierEnum.AI, message.Text);
 
                     messagesForDatabase.Add(new()
                     {
                         Order = messagesForDatabase.Count + 1,
-                        Segments = [new() { Author = IdentifierEnum.ChatGPT, Content = message.Text }]
+                        Segments = [new() { Author = IdentifierEnum.AI, Content = message.Text }]
                     });
                 }
 
@@ -2284,6 +2309,28 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     cancellationTokenSource.Token
                 );
             }
+        }
+
+        /// <summary>
+        /// Adds Copilot agent functions and related requests to the chat and database messages.
+        /// </summary>
+        private void AddCopilotAgentFunctions()
+        {
+            List<FunctionRequest> functions = CopilotAgent.GetFunctions();
+
+            foreach (FunctionRequest function in functions)
+            {
+                apiChat.AppendFunctionCall(function);
+                messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.FunctionCall, Content = JsonConvert.SerializeObject(function) }] });
+            }
+
+            string request = options.CopilotAgentCommand;
+
+            messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.FunctionRequest, Content = request }] });
+
+            apiChat.AppendUserInput(request);
+
+            copilotAgentContextAdded = true;
         }
 
         #endregion Methods   

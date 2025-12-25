@@ -12,6 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Agents\ApiAgent\ApiAgent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Agents\ApiAgent\ApiItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Agents\ApiAgent\ApiTagItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Agents\CopilotAgent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Agents\SqlServerAgent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AddComments.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AddSummary.cs" />
@@ -84,6 +85,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Http\RequestCaptureHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Repositories\Repository.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ScreenCapturer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\SolutionExplorerHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\TextFormat.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\WebView2BootstrapperHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)VisuallChatGPTStudioPackage.cs" />

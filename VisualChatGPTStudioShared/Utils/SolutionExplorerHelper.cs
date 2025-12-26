@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Community.VisualStudio.Toolkit;
 using EnvDTE;
-using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Newtonsoft.Json;
 using Task = System.Threading.Tasks.Task;
@@ -43,6 +42,40 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             };
 
             return JsonConvert.SerializeObject(solutionObj, Formatting.Indented);
+        }
+
+        /// <summary>
+        /// Retrieves a list of all text file paths (including those nested within project items) from all projects in the current solution.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="List{string}"/> containing the full paths to all text files found in every project within the current solution.
+        /// </returns>
+        public static async Task<List<string>> GetAllTextFilePathsAsync()
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            List<string> filePaths = [];
+
+            DTE dte = await VS.GetServiceAsync<DTE, DTE>();
+
+            EnvDTE.Solution solution = dte.Solution;
+
+            foreach (EnvDTE.Project project in solution.Projects)
+            {
+                if (string.IsNullOrWhiteSpace(project.FullName))
+                {
+                    continue;
+                }
+
+                string projectBasePath = Path.GetDirectoryName(project.FullName);
+
+                foreach (string filePath in GetFilesFromProjectItems(project.ProjectItems, projectBasePath))
+                {
+                    filePaths.Add(projectBasePath + "\\" + filePath);
+                }
+            }
+
+            return filePaths;
         }
 
         /// <summary>

@@ -1,4 +1,4 @@
-﻿using Community.VisualStudio.Toolkit;
+using Community.VisualStudio.Toolkit;
 using EnvDTE;
 using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils;
@@ -7,6 +7,7 @@ using LibGit2Sharp;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -165,7 +166,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows
 
             CodeReviewItem codeReviewItem = CodeReviews.First(c => c.FileName == fileName);
 
-            await DiffView.ShowDiffViewAsync(codeReviewItem.FilePath, codeReviewItem.OriginalCode, codeReviewItem.AlteredCode);
+            await DiffView.ShowDiffViewAsync(Path.GetExtension(codeReviewItem.FilePath), codeReviewItem.OriginalCode, codeReviewItem.AlteredCode);
         }
 
         /// <summary>

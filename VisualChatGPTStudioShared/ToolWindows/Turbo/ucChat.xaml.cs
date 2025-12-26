@@ -449,6 +449,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private void OnExecutingFunction(string message)
         {
             lblProgressStatus.Text = message;
+
+            Logger.Log($"Copilot Agent: {message}");
         }
 
         #endregion Event Handlers

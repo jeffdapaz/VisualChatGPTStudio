@@ -1,9 +1,10 @@
-﻿using Community.VisualStudio.Toolkit;
+using Community.VisualStudio.Toolkit;
 using JeffPires.VisualChatGPTStudio.Options.Commands;
 using JeffPires.VisualChatGPTStudio.Utils;
 using JeffPires.VisualChatGPTStudio.Utils.API;
 using Microsoft.VisualStudio.Shell;
 using System;
+using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 using VisualChatGPTStudioShared.Utils;
@@ -56,7 +57,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
                 result = TextFormat.RemoveCodeTagsFromOpenAIResponses(result.ToString());
 
-                await DiffView.ShowDiffViewAsync(docView.FilePath, selectedText, result);
+                await DiffView.ShowDiffViewAsync(Path.GetExtension(docView.FilePath), selectedText, result);
 
                 await VS.StatusBar.ShowProgressAsync(Constants.MESSAGE_WAITING_CHATGPT, 2, 2);
             }

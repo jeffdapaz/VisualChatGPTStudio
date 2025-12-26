@@ -90,7 +90,11 @@
 
             <Grid Name="grdProgress" Grid.Row="2" Visibility="Collapsed">
                 <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="True" />
-                <TextBlock x:Name="lblProgressStatus" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Black" />
+                <TextBlock
+                    x:Name="lblProgressStatus"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Foreground="Black" />
             </Grid>
         </Grid>
         <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Background="#FF007ACC" Margin="0,5,0,5" />
@@ -177,6 +181,7 @@
                     AutomationProperties.HelpText="Enable Copilot Agent"
                     Content="Enable Copilot Agent"
                     TabIndex="2"
+                    Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
                     />
                 <Button 
                     Grid.Column="1"

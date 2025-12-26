@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Security.Policy;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Community.VisualStudio.Toolkit;
 using EnvDTE;
 using EnvDTE80;
+using Markdig.Helpers;
+using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -835,7 +838,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// </returns>
         private static async Task<string> GetSolutionStructure()
         {
-            OnExecutingFunction?.Invoke("Reading solution structure...");
+            await InvokeOnExecutingFunctionAsync("Reading solution structure...");
 
             return await SolutionExplorerHelper.GetSolutionStructureJsonAsync();
         }
@@ -852,7 +855,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         {
             try
             {
-                OnExecutingFunction?.Invoke($"Opening File: {filePath}");
+                await InvokeOnExecutingFunctionAsync($"Opening File: {filePath}");
 
                 ProjectItem item = await SolutionExplorerHelper.FindProjectItemByPathAsync(filePath);
 
@@ -886,7 +889,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// </returns>
         public static async Task<string> GetActiveFilePath()
         {
-            OnExecutingFunction?.Invoke("Getting current active (opened) file path...");
+            await InvokeOnExecutingFunctionAsync("Getting current active (opened) file path...");
 
             Document document = await SolutionExplorerHelper.GetActiveFileAsync();
 
@@ -911,7 +914,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// </returns>
         public static async Task<string> ReadActiveFile()
         {
-            OnExecutingFunction?.Invoke("Reading current active (opened) file...");
+            await InvokeOnExecutingFunctionAsync("Reading current active (opened) file...");
 
             Document document = await SolutionExplorerHelper.GetActiveFileAsync();
 
@@ -957,7 +960,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
                     if (item != null)
                     {
-                        OnExecutingFunction?.Invoke($"Reading {Path.GetFileName(filePath)} file...");
+                        await InvokeOnExecutingFunctionAsync($"Reading {Path.GetFileName(filePath)} file...");
 
                         content = await SolutionExplorerHelper.GetProjectItemContentAsync(item);
                     }
@@ -1008,7 +1011,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
                     bool fileHandled = false;
 
-                    OnExecutingFunction?.Invoke($"Creating {newFile.Path} file...");
+                    await InvokeOnExecutingFunctionAsync($"Creating {newFile.Path} file...");
 
                     foreach (Project project in dte.Solution.Projects)
                     {
@@ -1089,7 +1092,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
             foreach (string filePath in filePaths)
             {
-                OnExecutingFunction?.Invoke($"Deleting {filePath}...");
+                await InvokeOnExecutingFunctionAsync($"Deleting {filePath}...");
 
                 string status = "success";
 
@@ -1143,7 +1146,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
             foreach (FileRenameInfo file in files)
             {
-                OnExecutingFunction?.Invoke($"Renaming/moving {file.OldPath} to {file.NewPath}...");
+                await InvokeOnExecutingFunctionAsync($"Renaming/moving {file.OldPath} to {file.NewPath}...");
 
                 string status = "success";
 
@@ -1287,7 +1290,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// </returns>
         private static async Task<string> BuildSolution()
         {
-            OnExecutingFunction?.Invoke("Building the solution...");
+            await InvokeOnExecutingFunctionAsync("Building the solution...");
 
             await Task.Yield();
 
@@ -1377,7 +1380,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
             foreach (FileInfo update in filesToUpdate)
             {
-                OnExecutingFunction?.Invoke($"Editing {update.Path} file...");
+                await InvokeOnExecutingFunctionAsync($"Editing {update.Path} file...");
 
                 string status = "success";
 
@@ -1525,7 +1528,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                     currentItem = null;
                     fileContent = null;
 
-                    OnExecutingFunction?.Invoke($"Editing {update.Path} file...");
+                    await InvokeOnExecutingFunctionAsync($"Editing {update.Path} file...");
 
                     currentItem = await SolutionExplorerHelper.FindProjectItemByPathAsync(update.Path);
 
@@ -1617,7 +1620,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// </returns>
         public static async Task<string> ShowDiff(string filesExtension, string leftText, string rightText)
         {
-            OnExecutingFunction?.Invoke($"Showing diff view...");
+            await InvokeOnExecutingFunctionAsync($"Showing diff view...");
 
             await DiffView.ShowDiffViewAsync(filesExtension, leftText, rightText);
 
@@ -1647,7 +1650,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                 return "File not found in Solution";
             }
 
-            OnExecutingFunction?.Invoke($"Showing diff view...");
+            await InvokeOnExecutingFunctionAsync($"Showing diff view...");
 
             string originalContent = await SolutionExplorerHelper.GetProjectItemContentAsync(item);
 
@@ -1668,7 +1671,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// </returns>
         public static async Task<string> DownloadFromUrl(string url)
         {
-            OnExecutingFunction?.Invoke($"Downloading from URL: {url}");
+            await InvokeOnExecutingFunctionAsync($"Downloading from URL: {url}");
 
             string content = "";
             string contentType = "";
@@ -1709,7 +1712,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         {
             List<string> matches = [];
 
-            OnExecutingFunction?.Invoke("Searching for contents...");
+            await InvokeOnExecutingFunctionAsync("Searching for contents...");
 
             List<string> allFiles = await SolutionExplorerHelper.GetAllTextFilePathsAsync();
 
@@ -1736,6 +1739,18 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             }
 
             return JsonConvert.SerializeObject(matches, Formatting.Indented);
+        }
+
+        /// <summary>
+        /// Invokes the <c>OnExecutingFunction</c> delegate asynchronously with the specified message.
+        /// </summary>
+        /// <param name="message">The message to pass to the <c>OnExecutingFunction</c> delegate.</param>
+        private static async Task InvokeOnExecutingFunctionAsync(string message)
+        {
+            OnExecutingFunction?.Invoke("Copilot Agent: " + message);
+
+            //pause current thread to allow UI update
+            await Task.Delay(50);
         }
 
         #endregion Private Methods

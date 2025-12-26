@@ -154,7 +154,7 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
 
                 if (function.Function.Name == nameof(CallSoapApiAsync))
                 {
-                    OnExecutingFunction?.Invoke($"Requesting {apiDefinition.Name} SOAP API: {endPoint}...");
+                    await InvokeOnExecutingFunctionAsync($"Requesting {apiDefinition.Name} SOAP API: {endPoint}...");
 
                     string soapAction = arguments["soapAction"]?.Value<string>();
                     string soapEnvelope = arguments["soapEnvelope"]?.Value<string>();
@@ -164,11 +164,11 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
                     responseStatusCode = response.StatusCode;
                     responseContent = FormatXml(await response.Content.ReadAsStringAsync());
 
-                    OnExecutingFunction?.Invoke($"Processing {apiDefinition.Name} SOAP API response...");
+                    await InvokeOnExecutingFunctionAsync($"Processing {apiDefinition.Name} SOAP API response...");
                 }
                 else
                 {
-                    OnExecutingFunction?.Invoke($"Requesting {apiDefinition.Name} REST API: {endPoint}...");
+                    await InvokeOnExecutingFunctionAsync($"Requesting {apiDefinition.Name} REST API: {endPoint}...");
 
                     string method = arguments[nameof(method)]?.Value<string>();
 
@@ -195,7 +195,7 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
                     responseStatusCode = response.StatusCode;
                     responseContent = FormatJson(await response.Content.ReadAsStringAsync());
 
-                    OnExecutingFunction?.Invoke($"Processing {apiDefinition.Name} REST API response...");
+                    await InvokeOnExecutingFunctionAsync($"Processing {apiDefinition.Name} REST API response...");
                 }
 
                 if (apiDefinition.SendResponsesToAI)
@@ -399,6 +399,18 @@ namespace VisualChatGPTStudioShared.Agents.ApiAgent
             {
                 return json;
             }
+        }
+
+        /// <summary>
+        /// Invokes the <c>OnExecutingFunction</c> delegate asynchronously with the specified message.
+        /// </summary>
+        /// <param name="message">The message to pass to the <c>OnExecutingFunction</c> delegate.</param>
+        private static async Task InvokeOnExecutingFunctionAsync(string message)
+        {
+            OnExecutingFunction?.Invoke("API Agent: " + message);
+
+            //pause current thread to allow UI update
+            await Task.Delay(50);
         }
 
         #endregion Private Methods

@@ -1,13 +1,14 @@
-using Microsoft.VisualStudio.Data.Services;
-using Microsoft.VisualStudio.Shell;
-using Newtonsoft.Json.Linq;
-using OpenAI_API.Functions;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.Data.Services;
+using Microsoft.VisualStudio.Shell;
+using Newtonsoft.Json.Linq;
+using OpenAI_API.Functions;
 
 namespace JeffPires.VisualChatGPTStudio.Agents
 {
@@ -255,19 +256,19 @@ namespace JeffPires.VisualChatGPTStudio.Agents
 
                 if (function.Function.Name.Equals(nameof(SqlServerAgent.ExecuteReader)))
                 {
-                    OnExecutingFunction?.Invoke($"Executing SQL Server ExecuteReader query...");
+                    InvokeOnExecutingFunction("Executing SQL Server ExecuteReader query...");
 
                     functionResult = SqlServerAgent.ExecuteReader(connectionString, query, out readerResult);
                 }
                 else if (function.Function.Name.Equals(nameof(SqlServerAgent.ExecuteNonQuery)))
                 {
-                    OnExecutingFunction?.Invoke($"Executing SQL Server ExecuteNonQuery query...");
+                    InvokeOnExecutingFunction("Executing SQL Server ExecuteNonQuery query...");
 
                     functionResult = SqlServerAgent.ExecuteNonQuery(connectionString, query);
                 }
                 else if (function.Function.Name.Equals(nameof(SqlServerAgent.ExecuteScalar)))
                 {
-                    OnExecutingFunction?.Invoke($"Processing SQL Server ExecuteScalar query...");
+                    InvokeOnExecutingFunction("Processing SQL Server ExecuteScalar query...");
 
                     functionResult = SqlServerAgent.ExecuteScalar(connectionString, query);
                 }
@@ -282,7 +283,7 @@ namespace JeffPires.VisualChatGPTStudio.Agents
                     Logger.Log(new string('_', 100));
                 }
 
-                OnExecutingFunction?.Invoke($"Processing SQL Server query result...");
+                InvokeOnExecutingFunction($"Processing SQL Server query result...");
             }
             catch (Exception ex)
             {
@@ -444,6 +445,18 @@ namespace JeffPires.VisualChatGPTStudio.Agents
         private static string ReplaceTrustedCertificate(string connectionString)
         {
             return Regex.Replace(connectionString, "(?i)trust server certificate", "TrustServerCertificate");
+        }
+
+        /// <summary>
+        /// Invokes the <c>OnExecutingFunction</c> delegate asynchronously with the specified message.
+        /// </summary>
+        /// <param name="message">The message to pass to the <c>OnExecutingFunction</c> delegate.</param>
+        private static void InvokeOnExecutingFunction(string message)
+        {
+            OnExecutingFunction?.Invoke("SQL Server Agent: " + message);
+
+            //pause current thread to allow UI update
+            System.Threading.Tasks.Task.Delay(50);
         }
     }
 

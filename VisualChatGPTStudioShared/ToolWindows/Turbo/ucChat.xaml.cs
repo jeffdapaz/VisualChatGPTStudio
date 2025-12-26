@@ -448,9 +448,13 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// <param name="message">The message to display in the progress status label.</param>
         private void OnExecutingFunction(string message)
         {
-            lblProgressStatus.Text = message;
+            Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                lblProgressStatus.Text = message;
+            }), System.Windows.Threading.DispatcherPriority.Send);
 
-            Logger.Log($"Copilot Agent: {message}");
+            Logger.Log(message);
+            Logger.Log(new string('_', 100));
         }
 
         #endregion Event Handlers

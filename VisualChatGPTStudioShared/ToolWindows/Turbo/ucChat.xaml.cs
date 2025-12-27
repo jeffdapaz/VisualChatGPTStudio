@@ -1252,6 +1252,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                             }}
                             pre {{
                                 overflow-x: auto;
+                                overflow-y: hidden;
                                 white-space: pre;
                                 background: {cssCodeBackgroundColor};
                                 color: {cssTextColor};
@@ -1507,6 +1508,46 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                             var mermaidDiagramCounter = 0;
                             var mermaidInitialized = false;
 
+                            // Global Shift+Wheel => horizontal scroll for code blocks (<pre>)
+                            // Use capture + passive:false so preventDefault works in Chromium/WebView2.
+                            function attachShiftWheelHorizontalScroll() {{
+                                function closestPre(el) {{
+                                    while (el) {{
+                                        if (el.tagName && el.tagName.toLowerCase() === 'pre') return el;
+                                        el = el.parentNode;
+                                    }}
+                                    return null;
+                                }}
+
+                                document.addEventListener('wheel', function(e) {{
+                                    if (!e.shiftKey) return;
+
+                                    var pre = closestPre(e.target);
+                                    if (!pre) return;
+
+                                    // Only handle if there is something to scroll horizontally.
+                                    if (pre.scrollWidth <= pre.clientWidth) return;
+
+                                    var delta = 0;
+                                    if (typeof e.deltaY === 'number' && e.deltaY !== 0) {{
+                                        delta = e.deltaY;
+                                    }} else if (typeof e.deltaX === 'number' && e.deltaX !== 0) {{
+                                        delta = e.deltaX;
+                                    }} else if (typeof e.wheelDelta === 'number' && e.wheelDelta !== 0) {{
+                                        delta = -e.wheelDelta;
+                                    }} else if (typeof e.detail === 'number' && e.detail !== 0) {{
+                                        delta = e.detail;
+                                    }}
+
+                                    var direction = delta > 0 ? 1 : -1;
+                                    var step = 80;
+                                    pre.scrollLeft += direction * step;
+
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                }}, {{ capture: true, passive: false }});
+                            }}
+
                             // Wait for Mermaid to load before initializing page
                             function waitForMermaid(callback) {{
                                 if (typeof mermaid !== 'undefined') {{
@@ -1526,6 +1567,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                             }}
 
                             window.onload = function() {{
+                                attachShiftWheelHorizontalScroll();
                                 waitForMermaid(function() {{
                                     initializePage();
                                 }});
@@ -1644,21 +1686,13 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                                     }};
 
                                     wrapper.appendChild(btnCopy);
-
-                                    pre.addEventListener('wheel', function(e) {{
-                                        if (e.shiftKey) {{
-                                            this.scrollLeft += (e.deltaY || e.detail || e.wheelDelta) > 0 ? 40 : -40;
-                                            e.preventDefault();
-                                        }}
-                                    }});
                                 }}
-
                                 try {{
                                     if (window.hljs) {{
                                         window.hljs.highlightAll();
                                     }}
                                 }} catch(e){{}}
-                            }}
+                            }};
 
                             async function renderMermaidDiagram(codeEl, pre) {{
                                 try {{

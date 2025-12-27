@@ -94,6 +94,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private readonly string imgIcon;
         private bool copilotAgentContextAdded = false;
 
+        // Used to avoid reloading the whole WebView (NavigateToString) on every new message.
+        private bool browserInitialized;
+        private int lastRenderedMessagesLength;
+        private string lastCssSignature = string.Empty;
+
         // Session-only image previews:
         // Key: the exact prefix used in the rendered user message (TAG_IMG + fileName)
         // Value: data URL (data:image/...;base64,...) to be used only for current session rendering.
@@ -1231,6 +1236,44 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             // Mermaid theme configuration based on Visual Studio theme
             string mermaidTheme = isDarkTheme ? "dark" : "default";
 
+            // If theme/CSS changes, we need a full reload.
+            string cssSignature = string.Join("|", highlightCssUrl, cssBackgroundColor, cssTextColor, cssCodeBackgroundColor, mermaidTheme);
+
+            // Incremental update path (no flicker): append only new HTML if the WebView is already loaded.
+            if (browserInitialized && string.Equals(cssSignature, lastCssSignature, StringComparison.Ordinal))
+            {
+                string allMessages = messagesHtml.ToString();
+
+                if (allMessages.Length > lastRenderedMessagesLength)
+                {
+                    string delta = allMessages.Substring(lastRenderedMessagesLength);
+                    string jsFragment = JsonConvert.SerializeObject(delta);
+
+                    try
+                    {
+                        string script = $"window.__appendMessagesHtml && window.__appendMessagesHtml({jsFragment});";
+
+                        if (webBrowser is Microsoft.Web.WebView2.Wpf.WebView2 webInc && webInc.CoreWebView2 != null)
+                        {
+                            await webInc.CoreWebView2.ExecuteScriptAsync(script);
+                            lastRenderedMessagesLength = allMessages.Length;
+                            return;
+                        }
+
+                        if (webBrowser is Microsoft.Web.WebView2.Wpf.WebView2CompositionControl compInc && compInc.CoreWebView2 != null)
+                        {
+                            await compInc.CoreWebView2.ExecuteScriptAsync(script);
+                            lastRenderedMessagesLength = allMessages.Length;
+                            return;
+                        }
+                    }
+                    catch
+                    {
+                        // If something fails (navigation not ready, etc.) fall back to full refresh below.
+                    }
+                }
+            }
+
             #region HTML Template
 
             string html = $@"
@@ -1511,6 +1554,17 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                             var submitIcon = '{submitIcon}';
                             var mermaidDiagramCounter = 0;
                             var mermaidInitialized = false;
+
+                            // Append new rendered messages without reloading the whole document.
+                            window.__appendMessagesHtml = function(fragmentHtml) {{
+                                try {{
+                                    var host = document.getElementById('chat-container');
+                                    if (!host) return;
+
+                                    host.insertAdjacentHTML('beforeend', fragmentHtml);
+                                    initializePage();
+                                }} catch (e) {{ }}
+                            }};
 
                             // Global Shift+Wheel => horizontal scroll for code blocks (<pre>)
                             // Use capture + passive:false so preventDefault works in Chromium/WebView2.
@@ -1954,9 +2008,11 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                         </script>
                     </head>
                     <body tabindex=""0"">
-                        {messagesHtml}
+                        <div id='chat-container'>
+                            {messagesHtml}
+                        </div>
                     </body>
-                    </html>";
+                     </html>";
 
             #endregion HTML_TEMPLATE
 
@@ -1969,7 +2025,15 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                     web.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
                 }
 
-                web.CoreWebView2.NavigateToString(html);
+                // Only reload the browser content if needed (avoid flicker)
+                if (!browserInitialized || messagesHtml.Length != lastRenderedMessagesLength || lastCssSignature != cssBackgroundColor.ToString() + textColor.ToString())
+                {
+                    web.CoreWebView2.NavigateToString(html);
+
+                    browserInitialized = true;
+                    lastRenderedMessagesLength = messagesHtml.Length;
+                    lastCssSignature = cssSignature;
+                }
             }
             else if (webBrowser is Microsoft.Web.WebView2.Wpf.WebView2CompositionControl comp)
             {
@@ -1981,6 +2045,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 }
 
                 comp.CoreWebView2.NavigateToString(html);
+
+                browserInitialized = true;
+                lastRenderedMessagesLength = messagesHtml.Length;
+                lastCssSignature = cssSignature;
             }
         }
 

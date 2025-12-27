@@ -24,6 +24,7 @@ Watch here some examples:
 - [Features by `Visual chatGPT Studio` tool window](#4)
 - [Automatically create comments for your GIT changes](#5)
 - [Features by `Visual chatGPT Studio Turbo` chat tool window](#6)
+- [Copilot Agent](#6-1)
 - [SQL Server Agent](#7)
 - [API Service Agent](#7-1)
 - [Commands Shortcuts and File/Method References](#8)
@@ -145,6 +146,47 @@ You will find this window in menu View -> Other Windows -> Visual chatGPT Studio
 Watch here some examples using the Turbo Chat:
 
 [<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/63928228/275615943-a37e30c3-d597-42de-8a38-7d0cdbfe942f.png" width="70%">](https://youtu.be/2NHWWXFMpd0)
+
+<a id="6-1"></a>
+## Copilot Agent 🥷
+
+The **Copilot Agent** is an AI helper available inside the **Turbo Chat** window. Unlike the inline Copilot suggestions, this agent can *operate on your solution* by performing IDE-aware actions when you ask for them in chat.
+
+When enabled, it can:
+
+- **Inspect the solution structure**, understanding projects and file layout.
+- **Open files in the editor** so you can quickly jump to what the agent is talking about.
+- **Read file contents** (including the currently active file) to understand context before proposing changes.
+- **Create new files** and add them to the right project folders.
+- **Rename/move files** (useful for refactors and reorganizing folders).
+- **Delete files** from the solution.
+- **Apply code changes at scale**, editing file contents.
+- **Build the solution and check the Error List**, helping validate changes and errors.
+- **Show diffs** in Visual Studio (either comparing two texts or comparing a proposed change against an existing file) so you can review before accepting.
+- **Download small public content from URLs** (docs, snippets, JSON, etc.) to help implement something without leaving the IDE.
+- **Search across the solution** to find files that contain a specific text.
+
+### How to enable
+
+- Open the **Turbo Chat** tool window.
+- Enable **Copilot Agent** (checkbox in the chat UI).
+
+### Example prompts
+
+- "Explore my solution and explain where the API endpoints are implemented."
+- "Open the file where `IUserRepository` is implemented."
+- "Rename `FooService.cs` to `UserService.cs` and update the references."
+- "Create a new `ILogger` wrapper class and add it to the `VisualChatGPTStudioShared` project."
+- "Find where the string `MESSAGE_SET_API_KEY` is used and replace it with the new constant name."
+- "Show me a diff for the proposed changes instead of applying them directly."
+- "Build the solution and tell me what errors need to be fixed."
+- "Read the solution errors and fix them."
+- "Download the JSON from `https://example.com/data.json` and create a model class for it."
+- And many more!
+
+> Note: The Copilot Agent only runs when you explicitly request actions in chat. It is designed to help you iterate safely by allowing review through diffs and build validation.
+
+> Note 2: You can change the agent behavior editing the parameter `Copilot Agent Command` in extension's settings.
 
 <a id="7"></a>
 ## SQL Server Agent 🕵️
@@ -445,6 +487,10 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 <a id="18"></a>
 ## Release Notes 📜
 
+### 5.8.0
+
+- Added the new **Copilot Agent** to Turbo Chat, enabling IDE-aware assistance for solution navigation, file operations, guided refactors, diff review, and build/error validation directly from the chat, etc.
+
 ### 5.7.0
 
 - Improved syntax highlighting for code blocks in Turbo Chat.
@@ -452,11 +498,5 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 - Mermaid diagrams are now rendered directly in the chat, with the ability to copy them as PNG images.
 - SQL Server Agent query results are now displayed directly within the chat.
 - Fixed SQL Server Agent connections when using SQL Server Authentication with passwords.
-
-### 5.6.1
-
-- Fix Copilot suggestions not appearing in Visual Studio 2026.
-- Fix API agent not working properly in some scenarios.
-- Fix "Send Code" feature in Turbo Chat not working properly in some scenarios.
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

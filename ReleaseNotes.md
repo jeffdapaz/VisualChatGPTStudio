@@ -1,5 +1,9 @@
 ﻿## Release Notes 📜
 
+### 5.8.0
+
+- Added the new **Copilot Agent** to Turbo Chat, enabling IDE-aware assistance for solution navigation, file operations, guided refactors, diff review, and build/error validation directly from the chat, etc.
+
 ### 5.7.0
 
 - Improved syntax highlighting for code blocks in Turbo Chat.

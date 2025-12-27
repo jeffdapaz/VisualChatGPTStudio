@@ -175,7 +175,11 @@ namespace OpenAI_API
                             await Task.Delay(delaySeconds * 1000);
 
                             // Retry the request recursively
-                            return await HttpRequestRaw(url, verb, postData, streaming);
+                            HttpRequestException exception = new HttpRequestException("API rate limit exceeded. Retried after delay. " + GetErrorMessage(resultAsString, response, Endpoint, url));
+
+                            exception.Data.Add("code", "context_length_exceeded");
+
+                            throw exception;
                         }
                         else
                         {

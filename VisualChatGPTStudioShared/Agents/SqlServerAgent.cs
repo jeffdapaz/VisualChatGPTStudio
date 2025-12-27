@@ -4,7 +4,6 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Data.Services;
 using Microsoft.VisualStudio.Shell;
 using Newtonsoft.Json.Linq;
@@ -36,28 +35,36 @@ namespace JeffPires.VisualChatGPTStudio.Agents
                 Package.GetGlobalService(typeof(IVsDataExplorerConnectionManager)) as IVsDataExplorerConnectionManager;
 
             if (connectionManager == null)
+            {
                 return [];
+            }
 
             return connectionManager.Connections
                 .Where(kvp => kvp.Value.Provider == new Guid(SQL_SERVER_PROVIDER))
                 // Try to obtain the underlying provider object (e.g., SqlConnection) to read the real connection string
                 .Select(kvp =>
                 {
-                    var dataConnection = kvp.Value.Connection; // IVsDataConnection
+                    IVsDataConnection dataConnection = kvp.Value.Connection; // IVsDataConnection
                     object providerObject = null;
                     try
                     {
                         providerObject = dataConnection.GetLockedProviderObject();
                         if (providerObject is SqlConnection sqlConn)
                         {
-                            if (sqlConn.State == System.Data.ConnectionState.Closed)
+                            if (sqlConn.State == ConnectionState.Closed)
+                            {
                                 sqlConn.Open();
+                            }
+
                             return sqlConn.ConnectionString;
                         }
                         if (providerObject is System.Data.Common.DbConnection dbConn)
                         {
-                            if (dbConn.State == System.Data.ConnectionState.Closed)
+                            if (dbConn.State == ConnectionState.Closed)
+                            {
                                 dbConn.Open();
+                            }
+
                             return dbConn.ConnectionString;
                         }
                         return dataConnection.DisplayConnectionString;

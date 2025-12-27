@@ -451,6 +451,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             Application.Current.Dispatcher.BeginInvoke(new Action(() =>
             {
                 lblProgressStatus.Text = message;
+
+                AddMessagesHtml(IdentifierEnum.AI, message);
+
+                UpdateBrowser();
             }), System.Windows.Threading.DispatcherPriority.Send);
 
             Logger.Log(message);

@@ -3,14 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Security.Policy;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Community.VisualStudio.Toolkit;
 using EnvDTE;
 using EnvDTE80;
-using Markdig.Helpers;
-using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -155,8 +152,6 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                 Logger.Log(ex);
                 functionResult = ex.Message;
             }
-
-            OnExecutingFunction?.Invoke("Thinking...");
 
             return functionResult;
         }

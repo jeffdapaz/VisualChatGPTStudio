@@ -55,6 +55,8 @@ When you start writing code, simply press the Enter key to receive contextual su
 
 You can disable the Copilot Functionality through the options if you desire.
 
+> Note: This feature relies on internal Visual Studio editor APIs that can change without notice. Due to recent changes in newer Visual Studio 2026 updates, the inline Copilot suggestions are currently available on Visual Studio 2022, but are automatically disabled on Visual Studio 2026 until a compatible implementation is found.
+
 <a id="2"></a>
 ## Features on code editor 👩‍💻
 
@@ -487,16 +489,13 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 <a id="18"></a>
 ## Release Notes 📜
 
+### 5.8.1
+
+- Inline Copilot suggestions are now automatically disabled on Visual Studio 2026 due to recent changes in internal Visual Studio APIs (Visual Studio 2022 remains supported).
+- Added the new `Timeout` option to customize how long the extension waits for API responses.
+
 ### 5.8.0
 
 - Added the new **Copilot Agent** to Turbo Chat, enabling IDE-aware assistance for solution navigation, file operations, guided refactors, diff review, and build/error validation directly from the chat, etc.
-
-### 5.7.0
-
-- Improved syntax highlighting for code blocks in Turbo Chat.
-- Attached images are now displayed as inline previews within the chat body.
-- Mermaid diagrams are now rendered directly in the chat, with the ability to copy them as PNG images.
-- SQL Server Agent query results are now displayed directly within the chat.
-- Fixed SQL Server Agent connections when using SQL Server Authentication with passwords.
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

@@ -41,13 +41,26 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
             this.options = options;
             this.view = view;
 
+            try
+            {
+                string vsVersion = Environment.GetEnvironmentVariable("VisualStudioVersion");
+
+                if (!string.IsNullOrWhiteSpace(vsVersion) && Version.TryParse(vsVersion, out Version version) && version.Major >= 18)
+                {
+                    return;
+                }
+            }
+            catch
+            {
+            }
+
             if (options.CopilotEnabled)
             {
                 typingTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(options.CopilotSuggestionInterval) };
                 typingTimer.Tick += TypingTimer_Tick;
 
                 this.view.TextBuffer.Changed += TextBuffer_Changed;
-            }            
+            }
         }
 
         /// <summary>
@@ -130,10 +143,10 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
                 //Task cancelled - do nothing
             }
             catch (Exception ex)
-            {                
+            {
                 Logger.Log(ex);
             }
-            finally 
+            finally
             {
                 showingAutoComplete = false;
             }
@@ -297,7 +310,7 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
 
             if (cache.Count > MAX_CACHE_SIZE)
             {
-                List<string> keysToRemove = cache.Keys.Take(cache.Count - MAX_CACHE_SIZE / 2).ToList();
+                List<string> keysToRemove = cache.Keys.Take(cache.Count - (MAX_CACHE_SIZE / 2)).ToList();
 
                 foreach (string key in keysToRemove)
                 {

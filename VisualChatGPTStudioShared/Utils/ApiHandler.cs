@@ -24,7 +24,6 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         private static OpenAIAPI openAiAPI;
         private static OpenAIAPI azureAPI;
         private static ChatGPTHttpClientFactory chatGPTHttpClient;
-        private static readonly TimeSpan timeout = new(0, 0, 120);
 
         #region Public Methods
 
@@ -59,7 +58,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
             Task<string> task = endpoint.GetCompletion(promptBuilder.ToString());
 
-            await Task.WhenAny(task, Task.Delay(timeout, cancellationToken)).ConfigureAwait(false);
+            await Task.WhenAny(task, Task.Delay(new TimeSpan(0, 0, options.Timeout), cancellationToken)).ConfigureAwait(false);
 
             if (task.IsFaulted)
             {
@@ -101,7 +100,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
             Task<string> task = chat.GetResponseContentAsync();
 
-            await Task.WhenAny(task, Task.Delay(timeout, cancellationToken)).ConfigureAwait(false);
+            await Task.WhenAny(task, Task.Delay(new TimeSpan(0, 0, options.Timeout), cancellationToken)).ConfigureAwait(false);
 
             if (task.IsFaulted)
             {
@@ -136,7 +135,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
             Task task = chat.StreamResponseFromChatbotAsync(resultHandler);
 
-            await Task.WhenAny(task, Task.Delay(timeout, cancellationToken)).ConfigureAwait(false);
+            await Task.WhenAny(task, Task.Delay(new TimeSpan(0, 0, options.Timeout), cancellationToken)).ConfigureAwait(false);
 
             if (task.IsFaulted)
             {

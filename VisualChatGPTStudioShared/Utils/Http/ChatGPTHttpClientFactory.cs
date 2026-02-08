@@ -1,10 +1,10 @@
-﻿using JeffPires.VisualChatGPTStudio.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Security;
+using JeffPires.VisualChatGPTStudio.Options;
 
 namespace JeffPires.VisualChatGPTStudio.Utils.Http
 {
@@ -13,7 +13,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Http
     /// </summary>
     class ChatGPTHttpClientFactory : IHttpClientFactory
     {
-        private readonly Dictionary<string, HttpClientCustom> httpClients = new();
+        private readonly Dictionary<string, HttpClientCustom> httpClients = [];
         private static readonly object objLock = new();
         private readonly OptionPageGridGeneral options;
 
@@ -87,7 +87,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Http
 
             lookHttp.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate");
             lookHttp.DefaultRequestHeaders.Connection.Add("keep-alive");
-            lookHttp.Timeout = new TimeSpan(0, 0, 120);
+            lookHttp.Timeout = new TimeSpan(0, 0, options.Timeout);
 
             return lookHttp;
         }
@@ -103,7 +103,8 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Http
                 AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
                 UseCookies = true,
                 AllowAutoRedirect = true,
-                ServerCertificateCustomValidationCallback = (sender, certificate, chain, sslPolicyErrors) => {
+                ServerCertificateCustomValidationCallback = (sender, certificate, chain, sslPolicyErrors) =>
+                {
                     if (sslPolicyErrors == SslPolicyErrors.None)
                     {
                         return true;

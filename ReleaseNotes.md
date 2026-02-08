@@ -1,5 +1,10 @@
 ﻿## Release Notes 📜
 
+### 5.8.1
+
+- Inline Copilot suggestions are now automatically disabled on Visual Studio 2026 due to recent changes in internal Visual Studio APIs (Visual Studio 2022 remains supported).
+- Added the new `Timeout` option to customize how long the extension waits for API responses.
+
 ### 5.8.0
 
 - Added the new **Copilot Agent** to Turbo Chat, enabling IDE-aware assistance for solution navigation, file operations, guided refactors, diff review, and build/error validation directly from the chat, etc.

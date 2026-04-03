@@ -27,6 +27,7 @@ Watch here some examples:
 - [Copilot Agent](#6-1)
 - [SQL Server Agent](#7)
 - [API Service Agent](#7-1)
+- [MCP Server Agent (Beta)](#7-2)
 - [Commands Shortcuts and File/Method References](#8)
 - [Features by `Visual chatGPT Studio Solution Context` tool window](#9)
 - [Features by `Visual chatGPT Studio Code Review` tool window](#10)
@@ -270,6 +271,69 @@ Follow these steps to make the most of this feature:
    - Depending on the type of authentication used in the API, you will have to manually authenticate, and then parameterize the token via options, or inform the authentication data via request.
    - In my tests, I noticed that the AI may have difficulties dealing with complex APIs and/or complex endpoints. For these cases, I suggest trying to understand the API's difficulties through the logs in the Output Window and attempting to guide it through requests. In general, the API agent may not be suitable for complex cases.
 
+<a id="7-2"></a>
+## MCP Server Agent (BETA) ☁️
+
+The MCP Server Agent allows Turbo Chat to connect to **MCP (Model Context Protocol) servers** so the AI can use external tools and resources through a standardized protocol.
+
+This feature is currently in **BETA**. More tests are still needed in different scenarios and providers.
+### What this enables
+
+After you add an MCP server to the chat context, the extension sends the MCP capabilities (tools/resources listing) to the AI, so it can understand what is available before trying to execute anything.
+
+From there, the AI can:
+
+- Call MCP tools when needed.
+- Read MCP resources when needed.
+- Use MCP capabilities as part of your normal Turbo Chat flow.
+
+### How to configure MCP servers
+
+1. Open **Tools -> Options -> Visual chatGPT Studio -> MCP Agent**.
+2. Add a new server definition and confirm.
+
+Main fields:
+
+- **Identification**: Friendly unique name of the MCP server.
+- **Transport**:
+  - `Stdio`: local process (command + args).
+  - `Sse`: remote HTTP/Streamable HTTP endpoint.
+- **Command / Arguments / Working Directory**: used for `Stdio` transport.
+- **Endpoint**: used for `Sse` transport.
+- **Environment Variables (JSON)**:
+  - For `Stdio`: process environment variables.
+  - For `Sse`: optional advanced settings such as headers and timeout.
+- **Enabled**: Allows quickly disabling a server without deleting it.
+
+### How to use in Turbo Chat
+
+1. Open **Visual chatGPT Studio Turbo**.
+2. Click the **MCP icon**.
+3. Select one configured MCP server.
+4. Confirm to add MCP context to the current chat.
+5. Request actions naturally in chat.
+
+### Example: Microsoft Learn MCP (HTTP)
+
+The Microsoft Learn MCP is a good first test because it is public and useful for documentation scenarios.
+
+Suggested configuration:
+
+- **Identification**: `Microsoft Learn`
+- **Transport**: `Sse`
+- **Endpoint**: `https://learn.microsoft.com/api/mcp`
+- **Environment Variables (JSON)** (optional):
+
+```json
+{
+  "timeoutSeconds": 30
+}
+```
+
+![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/6.0.0/1775248163915/image__10.png)
+
+![image](https://jefferson-pires.gallerycdn.vsassets.io/extensions/jefferson-pires/visualchatgptstudio2019/6.0.0/1775248163915/image__11.png)
+
 <a id="8"></a>
 ## Commands Shortcuts and File/Method References ⌨️
 
@@ -489,13 +553,13 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 <a id="18"></a>
 ## Release Notes 📜
 
+### 6.0.0
+
+- Added the new **MCP Server Agent (BETA)** in Turbo Chat.
+
 ### 5.8.1
 
 - Inline Copilot suggestions are now automatically disabled on Visual Studio 2026 due to recent changes in internal Visual Studio APIs (Visual Studio 2022 remains supported).
 - Added the new `Timeout` option to customize how long the extension waits for API responses.
-
-### 5.8.0
-
-- Added the new **Copilot Agent** to Turbo Chat, enabling IDE-aware assistance for solution navigation, file operations, guided refactors, diff review, and build/error validation directly from the chat, etc.
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

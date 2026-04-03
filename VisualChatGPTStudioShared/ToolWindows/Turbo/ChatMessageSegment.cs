@@ -34,6 +34,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         FunctionCall,
         FunctionRequest,
         Api,
+        McpIcon,
         CopyIcon,
         CheckIcon,
         SqlIcon,

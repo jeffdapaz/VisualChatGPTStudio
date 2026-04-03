@@ -1,4 +1,4 @@
-﻿using Community.VisualStudio.Toolkit;
+using Community.VisualStudio.Toolkit;
 using JeffPires.VisualChatGPTStudio.Commands;
 using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Options.Commands;
@@ -10,6 +10,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using VisualChatGPTStudioShared.Options.ApiAgent;
+using VisualChatGPTStudioShared.Options.McpAgent;
 
 namespace JeffPires.VisualChatGPTStudio
 {
@@ -23,6 +24,8 @@ namespace JeffPires.VisualChatGPTStudio
     [ProvideProfile(typeof(OptionCommands), "Visual chatGPT Studio", "Commands", 1, 1, true)]
     [ProvideOptionPage(typeof(OptionApiAgent), "Visual chatGPT Studio", "API Agent", 2, 2, true)]
     [ProvideProfile(typeof(OptionApiAgent), "Visual chatGPT Studio", "API Agent", 2, 2, true)]
+    [ProvideOptionPage(typeof(OptionMcpAgent), "Visual chatGPT Studio", "MCP Agent", 3, 3, true)]
+    [ProvideProfile(typeof(OptionMcpAgent), "Visual chatGPT Studio", "MCP Agent", 3, 3, true)]
     [ProvideToolWindow(typeof(TerminalWindow))]
     [ProvideToolWindow(typeof(TerminalWindowTurbo))]
     [ProvideToolWindow(typeof(TerminalWindowSolutionContext))]

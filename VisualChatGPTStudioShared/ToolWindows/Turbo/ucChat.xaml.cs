@@ -29,6 +29,7 @@ using OpenAI_API.Functions;
 using OpenAI_API.ResponsesAPI.Models.Request;
 using OpenAI_API.ResponsesAPI.Models.Response;
 using VisualChatGPTStudioShared.Agents.ApiAgent;
+using VisualChatGPTStudioShared.Agents.McpAgent;
 using VisualChatGPTStudioShared.ToolWindows.Turbo;
 using Color = System.Windows.Media.Color;
 using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
@@ -46,6 +47,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private const string TAG_IMG = "#IMG#";
         private const string TAG_SQL = "#SQL#";
         private const string TAG_API = "#API#";
+        private const string TAG_MCP = "#MCP#";
 
         private const string HighlightJsCdnScript = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js";
         private const string HighlightJsCdnStyleLight = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css";
@@ -75,8 +77,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private byte[] attachedImage;
         private List<SqlServerConnectionInfo> sqlServerConnections;
         private List<ApiItem> apiDefinitions;
+        private List<McpServerItem> mcpServers;
         private readonly List<string> sqlServerConnectionsAlreadyAdded = [];
         private readonly List<string> apiDefinitionsAlreadyAdded = [];
+        private readonly List<string> mcpDefinitionsAlreadyAdded = [];
         private readonly MarkdownPipeline markdownPipeline;
         private readonly StringBuilder messagesHtml = new();
         private readonly Dictionary<IdentifierEnum, string> base64Images = [];
@@ -86,6 +90,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         private readonly string meIcon;
         private readonly string chatGptIcon;
         private readonly string apiIcon;
+        private readonly string mcpIcon;
         private readonly string copyIcon;
         private readonly string checkIcon;
         private readonly string diagramIcon;
@@ -143,6 +148,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             meIcon = GetImageBase64(IdentifierEnum.Me);
             chatGptIcon = GetImageBase64(IdentifierEnum.AI);
             apiIcon = GetImageBase64(IdentifierEnum.Api);
+            mcpIcon = GetImageBase64(IdentifierEnum.McpIcon);
             copyIcon = GetImageBase64(IdentifierEnum.CopyIcon);
             checkIcon = GetImageBase64(IdentifierEnum.CheckIcon);
             diagramIcon = GetImageBase64(IdentifierEnum.DiagramIcon);
@@ -216,10 +222,12 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             sqlServerConnectionsAlreadyAdded = ChatRepository.GetSqlServerConnections(chatId);
             apiDefinitionsAlreadyAdded = ChatRepository.GetApiDefinitions(chatId);
+            mcpDefinitionsAlreadyAdded = ChatRepository.GetMcpServerDefinitions(chatId);
 
             ApiAgent.OnExecutingFunction += OnExecutingFunction;
             SqlServerAgent.OnExecutingFunction += OnExecutingFunction;
             CopilotAgent.OnExecutingFunction += OnExecutingFunction;
+            McpAgent.OnExecutingFunction += OnExecutingFunction;
         }
 
         #endregion Constructors
@@ -671,6 +679,100 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
         #endregion API Event Handlers
 
+        #region MCP Event Handlers
+
+        /// <summary>
+        /// Handles the click event for the MCP button. Retrieves MCP server definitions, filters out already added definitions,
+        /// and updates the UI to display the remaining servers.
+        /// </summary>
+        private async void btnMCP_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                mcpServers = McpAgent.GetServersDefinitions();
+
+                if (mcpServers == null || mcpServers.Count == 0)
+                {
+                    MessageBox.Show("No MCP servers were found. Please add MCP server definitions first through the extension options window.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                mcpServers = mcpServers.Where(c1 => !mcpDefinitionsAlreadyAdded.Any(c2 => c2 == c1.Name)).ToList();
+
+                if (mcpServers == null || mcpServers.Count == 0)
+                {
+                    MessageBox.Show("All available MCP servers have been added to the context.", Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                cbMCPs.ItemsSource = mcpServers;
+
+                cbMCPs.SelectedIndex = 0;
+
+                grdCommands.Visibility = Visibility.Collapsed;
+                grdMCP.Visibility = Visibility.Visible;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+
+                MessageBox.Show(ex.Message, Constants.EXTENSION_NAME, MessageBoxButton.OK, MessageBoxImage.Exclamation);
+            }
+        }
+
+        /// <summary>
+        /// Handles the click event for the MCP send button. Sends MCP function calls, updates the chat and message list,
+        /// processes the selected MCP server definition, and updates the UI accordingly.
+        /// </summary>
+        private async void btnMcpSend_Click(object sender, RoutedEventArgs e)
+        {
+            List<FunctionRequest> mcpFunctions = McpAgent.GetFunctions();
+
+            foreach (FunctionRequest function in mcpFunctions)
+            {
+                apiChat.AppendFunctionCall(function);
+                messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.FunctionCall, Content = JsonConvert.SerializeObject(function) }] });
+            }
+
+            McpServerItem mcpServer = (McpServerItem)cbMCPs.SelectedItem;
+
+            string mcpCapabilitiesSnapshot = await McpAgent.BuildServerCapabilitiesContextAsync(mcpServer);
+
+            string request = string.Concat(options.MCPAgentCommand, Environment.NewLine, mcpCapabilitiesSnapshot);
+
+            string requestToShowOnList = TAG_MCP + mcpServer.Name + Environment.NewLine + Environment.NewLine + options.MCPAgentCommand;
+
+            messagesForDatabase.Add(new() { Order = messagesForDatabase.Count + 1, Segments = [new() { Author = IdentifierEnum.FunctionRequest, Content = request }] });
+
+            await RequestAsync(RequestType.Request, request, requestToShowOnList, false);
+
+            mcpDefinitionsAlreadyAdded.Add(mcpServer.Name);
+
+            ChatRepository.AddMcpServerDefinition(chatId, mcpServer.Name);
+
+            mcpServers.Remove(mcpServer);
+
+            cbMCPs.ItemsSource = mcpServers;
+
+            cbMCPs.SelectedIndex = 0;
+
+            grdMCP.Visibility = Visibility.Collapsed;
+            grdCommands.Visibility = Visibility.Visible;
+        }
+
+        /// <summary>
+        /// Handles the click event for the MCP cancel button. Cancels the current request and updates the UI by hiding the MCP grid and showing the commands grid.
+        /// </summary>
+        private async void btnMcpCancel_Click(object sender, RoutedEventArgs e)
+        {
+            CancelRequest(sender, e);
+
+            grdMCP.Visibility = Visibility.Collapsed;
+            grdCommands.Visibility = Visibility.Visible;
+        }
+
+        #endregion MCP Event Handlers
+
         #region Methods  
 
         /// <summary>
@@ -879,15 +981,18 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             grdProgress.Visibility = enable ? Visibility.Collapsed : Visibility.Visible;
 
             btnAPI.IsEnabled = enable;
+            btnMCP.IsEnabled = enable;
             btnSql.IsEnabled = enable;
             btnAttachImage.IsEnabled = enable;
             btnComputerUse.IsEnabled = enable;
             btnRequestCode.IsEnabled = enable;
             btnRequestSend.IsEnabled = enable;
             btnSqlSend.IsEnabled = enable;
+            btnMcpSend.IsEnabled = enable;
             btnCancel.IsEnabled = !enable;
 
             btnAPI.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
+            btnMCP.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
             btnSql.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
             btnAttachImage.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
             btnComputerUse.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
@@ -1013,6 +1118,10 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                         AddMessagesHtml(IdentifierEnum.Api, apiResponse.Item2);
                     }
                 }
+                else if (McpAgent.GetFunctions().Select(f => f.Function.Name).Any(f => f.Equals(function.Function.Name, StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    functionResult = await McpAgent.ExecuteFunctionAsync(function);
+                }
                 else
                 {
                     functionResult = SqlServerAgent.ExecuteFunction(function, options.LogSqlServerAgentQueries, out DataView readerResult);
@@ -1132,7 +1241,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 content = content
                     .Replace(TAG_IMG, $"<img src='{imgIcon}' style='width:18px; height:18px; vertical-align:top; margin-right:3px;' />")
                     .Replace(TAG_SQL, $"<img src='{sqlIcon}' style='width:18px; height:18px; vertical-align:top; margin-right:3px;' />")
-                    .Replace(TAG_API, $"<img src='{apiIcon}' style='width:18px; height:18px; vertical-align:top; margin-right:3px;' />");
+                    .Replace(TAG_API, $"<img src='{apiIcon}' style='width:18px; height:18px; vertical-align:top; margin-right:3px;' />")
+                    .Replace(TAG_MCP, $"<img src='{mcpIcon}' style='width:18px; height:18px; vertical-align:top; margin-right:3px;' />");
 
                 htmlContent = content.Replace(Environment.NewLine, "<br />");
 
@@ -2073,6 +2183,7 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
                 IdentifierEnum.Me => RESOURCE_PATH + "vs.png",
                 IdentifierEnum.AI => RESOURCE_PATH + "chatGPT.png",
                 IdentifierEnum.Api => RESOURCE_PATH + "api.png",
+                IdentifierEnum.McpIcon => RESOURCE_PATH + "mcp.png",
                 IdentifierEnum.CopyIcon => RESOURCE_PATH + "copy.png",
                 IdentifierEnum.CheckIcon => RESOURCE_PATH + "check.png",
                 IdentifierEnum.SqlIcon => RESOURCE_PATH + "db.png",

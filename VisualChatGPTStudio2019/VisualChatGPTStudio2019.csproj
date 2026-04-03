@@ -89,6 +89,9 @@
     <Resource Include="..\Resources\submit.png">
       <Link>Resources\submit.png</Link>
     </Resource>
+    <Resource Include="..\Resources\mcp.png">
+      <Link>Resources\mcp.png</Link>
+    </Resource>
     <Content Include="lib\osx-arm64\libgit2-3f4182d.dylib">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -161,7 +164,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Web.WebView2">
-      <Version>1.0.3537.50</Version>
+      <Version>1.0.3856.49</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>13.0.4</Version>

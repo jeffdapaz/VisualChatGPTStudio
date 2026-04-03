@@ -1,5 +1,9 @@
 ﻿## Release Notes 📜
 
+### 6.0.0
+
+- Added the new **MCP Server Agent (BETA)** in Turbo Chat.
+
 ### 5.8.1
 
 - Inline Copilot suggestions are now automatically disabled on Visual Studio 2026 due to recent changes in internal Visual Studio APIs (Visual Studio 2022 remains supported).

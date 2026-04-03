@@ -376,6 +376,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         public string CopilotAgentCommand { get; set; } = "If needed and requested by the user, you may interact directly with the project in various ways through the available functions provided to you.";
 
         [Category("Commands")]
+        [DisplayName("MCP Agent Command")]
+        [Description("The command that guide the AI to interact with configured MCP servers.")]
+        [DefaultValue("Based on the MCP server information provided below, use available MCP functions to inspect and call tools/resources according to user requests.")]
+        public string MCPAgentCommand { get; set; } = "Based on the MCP server information provided below, use available MCP functions to inspect and call tools/resources according to user requests.";
+
+        [Category("Commands")]
         [DisplayName("Use Completion API for Commands")]
         [Description("If true, all requests to completion-code will use alternative 'Completion' model and API. Configure 'Completion Parameters' section before. Not works for Azure API.")]
         [DefaultValue(false)]

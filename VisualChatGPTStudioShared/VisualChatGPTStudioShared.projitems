@@ -13,6 +13,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Agents\ApiAgent\ApiItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Agents\ApiAgent\ApiTagItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Agents\CopilotAgent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Agents\McpAgent\McpAgent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Agents\McpAgent\McpServerItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Agents\McpAgent\McpSseRuntime.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Agents\McpAgent\McpStdioRuntime.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Agents\SqlServerAgent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AddComments.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AddSummary.cs" />
@@ -41,6 +45,10 @@
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Options\Commands\Commands.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\Commands\OptionCommandsWindow.xaml.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\McpAgent\OptionMcpAgent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\McpAgent\OptionMcpAgentWindow.xaml.cs">
+      <DependentUpon>OptionMcpAgentWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionPageGrid.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -83,6 +91,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Http\ChatGPTHttpClientFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Http\HttpClientCustom.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Http\RequestCaptureHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\Repositories\McpAgentRepository.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Repositories\Repository.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ScreenCapturer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\SolutionExplorerHelper.cs" />
@@ -99,6 +108,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="$(MSBuildThisFileDirectory)Options\McpAgent\OptionMcpAgentWindow.xaml" />
     <Page Include="$(MSBuildThisFileDirectory)ToolWindows\CodeReview\TerminalWindowCodeReviewControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

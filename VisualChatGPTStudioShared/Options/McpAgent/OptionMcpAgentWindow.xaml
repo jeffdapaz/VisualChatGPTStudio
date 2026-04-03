@@ -1,0 +1,129 @@
+<UserControl x:Class="JeffPires.VisualChatGPTStudio.Options.McpAgent.OptionMcpAgentWindow"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             mc:Ignorable="d"
+             Name="MyToolWindow">
+    <UserControl.Resources>
+        <Style x:Key="ImageHandCursorStyle" TargetType="{x:Type Image}">
+            <Setter Property="Cursor" Value="Arrow"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Cursor" Value="Hand"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="25"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="25"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="25"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="25"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="25"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="25"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="120"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="25"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="*" MinHeight="100"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="20"/>
+            </Grid.ColumnDefinitions>
+
+            <Label Content="Identification:" Grid.Row="0" Grid.Column="0"/>
+            <TextBox x:Name="txtIdentification" Grid.Row="0" Grid.Column="2" FontSize="16" MaxLength="255"/>
+            <Image Grid.Row="0" Grid.Column="4" VerticalAlignment="Center" ToolTip="Enter a unique name to identify the MCP server." Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/information.png"/>
+
+            <Label Content="Transport:" Grid.Row="2" Grid.Column="0"/>
+            <ComboBox x:Name="cbTransport" Grid.Row="2" Grid.Column="2" DisplayMemberPath="." SelectionChanged="cbTransport_SelectionChanged"/>
+            <Image Grid.Row="2" Grid.Column="4" VerticalAlignment="Center" ToolTip="Choose the transport type used by this MCP server (stdio or sse)." Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/information.png"/>
+
+            <Label x:Name="lblCommand" Content="Command:" Grid.Row="4" Grid.Column="0"/>
+            <TextBox x:Name="txtCommand" Grid.Row="4" Grid.Column="2" FontSize="16"/>
+            <Image Grid.Row="4" Grid.Column="4" VerticalAlignment="Center" ToolTip="Executable command for stdio transport (e.g., node, python, my-server.exe)." Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/information.png"/>
+
+            <Label x:Name="lblArguments" Content="Arguments:" Grid.Row="6" Grid.Column="0"/>
+            <TextBox x:Name="txtArguments" Grid.Row="6" Grid.Column="2" FontSize="16"/>
+            <Image Grid.Row="6" Grid.Column="4" VerticalAlignment="Center" ToolTip="Command-line arguments for stdio transport." Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/information.png"/>
+
+            <Label x:Name="lblWorkingDirectory" Content="Working Directory:" Grid.Row="8" Grid.Column="0"/>
+            <TextBox x:Name="txtWorkingDirectory" Grid.Row="8" Grid.Column="2" FontSize="16"/>
+            <Image Grid.Row="8" Grid.Column="4" VerticalAlignment="Center" ToolTip="Optional working directory for stdio transport." Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/information.png"/>
+
+            <Label x:Name="lblEndpoint" Content="Endpoint:" Grid.Row="10" Grid.Column="0"/>
+            <TextBox x:Name="txtEndpoint" Grid.Row="10" Grid.Column="2" FontSize="16"/>
+            <Image Grid.Row="10" Grid.Column="4" VerticalAlignment="Center" ToolTip="HTTP endpoint for sse transport (e.g., https://host/mcp)." Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/information.png"/>
+
+            <Label Content="Environment Variables (JSON):" Grid.Row="12" Grid.Column="0" VerticalAlignment="Top"/>
+            <TextBox x:Name="txtEnvironmentVariables" Grid.Row="12" Grid.Column="2" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap"/>
+            <Image Grid.Row="12" Grid.Column="4" VerticalAlignment="Top" ToolTip="JSON object for environment variables (stdio) or advanced settings such as headers and timeoutSeconds (sse)." Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/information.png"/>
+
+            <Label Content="Enabled:" Grid.Row="14" Grid.Column="0"/>
+            <CheckBox x:Name="chkEnabled" Grid.Row="14" Grid.Column="2" HorizontalAlignment="Left" IsChecked="True"/>
+
+            <Button x:Name="btnInsertMcp" Content="Confirm" Grid.Row="16" Grid.Column="2" HorizontalAlignment="Right" Width="150" Click="btnInsertMcp_Click"/>
+
+            <Border Grid.Row="17" Grid.Column="0" Grid.ColumnSpan="3" Height="1" Background="Gray"/>
+
+            <DataGrid
+                x:Name="grdMcpServers"
+                Grid.Row="18"
+                Grid.Column="0"
+                Grid.ColumnSpan="3"
+                AutoGenerateColumns="False"
+                CanUserAddRows="False"
+                CanUserReorderColumns="False"
+                SelectionMode="Single">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Transport" Binding="{Binding TransportType}" Width="*" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Target" Binding="{Binding Description}" Width="3*" IsReadOnly="True"/>
+                    <DataGridCheckBoxColumn Header="Enabled" Binding="{Binding Enabled}" Width="*" IsReadOnly="True"/>
+                    <DataGridTemplateColumn Header="" MinWidth="50">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Image
+                                        Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/edit_color.png"
+                                        Width="16"
+                                        Height="16"
+                                        Margin="5,0,5,0"
+                                        ToolTip="Edit this MCP server."
+                                        AutomationProperties.HelpText="Edit this MCP server."
+                                        Style="{StaticResource ImageHandCursorStyle}"
+                                        MouseDown="btnEditMcp_Click" />
+                                    <Image
+                                        Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/garbage_color.png"
+                                        Width="16"
+                                        Height="16"
+                                        ToolTip="Delete this MCP server."
+                                        AutomationProperties.HelpText="Delete this MCP server."
+                                        Style="{StaticResource ImageHandCursorStyle}"
+                                        MouseDown="btnDeleteMcp_Click" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

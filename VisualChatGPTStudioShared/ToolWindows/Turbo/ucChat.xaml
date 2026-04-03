@@ -136,6 +136,12 @@
                 Visibility="{Binding Visibility, ElementName=grdAPI}"
                 DisplayMemberPath="Name"
                 SelectedValuePath="Name" />
+            <ComboBox
+                Grid.Row="0"
+                x:Name="cbMCPs"
+                Visibility="{Binding Visibility, ElementName=grdMCP}"
+                DisplayMemberPath="Description"
+                SelectedValuePath="Name" />
             <avalonEdit:TextEditor        
                 xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit" 
                 BorderBrush="DarkGray" 
@@ -183,6 +189,21 @@
                     TabIndex="2"
                     Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
                     />
+                <Button
+                    Grid.Column="0"
+                    Height="20"
+                    Width="20"
+                    x:Name="btnMCP"
+                    ToolTip="Add context to an MCP Server"
+                    AutomationProperties.HelpText="Add context to an MCP Server"
+                    Click="btnMCP_Click"
+                    TabIndex="3"
+                    IsTabStop="True"
+                    Focusable="True"
+                    HorizontalAlignment="Right"
+                    Margin="10,0,0,0">
+                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/mcp.png"/>
+                </Button>
                 <Button 
                     Grid.Column="1"
                     Height="20" 
@@ -304,6 +325,39 @@
                     IsTabStop="True"
                     Focusable="True"
                     Click="btnSqlSend_Click" >
+                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/send.png"/>
+                </Button>
+            </Grid>
+
+            <Grid Name="grdMCP" Grid.Row="4" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Button
+                    Grid.Column="1"
+                    Width="20"
+                    x:Name="btnMcpCancel"
+                    ToolTip="Cancel"
+                    AutomationProperties.HelpText="Cancel"
+                    TabIndex="10"
+                    IsTabStop="True"
+                    Focusable="True"
+                    Click="btnMcpCancel_Click" >
+                    <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/cancel.png"/>
+                </Button>
+                <Button
+                    Grid.Column="3"
+                    Width="20"
+                    x:Name="btnMcpSend"
+                    ToolTip="Send Context MCP Server to the AI"
+                    AutomationProperties.HelpText="Send Context MCP Server to the AI"
+                    TabIndex="11"
+                    IsTabStop="True"
+                    Focusable="True"
+                    Click="btnMcpSend_Click" >
                     <Image Source="pack://application:,,,/VisualChatGPTStudio;component/Resources/send.png"/>
                 </Button>
             </Grid>

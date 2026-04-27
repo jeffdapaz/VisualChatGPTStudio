@@ -46,17 +46,15 @@ Watch here some examples:
 - [Release Notes](#18)
 
 <a id="1"></a>
-## Copilot Functionality (only for Visual Studio 2022) 🤖
+## Copilot Functionality (only for Visual Studio 2022 and 2026) 🤖
 
 The Copilot functionality enhances your coding experience by providing intelligent code suggestions as you type. 
 
-When you start writing code, simply press the Enter key to receive contextual suggestions that can help you complete your code more efficiently. Confirm the suggestion pressing the TAB key.
+When you start writing code, receive contextual suggestions that can help you complete your code more efficiently. Confirm the suggestion pressing the TAB key.
 
 ![image](https://github.com/user-attachments/assets/fc898671-b480-4c6d-9115-8c6abc5f5820)
 
 You can disable the Copilot Functionality through the options if you desire.
-
-> Note: This feature relies on internal Visual Studio editor APIs that can change without notice. Due to recent changes in newer Visual Studio 2026 updates, the inline Copilot suggestions are currently available on Visual Studio 2022, but are automatically disabled on Visual Studio 2026 until a compatible implementation is found.
 
 <a id="2"></a>
 ## Features on code editor 👩‍💻
@@ -553,13 +551,12 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 <a id="18"></a>
 ## Release Notes 📜
 
+### 6.1.0
+
+- Inline Copilot suggestions are enabled again for Visual Studio 2026.
+
 ### 6.0.0
 
 - Added the new **MCP Server Agent (BETA)** in Turbo Chat.
-
-### 5.8.1
-
-- Inline Copilot suggestions are now automatically disabled on Visual Studio 2026 due to recent changes in internal Visual Studio APIs (Visual Studio 2022 remains supported).
-- Added the new `Timeout` option to customize how long the extension waits for API responses.
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

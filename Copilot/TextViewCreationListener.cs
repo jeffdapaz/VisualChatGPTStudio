@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
@@ -10,21 +10,30 @@ using System.Threading.Tasks;
 namespace JeffPires.VisualChatGPTStudio.Copilot
 {
     /// <summary>
-    /// Exports the IVsTextViewCreationListener to handle the creation of text views in Visual Studio.
+    /// Exports an <see cref="IVsTextViewCreationListener"/> that wires up the
+    /// inline prediction manager for every editable code view.
     /// </summary>
     [Export(typeof(IVsTextViewCreationListener))]
     [ContentType("code")]
     [TextViewRole(PredefinedTextViewRoles.Editable)]
     internal class TextViewCreationListener : IVsTextViewCreationListener
     {
+        #region Properties
+
         /// <summary>
-        /// Gets or sets the IVsEditorAdaptersFactoryService instance used to create and manage editor adapters.
+        /// Adapter service used to obtain the WPF text view from the legacy
+        /// <see cref="IVsTextView"/>.
         /// </summary>
         [Import]
         internal IVsEditorAdaptersFactoryService AdapterService { get; set; }
 
+        #endregion
+
+        #region Public Methods
+
         /// <summary>
-        /// Handles the creation of a Visual Studio text view, initializing necessary components such as the prediction manager and command filter.
+        /// Handles the creation of a Visual Studio text view, attaching the
+        /// inline prediction manager and command filter to it.
         /// </summary>
         public void VsTextViewCreated(IVsTextView textViewAdapter)
         {
@@ -42,18 +51,21 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
                 return;
             }
 
-            InlinePredictionManager predictionManager = new(package.OptionsGeneral, view);
+            view.Properties.GetOrCreateSingletonProperty(typeof(Microsoft.VisualStudio.TextManager.Interop.IVsTextView), () => textViewAdapter);
 
-            CommandFilter commandFilter = new(view, predictionManager, package.OptionsGeneral);
-            commandFilter.AttachToView(textViewAdapter);
+            InlinePredictionManager manager = new(package.OptionsGeneral, view);
+            view.Properties.GetOrCreateSingletonProperty(typeof(InlinePredictionManager), () => manager);
+
+            _ = new CommandFilter(view, textViewAdapter);
         }
 
+        #endregion
+
+        #region Private Methods
+
         /// <summary>
-        /// Asynchronously retrieves the VisuallChatGPTStudioPackage instance.
+        /// Asynchronously retrieves the <see cref="VisuallChatGPTStudioPackage"/>.
         /// </summary>
-        /// <returns>
-        /// The task result contains the VisuallChatGPTStudioPackage instance if found; otherwise, null.
-        /// </returns>
         private async Task<VisuallChatGPTStudioPackage> GetPackageAsync()
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -69,5 +81,7 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
 
             return null;
         }
+
+        #endregion
     }
 }

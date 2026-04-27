@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using JeffPires.VisualChatGPTStudio.Utils;
@@ -12,32 +11,6 @@ namespace JeffPires.VisualChatGPTStudio.Options
     [ComVisible(true)]
     public class OptionPageGridGeneral : DialogPage
     {
-
-#if COPILOT_ENABLED
-        private bool copilotEnabled = true;
-
-        private static bool IsCopilotAllowed
-        {
-            get
-            {
-                try
-                {
-                    string vsVersion = Environment.GetEnvironmentVariable("VisualStudioVersion");
-
-                    if (!string.IsNullOrWhiteSpace(vsVersion) && Version.TryParse(vsVersion, out Version version) && version.Major >= 18)
-                    {
-                        return false;
-                    }
-                }
-                catch
-                {
-                }
-
-                return true;
-            }
-        }
-#endif
-
         #region General
 
         [Category("General")]
@@ -300,13 +273,9 @@ namespace JeffPires.VisualChatGPTStudio.Options
 
         [Category("Copilot")]
         [DisplayName("Copilot Enabled")]
-        [Description("If true, the Copilot functionality will be enabled. Only available on Visual Studio 2022.")]
+        [Description("If true, the Copilot functionality will be enabled.")]
         [DefaultValue(true)]
-        public bool CopilotEnabled
-        {
-            get => IsCopilotAllowed && copilotEnabled;
-            set => copilotEnabled = value;
-        }
+        public bool CopilotEnabled { get; set; } = true;
 
         [Category("Copilot")]
         [DisplayName("Copilot Command")]
@@ -332,6 +301,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Description("Specify the model name or Azure deployment name to use for inline suggestions when 'Specific Chat Model' is selected.")]
         [DefaultValue("")]
         public string CopilotSpecificModel { get; set; } = string.Empty;
+
+        [Category("Copilot")]
+        [DisplayName("Copilot Next Edit Suggestions")]
+        [Description("When enabled, a new suggestion is automatically requested right after accepting a previous one. When disabled, new suggestions are only triggered by user edits.")]
+        [DefaultValue(true)]
+        public bool CopilotNextEditSuggestions { get; set; } = true;
 
 #endif
 

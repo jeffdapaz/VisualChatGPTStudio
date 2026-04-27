@@ -1,5 +1,3 @@
-﻿using Community.VisualStudio.Toolkit;
-using EnvDTE;
 using JeffPires.VisualChatGPTStudio.Options;
 using JeffPires.VisualChatGPTStudio.Utils;
 using Microsoft.VisualStudio.Shell;
@@ -19,55 +17,85 @@ using Constants = JeffPires.VisualChatGPTStudio.Utils.Constants;
 namespace JeffPires.VisualChatGPTStudio.Copilot
 {
     /// <summary>
-    /// Manages inline predictions for code completion and suggestions.
+    /// Manages inline predictions (ghost text) for a single <see cref="IWpfTextView"/>.
+    /// Uses <see cref="GhostTextTagger"/> to render gray text adornments in the editor.
     /// </summary>
     internal class InlinePredictionManager
     {
+        #region Properties
+
         private readonly OptionPageGridGeneral options;
         private readonly IWpfTextView view;
         private readonly ConcurrentDictionary<string, string> cache = new();
-        private CancellationTokenSource cancellationTokenSource;
-        private bool showingAutoComplete = false;
-
         private readonly DispatcherTimer typingTimer;
 
+        private CancellationTokenSource cancellationTokenSource;
+        private bool showingAutoComplete;
+        private bool suppressNextSuggestion;
+
+        #endregion
+
+        #region Constructors
+
         /// <summary>
-        /// Initializes a new instance of the InlinePredictionManager class with the specified text view.
+        /// Initializes a new instance of the <see cref="InlinePredictionManager"/>
+        /// class wired to the supplied text view.
         /// </summary>
         /// <param name="options">Extension's general options.</param>
-        /// <param name="view">The IWpfTextView instance to be managed by the InlinePredictionManager.</param>
+        /// <param name="view">The text view to attach to.</param>
         public InlinePredictionManager(OptionPageGridGeneral options, IWpfTextView view)
         {
             this.options = options;
             this.view = view;
 
-            try
+            if (!options.CopilotEnabled)
             {
-                string vsVersion = Environment.GetEnvironmentVariable("VisualStudioVersion");
-
-                if (!string.IsNullOrWhiteSpace(vsVersion) && Version.TryParse(vsVersion, out Version version) && version.Major >= 18)
-                {
-                    return;
-                }
-            }
-            catch
-            {
+                return;
             }
 
-            if (options.CopilotEnabled)
-            {
-                typingTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(options.CopilotSuggestionInterval) };
-                typingTimer.Tick += TypingTimer_Tick;
+            typingTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(options.CopilotSuggestionInterval) };
+            typingTimer.Tick += TypingTimer_Tick;
 
-                this.view.TextBuffer.Changed += TextBuffer_Changed;
+            this.view.TextBuffer.Changed += TextBuffer_Changed;
+            this.view.Closed += OnViewClosed;
+        }
+
+        #endregion
+
+        #region Public Methods
+
+        /// <summary>
+        /// Restarts the typing debounce timer, allowing a new prediction
+        /// to be requested (e.g. after an Enter keystroke).
+        /// </summary>
+        public void RestartTimer()
+        {
+            if (typingTimer == null)
+            {
+                return;
+            }
+
+            typingTimer.Stop();
+            typingTimer.Start();
+        }
+
+        /// <summary>
+        /// Signals that a suggestion was just accepted. When
+        /// <see cref="OptionPageGridGeneral.CopilotNextEditSuggestions"/> is
+        /// disabled, the next buffer change (caused by the accept insertion)
+        /// will not trigger a new prediction request.
+        /// </summary>
+        public void NotifySuggestionAccepted()
+        {
+            if (!options.CopilotNextEditSuggestions)
+            {
+                suppressNextSuggestion = true;
             }
         }
 
         /// <summary>
-        /// Handles the event when the Enter key is pressed. This method captures the current caret position,
-        /// retrieves the file path, formats a system message, and gets the code up to the current position.
-        /// It then sends a request to ChatGPT for a code prediction, processes the prediction, and displays
-        /// the autocomplete suggestion in the editor.
+        /// Sends the surrounding code to the language model and, if a prediction
+        /// is returned, displays it as inline ghost text in the editor.
         /// </summary>
         public async Task ShowAutocompleteAsync()
         {
@@ -104,8 +132,9 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
 
                 if (cache.TryGetValue(cacheKey, out string cachedPrediction))
                 {
-                    await Suggestions.ShowAutocompleteAsync(view, cachedPrediction, caretPosition);
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
 
+                    DisplayPrediction(cachedPrediction);
                     return;
                 }
 
@@ -122,11 +151,6 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
                     prediction = await ApiHandler.GetResponseAsync(options, systemMessage, code, null, cancellationTokenSource.Token, null, modelOverride);
                 }
 
-                if (string.IsNullOrWhiteSpace(prediction))
-                {
-                    return;
-                }
-
                 if (cancellationTokenSource.Token.IsCancellationRequested || string.IsNullOrWhiteSpace(prediction))
                 {
                     return;
@@ -134,9 +158,16 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
 
                 prediction = FormatPrediction(code, prediction);
 
+                if (string.IsNullOrWhiteSpace(prediction))
+                {
+                    return;
+                }
+
                 cache[cacheKey] = prediction;
 
-                await Suggestions.ShowAutocompleteAsync(view, prediction, caretPosition);
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
+
+                DisplayPrediction(prediction);
             }
             catch (OperationCanceledException)
             {
@@ -152,39 +183,30 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
             }
         }
 
+        #endregion
+
+        #region Private Methods
+
         /// <summary>
-        /// Handles the Tab key press event asynchronously, switching to the main thread and executing a document edit command.
+        /// Displays the prediction as ghost text using the <see cref="GhostTextTagger"/>.
+        /// Must be called on the UI thread.
         /// </summary>
-        public async Task OnTabPressedAsync()
+        /// <param name="prediction">The text to display as ghost text.</param>
+        private void DisplayPrediction(string prediction)
         {
-            try
+            if (view.Properties.TryGetProperty(GhostTextTagger.TaggerKey, out GhostTextTagger tagger))
             {
-                if (!showingAutoComplete)
-                {
-                    return;
-                }
-
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-                (await VS.GetServiceAsync<DTE, DTE>()).ExecuteCommand(Constants.EDIT_DOCUMENT_COMMAND);
-            }
-            catch (Exception)
-            {
-
-            }
-            finally
-            {
-                showingAutoComplete = false;
+                int caretPosition = view.Caret.Position.BufferPosition.Position;
+                tagger.SetSuggestion(prediction, caretPosition);
             }
         }
 
         /// <summary>
-        /// Retrieves the code from the current caret position up to the start of the method or the beginning of the document.
+        /// Retrieves the code from the current caret position up to the start
+        /// of the method or the beginning of the document.
         /// </summary>
         /// <param name="caretPosition">The current position of the caret in the text buffer.</param>
-        /// <returns>
-        /// A string containing the code from the current caret position up to the start of the method or the beginning of the document.
-        /// </returns>
+        /// <returns>The code from the start of the enclosing method up to the caret.</returns>
         private string GetCodeUpToCurrentPosition(int caretPosition)
         {
             ITextSnapshot snapshot = view.TextBuffer.CurrentSnapshot;
@@ -217,7 +239,8 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
         }
 
         /// <summary>
-        /// Retrieves the code from the caret position down to the end of the current method or document.
+        /// Retrieves the code from the caret position down to the end of the
+        /// current method or document.
         /// </summary>
         /// <param name="caretPosition">The current position of the caret in the text buffer.</param>
         /// <returns>A string containing the code after the caret.</returns>
@@ -227,10 +250,8 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
             ITextSnapshotLine currentLine = snapshot.GetLineFromPosition(caretPosition);
             StringBuilder codeBelow = new();
 
-            // Start from current line or line after caret?
             int startLine = currentLine.LineNumber;
 
-            // Count curly braces to detect end of method
             int openBraces = 0;
             bool insideMethod = false;
 
@@ -262,10 +283,11 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
         }
 
         /// <summary>
-        /// Removes the original code from the prediction while maintaining formatting and line breaks.
+        /// Removes the original code from the prediction while maintaining
+        /// formatting and line breaks.
         /// </summary>
-        /// <param name="originalCode">The original code to be removed.</param>
-        /// <param name="prediction">The prediction from which the original code will be removed.</param>
+        /// <param name="originalCode">The original code that was sent as context.</param>
+        /// <param name="prediction">The prediction returned by the model.</param>
         /// <returns>The cleaned prediction without the original code.</returns>
         private string FormatPrediction(string originalCode, string prediction)
         {
@@ -301,8 +323,8 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
         }
 
         /// <summary>
-        /// Cleans the cache by removing the oldest entries if the cache size exceeds the maximum limit.
-        /// The method ensures that the cache size is reduced to half of the maximum allowed size.
+        /// Cleans the cache by removing the oldest entries if the cache size
+        /// exceeds the maximum limit.
         /// </summary>
         private void CleanCache()
         {
@@ -320,16 +342,27 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
         }
 
         /// <summary>
-        /// Handles the event triggered when the text buffer changes.
+        /// Restarts the typing debounce timer whenever the user edits the buffer.
         /// </summary>
         private void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
         {
+            if (view.Properties.TryGetProperty(GhostTextTagger.TaggerKey, out GhostTextTagger tagger))
+            {
+                tagger.ClearSuggestion();
+            }
+
+            if (suppressNextSuggestion)
+            {
+                suppressNextSuggestion = false;
+                return;
+            }
+
             typingTimer.Stop();
             typingTimer.Start();
         }
 
         /// <summary>
-        /// Handles the tick event of the typing timer, stopping the timer and triggering a suggestion asynchronously.
+        /// Triggered when the typing debounce expires; requests a new prediction.
         /// </summary>
         private async void TypingTimer_Tick(object sender, EventArgs e)
         {
@@ -340,5 +373,36 @@ namespace JeffPires.VisualChatGPTStudio.Copilot
                 await ShowAutocompleteAsync();
             }
         }
+
+        /// <summary>
+        /// Cleans up resources when the view is closed.
+        /// </summary>
+        private void OnViewClosed(object sender, EventArgs e)
+        {
+            try
+            {
+                view.TextBuffer.Changed -= TextBuffer_Changed;
+                view.Closed -= OnViewClosed;
+
+                if (typingTimer != null)
+                {
+                    typingTimer.Stop();
+                    typingTimer.Tick -= TypingTimer_Tick;
+                }
+
+                cancellationTokenSource?.Cancel();
+
+                if (view.Properties.TryGetProperty(GhostTextTagger.TaggerKey, out GhostTextTagger tagger))
+                {
+                    tagger.ClearSuggestion();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+        }
+
+        #endregion
     }
 }

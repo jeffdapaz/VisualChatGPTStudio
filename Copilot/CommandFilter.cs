@@ -1,121 +1,171 @@
-﻿using JeffPires.VisualChatGPTStudio.Options;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using System;
-using System.Threading.Tasks;
 
 namespace JeffPires.VisualChatGPTStudio.Copilot
 {
     /// <summary>
-    /// Represents a command filter that intercepts and processes specific commands in the text editor.
+    /// Command filter that intercepts Tab and Escape keystrokes to accept
+    /// or dismiss inline ghost-text suggestions provided by <see cref="GhostTextTagger"/>.
     /// </summary>
-    internal class CommandFilter : IOleCommandTarget
+    internal sealed class CommandFilter : IOleCommandTarget
     {
-        private readonly IWpfTextView _textView;
-        private readonly InlinePredictionManager _predictionManager;
-        private IOleCommandTarget _nextCommandTarget;
-        private readonly OptionPageGridGeneral _options;
+        #region Properties
+
+        private readonly IWpfTextView view;
+        private readonly IOleCommandTarget nextCommandTarget;
+
+        #endregion
+
+        #region Constructors
 
         /// <summary>
-        /// Initializes a new instance of the CommandFilter class.
+        /// Initializes a new instance of the <see cref="CommandFilter"/> class
+        /// and attaches it to the command chain of the given text view.
         /// </summary>
-        /// <param name="textView">The text view associated with this command filter.</param>
-        /// <param name="predictionManager">The manager responsible for handling inline predictions.</param>
-        /// <param name="options">The general options.</param>
-        public CommandFilter(IWpfTextView textView, InlinePredictionManager predictionManager, OptionPageGridGeneral options)
+        /// <param name="view">The WPF text view to filter commands for.</param>
+        /// <param name="textViewAdapter">The legacy text view adapter used to register the filter.</param>
+        public CommandFilter(IWpfTextView view, IVsTextView textViewAdapter)
         {
-            _textView = textView;
-            _predictionManager = predictionManager;
-            _options = options;
+            this.view = view;
+
+            textViewAdapter.AddCommandFilter(this, out nextCommandTarget);
         }
 
-        /// <summary>
-        /// Attaches the command filter to the given text view adapter.
-        /// </summary>
-        /// <param name="textViewAdapter">The text view adapter to attach the command filter to.</param>
-        public void AttachToView(IVsTextView textViewAdapter)
-        {
-            textViewAdapter.AddCommandFilter(this, out _nextCommandTarget);
-        }
+        #endregion
+
+        #region Public Methods
 
         /// <summary>
-        /// Queries the status of one or more commands.
+        /// Processes incoming commands, intercepting Tab to accept and Escape
+        /// to dismiss ghost-text suggestions.
         /// </summary>
-        /// <param name="pguidCmdGroup">The unique identifier of the command group.</param>
-        /// <param name="cCmds">The number of commands in the prgCmds array.</param>
-        /// <param name="prgCmds">An array of OLECMD structures that indicate the commands for which the caller needs status information.</param>
-        /// <param name="pCmdText">A pointer to an OLECMDTEXT structure in which to return name and/or status information of a single command.</param>
-        /// <returns>
-        /// Returns an integer value indicating the success or failure of the method call.
-        /// </returns>
-        public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
-        {
-            return _nextCommandTarget.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
-        }
-
-        /// <summary>
-        /// Executes a command within the Visual Studio environment, with special handling for Enter and Tab keys when Copilot is enabled.
-        /// </summary>
-        /// <param name="pguidCmdGroup">The command group GUID.</param>
-        /// <param name="nCmdID">The command ID.</param>
-        /// <param name="nCmdexecopt">The command execution options.</param>
-        /// <param name="pvaIn">Pointer to input arguments.</param>
-        /// <param name="pvaOut">Pointer to output arguments.</param>
-        /// <returns>
-        /// An integer indicating the result of the command execution.
-        /// </returns>
         public int Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
         {
-            if (_options.CopilotEnabled && pguidCmdGroup == VSConstants.VSStd2K)
+            if (pguidCmdGroup == VSConstants.VSStd2K)
             {
-                if (nCmdID == (uint)VSConstants.VSStd2KCmdID.RETURN)
+                if (nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB)
                 {
-                    ProcessEnterKey(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+                    if (TryAcceptSuggestion())
+                    {
+                        return VSConstants.S_OK;
+                    }
                 }
-                else if (nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB)
+                else if (nCmdID == (uint)VSConstants.VSStd2KCmdID.CANCEL)
                 {
-                    return ProcessTabKey(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+                    if (TryDismissSuggestion())
+                    {
+                        return VSConstants.S_OK;
+                    }
                 }
             }
 
-            return _nextCommandTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
-        }
+            int result = nextCommandTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
 
-        /// <summary>
-        /// Processes the Enter key press event triggering the suggestion insertion asynchronously.
-        /// </summary>
-        /// <param name="pguidCmdGroup">The command group GUID.</param>
-        /// <param name="nCmdID">The command ID.</param>
-        /// <param name="nCmdexecopt">The command execution options.</param>
-        /// <param name="pvaIn">Pointer to input arguments.</param>
-        /// <param name="pvaOut">Pointer to output arguments.</param>
-        private void ProcessEnterKey(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
-        {
-            _predictionManager.ShowAutocompleteAsync();
-        }
-
-        /// <summary>
-        /// Processes the Tab key by first allowing the editor to handle it and then formatting the code asynchronously.
-        /// </summary>
-        /// <param name="pguidCmdGroup">The command group GUID.</param>
-        /// <param name="nCmdID">The command ID.</param>
-        /// <param name="nCmdexecopt">The command execution options.</param>
-        /// <param name="pvaIn">Pointer to input arguments.</param>
-        /// <param name="pvaOut">Pointer to output arguments.</param>
-        /// <returns>
-        /// The result of the command execution.
-        /// </returns>
-        private int ProcessTabKey(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
-        {
-            // Let the editor process the Tab key first.
-            int result = _nextCommandTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
-
-            // After the editor processes the Tab key, format the code.
-            Task.Run(async () => { _predictionManager.OnTabPressedAsync(); });
+            if (pguidCmdGroup == VSConstants.VSStd2K && nCmdID == (uint)VSConstants.VSStd2KCmdID.RETURN)
+            {
+                RestartAutocompleteTimer();
+            }
 
             return result;
         }
+
+        /// <summary>
+        /// Queries the status of a command, reporting Tab and Escape as
+        /// supported when a ghost-text suggestion is active.
+        /// </summary>
+        public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
+        {
+            if (pguidCmdGroup == VSConstants.VSStd2K)
+            {
+                for (int i = 0; i < cCmds; i++)
+                {
+                    if (prgCmds[i].cmdID == (uint)VSConstants.VSStd2KCmdID.TAB ||
+                        prgCmds[i].cmdID == (uint)VSConstants.VSStd2KCmdID.CANCEL)
+                    {
+                        if (HasActiveSuggestion())
+                        {
+                            prgCmds[i].cmdf = (uint)(OLECMDF.OLECMDF_ENABLED | OLECMDF.OLECMDF_SUPPORTED);
+                            return VSConstants.S_OK;
+                        }
+                    }
+                }
+            }
+
+            return nextCommandTarget.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        /// <summary>
+        /// Restarts the autocomplete debounce timer after an Enter keystroke.
+        /// </summary>
+        private void RestartAutocompleteTimer()
+        {
+            if (view.Properties.TryGetProperty(typeof(InlinePredictionManager), out InlinePredictionManager manager))
+            {
+                manager.RestartTimer();
+            }
+        }
+
+        /// <summary>
+        /// Checks whether a ghost-text suggestion is currently displayed.
+        /// </summary>
+        private bool HasActiveSuggestion()
+        {
+            if (view.Properties.TryGetProperty(GhostTextTagger.TaggerKey, out GhostTextTagger tagger))
+            {
+                return tagger.GetSuggestionText() != null;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Attempts to accept the current ghost-text suggestion by inserting it
+        /// into the text buffer.
+        /// </summary>
+        /// <returns>True if a suggestion was accepted; false otherwise.</returns>
+        private bool TryAcceptSuggestion()
+        {
+            if (view.Properties.TryGetProperty(GhostTextTagger.TaggerKey, out GhostTextTagger tagger))
+            {
+                if (tagger.AcceptSuggestion())
+                {
+                    if (view.Properties.TryGetProperty(typeof(InlinePredictionManager), out InlinePredictionManager manager))
+                    {
+                        manager.NotifySuggestionAccepted();
+                    }
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Attempts to dismiss the current ghost-text suggestion.
+        /// </summary>
+        /// <returns>True if a suggestion was dismissed; false otherwise.</returns>
+        private bool TryDismissSuggestion()
+        {
+            if (view.Properties.TryGetProperty(GhostTextTagger.TaggerKey, out GhostTextTagger tagger))
+            {
+                if (tagger.GetSuggestionText() != null)
+                {
+                    tagger.ClearSuggestion();
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        #endregion
     }
 }

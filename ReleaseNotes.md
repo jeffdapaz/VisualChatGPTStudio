@@ -1,5 +1,9 @@
 ﻿## Release Notes 📜
 
+### 6.1.1
+
+- Fixed a bug where selecting identically named files from different projects in the Solution Context window would always load the content of the first matching file instead of the correct one.
+
 ### 6.1.0
 
 - Inline Copilot suggestions are enabled again for Visual Studio 2026.

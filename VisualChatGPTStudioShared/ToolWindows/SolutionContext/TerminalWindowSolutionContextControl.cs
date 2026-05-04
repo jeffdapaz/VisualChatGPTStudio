@@ -1,6 +1,6 @@
-﻿using Community.VisualStudio.Toolkit;using EnvDTE;using Microsoft.VisualStudio.Shell;using System;
+using System;
 using System.Collections.Generic;using System.Linq;using System.Windows;using System.Windows.Controls;using System.Windows.Media;using System.Windows.Media.Imaging;
-using CheckBox = System.Windows.Controls.CheckBox;using Path = System.IO.Path;
+using Community.VisualStudio.Toolkit;using EnvDTE;using Microsoft.VisualStudio.Shell;using CheckBox = System.Windows.Controls.CheckBox;using Path = System.IO.Path;
 using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserControl = System.Windows.Controls.UserControl;namespace JeffPires.VisualChatGPTStudio.ToolWindows{
     /// <summary>
     /// Represents a user control for the Terminal Window Solution Context.
@@ -121,13 +121,18 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
                 if (invalidProjectItems.Any(i => item.Name.EndsWith(i)))
                 {
                     continue;
-                }                TreeViewItem itemNode = SetupTreeViewItem(item.Name);
+                }
+
+                string filePath = item.Kind.Equals(Constants.vsProjectItemKindPhysicalFile) ? item.FileNames[1] : null;
+
+                TreeViewItem itemNode = SetupTreeViewItem(item.Name, filePath);
 
                 parentNode.Items.Add(itemNode);
 
                 PopulateProjectItems(item.ProjectItems, itemNode);
                 PopulateProjectItems(item.SubProject?.ProjectItems, itemNode);
-            }        }
+            }
+        }
 
         /// <summary>
         /// Recursively checks or unchecks all child items of a TreeViewItem based on the provided isChecked value.
@@ -140,8 +145,11 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
         /// Sets up a TreeViewItem with a CheckBox as its header.
         /// </summary>
         /// <param name="name">The name to be displayed in the CheckBox.</param>
+        /// <param name="filePath">The full file path to store as the item's tag, or null for non-file nodes.</param>
         /// <returns>The configured TreeViewItem.</returns>
-        private TreeViewItem SetupTreeViewItem(string name)        {            TreeViewItem itemNode = new();            StackPanel stackPanel = new()
+        private TreeViewItem SetupTreeViewItem(string name, string filePath = null)
+        {
+            TreeViewItem itemNode = new();            StackPanel stackPanel = new()
             {
                 Orientation = Orientation.Horizontal
             };            Image iconImage = new()
@@ -153,7 +161,9 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
 
             stackPanel.Children.Add(iconImage);            CheckBox checkBox = new()            {                Content = name,                IsChecked = false,                Foreground = foreGroundColor,                FontSize = 15,                Margin = new Thickness(5, 5, 0, 0)            };            stackPanel.Children.Add(checkBox);
 
-            itemNode.Header = stackPanel;            itemNode.IsExpanded = false;            checkBox.Checked += (sender, e) =>            {                CheckChildItems(itemNode, true);            };            checkBox.Unchecked += (sender, e) =>            {                CheckChildItems(itemNode, false);            };            return itemNode;        }
+            itemNode.Header = stackPanel;
+            itemNode.Tag = filePath;
+            itemNode.IsExpanded = false;            checkBox.Checked += (sender, e) =>            {                CheckChildItems(itemNode, true);            };            checkBox.Unchecked += (sender, e) =>            {                CheckChildItems(itemNode, false);            };            return itemNode;        }
 
         /// <summary>
         /// Retrieves the icon image source for a given file based on its extension.
@@ -201,22 +211,29 @@ using Project = EnvDTE.Project;using Solution = EnvDTE.Solution;using UserCont
         }
 
         /// <summary>
-        /// Retrieves the names of the selected files in a tree view.
+        /// Retrieves the full file paths of the selected files in a tree view.
         /// </summary>
         /// <returns>
-        /// A list of strings containing the names of the selected files.
+        /// A list of strings containing the full file paths of the selected files.
         /// </returns>
-        public List<string> GetSelectedFilesName()        {            if (treeView.Items.Count == 0)
+        public List<string> GetSelectedFilesPaths()        {            if (treeView.Items.Count == 0)
             {
                 return [];
-            }            return GetSelectedFilesName((TreeViewItem)treeView.Items.GetItemAt(0));        }
+            }            return GetSelectedFilesPaths((TreeViewItem)treeView.Items.GetItemAt(0));        }
 
         /// <summary>
-        /// Retrieves the names of selected files from a TreeViewItem.
+        /// Retrieves the full file paths of selected files from a TreeViewItem.
         /// </summary>
         /// <param name="root">The root TreeViewItem.</param>
-        /// <returns>A list of selected file names.</returns>
-        private List<string> GetSelectedFilesName(TreeViewItem root)        {            List<string> selectedFilesName = [];            foreach (object item in root.Items)            {                if (item is TreeViewItem treeViewItem)                {                    CheckBox checkBox = FindCheckBox(treeViewItem);                    if (checkBox != null && checkBox.IsChecked == true)                    {                        selectedFilesName.Add(checkBox.Content.ToString());                    }                    selectedFilesName.AddRange(GetSelectedFilesName(treeViewItem));                }            }            return selectedFilesName;        }
+        /// <returns>A list of full file paths of the selected files.</returns>
+        private List<string> GetSelectedFilesPaths(TreeViewItem root)        {            List<string> selectedFilesPaths = [];            foreach (object item in root.Items)            {                if (item is TreeViewItem treeViewItem)                {                    CheckBox checkBox = FindCheckBox(treeViewItem);                    if (checkBox != null && checkBox.IsChecked == true
+                        && treeViewItem.Tag is string fullPath
+                        && !string.IsNullOrWhiteSpace(fullPath))
+                    {
+                        selectedFilesPaths.Add(fullPath);
+                    }
+
+                    selectedFilesPaths.AddRange(GetSelectedFilesPaths(treeViewItem));                }            }            return selectedFilesPaths;        }
 
         /// <summary>
         /// Finds and returns the CheckBox control within a TreeViewItem.

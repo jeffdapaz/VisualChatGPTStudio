@@ -1,12 +1,12 @@
-﻿using Community.VisualStudio.Toolkit;
-using EnvDTE;
-using JeffPires.VisualChatGPTStudio.ToolWindows;
-using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.IO;
 using System.Threading.Tasks;
+using Community.VisualStudio.Toolkit;
+using EnvDTE;
+using JeffPires.VisualChatGPTStudio.ToolWindows;
+using Microsoft.VisualStudio.Shell;
 
 namespace JeffPires.VisualChatGPTStudio.Commands
 {
@@ -41,8 +41,8 @@ namespace JeffPires.VisualChatGPTStudio.Commands
             this.package = package ?? throw new ArgumentNullException(nameof(package));
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
 
-            CommandID menuCommandID = new CommandID(CommandSet, CommandId);
-            MenuCommand menuItem = new MenuCommand(this.Execute, menuCommandID);
+            CommandID menuCommandID = new(CommandSet, CommandId);
+            MenuCommand menuItem = new(this.Execute, menuCommandID);
             commandService.AddCommand(menuItem);
         }
 
@@ -65,7 +65,7 @@ namespace JeffPires.VisualChatGPTStudio.Commands
             // the UI thread.
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
-            OleMenuCommandService commandService = await package.GetServiceAsync((typeof(IMenuCommandService))) as OleMenuCommandService;
+            OleMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
             Instance = new TerminalWindowSolutionContextCommand(package, commandService);
         }
 
@@ -96,31 +96,27 @@ namespace JeffPires.VisualChatGPTStudio.Commands
 
             TerminalWindowSolutionContext window = await package.FindToolWindowAsync(typeof(TerminalWindowSolutionContext), 0, true, package.DisposalToken) as TerminalWindowSolutionContext;
 
-            List<string> selectedFilesName = ((TerminalWindowSolutionContextControl)window.Content).GetSelectedFilesName();
+            List<string> selectedFilesPaths = ((TerminalWindowSolutionContextControl)window.Content).GetSelectedFilesPaths();
 
-            string fileContent = string.Empty;
-
-            foreach (string itemName in selectedFilesName)
+            foreach (string path in selectedFilesPaths)
             {
-                ProjectItem projectItem = await FindProjectItemInSolutionAsync(itemName);
-
-                if (projectItem == null || !File.Exists(projectItem.FileNames[1]))
+                if (!File.Exists(path))
                 {
                     continue;
                 }
 
                 try
                 {
-                    fileContent = File.ReadAllText(projectItem.FileNames[1]);
+                    string fileContent = File.ReadAllText(path);
+
+                    if (!string.IsNullOrWhiteSpace(fileContent))
+                    {
+                        result.Add(fileContent);
+                    }
                 }
                 catch (Exception ex)
                 {
                     Logger.Log(ex);
-                }
-
-                if (!string.IsNullOrWhiteSpace(fileContent))
-                {
-                    result.Add(fileContent);
                 }
             }
 

@@ -89,14 +89,14 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                                                           byte[] image = null,
                                                           string modelOrAzureDeploymentOverride = "")
         {
-            Conversation chat = CreateConversationForCompletions(options, systemMessage, userInput, stopSequences, image, modelOrAzureDeploymentOverride);
-
             string selectedContextFilesCode = await GetSelectedContextItemsCodeAsync();
 
             if (!string.IsNullOrWhiteSpace(selectedContextFilesCode))
             {
-                chat.AppendSystemMessage(selectedContextFilesCode);
+                systemMessage = $"{systemMessage}\n\n{selectedContextFilesCode}";
             }
+
+            Conversation chat = CreateConversationForCompletions(options, systemMessage, userInput, stopSequences, image, modelOrAzureDeploymentOverride);
 
             Task<string> task = chat.GetResponseContentAsync();
 
@@ -124,14 +124,14 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <returns>A task representing the asynchronous operation.</returns>
         public static async Task GetResponseAsync(OptionPageGridGeneral options, string systemMessage, string userInput, string[] stopSequences, Action<string> resultHandler, CancellationToken cancellationToken)
         {
-            Conversation chat = CreateConversationForCompletions(options, systemMessage, userInput, stopSequences);
-
             string selectedContextFilesCode = await GetSelectedContextItemsCodeAsync();
 
             if (!string.IsNullOrWhiteSpace(selectedContextFilesCode))
             {
-                chat.AppendSystemMessage(selectedContextFilesCode);
+                systemMessage = $"{systemMessage}\n\n{selectedContextFilesCode}";
             }
+
+            Conversation chat = CreateConversationForCompletions(options, systemMessage, userInput, stopSequences);
 
             Task task = chat.StreamResponseFromChatbotAsync(resultHandler);
 

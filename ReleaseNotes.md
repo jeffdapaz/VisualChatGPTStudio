@@ -1,5 +1,9 @@
 ﻿## Release Notes 📜
 
+### 6.1.2
+
+- Fixed an API compatibility issue with models that do not support multiple system messages (e.g. Qwen3, vLLM, LM Studio). All system messages are now consolidated into a single system message before being sent to the API.
+
 ### 6.1.1
 
 - Fixed a bug where selecting identically named files from different projects in the Solution Context window would always load the content of the first matching file instead of the correct one.

@@ -798,7 +798,17 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 if (!string.IsNullOrWhiteSpace(selectedContextFilesCode))
                 {
-                    apiChat.AppendSystemMessage(selectedContextFilesCode);
+                    ChatMessage firstSystemMessage = apiChat.Messages.FirstOrDefault(m => m.Role == ChatMessageRole.System);
+
+                    if (firstSystemMessage != null)
+                    {
+                        firstSystemMessage.Content = $"{firstSystemMessage.Content}\n\n{selectedContextFilesCode}";
+                    }
+                    else
+                    {
+                        apiChat.AppendSystemMessage(selectedContextFilesCode);
+                    }
+
                     selectedContextFilesCodeAppended = true;
                 }
             }
@@ -821,8 +831,19 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 originalCode = TextFormat.RemoveCharactersFromText(originalCode, options.CharactersToRemoveFromRequests.Split(','));
 
-                apiChat.AppendSystemMessage(options.TurboChatCodeCommand);
-                apiChat.AppendSystemMessage("You can only return one code block, and need to be inside a markdown code block (```...```).");
+                string codeSystemMessage = $"{options.TurboChatCodeCommand}\n\nYou can only return one code block, and need to be inside a markdown code block (```...```).";
+
+                ChatMessage firstSystemMessageForCode = apiChat.Messages.FirstOrDefault(m => m.Role == ChatMessageRole.System);
+
+                if (firstSystemMessageForCode != null)
+                {
+                    firstSystemMessageForCode.Content = $"{firstSystemMessageForCode.Content}\n\n{codeSystemMessage}";
+                }
+                else
+                {
+                    apiChat.AppendSystemMessage(codeSystemMessage);
+                }
+
                 apiChat.AppendUserInput(originalCode);
             }
 

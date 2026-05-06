@@ -1,5 +1,9 @@
 ﻿## Release Notes 📜
 
+### 6.1.3
+
+- Fixed an issue where generating the Turbo Chat title after the first message would resend the entire conversation (including all solution context code), causing double the wait time and potential timeout errors.
+
 ### 6.1.2
 
 - Fixed an API compatibility issue with models that do not support multiple system messages (e.g. Qwen3, vLLM, LM Studio). All system messages are now consolidated into a single system message before being sent to the API.

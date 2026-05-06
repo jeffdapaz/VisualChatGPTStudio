@@ -80,6 +80,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils
         /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
         /// <param name="image">An optional byte array representing an image to be included in the conversation.</param>
         /// <param name="modelOrAzureDeploymentOverride">An optional parameter to specify the model name or Azure deployment name to override the option's parameters.</param>
+        /// <param name="doNotAddContext">If true, selected files by the user will not be added to the conversation context.</param>
         /// <returns>A task that represents the asynchronous operation, containing the chatbot's response as a string.</returns>
         public static async Task<string> GetResponseAsync(OptionPageGridGeneral options,
                                                           string systemMessage,
@@ -87,9 +88,15 @@ namespace JeffPires.VisualChatGPTStudio.Utils
                                                           string[] stopSequences,
                                                           CancellationToken cancellationToken,
                                                           byte[] image = null,
-                                                          string modelOrAzureDeploymentOverride = "")
+                                                          string modelOrAzureDeploymentOverride = "",
+                                                          bool doNotAddContext = false)
         {
-            string selectedContextFilesCode = await GetSelectedContextItemsCodeAsync();
+            string selectedContextFilesCode = null;
+
+            if (!doNotAddContext)
+            {
+                selectedContextFilesCode = await GetSelectedContextItemsCodeAsync();
+            }
 
             if (!string.IsNullOrWhiteSpace(selectedContextFilesCode))
             {

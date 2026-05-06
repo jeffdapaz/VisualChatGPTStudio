@@ -953,8 +953,6 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
                 if (firstMessage)
                 {
-                    string request = "Please suggest a concise and relevant title for my first message based on its context, using up to three words and in the same language as my first message.";
-
                     await UpdateHeaderAsync(request, cancellationTokenSource);
                 }
                 else
@@ -1044,15 +1042,19 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// Updates the chat header based on the user's request by sending the request,
         /// processing the response to generate a chat name, and notifying the parent control of the new chat.
         /// </summary>
-        /// <param name="request">The user's input request to be sent and processed.</param>
+        /// <param name="userRequest">The original user message to base the title on.</param>
         /// <param name="cancellationToken">The cancellation token source to cancel the asynchronous operation if needed.</param>
-        private async System.Threading.Tasks.Task UpdateHeaderAsync(string request, CancellationTokenSource cancellationToken)
+        private async System.Threading.Tasks.Task UpdateHeaderAsync(string userRequest, CancellationTokenSource cancellationToken)
         {
-            apiChat.AppendUserInput(request);
+            string titlePrompt = $"Please suggest a concise and relevant title for the following message, using up to three words and in the same language as the message: {userRequest}";
 
-            (string, List<FunctionResult>) result = await SendRequestAsync(cancellationToken);
-
-            string chatName = result.Item1;
+            string chatName = await ApiHandler.GetResponseAsync(
+                options,
+                "You are a helpful assistant that generates short chat titles.",
+                titlePrompt,
+                null,
+                cancellationToken.Token,
+                doNotAddContext: true);
 
             chatName = TextFormat.RemoveCharactersFromText(chatName, "\r\n", "\n", "\r", ".", ",", ":", ";", "'", "\"");
 

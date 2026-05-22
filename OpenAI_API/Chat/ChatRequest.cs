@@ -133,6 +133,13 @@ namespace OpenAI_API.Chat
         public List<FunctionRequest> Tools { get; set; }
 
         /// <summary>
+        /// Optional cache control directive for providers that support prompt caching (e.g. OpenRouter with Anthropic models).
+        /// When set, the provider will attempt to cache the stable prefix of the request to reduce input token costs.
+        /// </summary>
+        [JsonProperty("cache_control", NullValueHandling = NullValueHandling.Ignore)]
+        public object CacheControl { get; set; }
+
+        /// <summary>
         /// Creates a new, empty <see cref="ChatRequest"/>
         /// </summary>
         public ChatRequest()
@@ -159,6 +166,7 @@ namespace OpenAI_API.Chat
             this.FrequencyPenalty = basedOn.FrequencyPenalty;
             this.PresencePenalty = basedOn.PresencePenalty;
             this.LogitBias = basedOn.LogitBias;
+            this.CacheControl = basedOn.CacheControl;
         }
     }
 }

@@ -551,16 +551,12 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 <a id="18"></a>
 ## Release Notes 📜
 
+### 6.2.0
+
+- Added a new **Enable Prompt Caching** option. When enabled, adds a `cache_control` directive to API requests for providers that support prompt caching (e.g. OpenRouter with Anthropic Claude, Qwen, and Gemini models). This can reduce input token costs by up to 90% on repeated context.
+
 ### 6.1.3
 
 - Fixed an issue where generating the Turbo Chat title after the first message would resend the entire conversation (including all solution context code), causing double the wait time and potential timeout errors.
-
-### 6.1.2
-
-- Fixed an API compatibility issue with models that do not support multiple system messages. All system messages are now consolidated into a single system message before being sent to the API.
-
-### 6.1.1
-
-- Fixed a bug where selecting identically named files from different projects in the Solution Context window would always load the content of the first matching file instead of the correct one.
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

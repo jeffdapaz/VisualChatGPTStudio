@@ -56,6 +56,12 @@ namespace JeffPires.VisualChatGPTStudio.Options
         public bool LogRequests { get; set; } = false;
 
         [Category("General")]
+        [DisplayName("Enable Prompt Caching")]
+        [Description("If true, adds a cache_control directive to requests for providers that support prompt caching (e.g. OpenRouter with Anthropic/Qwen/Gemini models). This can reduce input token costs by up to 90% on repeated context.")]
+        [DefaultValue(false)]
+        public bool EnablePromptCaching { get; set; } = false;
+
+        [Category("General")]
         [DisplayName("Log Responses")]
         [Description("If true, all responses to OpenAI will be logged to the Output window.")]
         [DefaultValue(false)]

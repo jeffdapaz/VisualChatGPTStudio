@@ -188,6 +188,11 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             chat.RequestParameters.FrequencyPenalty = options.FrequencyPenalty;
             chat.RequestParameters.PresencePenalty = options.PresencePenalty;
 
+            if (options.EnablePromptCaching)
+            {
+                chat.RequestParameters.CacheControl = new { type = "ephemeral" };
+            }
+
             return chat;
         }
 

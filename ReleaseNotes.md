@@ -1,5 +1,9 @@
 ﻿## Release Notes 📜
 
+### 6.2.0
+
+- Added a new **Enable Prompt Caching** option. When enabled, adds a `cache_control` directive to API requests for providers that support prompt caching (e.g. OpenRouter with Anthropic Claude, Qwen, and Gemini models). This can reduce input token costs by up to 90% on repeated context.
+
 ### 6.1.3
 
 - Fixed an issue where generating the Turbo Chat title after the first message would resend the entire conversation (including all solution context code), causing double the wait time and potential timeout errors.

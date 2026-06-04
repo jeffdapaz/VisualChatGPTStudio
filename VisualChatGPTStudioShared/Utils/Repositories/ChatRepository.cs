@@ -72,6 +72,8 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
             SQLiteCommand command = connection.CreateCommand(query);
 
             command.ExecuteNonQuery();
+
+            AddColumnIfNotExists("CHATS", "SELECTED_MODEL", "TEXT");
         }
 
         /// <summary>
@@ -376,5 +378,58 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
         }
 
         #endregion MCP Agent
+
+        #region Selected Model
+
+        /// <summary>
+        /// Retrieves the selected model for a specific chat from the database.
+        /// </summary>
+        /// <param name="chatId">The chat ID.</param>
+        /// <returns>The selected model name, or null if not set.</returns>
+        public static string GetSelectedModel(string chatId)
+        {
+            SQLiteCommand command = connection.CreateCommand("SELECT SELECTED_MODEL FROM CHATS WHERE ID = ?", chatId);
+
+            return command.ExecuteScalar<string>();
+        }
+
+        /// <summary>
+        /// Updates the selected model for a specific chat in the database.
+        /// </summary>
+        /// <param name="chatId">The chat ID.</param>
+        /// <param name="modelName">The model name to persist.</param>
+        public static void UpdateSelectedModel(string chatId, string modelName)
+        {
+            SQLiteCommand command = connection.CreateCommand("UPDATE CHATS SET SELECTED_MODEL = @MODEL WHERE ID = @ID");
+
+            command.Bind("@MODEL", modelName);
+            command.Bind("@ID", chatId);
+
+            command.ExecuteNonQuery();
+        }
+
+        #endregion Selected Model
+
+        #region Private Methods
+
+        /// <summary>
+        /// Adds a column to a table if it does not already exist.
+        /// </summary>
+        /// <param name="tableName">The table name.</param>
+        /// <param name="columnName">The column name.</param>
+        /// <param name="columnType">The column type definition.</param>
+        private static void AddColumnIfNotExists(string tableName, string columnName, string columnType)
+        {
+            try
+            {
+                connection.CreateCommand($"ALTER TABLE {tableName} ADD COLUMN {columnName} {columnType}").ExecuteNonQuery();
+            }
+            catch
+            {
+                // Column already exists, ignore the error
+            }
+        }
+
+        #endregion Private Methods
     }
 }

@@ -1,5 +1,9 @@
 ﻿## Release Notes 📜
 
+### 6.3.0
+
+- Added a new **Turbo Chat Models** option. Allows defining a list of model IDs (separated by semicolons) that appear in a dropdown selector in Turbo Chat, enabling quick model switching without going to Tools → Options.
+
 ### 6.2.0
 
 - Added a new **Enable Prompt Caching** option. When enabled, adds a `cache_control` directive to API requests for providers that support prompt caching (e.g. OpenRouter with Anthropic Claude, Qwen, and Gemini models). This can reduce input token costs by up to 90% on repeated context.

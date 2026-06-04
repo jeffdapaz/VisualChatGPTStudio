@@ -553,15 +553,18 @@ namespace JeffPires.VisualChatGPTStudio.Utils
 
                 azureAPI.HttpClientFactory = chatGPTHttpClient;
             }
-            else if ((chatGPTHttpClient.Proxy ?? string.Empty) != (options.Proxy ?? string.Empty) ||
-                    (string.IsNullOrWhiteSpace(options.AzureUrlOverride) &&
-                    (
-                        !azureAPI.ApiUrlFormat.ToLower().Contains(options.AzureResourceName.ToLower()) ||
-                        !azureAPI.ApiUrlFormat.ToLower().Contains(deployment.ToLower()))
-                    ))
+            else if ((chatGPTHttpClient.Proxy ?? string.Empty) != (options.Proxy ?? string.Empty))
             {
                 azureAPI = null;
                 CreateAzureApiHandler(options, deploymentOverride);
+                return;
+            }
+            else if (string.IsNullOrWhiteSpace(options.AzureUrlOverride) &&
+                    !azureAPI.ApiUrlFormat.ToLower().Contains(options.AzureResourceName.ToLower()))
+            {
+                azureAPI = null;
+                CreateAzureApiHandler(options, deploymentOverride);
+                return;
             }
 
             if (azureAPI.Auth.ApiKey != options.ApiKey)
@@ -578,11 +581,43 @@ namespace JeffPires.VisualChatGPTStudio.Utils
             }
             else
             {
+                string expectedUrlFormat = $"https://{options.AzureResourceName}.openai.azure.com/openai/deployments/{deployment}/" + "{1}?api-version={0}";
+
+                if (azureAPI.ApiUrlFormat != expectedUrlFormat)
+                {
+                    azureAPI.ApiUrlFormat = expectedUrlFormat;
+                }
+
                 if ((azureAPI.ApiVersion ?? string.Empty) != (options.AzureApiVersion ?? string.Empty))
                 {
                     azureAPI.ApiVersion = options.AzureApiVersion;
                 }
             }
+        }
+
+        /// <summary>
+        /// Updates the Azure API handler to use a different deployment name without recreating the connection.
+        /// Updates the URL format on the existing instance so active conversations continue working.
+        /// </summary>
+        /// <param name="options">The options containing Azure configuration.</param>
+        /// <param name="deploymentName">The new deployment name to use.</param>
+        public static void UpdateAzureDeployment(OptionPageGridGeneral options, string deploymentName)
+        {
+            if (azureAPI == null)
+            {
+                CreateAzureApiHandler(options, deploymentName);
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(options.AzureUrlOverride))
+            {
+                return;
+            }
+
+            string apiVersion = !string.IsNullOrWhiteSpace(options.AzureApiVersion) ? options.AzureApiVersion : azureAPI.ApiVersion;
+
+            azureAPI.ApiUrlFormat = $"https://{options.AzureResourceName}.openai.azure.com/openai/deployments/{deploymentName}/" + "{1}?api-version={0}";
+            azureAPI.ApiVersion = apiVersion;
         }
 
         /// <summary>

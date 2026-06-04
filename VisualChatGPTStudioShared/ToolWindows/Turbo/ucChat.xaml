@@ -77,7 +77,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*" MinHeight="65"/>
             <RowDefinition Height="15"/>
-            <RowDefinition Height="Auto" MinHeight="115" x:Name="rowRequest" />
+            <RowDefinition Height="Auto" MinHeight="135" x:Name="rowRequest" />
         </Grid.RowDefinitions>
         <Grid Name="grdChat" Grid.Row="0">
             <Grid.RowDefinitions>
@@ -103,6 +103,8 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="5"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="5"/>
                 <RowDefinition Height="20"/>
             </Grid.RowDefinitions>
@@ -148,7 +150,7 @@
                 BorderThickness="1"
                 Name="txtRequest" 
                 Grid.Row="2" 
-                FontSize="14"
+                FontSize="14"                
                 HorizontalScrollBarVisibility="Disabled" 
                 VerticalScrollBarVisibility="Auto" 
                 ShowLineNumbers="false"          
@@ -163,7 +165,32 @@
                     </ContextMenu>
                 </avalonEdit:TextEditor.ContextMenu>
             </avalonEdit:TextEditor>
-            <Grid Name="grdCommands" Grid.Row="4">
+            <Grid 
+                x:Name="grdModelSelector" 
+                Grid.Row="4" 
+                Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="5"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock 
+                    Text="Model:" 
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Left" 
+                    Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}" />
+                <ComboBox 
+                    x:Name="cbTurboChatModels"
+                    Grid.Column="2"
+                    IsTabStop="True"
+                    Focusable="True"
+                    TabIndex="0"                    
+                    HorizontalAlignment="Left"
+                    AutomationProperties.HelpText="Select the model to use in this chat"
+                    SelectionChanged="cbTurboChatModels_SelectionChanged" />
+            </Grid>
+            <Grid Name="grdCommands" Grid.Row="6">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>

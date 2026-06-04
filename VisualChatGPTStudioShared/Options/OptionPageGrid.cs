@@ -271,6 +271,13 @@ namespace JeffPires.VisualChatGPTStudio.Options
         [Description("Define the instruction that will send to the assistant when requesting code assistance.")]
         [DefaultValue("Apply the change requested by the user to the code, but rewrite the original code that was not changed")]
         public string TurboChatCodeCommand { get; set; } = "Apply the change requested by the user to the code, but rewrite the original code that was not changed";
+
+        [Category("Turbo Chat")]
+        [DisplayName("Turbo Chat Models")]
+        [Description("Optional. List of model IDs separated by semicolons (;) to show in a model selector dropdown in Turbo Chat. Example: anthropic/claude-sonnet-4.6;deepseek/deepseek-chat-v4-flash;qwen/qwen3-coder-plus. If empty, the default Model option is used.")]
+        [DefaultValue("")]
+        public string TurboChatModels { get; set; } = string.Empty;
+
         #endregion Turbo Chat
 
         #region Copilot

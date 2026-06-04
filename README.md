@@ -551,12 +551,12 @@ You can check your quota here: [https://platform.openai.com/account/usage](https
 <a id="18"></a>
 ## Release Notes 📜
 
+### 6.3.0
+
+- Added a new **Turbo Chat Models** option. Allows defining a list of model IDs (separated by semicolons) that appear in a dropdown selector in Turbo Chat, enabling quick model switching without going to Tools → Options.
+
 ### 6.2.0
 
 - Added a new **Enable Prompt Caching** option. When enabled, adds a `cache_control` directive to API requests for providers that support prompt caching (e.g. OpenRouter with Anthropic Claude, Qwen, and Gemini models). This can reduce input token costs by up to 90% on repeated context.
-
-### 6.1.3
-
-- Fixed an issue where generating the Turbo Chat title after the first message would resend the entire conversation (including all solution context code), causing double the wait time and potential timeout errors.
 
 ### [More Change Logs](https://github.com/jeffdapaz/VisualChatGPTStudio/blob/master/ReleaseNotes.md)

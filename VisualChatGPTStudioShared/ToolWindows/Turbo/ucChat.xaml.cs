@@ -186,6 +186,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
 
             apiChat = ApiHandler.CreateConversation(options, options.TurboChatBehavior);
 
+            InitializeModelSelector();
+
             foreach (MessageEntity message in messages.OrderBy(m => m.Order))
             {
                 firstMessage = false;
@@ -972,6 +974,8 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
         /// </returns>
         private async Task<(string, List<FunctionResult>)> SendRequestAsync(CancellationTokenSource cancellationTokenSource)
         {
+            ApplySelectedModel();
+
             Task<(string, List<FunctionResult>)> task = apiChat.GetResponseContentAndFunctionAsync();
 
             await System.Threading.Tasks.Task.WhenAny(task, System.Threading.Tasks.Task.Delay(Timeout.Infinite, cancellationTokenSource.Token));
@@ -1207,6 +1211,95 @@ namespace JeffPires.VisualChatGPTStudio.ToolWindows.Turbo
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Initializes the model selector ComboBox based on the TurboChatModels option.
+        /// If the option contains models separated by semicolons, the ComboBox is populated and made visible.
+        /// Restores the previously selected model from the database if available.
+        /// </summary>
+        private void InitializeModelSelector()
+        {
+            if (string.IsNullOrWhiteSpace(options.TurboChatModels))
+            {
+                return;
+            }
+
+            string[] models = options.TurboChatModels.Split(';');
+
+            List<string> validModels = [];
+
+            foreach (string model in models)
+            {
+                string trimmed = model.Trim();
+
+                if (!string.IsNullOrWhiteSpace(trimmed))
+                {
+                    validModels.Add(trimmed);
+                }
+            }
+
+            if (validModels.Count == 0)
+            {
+                return;
+            }
+
+            foreach (string model in validModels)
+            {
+                cbTurboChatModels.Items.Add(model);
+            }
+
+            string savedModel = ChatRepository.GetSelectedModel(chatId);
+
+            int selectedIndex = 0;
+
+            if (!string.IsNullOrWhiteSpace(savedModel))
+            {
+                int savedIndex = validModels.IndexOf(savedModel);
+
+                if (savedIndex >= 0)
+                {
+                    selectedIndex = savedIndex;
+                }
+            }
+
+            cbTurboChatModels.SelectedIndex = selectedIndex;
+            grdModelSelector.Visibility = Visibility.Visible;
+        }
+
+        /// <summary>
+        /// Handles the SelectionChanged event of the model selector ComboBox.
+        /// Updates the conversation model to the selected value and persists the choice.
+        /// For Azure, updates the deployment URL without losing conversation context.
+        /// </summary>
+        private void cbTurboChatModels_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (cbTurboChatModels.SelectedItem is string selectedModel && apiChat != null)
+            {
+                if (options.Service == OpenAIService.OpenAI)
+                {
+                    apiChat.Model = selectedModel;
+                }
+                else
+                {
+                    ApiHandler.UpdateAzureDeployment(options, selectedModel);
+                }
+
+                ChatRepository.UpdateSelectedModel(chatId, selectedModel);
+            }
+        }
+
+        /// <summary>
+        /// Applies the currently selected model from the ComboBox before sending a request.
+        /// Ensures the correct deployment/model is used even if other operations changed it.
+        /// </summary>
+        private void ApplySelectedModel()
+        {
+            if (cbTurboChatModels.SelectedItem is string selectedModel)
+            {
+                apiChat.Model = selectedModel;
+                ApiHandler.UpdateAzureDeployment(options, selectedModel);
+            }
         }
 
         /// <summary>

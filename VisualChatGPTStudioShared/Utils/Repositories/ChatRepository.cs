@@ -1,5 +1,5 @@
 using Newtonsoft.Json;
-using SQLite;
+using VisualChatGPTStudioShared.Utils.Repositories.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +25,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
 
         #region Properties
 
-        private static SQLiteConnection connection;
+        private static SqliteConnection connection;
 
 
 
@@ -69,7 +69,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
                                 MESSAGES TEXT         NOT NULL                                           
                             );";
 
-            SQLiteCommand command = connection.CreateCommand(query);
+            SqliteCommand command = connection.CreateCommand(query);
 
             command.ExecuteNonQuery();
 
@@ -88,7 +88,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
                                 SERVER_NAME VARCHAR(255) NOT NULL
                             );";
 
-            SQLiteCommand command = connection.CreateCommand(query);
+            SqliteCommand command = connection.CreateCommand(query);
 
             command.ExecuteNonQuery();
         }
@@ -106,7 +106,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
                                 CONNECTION VARCHAR(255) NOT NULL                                    
                             );";
 
-            SQLiteCommand command = connection.CreateCommand(query);
+            SqliteCommand command = connection.CreateCommand(query);
 
             command.ExecuteNonQuery();
         }
@@ -123,7 +123,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
                                 API_NAME VARCHAR(255) NOT NULL                                    
                             );";
 
-            SQLiteCommand command = connection.CreateCommand(query);
+            SqliteCommand command = connection.CreateCommand(query);
 
             command.ExecuteNonQuery();
         }
@@ -136,7 +136,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
         /// </returns>
         public static List<ChatEntity> GetChats()
         {
-            SQLiteCommand command = connection.CreateCommand("SELECT ID AS Id, NAME AS name, DATE AS Date FROM CHATS");
+            SqliteCommand command = connection.CreateCommand("SELECT ID AS Id, NAME AS name, DATE AS Date FROM CHATS");
 
             return command.ExecuteQuery<ChatEntity>();
         }
@@ -148,7 +148,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
         /// <returns>A list of MessageEntity objects representing the messages.</returns>
         public static List<MessageEntity> GetMessages(string chatId)
         {
-            SQLiteCommand command = connection.CreateCommand("SELECT MESSAGES FROM CHATS WHERE ID = ?", chatId);
+            SqliteCommand command = connection.CreateCommand("SELECT MESSAGES FROM CHATS WHERE ID = ?", chatId);
 
             string messages = command.ExecuteScalar<string>();
 
@@ -176,7 +176,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
                                 {PARAMETER_MESSAGES}
                             )";
 
-            SQLiteCommand command = connection.CreateCommand(query);
+            SqliteCommand command = connection.CreateCommand(query);
 
             command.Bind(PARAMETER_ID, chat.Id);
             command.Bind(PARAMETER_NAME, chat.Name);
@@ -201,7 +201,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
                             WHERE
                                 ID = {PARAMETER_ID}";
 
-            SQLiteCommand command = connection.CreateCommand(query);
+            SqliteCommand command = connection.CreateCommand(query);
 
             command.Bind(PARAMETER_ID, chat.Id);
             command.Bind(PARAMETER_NAME, chat.Name);
@@ -218,7 +218,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
         /// <param name="newName">The new name for the chat.</param>
         public static void UpdateChatName(string chatId, string newName)
         {
-            SQLiteCommand command = connection.CreateCommand($"UPDATE CHATS SET NAME = {PARAMETER_NAME} WHERE ID = {PARAMETER_ID}");
+            SqliteCommand command = connection.CreateCommand($"UPDATE CHATS SET NAME = {PARAMETER_NAME} WHERE ID = {PARAMETER_ID}");
 
             command.Bind(PARAMETER_NAME, newName);
             command.Bind(PARAMETER_ID, chatId);
@@ -232,7 +232,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
         /// <param name="chatId">The ID of the chat to be deleted.</param>
         public static void DeleteChat(string chatId)
         {
-            SQLiteCommand command = connection.CreateCommand("DELETE FROM CHATS WHERE ID = ?", chatId);
+            SqliteCommand command = connection.CreateCommand("DELETE FROM CHATS WHERE ID = ?", chatId);
 
             command.ExecuteNonQuery();
 
@@ -254,7 +254,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
         /// </returns>
         public static List<string> GetSqlServerConnections(string chatId)
         {
-            SQLiteCommand command = connection.CreateCommand("SELECT CONNECTION FROM SQL_SERVER_CONNECTIONS WHERE CHAT_ID = ?", chatId);
+            SqliteCommand command = connection.CreateCommand("SELECT CONNECTION FROM SQL_SERVER_CONNECTIONS WHERE CHAT_ID = ?", chatId);
 
             return command.ExecuteQueryScalars<string>().ToList();
         }
@@ -268,7 +268,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
         {
             string query = @"INSERT INTO SQL_SERVER_CONNECTIONS (ID, CHAT_ID, CONNECTION) VALUES (@id, @chatId, @connectionString);";
 
-            SQLiteCommand command = connection.CreateCommand(query);
+            SqliteCommand command = connection.CreateCommand(query);
 
             command.Bind("@id", Guid.NewGuid());
             command.Bind("@chatId", chatId);
@@ -282,7 +282,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
         /// </summary>
         private static void DeleteConnectionString(string chatId)
         {
-            SQLiteCommand command = connection.CreateCommand("DELETE FROM SQL_SERVER_CONNECTIONS WHERE CHAT_ID = ?", chatId);
+            SqliteCommand command = connection.CreateCommand("DELETE FROM SQL_SERVER_CONNECTIONS WHERE CHAT_ID = ?", chatId);
 
             command.ExecuteNonQuery();
         }
@@ -299,7 +299,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
         /// </returns>
         public static List<string> GetApiDefinitions(string chatId)
         {
-            SQLiteCommand command = connection.CreateCommand("SELECT API_NAME FROM API_DEFINITIONS WHERE CHAT_ID = ?", chatId);
+            SqliteCommand command = connection.CreateCommand("SELECT API_NAME FROM API_DEFINITIONS WHERE CHAT_ID = ?", chatId);
 
             return command.ExecuteQueryScalars<string>().ToList();
         }
@@ -311,7 +311,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
         {
             string query = @"INSERT INTO API_DEFINITIONS (ID, CHAT_ID, API_NAME) VALUES (@id, @chatId, @apiName);";
 
-            SQLiteCommand command = connection.CreateCommand(query);
+            SqliteCommand command = connection.CreateCommand(query);
 
             command.Bind("@id", Guid.NewGuid());
             command.Bind("@chatId", chatId);
@@ -325,7 +325,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
         /// </summary>
         private static void DeleteApiDefinition(string chatId)
         {
-            SQLiteCommand command = connection.CreateCommand("DELETE FROM API_DEFINITIONS WHERE CHAT_ID = ?", chatId);
+            SqliteCommand command = connection.CreateCommand("DELETE FROM API_DEFINITIONS WHERE CHAT_ID = ?", chatId);
 
             command.ExecuteNonQuery();
         }
@@ -343,7 +343,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
         /// </returns>
         public static List<string> GetMcpServerDefinitions(string chatId)
         {
-            SQLiteCommand command = connection.CreateCommand("SELECT SERVER_NAME FROM MCP_SERVER_DEFINITIONS WHERE CHAT_ID = ?", chatId);
+            SqliteCommand command = connection.CreateCommand("SELECT SERVER_NAME FROM MCP_SERVER_DEFINITIONS WHERE CHAT_ID = ?", chatId);
 
             return command.ExecuteQueryScalars<string>().ToList();
         }
@@ -357,7 +357,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
         {
             string query = @"INSERT INTO MCP_SERVER_DEFINITIONS (ID, CHAT_ID, SERVER_NAME) VALUES (@id, @chatId, @serverName);";
 
-            SQLiteCommand command = connection.CreateCommand(query);
+            SqliteCommand command = connection.CreateCommand(query);
 
             command.Bind("@id", Guid.NewGuid());
             command.Bind("@chatId", chatId);
@@ -372,7 +372,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
         /// <param name="chatId">The chat identifier.</param>
         private static void DeleteMcpServerDefinitions(string chatId)
         {
-            SQLiteCommand command = connection.CreateCommand("DELETE FROM MCP_SERVER_DEFINITIONS WHERE CHAT_ID = ?", chatId);
+            SqliteCommand command = connection.CreateCommand("DELETE FROM MCP_SERVER_DEFINITIONS WHERE CHAT_ID = ?", chatId);
 
             command.ExecuteNonQuery();
         }
@@ -388,7 +388,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
         /// <returns>The selected model name, or null if not set.</returns>
         public static string GetSelectedModel(string chatId)
         {
-            SQLiteCommand command = connection.CreateCommand("SELECT SELECTED_MODEL FROM CHATS WHERE ID = ?", chatId);
+            SqliteCommand command = connection.CreateCommand("SELECT SELECTED_MODEL FROM CHATS WHERE ID = ?", chatId);
 
             return command.ExecuteScalar<string>();
         }
@@ -400,7 +400,7 @@ namespace JeffPires.VisualChatGPTStudio.Utils.Repositories
         /// <param name="modelName">The model name to persist.</param>
         public static void UpdateSelectedModel(string chatId, string modelName)
         {
-            SQLiteCommand command = connection.CreateCommand("UPDATE CHATS SET SELECTED_MODEL = @MODEL WHERE ID = @ID");
+            SqliteCommand command = connection.CreateCommand("UPDATE CHATS SET SELECTED_MODEL = @MODEL WHERE ID = @ID");
 
             command.Bind("@MODEL", modelName);
             command.Bind("@ID", chatId);

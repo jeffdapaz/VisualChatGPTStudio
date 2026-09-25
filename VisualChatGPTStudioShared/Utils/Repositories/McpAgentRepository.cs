@@ -1,5 +1,5 @@
 using JeffPires.VisualChatGPTStudio.Utils;
-using SQLite;
+using VisualChatGPTStudioShared.Utils.Repositories.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +15,7 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
     {
         #region Properties
 
-        private static SQLiteConnection connection;
+        private static SqliteConnection connection;
 
         #endregion Properties
 
@@ -58,7 +58,7 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
                                 ENABLED                    INTEGER      NOT NULL
                             );";
 
-            SQLiteCommand command = connection.CreateCommand(query);
+            SqliteCommand command = connection.CreateCommand(query);
 
             command.ExecuteNonQuery();
         }
@@ -70,7 +70,7 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
         /// <returns>The matching <see cref="McpServerItem"/> or null.</returns>
         public static McpServerItem GetMcpServer(string name)
         {
-            SQLiteCommand command = connection.CreateCommand(@"SELECT
+            SqliteCommand command = connection.CreateCommand(@"SELECT
                                                                     ID                         AS Id,
                                                                     NAME                       AS Name,
                                                                     TRANSPORT_TYPE             AS TransportTypeAsInteger,
@@ -92,7 +92,7 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
         /// <returns>A list of MCP servers.</returns>
         public static List<McpServerItem> GetMcpServers()
         {
-            SQLiteCommand command = connection.CreateCommand(@"SELECT
+            SqliteCommand command = connection.CreateCommand(@"SELECT
                                                                     ID                         AS Id,
                                                                     NAME                       AS Name,
                                                                     TRANSPORT_TYPE             AS TransportTypeAsInteger,
@@ -118,7 +118,7 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
 
             if (!string.IsNullOrWhiteSpace(server.Id))
             {
-                SQLiteCommand command = connection.CreateCommand("SELECT COUNT(1) FROM MCP_SERVERS WHERE ID = ?", server.Id);
+                SqliteCommand command = connection.CreateCommand("SELECT COUNT(1) FROM MCP_SERVERS WHERE ID = ?", server.Id);
 
                 count = command.ExecuteScalar<long>();
             }
@@ -142,7 +142,7 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
         {
             string serverId = Guid.NewGuid().ToString();
 
-            SQLiteCommand command = connection.CreateCommand(@"INSERT INTO MCP_SERVERS
+            SqliteCommand command = connection.CreateCommand(@"INSERT INTO MCP_SERVERS
                                                                (
                                                                    ID,
                                                                    NAME,
@@ -176,7 +176,7 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
         /// <param name="server">The server to update.</param>
         public static void UpdateMcpServer(McpServerItem server)
         {
-            SQLiteCommand command = connection.CreateCommand(@"UPDATE MCP_SERVERS
+            SqliteCommand command = connection.CreateCommand(@"UPDATE MCP_SERVERS
                                                                SET
                                                                    NAME = ?,
                                                                    TRANSPORT_TYPE = ?,
@@ -206,7 +206,7 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
         /// <param name="serverId">The server identifier.</param>
         public static void DeleteMcpServer(string serverId)
         {
-            SQLiteCommand command = connection.CreateCommand("DELETE FROM MCP_SERVERS WHERE ID = ?", serverId);
+            SqliteCommand command = connection.CreateCommand("DELETE FROM MCP_SERVERS WHERE ID = ?", serverId);
 
             command.ExecuteNonQuery();
         }

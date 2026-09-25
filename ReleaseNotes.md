@@ -1,5 +1,9 @@
 ﻿## Release Notes 📜
 
+### 6.4.0
+
+- Fixed Turbo Chat failing to open on Visual Studio 2026 (18.10+) with a `SQLitePCLRaw` `TypeLoadException` (`sqlite3_malloc`). 
+
 ### 6.3.0
 
 - Added a new **Turbo Chat Models** option. Allows defining a list of model IDs (separated by semicolons) that appear in a dropdown selector in Turbo Chat, enabling quick model switching without going to Tools → Options.

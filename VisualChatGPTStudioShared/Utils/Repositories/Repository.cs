@@ -1,5 +1,5 @@
-﻿using JeffPires.VisualChatGPTStudio.Utils;
-using SQLite;
+using JeffPires.VisualChatGPTStudio.Utils;
+using VisualChatGPTStudioShared.Utils.Repositories.Sqlite;
 using System;
 using System.IO;
 
@@ -17,9 +17,9 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
         /// If the folder does not exist, it is created.
         /// </summary>
         /// <returns>
-        /// A new instance of SQLiteConnection pointing to the database file.
+        /// A new instance of SqliteConnection pointing to the database file.
         /// </returns>
-        public static SQLiteConnection CreateDataBaseAndConnection()
+        public static SqliteConnection CreateDataBaseAndConnection()
         {
             string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Constants.EXTENSION_NAME);
 

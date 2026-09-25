@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -119,6 +119,12 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="SourceGear.sqlite3">
+      <Version>3.50.4.2</Version>
+      <ExcludeAssets>all</ExcludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+      <GeneratePathProperty>true</GeneratePathProperty>
+    </PackageReference>
     <PackageReference Include="AvalonEdit">
       <Version>6.3.0.90</Version>
     </PackageReference>
@@ -168,9 +174,6 @@
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>13.0.4</Version>
-    </PackageReference>
-    <PackageReference Include="sqlite-net-pcl">
-      <Version>1.8.116</Version>
     </PackageReference>
     <PackageReference Include="VsixLogger">
       <Version>1.1.45</Version>
@@ -386,5 +389,37 @@
     <ItemGroup>
       <VSIXSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' == 'Newtonsoft.Json'" />
     </ItemGroup>
+  </Target>
+  <PropertyGroup>
+    <PrivateSqliteFolder>$(MSBuildProjectDirectory)\obj\PrivateSqlite\</PrivateSqliteFolder>
+  </PropertyGroup>
+  <ItemGroup>
+    <PrivateSqliteSource Include="$(PkgSourceGear_sqlite3)\runtimes\win-x86\native\e_sqlite3.dll" Rid="win-x86" />
+    <PrivateSqliteSource Include="$(PkgSourceGear_sqlite3)\runtimes\win-x64\native\e_sqlite3.dll" Rid="win-x64" />
+    <PrivateSqliteSource Include="$(PkgSourceGear_sqlite3)\runtimes\win-arm64\native\e_sqlite3.dll" Rid="win-arm64" />
+    <Content Include="$(PrivateSqliteFolder)win-x86\VisualChatGPTStudio_sqlite3.dll">
+      <Link>runtimes\win-x86\native\VisualChatGPTStudio_sqlite3.dll</Link>
+      <VSIXSubPath>runtimes\win-x86\native</VSIXSubPath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(PrivateSqliteFolder)win-x64\VisualChatGPTStudio_sqlite3.dll">
+      <Link>runtimes\win-x64\native\VisualChatGPTStudio_sqlite3.dll</Link>
+      <VSIXSubPath>runtimes\win-x64\native</VSIXSubPath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(PrivateSqliteFolder)win-arm64\VisualChatGPTStudio_sqlite3.dll">
+      <Link>runtimes\win-arm64\native\VisualChatGPTStudio_sqlite3.dll</Link>
+      <VSIXSubPath>runtimes\win-arm64\native</VSIXSubPath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <Visible>false</Visible>
+    </Content>
+  </ItemGroup>
+  <Target Name="CopyPrivateSqlite" BeforeTargets="BeforeBuild">
+    <Copy SourceFiles="@(PrivateSqliteSource)" DestinationFiles="@(PrivateSqliteSource->'$(PrivateSqliteFolder)%(Rid)\VisualChatGPTStudio_sqlite3.dll')" SkipUnchangedFiles="true" />
   </Target>
 </Project>

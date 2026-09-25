@@ -1,5 +1,5 @@
-﻿using JeffPires.VisualChatGPTStudio.Utils;
-using SQLite;
+using JeffPires.VisualChatGPTStudio.Utils;
+using VisualChatGPTStudioShared.Utils.Repositories.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +15,7 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
     {
         #region Properties
 
-        private static SQLiteConnection connection;
+        private static SqliteConnection connection;
 
         #endregion Properties
 
@@ -56,7 +56,7 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
                                 DEFINITION           TEXT         NOT NULL                                       
                             );";
 
-            SQLiteCommand command = connection.CreateCommand(query);
+            SqliteCommand command = connection.CreateCommand(query);
 
             command.ExecuteNonQuery();
         }
@@ -75,7 +75,7 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
                                 PRIMARY KEY (API_ID, KEY)
                             );";
 
-            SQLiteCommand command = connection.CreateCommand(query);
+            SqliteCommand command = connection.CreateCommand(query);
 
             command.ExecuteNonQuery();
         }
@@ -89,7 +89,7 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
         /// </returns>
         public static ApiItem GetAPI(string name)
         {
-            SQLiteCommand command = connection.CreateCommand(@"SELECT 
+            SqliteCommand command = connection.CreateCommand(@"SELECT 
                                                                     ID                   AS Id, 
                                                                     NAME                 AS Name, 
                                                                     BASE_URL             AS BaseUrl, 
@@ -118,7 +118,7 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
         /// </returns>
         public static List<ApiItem> GetAPIs()
         {
-            SQLiteCommand command = connection.CreateCommand(@"SELECT 
+            SqliteCommand command = connection.CreateCommand(@"SELECT 
                                                                     ID                   AS Id, 
                                                                     NAME                 AS Name, 
                                                                     BASE_URL             AS BaseUrl, 
@@ -145,7 +145,7 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
         /// </returns>
         public static List<ApiTagItem> GetApiTags(string apiId)
         {
-            SQLiteCommand command = connection.CreateCommand("SELECT KEY AS Key, VALUE AS Value, TYPE AS TypeAsInteger FROM TAGS WHERE API_ID = ?", apiId);
+            SqliteCommand command = connection.CreateCommand("SELECT KEY AS Key, VALUE AS Value, TYPE AS TypeAsInteger FROM TAGS WHERE API_ID = ?", apiId);
 
             return command.ExecuteQuery<ApiTagItem>();
         }
@@ -160,7 +160,7 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
 
             if (!string.IsNullOrWhiteSpace(api.Id))
             {
-                SQLiteCommand command = connection.CreateCommand("SELECT COUNT(1) FROM APIS WHERE ID = ?", api.Id);
+                SqliteCommand command = connection.CreateCommand("SELECT COUNT(1) FROM APIS WHERE ID = ?", api.Id);
 
                 count = command.ExecuteScalar<long>();
             }
@@ -186,7 +186,7 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
         {
             string apiId = Guid.NewGuid().ToString();
 
-            SQLiteCommand command = connection.CreateCommand(@"INSERT INTO APIS (ID, NAME, BASE_URL, SEND_RESPONSES_TO_AI, DEFINITION) 
+            SqliteCommand command = connection.CreateCommand(@"INSERT INTO APIS (ID, NAME, BASE_URL, SEND_RESPONSES_TO_AI, DEFINITION) 
                                                                VALUES (?, ?, ?, ?, ?)",
                                                                apiId, api.Name, api.BaseUrl, api.SendResponsesToAI, api.Definition);
 
@@ -205,7 +205,7 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
         /// </summary>
         public static void AddApiTag(string apiId, ApiTagItem tag)
         {
-            SQLiteCommand command = connection.CreateCommand("INSERT INTO TAGS (API_ID, KEY, VALUE, TYPE) VALUES (?, ?, ?, ?)", apiId, tag.Key, tag.Value, tag.TypeAsInteger);
+            SqliteCommand command = connection.CreateCommand("INSERT INTO TAGS (API_ID, KEY, VALUE, TYPE) VALUES (?, ?, ?, ?)", apiId, tag.Key, tag.Value, tag.TypeAsInteger);
 
             command.ExecuteNonQuery();
         }
@@ -215,11 +215,11 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
         /// </summary>
         public static void DeleteApi(string apiId)
         {
-            SQLiteCommand command = connection.CreateCommand("DELETE FROM APIS WHERE ID = ?", apiId);
+            SqliteCommand command = connection.CreateCommand("DELETE FROM APIS WHERE ID = ?", apiId);
 
             command.ExecuteNonQuery();
 
-            SQLiteCommand tagCommand = connection.CreateCommand("DELETE FROM TAGS WHERE API_ID = ?", apiId);
+            SqliteCommand tagCommand = connection.CreateCommand("DELETE FROM TAGS WHERE API_ID = ?", apiId);
 
             tagCommand.ExecuteNonQuery();
         }
@@ -230,12 +230,12 @@ namespace VisualChatGPTStudioShared.Utils.Repositories
         /// </summary>
         public static void UpdateApi(ApiItem api)
         {
-            SQLiteCommand command = connection.CreateCommand("UPDATE APIS SET NAME = ?, BASE_URL = ?, SEND_RESPONSES_TO_AI = ?, DEFINITION = ? WHERE ID = ?",
+            SqliteCommand command = connection.CreateCommand("UPDATE APIS SET NAME = ?, BASE_URL = ?, SEND_RESPONSES_TO_AI = ?, DEFINITION = ? WHERE ID = ?",
                                                               api.Name, api.BaseUrl, api.SendResponsesToAI, api.Definition, api.Id);
 
             command.ExecuteNonQuery();
 
-            SQLiteCommand deleteTagsCommand = connection.CreateCommand("DELETE FROM TAGS WHERE API_ID = ?", api.Id);
+            SqliteCommand deleteTagsCommand = connection.CreateCommand("DELETE FROM TAGS WHERE API_ID = ?", api.Id);
 
             deleteTagsCommand.ExecuteNonQuery();
 

@@ -1,26 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
-    <Metadata>
-        <Identity Id="VisualChatGPTStudio.4854bc98-735d-4622-a0cf-30454b50aa0f" Version="6.3.0" Language="en-US" Publisher="Jefferson Pires" />
-        <DisplayName>Visual chatGPT Studio</DisplayName>
-        <Description xml:space="preserve">Visual Studio extension that integrates advanced AI capabilities, enabling tasks like code suggestions, bug detection, optimization, unit test generation, and more directly within the development environment.</Description>
-        <Icon>icons8-chatgpt-512.png</Icon>
-        <PreviewImage>Resources\Icon.png</PreviewImage>
-        <Tags>chatGPT, CoPilot, OpenAI, Visual Studio</Tags>
-    </Metadata>
-    <Installation>
-        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.14, 18.0)">
-            <ProductArchitecture>arm64</ProductArchitecture>
-        </InstallationTarget>
-        <InstallationTarget Version="[17.14,18.0)" Id="Microsoft.VisualStudio.Community">
-            <ProductArchitecture>amd64</ProductArchitecture>
-        </InstallationTarget>
-    </Installation>
-    <Prerequisites>
-        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,)" DisplayName="Visual Studio core editor" />
-    </Prerequisites>
-    <Assets>
-        <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
-        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
-    </Assets>
+  <Metadata>
+    <Identity Id="VisualChatGPTStudio.4854bc98-735d-4622-a0cf-30454b50aa0f" Version="6.4.0" Language="en-US" Publisher="Jefferson Pires" />
+    <DisplayName>Visual chatGPT Studio</DisplayName>
+    <Description xml:space="preserve">Visual Studio extension that integrates advanced AI capabilities, enabling tasks like code suggestions, bug detection, optimization, unit test generation, and more directly within the development environment.</Description>
+    <Icon>icons8-chatgpt-512.png</Icon>
+    <PreviewImage>Resources\Icon.png</PreviewImage>
+    <Tags>chatGPT, CoPilot, OpenAI, Visual Studio</Tags>
+  </Metadata>
+  <Installation>
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.14, 18.0)">
+      <ProductArchitecture>arm64</ProductArchitecture>
+    </InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.14,18.0)">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
+  </Installation>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" DisplayName="Visual Studio core editor" Version="[17.0,)" />
+  </Prerequisites>
+  <Assets>
+    <Asset Type="Microsoft.VisualStudio.VsPackage" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" d:Source="Project" d:ProjectName="%CurrentProject%" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="|%CurrentProject%|" d:Source="Project" d:ProjectName="%CurrentProject%" />
+  </Assets>
 </PackageManifest>

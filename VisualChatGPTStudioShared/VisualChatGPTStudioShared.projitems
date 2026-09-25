@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
@@ -93,6 +93,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Http\RequestCaptureHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Repositories\McpAgentRepository.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Repositories\Repository.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\Repositories\Sqlite\SqliteCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\Repositories\Sqlite\SqliteConnection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\Repositories\Sqlite\SqliteNative.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\ScreenCapturer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\SolutionExplorerHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\TextFormat.cs" />
